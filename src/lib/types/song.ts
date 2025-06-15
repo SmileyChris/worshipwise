@@ -80,3 +80,21 @@ export interface SongWithUsageStatus extends Song {
   lastUsedDate?: string;
   daysSinceLastUsed?: number;
 }
+
+export interface SongFilterOptions {
+  search?: string;
+  key?: string;
+  tags?: string[];
+  minTempo?: number;
+  maxTempo?: number;
+  createdBy?: string;
+  sort?: string;
+}
+
+export interface SongStats {
+  totalSongs: number;
+  availableSongs: number;
+  recentlyUsed: number;
+  mostUsedKey?: string;
+  averageTempo?: number;
+}
