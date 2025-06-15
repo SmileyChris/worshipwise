@@ -55,7 +55,7 @@
 							{isRetrying ? 'Retrying...' : 'Try Again'}
 						</Button>
 						
-						<Button onclick={toggleTroubleshooting} variant="outline" class="w-full">
+						<Button onclick={toggleTroubleshooting} variant="secondary" class="w-full">
 							<Terminal class="w-4 h-4 mr-2" />
 							Troubleshooting Help
 						</Button>

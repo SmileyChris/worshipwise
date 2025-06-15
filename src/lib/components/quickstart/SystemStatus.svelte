@@ -32,7 +32,7 @@
 						<Settings class="w-4 h-4 mr-2" />
 						Run Setup Wizard
 					</Button>
-					<Button onclick={handleRefreshStatus} size="sm" variant="outline">
+					<Button onclick={handleRefreshStatus} size="sm" variant="secondary">
 						<RefreshCw class="w-4 h-4 mr-2" />
 						Refresh Status
 					</Button>
@@ -55,7 +55,7 @@
 				</p>
 			</div>
 			<div class="ml-auto">
-				<Button onclick={handleRefreshStatus} size="sm" variant="outline">
+				<Button onclick={handleRefreshStatus} size="sm" variant="secondary">
 					<RefreshCw class="w-4 h-4" />
 				</Button>
 			</div>

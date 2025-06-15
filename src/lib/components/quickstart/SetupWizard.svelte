@@ -101,7 +101,8 @@
 			{#each store.setupSteps as step, index}
 				<div class="flex items-start space-x-3 p-3 rounded-lg border {index === store.currentStepIndex ? 'border-blue-200 bg-blue-50' : 'border-gray-200'}">
 					<div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center {getStepClass(step.status)}">
-						<svelte:component this={getStepIcon(step.status)} class="w-4 h-4" />
+						{@const StepIcon = getStepIcon(step.status)}
+						<StepIcon class="w-4 h-4" />
 					</div>
 					
 					<div class="flex-1 min-w-0">

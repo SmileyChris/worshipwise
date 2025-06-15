@@ -4,6 +4,7 @@
 	import WelcomeCard from '$lib/components/quickstart/WelcomeCard.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
+	import { Music, Clock, TrendingUp, Users } from 'lucide-svelte';
 
 	const songs = songsStore;
 	const quickstart = quickstartStore;
@@ -35,8 +36,8 @@
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 		<Card>
 			<div class="flex items-center">
-				<div class="flex-shrink-0 text-3xl">
-					🎵
+				<div class="flex-shrink-0">
+					<Music class="h-8 w-8 text-blue-600" />
 				</div>
 				<div class="ml-4">
 					<div class="text-2xl font-bold text-gray-900">{mockStats.totalSongs}</div>
@@ -47,8 +48,8 @@
 
 		<Card>
 			<div class="flex items-center">
-				<div class="flex-shrink-0 text-3xl">
-					🕒
+				<div class="flex-shrink-0">
+					<Clock class="h-8 w-8 text-green-600" />
 				</div>
 				<div class="ml-4">
 					<div class="text-2xl font-bold text-gray-900">{mockStats.recentSongs}</div>
@@ -59,8 +60,8 @@
 
 		<Card>
 			<div class="flex items-center">
-				<div class="flex-shrink-0 text-3xl">
-					📈
+				<div class="flex-shrink-0">
+					<TrendingUp class="h-8 w-8 text-purple-600" />
 				</div>
 				<div class="ml-4">
 					<div class="text-2xl font-bold text-gray-900">{mockStats.upcomingSetlists}</div>
@@ -71,8 +72,8 @@
 
 		<Card>
 			<div class="flex items-center">
-				<div class="flex-shrink-0 text-3xl">
-					👥
+				<div class="flex-shrink-0">
+					<Users class="h-8 w-8 text-orange-600" />
 				</div>
 				<div class="ml-4">
 					<div class="text-2xl font-bold text-gray-900">{mockStats.teamMembers}</div>
@@ -111,7 +112,7 @@
 				</div>
 			{:else}
 				<div class="text-center py-6 text-gray-500">
-					<div class="text-4xl mb-4">🎵</div>
+					<Music class="h-12 w-12 mx-auto mb-4 text-gray-300" />
 					<p>No songs added yet</p>
 					<a href="/songs" class="inline-block mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
 						Add Your First Song
@@ -125,12 +126,12 @@
 			<h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
 			<div class="space-y-3">
 				<a href="/songs" class="flex items-center w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-					<span class="mr-2">🎵</span>
+					<Music class="w-4 h-4 mr-2" />
 					Manage Songs
 				</a>
 				
 				<a href="/setlists" class="flex items-center w-full px-4 py-3 border border-gray-300 rounded-md hover:bg-gray-50">
-					<span class="mr-2">📋</span>
+					<Clock class="w-4 h-4 mr-2" />
 					Plan Setlists
 				</a>
 				
@@ -138,7 +139,7 @@
 					onclick={() => quickstart.showSetupWizard = true} 
 					class="flex items-center w-full px-4 py-3 border border-gray-300 rounded-md hover:bg-gray-50 text-left"
 				>
-					<span class="mr-2">⚙️</span>
+					<TrendingUp class="w-4 h-4 mr-2" />
 					Setup Wizard
 				</button>
 			</div>
