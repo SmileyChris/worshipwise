@@ -75,7 +75,7 @@
 	}
 </script>
 
-<Modal open={modalOpen} size="lg" on:close={handleClose}>
+<Modal open={modalOpen} size="lg" onclose={handleClose}>
 	<div class="p-6">
 		<div class="mb-6">
 			<h2 class="text-2xl font-bold text-gray-900 mb-2">

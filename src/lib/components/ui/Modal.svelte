@@ -8,6 +8,7 @@
     title?: string;
     size?: 'sm' | 'md' | 'lg' | 'xl';
     showCloseButton?: boolean;
+    onclose?: () => void;
     children?: import('svelte').Snippet;
     footer?: import('svelte').Snippet;
   }
@@ -17,6 +18,7 @@
     title = '',
     size = 'md',
     showCloseButton = true,
+    onclose,
     children,
     footer
   }: Props = $props();
@@ -35,6 +37,7 @@
   });
   
   function handleClose() {
+    onclose?.();
     dispatch('close');
   }
   
