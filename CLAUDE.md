@@ -195,6 +195,7 @@ See `plan/POCKETBASE_SETUP.md` for detailed configuration.
 ## Important Guidelines
 
 - Always check and follow the development roadmap in `plan/DEVELOPMENT_ROADMAP.md`
+- **Update progress tracking**: When completing work outlined in `plan/DEVELOPMENT_ROADMAP.md` or `plan/TESTING_ROADMAP.md`, update those files to mark completed tasks and reflect current status
 - Reference plan files for detailed implementation guidance
 - Do what has been asked; nothing more, nothing less
 - NEVER create files unless they're absolutely necessary for achieving your goal

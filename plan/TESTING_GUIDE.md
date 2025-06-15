@@ -15,7 +15,7 @@ This guide outlines the testing strategy, setup, and patterns for ensuring high-
 
 ### Vitest Configuration
 
-The project uses a multi-project Vitest setup defined in `vite.config.ts`:
+The project uses a multi-project Vitest setup defined in `vite.config.ts` with Svelte 5 optimizations:
 
 ```typescript
 // vite.config.ts
@@ -57,20 +57,33 @@ export default defineConfig({
 // vitest-setup-client.ts
 import '@testing-library/jest-dom';
 import { beforeEach, vi } from 'vitest';
+import { flushSync } from 'svelte';
 
-// Mock PocketBase
-vi.mock('$lib/api/client', () => ({
-	pb: {
-		collection: vi.fn(),
-		authStore: {
-			model: null,
-			token: '',
-			isValid: false,
-			onChange: vi.fn(),
-			clear: vi.fn()
+// Mock PocketBase with factory function
+vi.mock('pocketbase', () => {
+	return {
+		default: class PocketBase {
+			authStore = {
+				model: null,
+				token: '',
+				isValid: false,
+				onChange: vi.fn(),
+				clear: vi.fn()
+			};
+			
+			collection = vi.fn((name: string) => ({
+				getFullList: vi.fn(),
+				getOne: vi.fn(),
+				create: vi.fn(),
+				update: vi.fn(),
+				delete: vi.fn(),
+				subscribe: vi.fn(() => vi.fn())
+			}));
+			
+			autoCancellation = vi.fn();
 		}
-	}
-}));
+	};
+});
 
 // Mock SvelteKit modules
 vi.mock('$app/environment', () => ({
@@ -93,6 +106,12 @@ vi.mock('$app/stores', () => ({
 beforeEach(() => {
 	vi.clearAllMocks();
 });
+
+// Global test utilities
+globalThis.testHelpers = {
+	flushSync,
+	waitForUpdates: () => new Promise(resolve => requestAnimationFrame(resolve))
+};
 ```
 
 ### Playwright Configuration
@@ -144,32 +163,21 @@ export default defineConfig({
 
 ## Testing Patterns
 
-### 1. Unit Testing Svelte 5 Stores
+### 1. Unit Testing Svelte 5 Stores with Runes
 
 ```typescript
 // src/lib/stores/songs.svelte.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { flushSync } from 'svelte';
 import { SongStore } from './songs.svelte';
-
-// Mock PocketBase
-const mockPb = {
-	collection: vi.fn(() => ({
-		getFullList: vi.fn(),
-		create: vi.fn(),
-		update: vi.fn(),
-		delete: vi.fn(),
-		subscribe: vi.fn()
-	}))
-};
-
-vi.mock('$lib/api/client', () => ({
-	pb: mockPb
-}));
+import type { Song } from '$lib/types';
 
 describe('SongStore', () => {
 	let songStore: SongStore;
+	let mockPb: any;
 
 	beforeEach(() => {
+		mockPb = new PocketBase();
 		songStore = new SongStore();
 		vi.clearAllMocks();
 	});
@@ -180,15 +188,18 @@ describe('SongStore', () => {
 		expect(songStore.error).toBe(null);
 	});
 
-	it('loads songs successfully', async () => {
+	it('loads songs successfully with synchronous updates', async () => {
 		const mockSongs = [
 			{ id: '1', title: 'Amazing Grace', artist: 'Traditional' },
 			{ id: '2', title: 'How Great Thou Art', artist: 'Traditional' }
 		];
 
-		mockPb.collection().getFullList.mockResolvedValue(mockSongs);
+		mockPb.collection('songs').getFullList.mockResolvedValue(mockSongs);
 
-		await songStore.loadSongs();
+		// Use flushSync for immediate state updates
+		await flushSync(async () => {
+			await songStore.loadSongs();
+		});
 
 		expect(songStore.songs).toEqual(mockSongs);
 		expect(songStore.loading).toBe(false);
@@ -197,49 +208,88 @@ describe('SongStore', () => {
 
 	it('handles loading errors', async () => {
 		const errorMessage = 'Failed to load songs';
-		mockPb.collection().getFullList.mockRejectedValue(new Error(errorMessage));
+		mockPb.collection('songs').getFullList.mockRejectedValue(new Error(errorMessage));
 
-		await songStore.loadSongs();
+		await flushSync(async () => {
+			await songStore.loadSongs();
+		});
 
 		expect(songStore.songs).toEqual([]);
 		expect(songStore.loading).toBe(false);
 		expect(songStore.error).toBe(errorMessage);
 	});
 
-	it('creates new song', async () => {
+	it('creates new song with optimistic update', async () => {
 		const newSong = { title: 'New Song', artist: 'New Artist' };
 		const createdSong = { id: '3', ...newSong };
 
-		mockPb.collection().create.mockResolvedValue(createdSong);
+		mockPb.collection('songs').create.mockResolvedValue(createdSong);
 
-		await songStore.createSong(newSong);
+		// Test optimistic update
+		flushSync(() => {
+			songStore.createSong(newSong);
+		});
 
-		expect(mockPb.collection().create).toHaveBeenCalledWith(newSong);
-		expect(songStore.songs).toContain(createdSong);
+		// Optimistic update should add temporary song immediately
+		expect(songStore.songs).toHaveLength(1);
+		expect(songStore.songs[0]).toMatchObject(newSong);
+
+		// Wait for actual creation
+		await vi.waitFor(() => {
+			expect(songStore.songs[0].id).toBe('3');
+		});
 	});
 
-	it('filters songs correctly', () => {
-		songStore.songs = [
-			{ id: '1', title: 'Amazing Grace', artist: 'Traditional' },
-			{ id: '2', title: 'How Great Thou Art', artist: 'Traditional' },
-			{ id: '3', title: '10,000 Reasons', artist: 'Matt Redman' }
-		];
+	it('filters songs reactively with derived state', () => {
+		flushSync(() => {
+			songStore.songs = [
+				{ id: '1', title: 'Amazing Grace', artist: 'Traditional' },
+				{ id: '2', title: 'How Great Thou Art', artist: 'Traditional' },
+				{ id: '3', title: '10,000 Reasons', artist: 'Matt Redman' }
+			];
+		});
 
-		songStore.searchTerm = 'amazing';
+		flushSync(() => {
+			songStore.searchTerm = 'amazing';
+		});
 
+		// Derived state updates synchronously
 		expect(songStore.filteredSongs).toEqual([
 			{ id: '1', title: 'Amazing Grace', artist: 'Traditional' }
 		]);
 	});
+
+	it('handles real-time updates', () => {
+		const unsubscribe = vi.fn();
+		mockPb.collection('songs').subscribe.mockReturnValue(unsubscribe);
+
+		// Subscribe to changes
+		songStore.subscribeToChanges();
+
+		// Simulate real-time update
+		const mockUpdate = { action: 'create', record: { id: '4', title: 'New Song' } };
+		const subscribeCallback = mockPb.collection('songs').subscribe.mock.calls[0][1];
+		
+		flushSync(() => {
+			subscribeCallback(mockUpdate);
+		});
+
+		expect(songStore.songs).toContainEqual(mockUpdate.record);
+
+		// Cleanup
+		songStore.unsubscribe();
+		expect(unsubscribe).toHaveBeenCalled();
+	});
 });
 ```
 
-### 2. Component Testing
+### 2. Component Testing with Svelte 5 Native APIs
 
 ```typescript
 // src/lib/components/songs/SongCard.svelte.test.ts
-import { render, screen, fireEvent } from '@testing-library/svelte';
 import { describe, it, expect, vi } from 'vitest';
+import { mount, unmount } from 'svelte';
+import { flushSync, $effect } from 'svelte';
 import SongCard from './SongCard.svelte';
 import type { Song } from '$lib/types/song';
 
@@ -258,25 +308,50 @@ const mockSong: Song = {
 
 describe('SongCard', () => {
 	it('renders song information correctly', () => {
-		render(SongCard, { props: { song: mockSong } });
+		const component = mount(SongCard, {
+			target: document.body,
+			props: { song: mockSong }
+		});
 
-		expect(screen.getByText('Amazing Grace')).toBeInTheDocument();
-		expect(screen.getByText('Traditional')).toBeInTheDocument();
-		expect(screen.getByText('Key: G')).toBeInTheDocument();
-		expect(screen.getByText('80 BPM')).toBeInTheDocument();
-		expect(screen.getByText('4:00')).toBeInTheDocument(); // Duration formatted
+		expect(document.body.textContent).toContain('Amazing Grace');
+		expect(document.body.textContent).toContain('Traditional');
+		expect(document.body.textContent).toContain('Key: G');
+		expect(document.body.textContent).toContain('80 BPM');
+		expect(document.body.textContent).toContain('4:00');
+
+		unmount(component);
 	});
 
-	it('displays tags correctly', () => {
-		render(SongCard, { props: { song: mockSong } });
+	it('handles interactive state changes', () => {
+		let cleanup: () => void;
 
-		expect(screen.getByText('hymn')).toBeInTheDocument();
-		expect(screen.getByText('traditional')).toBeInTheDocument();
+		$effect.root(() => {
+			const component = mount(SongCard, {
+				target: document.body,
+				props: { 
+					song: mockSong,
+					showActions: true,
+					onEdit: vi.fn()
+				}
+			});
+
+			// Test hover state
+			flushSync(() => {
+				component.isHovered = true;
+			});
+
+			expect(component.isHovered).toBe(true);
+
+			cleanup = () => unmount(component);
+		});
+
+		cleanup!();
 	});
 
-	it('calls onEdit when edit button is clicked', async () => {
+	it('calls onEdit when edit button is clicked', () => {
 		const onEdit = vi.fn();
-		render(SongCard, {
+		const component = mount(SongCard, {
+			target: document.body,
 			props: {
 				song: mockSong,
 				onEdit,
@@ -284,63 +359,43 @@ describe('SongCard', () => {
 			}
 		});
 
-		const editButton = screen.getByText('Edit');
-		await fireEvent.click(editButton);
+		const editButton = document.querySelector('[data-testid="edit-button"]') as HTMLButtonElement;
+		editButton.click();
 
 		expect(onEdit).toHaveBeenCalledWith(mockSong);
+
+		unmount(component);
 	});
 
-	it('calls onAddToSetlist when add button is clicked', async () => {
-		const onAddToSetlist = vi.fn();
-		render(SongCard, {
-			props: {
-				song: mockSong,
-				onAddToSetlist,
-				showActions: true
-			}
+	it('shows usage indicator reactively', () => {
+		let cleanup: () => void;
+
+		$effect.root(() => {
+			const component = mount(SongCard, {
+				target: document.body,
+				props: {
+					song: mockSong,
+					showUsageIndicator: true,
+					lastUsedDays: 30
+				}
+			});
+
+			// Initially shows green indicator
+			expect(document.querySelector('[data-testid="usage-indicator"]')?.classList)
+				.toContain('bg-green-500');
+
+			// Update to show yellow indicator
+			flushSync(() => {
+				component.$set({ lastUsedDays: 20 });
+			});
+
+			expect(document.querySelector('[data-testid="usage-indicator"]')?.classList)
+				.toContain('bg-yellow-500');
+
+			cleanup = () => unmount(component);
 		});
 
-		const addButton = screen.getByText('Add to Setlist');
-		await fireEvent.click(addButton);
-
-		expect(onAddToSetlist).toHaveBeenCalledWith(mockSong);
-	});
-
-	it('hides actions when showActions is false', () => {
-		render(SongCard, {
-			props: {
-				song: mockSong,
-				showActions: false
-			}
-		});
-
-		expect(screen.queryByText('Edit')).not.toBeInTheDocument();
-		expect(screen.queryByText('Add to Setlist')).not.toBeInTheDocument();
-	});
-
-	it('shows usage indicator when enabled', () => {
-		render(SongCard, {
-			props: {
-				song: mockSong,
-				showUsageIndicator: true
-			}
-		});
-
-		// Assuming the song is available (green status)
-		expect(screen.getByText('Available')).toBeInTheDocument();
-	});
-
-	it('applies custom CSS classes', () => {
-		const customClass = 'custom-card-class';
-		render(SongCard, {
-			props: {
-				song: mockSong,
-				class: customClass
-			}
-		});
-
-		const cardElement = screen.getByText('Amazing Grace').closest('.bg-white');
-		expect(cardElement).toHaveClass(customClass);
+		cleanup!();
 	});
 });
 ```
@@ -659,6 +714,124 @@ test.describe('Visual Tests', () => {
 });
 ```
 
+## Testing Utilities
+
+### Component Test Helpers
+
+```typescript
+// src/lib/test-utils/component-helpers.ts
+import { mount, unmount } from 'svelte';
+import { flushSync, $effect } from 'svelte';
+
+export function testComponent(
+	Component: any,
+	testFn: (component: any) => void | Promise<void>,
+	props = {}
+) {
+	let component: any;
+	let cleanup: () => void;
+	
+	$effect.root(async () => {
+		component = mount(Component, {
+			target: document.body,
+			props
+		});
+		
+		await testFn(component);
+		
+		cleanup = () => unmount(component);
+	});
+	
+	cleanup!();
+}
+
+export function waitForUpdates() {
+	return new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+export function triggerEvent(element: HTMLElement, eventName: string, detail?: any) {
+	const event = new CustomEvent(eventName, { detail, bubbles: true });
+	element.dispatchEvent(event);
+}
+```
+
+### Performance Testing Utilities
+
+```typescript
+// src/lib/test-utils/performance.ts
+export async function measureRenderTime(
+	Component: any,
+	props: any,
+	iterations = 100
+) {
+	const times: number[] = [];
+	
+	for (let i = 0; i < iterations; i++) {
+		const start = performance.now();
+		
+		const component = mount(Component, {
+			target: document.body,
+			props
+		});
+		
+		await waitForUpdates();
+		
+		const end = performance.now();
+		times.push(end - start);
+		
+		unmount(component);
+	}
+	
+	return {
+		average: times.reduce((a, b) => a + b) / times.length,
+		min: Math.min(...times),
+		max: Math.max(...times),
+		p95: times.sort((a, b) => a - b)[Math.floor(times.length * 0.95)]
+	};
+}
+```
+
+### Extracted Business Logic Testing
+
+```typescript
+// src/lib/utils/song-utils.ts
+export function calculateUsageIndicator(
+	lastUsedDate: Date | null,
+	usageCount: number,
+	daysSinceLastUse: number
+): 'green' | 'yellow' | 'red' {
+	if (!lastUsedDate) return 'green';
+	if (daysSinceLastUse < 14) return 'red';
+	if (daysSinceLastUse < 28) return 'yellow';
+	return 'green';
+}
+
+// src/lib/utils/song-utils.test.ts
+import { describe, it, expect } from 'vitest';
+import { calculateUsageIndicator } from './song-utils';
+
+describe('calculateUsageIndicator', () => {
+	it('returns green for never used songs', () => {
+		expect(calculateUsageIndicator(null, 0, 0)).toBe('green');
+	});
+
+	it('returns red for recently used songs', () => {
+		const recentDate = new Date();
+		expect(calculateUsageIndicator(recentDate, 5, 10)).toBe('red');
+	});
+
+	it('returns yellow for moderately used songs', () => {
+		const date = new Date();
+		expect(calculateUsageIndicator(date, 3, 20)).toBe('yellow');
+	});
+
+	it('returns green for songs not used in 30+ days', () => {
+		const oldDate = new Date();
+		expect(calculateUsageIndicator(oldDate, 1, 35)).toBe('green');
+	});
+});
+```
+
 ## API Testing
 
 ### PocketBase Mock Utilities
@@ -666,15 +839,37 @@ test.describe('Visual Tests', () => {
 ```typescript
 // src/lib/test-utils/pocketbase-mock.ts
 import { vi } from 'vitest';
+import { flushSync } from 'svelte';
+
+export class MockRealtimeClient {
+	private listeners = new Map<string, Set<Function>>();
+	
+	subscribe(channel: string, callback: Function) {
+		if (!this.listeners.has(channel)) {
+			this.listeners.set(channel, new Set());
+		}
+		this.listeners.get(channel)!.add(callback);
+		
+		return () => {
+			this.listeners.get(channel)?.delete(callback);
+		};
+	}
+	
+	emit(channel: string, data: any) {
+		flushSync(() => {
+			this.listeners.get(channel)?.forEach(cb => cb(data));
+		});
+	}
+}
 
 export function createMockPocketBase() {
-	const mockCollection = vi.fn(() => ({
+	const mockCollection = vi.fn((name: string) => ({
 		getFullList: vi.fn(),
 		getOne: vi.fn(),
 		create: vi.fn(),
 		update: vi.fn(),
 		delete: vi.fn(),
-		subscribe: vi.fn(() => vi.fn()), // Returns unsubscribe function
+		subscribe: vi.fn(() => vi.fn()),
 		authWithPassword: vi.fn()
 	}));
 
@@ -687,10 +882,7 @@ export function createMockPocketBase() {
 			onChange: vi.fn(),
 			clear: vi.fn()
 		},
-		realtime: {
-			subscribe: vi.fn(),
-			unsubscribe: vi.fn()
-		}
+		realtime: new MockRealtimeClient()
 	};
 }
 

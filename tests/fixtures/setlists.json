@@ -1,0 +1,38 @@
+[
+  {
+    "id": "setlist_1",
+    "created": "2024-01-01T08:00:00Z",
+    "updated": "2024-01-01T08:00:00Z",
+    "title": "New Year Sunday",
+    "date": "2024-01-07",
+    "service_type": "Morning",
+    "theme": "New Beginnings",
+    "notes": "Focus on fresh starts and God's faithfulness",
+    "is_completed": true,
+    "worship_leader": "user_1"
+  },
+  {
+    "id": "setlist_2",
+    "created": "2024-01-08T08:00:00Z",
+    "updated": "2024-01-08T08:00:00Z",
+    "title": "Sunday Evening Worship",
+    "date": "2024-01-14",
+    "service_type": "Evening",
+    "theme": "Gratitude",
+    "notes": "Intimate worship setting",
+    "is_completed": true,
+    "worship_leader": "user_2"
+  },
+  {
+    "id": "setlist_3",
+    "created": "2024-01-15T08:00:00Z",
+    "updated": "2024-01-15T08:00:00Z",
+    "title": "Youth Service",
+    "date": "2024-01-21",
+    "service_type": "Youth",
+    "theme": "Identity in Christ",
+    "notes": "High energy contemporary songs",
+    "is_completed": false,
+    "worship_leader": "user_3"
+  }
+]
