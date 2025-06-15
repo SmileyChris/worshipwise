@@ -44,18 +44,19 @@
   ];
   
   // Key options (will be populated from available keys)
-  let keyOptions = $derived(() => [
+  let keyOptions = $derived.by(() => [
     { value: '', label: 'All Keys' },
-    ...availableKeys.map(key => ({ value: key, label: key }))
+    ...availableKeys().map((key: string) => ({ value: key, label: key }))
   ]);
   
   // Load songs on mount
-  onMount(async () => {
-    await songsStore.loadSongs();
+  onMount(() => {
+    songsStore.loadSongs();
     
     // Set up real-time updates
-    const unsubscribe = songsStore.subscribeToUpdates();
-    return unsubscribe;
+    songsStore.subscribeToUpdates().then(unsubscribe => {
+      return unsubscribe;
+    });
   });
   
   // Watch for filter changes
@@ -321,7 +322,6 @@
     song={selectedSong}
     {loading}
     {error}
-    onsubmit={handleSongFormSubmit}
     oncancel={handleSongFormCancel}
   />
 </Modal>
@@ -344,8 +344,6 @@
       </p>
     </div>
   {/if}
-  
-  {@render footer()}
   
   {#snippet footer()}
     <Button

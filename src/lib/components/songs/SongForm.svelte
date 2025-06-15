@@ -10,12 +10,14 @@
     song?: Song | null;
     loading?: boolean;
     error?: string | null;
+    oncancel?: () => void;
   }
   
   let {
     song = null,
     loading = false,
-    error = null
+    error = null,
+    oncancel = () => {}
   }: Props = $props();
   
   const dispatch = createEventDispatcher<{
@@ -223,6 +225,7 @@
   }
   
   function handleCancel() {
+    oncancel();
     dispatch('cancel');
   }
 </script>
@@ -296,7 +299,7 @@
       />
       
       <div>
-        <label class="block text-sm font-medium leading-6 text-gray-900 mb-1">
+        <label for="duration_minutes" class="block text-sm font-medium leading-6 text-gray-900 mb-1">
           Duration
         </label>
         <div class="flex gap-2">

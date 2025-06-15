@@ -33,14 +33,14 @@
   });
   
   // Usage status (placeholder - would need actual usage data)
-  let usageStatus = $derived(() => {
+  let usageStatus = $derived.by(() => {
     if (!showUsageIndicator) return null;
     // This would need to be calculated based on song_usage records
     // For now, return a placeholder
     return 'green'; // 'green' | 'yellow' | 'red'
   });
   
-  let statusColors = $derived(() => {
+  let statusColors = $derived.by(() => {
     switch (usageStatus) {
       case 'red': return 'bg-red-100 text-red-800';
       case 'yellow': return 'bg-yellow-100 text-yellow-800';
@@ -49,7 +49,7 @@
     }
   });
   
-  let statusText = $derived(() => {
+  let statusText = $derived.by(() => {
     switch (usageStatus) {
       case 'red': return 'Recently Used';
       case 'yellow': return 'Used Recently';
@@ -59,13 +59,9 @@
   });
   
   // Check if user can edit this song
-  let canEdit = $derived(() => {
-    return auth.canManageSongs || song.created_by === auth.user?.id;
-  });
+  let canEdit = $derived(auth.canManageSongs || song.created_by === auth.user?.id);
   
-  let canDelete = $derived(() => {
-    return auth.isAdmin;
-  });
+  let canDelete = $derived(auth.isAdmin);
 </script>
 
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow {className}">

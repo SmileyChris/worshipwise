@@ -4,7 +4,7 @@
   import Button from '$lib/components/ui/Button.svelte';
   
   // Navigation items based on user role
-  let navigationItems = $derived(() => {
+  let navigationItems = $derived.by(() => {
     const items = [
       { name: 'Dashboard', href: '/dashboard', icon: '🏠' },
       { name: 'Songs', href: '/songs', icon: '🎵' },

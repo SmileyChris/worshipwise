@@ -62,7 +62,7 @@
       {placeholder}
       {required}
       {disabled}
-      {autocomplete}
+      autocomplete={autocomplete as any}
       class={inputClasses}
       aria-describedby={error ? errorId : undefined}
       aria-invalid={error ? 'true' : 'false'}
