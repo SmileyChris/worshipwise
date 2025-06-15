@@ -32,29 +32,39 @@
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   });
   
-  // Usage status (placeholder - would need actual usage data)
-  let usageStatus = $derived.by(() => {
+  // Combined usage status info (placeholder - would need actual usage data)
+  let usageStatusInfo = $derived.by(() => {
     if (!showUsageIndicator) return null;
+    
     // This would need to be calculated based on song_usage records
-    // For now, return a placeholder
-    return 'green'; // 'green' | 'yellow' | 'red'
-  });
-  
-  let statusColors = $derived.by(() => {
-    switch (usageStatus) {
-      case 'red': return 'bg-red-100 text-red-800';
-      case 'yellow': return 'bg-yellow-100 text-yellow-800';
-      case 'green': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  });
-  
-  let statusText = $derived.by(() => {
-    switch (usageStatus) {
-      case 'red': return 'Recently Used';
-      case 'yellow': return 'Used Recently';
-      case 'green': return 'Available';
-      default: return '';
+    // For now, return a placeholder with combined data
+    const status = 'green' as 'green' | 'yellow' | 'red' | null;
+    
+    switch (status) {
+      case 'red': 
+        return { 
+          status,
+          colors: 'bg-red-100 text-red-800', 
+          text: 'Recently Used' 
+        };
+      case 'yellow': 
+        return { 
+          status,
+          colors: 'bg-yellow-100 text-yellow-800', 
+          text: 'Used Recently' 
+        };
+      case 'green': 
+        return { 
+          status,
+          colors: 'bg-green-100 text-green-800', 
+          text: 'Available' 
+        };
+      default: 
+        return { 
+          status: null,
+          colors: 'bg-gray-100 text-gray-800', 
+          text: '' 
+        };
     }
   });
   
@@ -93,9 +103,9 @@
           </Badge>
         {/if}
         
-        {#if usageStatus && statusText}
-          <Badge variant={usageStatus === 'green' ? 'success' : usageStatus === 'yellow' ? 'warning' : 'danger'}>
-            {statusText}
+        {#if usageStatusInfo && usageStatusInfo.text}
+          <Badge variant={usageStatusInfo.status === 'green' ? 'success' : usageStatusInfo.status === 'yellow' ? 'warning' : 'danger'}>
+            {usageStatusInfo.text}
           </Badge>
         {/if}
       </div>

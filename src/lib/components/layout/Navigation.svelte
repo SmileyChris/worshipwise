@@ -1,6 +1,6 @@
 <script lang="ts">
   import { auth } from '$lib/stores/auth.svelte';
-  import { page } from '$app/stores';
+  import { page as pageStore } from '$app/stores';
   import Button from '$lib/components/ui/Button.svelte';
   
   // Navigation items based on user role
@@ -24,14 +24,8 @@
     return items;
   });
   
-  let currentPath = $state('');
-  
-  // Subscribe to page changes
-  $effect(() => {
-    page.subscribe(p => {
-      currentPath = p.url.pathname;
-    });
-  });
+  // Get current path reactively from page store
+  let currentPath = $derived($pageStore.url.pathname);
   
   function isCurrentPage(href: string): boolean {
     return currentPath === href || currentPath.startsWith(href + '/');

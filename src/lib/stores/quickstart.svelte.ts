@@ -51,18 +51,14 @@ class QuickstartStore {
 	showSetupWizard = $state(false);
 	currentStepIndex = $state(0);
 
-	get currentStep() {
-		return this.setupSteps[this.currentStepIndex];
-	}
+	currentStep = $derived(this.setupSteps[this.currentStepIndex]);
 
-	get completedSteps() {
-		return this.setupSteps.filter(step => step.status === 'completed');
-	}
+	completedSteps = $derived(this.setupSteps.filter(step => step.status === 'completed'));
 
-	get isSetupComplete() {
+	isSetupComplete = $derived.by(() => {
 		const requiredSteps = this.setupSteps.filter(step => !step.optional);
 		return requiredSteps.every(step => step.status === 'completed');
-	}
+	});
 
 	async checkSystemStatus() {
 		this.isLoading = true;

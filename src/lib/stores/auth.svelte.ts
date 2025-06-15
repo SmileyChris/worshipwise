@@ -182,30 +182,22 @@ class AuthStore {
   /**
    * Get user's display name
    */
-  get displayName(): string {
-    return this.user?.name || this.user?.email || 'User';
-  }
+  displayName = $derived(this.user?.name || this.user?.email || 'User');
 
   /**
    * Check if user can manage songs (leader or admin)
    */
-  get canManageSongs(): boolean {
-    return this.hasAnyRole(['leader', 'admin']);
-  }
+  canManageSongs = $derived(this.hasAnyRole(['leader', 'admin']));
 
   /**
    * Check if user can manage setlists (leader or admin)
    */
-  get canManageSetlists(): boolean {
-    return this.hasAnyRole(['leader', 'admin']);
-  }
+  canManageSetlists = $derived(this.hasAnyRole(['leader', 'admin']));
 
   /**
    * Check if user is admin
    */
-  get isAdmin(): boolean {
-    return this.hasRole('admin');
-  }
+  isAdmin = $derived(this.hasRole('admin'));
 
   /**
    * Extract user-friendly error message
