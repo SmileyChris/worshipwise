@@ -18,6 +18,11 @@ export interface Song {
 	created: string;
 	updated: string;
 
+	// Usage tracking (computed client-side)
+	lastUsedDate?: Date | null;
+	daysSinceLastUsed?: number;
+	usageStatus?: 'available' | 'caution' | 'recent';
+
 	// Expanded relations
 	expand?: {
 		created_by?: {
@@ -73,11 +78,11 @@ export interface SongUsage {
 	updated: string;
 }
 
-export type SongUsageStatus = 'green' | 'yellow' | 'red';
+export type SongUsageStatus = 'available' | 'caution' | 'recent';
 
 export interface SongWithUsageStatus extends Song {
 	usageStatus: SongUsageStatus;
-	lastUsedDate?: string;
+	lastUsedDate?: Date | null;
 	daysSinceLastUsed?: number;
 }
 

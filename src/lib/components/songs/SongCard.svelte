@@ -32,30 +32,35 @@
 		return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 	});
 
-	// Combined usage status info (placeholder - would need actual usage data)
+	// Usage status info based on actual usage data
 	let usageStatusInfo = $derived.by(() => {
-		if (!showUsageIndicator) return null;
+		if (!showUsageIndicator || !song.usageStatus) return null;
 
-		// This would need to be calculated based on song_usage records
-		// For now, return a placeholder with combined data
-		const status = 'green' as 'green' | 'yellow' | 'red' | null;
+		const status = song.usageStatus;
+		const daysSince = song.daysSinceLastUsed;
 
 		switch (status) {
-			case 'red':
+			case 'recent':
 				return {
-					status,
+					status: 'red',
 					colors: 'bg-red-100 text-red-800',
-					text: 'Recently Used'
+					text:
+						daysSince !== undefined && daysSince < Infinity
+							? `Used ${daysSince} days ago`
+							: 'Recently Used'
 				};
-			case 'yellow':
+			case 'caution':
 				return {
-					status,
+					status: 'yellow',
 					colors: 'bg-yellow-100 text-yellow-800',
-					text: 'Used Recently'
+					text:
+						daysSince !== undefined && daysSince < Infinity
+							? `Used ${daysSince} days ago`
+							: 'Used Recently'
 				};
-			case 'green':
+			case 'available':
 				return {
-					status,
+					status: 'green',
 					colors: 'bg-green-100 text-green-800',
 					text: 'Available'
 				};

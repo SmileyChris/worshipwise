@@ -267,6 +267,83 @@ export class SongsAPI {
 	}
 
 	/**
+	 * Get last usage info for a song
+	 */
+	async getSongLastUsage(songId: string): Promise<{ lastUsed: Date | null; daysSince: number }> {
+		try {
+			const usage = await pb.collection('song_usage').getFirstListItem(`song_id = "${songId}"`, {
+				sort: '-used_date',
+				fields: 'used_date'
+			});
+
+			if (usage && usage.used_date) {
+				const lastUsed = new Date(usage.used_date);
+				const daysSince = Math.floor((Date.now() - lastUsed.getTime()) / (1000 * 60 * 60 * 24));
+				return { lastUsed, daysSince };
+			}
+
+			return { lastUsed: null, daysSince: Infinity };
+		} catch (error) {
+			// No usage found
+			return { lastUsed: null, daysSince: Infinity };
+		}
+	}
+
+	/**
+	 * Get usage info for multiple songs
+	 */
+	async getSongsUsageInfo(
+		songIds: string[]
+	): Promise<Map<string, { lastUsed: Date | null; daysSince: number }>> {
+		const usageMap = new Map();
+
+		if (songIds.length === 0) return usageMap;
+
+		try {
+			// Build filter for all song IDs
+			const idFilters = songIds.map((id) => `song_id = "${id}"`).join(' || ');
+
+			// Get all usage records for these songs
+			const usageRecords = await pb.collection('song_usage').getFullList({
+				filter: idFilters,
+				sort: '-used_date'
+			});
+
+			// Group by song_id and get the most recent usage
+			const latestUsageMap = new Map();
+			for (const record of usageRecords) {
+				if (
+					!latestUsageMap.has(record.song_id) ||
+					new Date(record.used_date) > new Date(latestUsageMap.get(record.song_id).used_date)
+				) {
+					latestUsageMap.set(record.song_id, record);
+				}
+			}
+
+			// Calculate days since last use for each song
+			for (const songId of songIds) {
+				const usage = latestUsageMap.get(songId);
+				if (usage && usage.used_date) {
+					const lastUsed = new Date(usage.used_date);
+					const daysSince = Math.floor((Date.now() - lastUsed.getTime()) / (1000 * 60 * 60 * 24));
+					usageMap.set(songId, { lastUsed, daysSince });
+				} else {
+					usageMap.set(songId, { lastUsed: null, daysSince: Infinity });
+				}
+			}
+
+			return usageMap;
+		} catch (error) {
+			console.error('Failed to fetch songs usage info:', error);
+			// Return empty map for all songs on error
+			for (const songId of songIds) {
+				usageMap.set(songId, { lastUsed: null, daysSince: Infinity });
+			}
+			return usageMap;
+		}
+	}
+
+	/**
 	 * Subscribe to real-time updates for songs
 	 */
 	subscribe(callback: (data: any) => void) {

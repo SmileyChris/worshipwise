@@ -17,6 +17,7 @@ WorshipWise is a worship song tracking system built with SvelteKit 5 + PocketBas
 - Playwright for E2E testing
 
 **Reference Documentation:**
+
 - Development roadmap: `plan/DEVELOPMENT_ROADMAP.md`
 - Component patterns: `plan/COMPONENT_GUIDE.md`
 - PocketBase setup: `plan/POCKETBASE_SETUP.md`
@@ -166,6 +167,7 @@ See `plan/TESTING_GUIDE.md` for comprehensive testing patterns.
 ### Component Development
 
 Follow the standardized component structure and patterns in `plan/COMPONENT_GUIDE.md`:
+
 - Consistent import order and organization
 - TypeScript interfaces for all props
 - Proper Svelte 5 runes usage
@@ -197,5 +199,5 @@ See `plan/POCKETBASE_SETUP.md` for detailed configuration.
 - Do what has been asked; nothing more, nothing less
 - NEVER create files unless they're absolutely necessary for achieving your goal
 - ALWAYS prefer editing an existing file to creating a new one
-- NEVER proactively create documentation files (*.md) or README files unless explicitly requested
+- NEVER proactively create documentation files (\*.md) or README files unless explicitly requested
 - Follow the established patterns and conventions in the codebase

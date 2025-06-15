@@ -78,7 +78,29 @@ class SongsStore {
 		try {
 			const result = await songsApi.getSongsPaginated(this.currentPage, this.perPage, this.filters);
 
-			this.songs = result.items;
+			// Load usage information for all songs
+			const songIds = result.items.map((song) => song.id);
+			const usageMap = await songsApi.getSongsUsageInfo(songIds);
+
+			// Enhance songs with usage information
+			this.songs = result.items.map((song) => {
+				const usage = usageMap.get(song.id);
+				if (usage) {
+					return {
+						...song,
+						lastUsedDate: usage.lastUsed,
+						daysSinceLastUsed: usage.daysSince,
+						usageStatus: this.calculateUsageStatus(usage.daysSince)
+					};
+				}
+				return {
+					...song,
+					lastUsedDate: null,
+					daysSinceLastUsed: Infinity,
+					usageStatus: 'available' as const
+				};
+			});
+
 			this.totalPages = result.totalPages;
 			this.totalItems = result.totalItems;
 			this.currentPage = result.page;
@@ -259,12 +281,23 @@ class SongsStore {
 	}
 
 	/**
-	 * Check if song was recently used (placeholder logic)
+	 * Check if song was recently used
 	 */
 	private isRecentlyUsed(song: Song): boolean {
-		// This would need to check against song_usage collection
-		// For now, return false as placeholder
-		return false;
+		return song.usageStatus === 'recent';
+	}
+
+	/**
+	 * Calculate usage status based on days since last use
+	 */
+	private calculateUsageStatus(daysSince: number): 'available' | 'caution' | 'recent' {
+		if (daysSince < 14) {
+			return 'recent';
+		} else if (daysSince < 28) {
+			return 'caution';
+		} else {
+			return 'available';
+		}
 	}
 
 	/**
