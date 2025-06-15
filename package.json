@@ -14,7 +14,12 @@
 		"lint": "prettier --check . && eslint .",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"pocketbase": "cd pocketbase && ./pocketbase serve",
+		"pb:start": "cd pocketbase && ./pocketbase serve --dev",
+		"pb:migrate": "cd pocketbase && ./pocketbase migrate up",
+		"dev:all": "concurrently \"npm run pocketbase\" \"npm run dev\"",
+		"dev:pb": "npm run pb:start"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -28,6 +33,7 @@
 		"@tailwindcss/vite": "^4.0.0",
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/svelte": "^5.2.4",
+		"concurrently": "^9.1.2",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",
@@ -43,5 +49,8 @@
 		"typescript-eslint": "^8.20.0",
 		"vite": "^6.2.6",
 		"vitest": "^3.2.3"
+	},
+	"dependencies": {
+		"pocketbase": "^0.26.1"
 	}
 }
