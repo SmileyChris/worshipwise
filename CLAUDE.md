@@ -138,3 +138,6 @@ src/
 - Use static adapter in `svelte.config.js`
 - SPA mode with `fallback: 'index.html'` for client-side routing
 - PocketBase rules handle API security and rate limiting
+
+## Memories
+- Ensure we use and update the plan/DEVELOPMENT_ROADMAP.md
