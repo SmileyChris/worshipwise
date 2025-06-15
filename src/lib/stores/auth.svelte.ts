@@ -49,8 +49,8 @@ class AuthStore {
       // PocketBase automatically updates authStore, triggering our onChange listener
       console.log('Login successful:', authData.record.email);
       
-      // Redirect to main app
-      await goto('/songs');
+      // Redirect to dashboard
+      await goto('/dashboard');
     } catch (error: any) {
       console.error('Login failed:', error);
       this.error = this.getErrorMessage(error);

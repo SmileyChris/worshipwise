@@ -6,6 +6,7 @@
   // Navigation items based on user role
   let navigationItems = $derived(() => {
     const items = [
+      { name: 'Dashboard', href: '/dashboard', icon: '🏠' },
       { name: 'Songs', href: '/songs', icon: '🎵' },
       { name: 'Setlists', href: '/setlists', icon: '📋' }
     ];
@@ -47,7 +48,7 @@
       <!-- Logo and primary navigation -->
       <div class="flex">
         <div class="flex-shrink-0 flex items-center">
-          <a href="/songs" class="text-xl font-bold text-blue-600">
+          <a href="/dashboard" class="text-xl font-bold text-blue-600">
             WorshipWise
           </a>
         </div>

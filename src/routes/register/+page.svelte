@@ -8,7 +8,7 @@
   // Redirect if already logged in
   onMount(() => {
     if (auth.isValid) {
-      goto('/songs');
+      goto('/dashboard');
     }
   });
   
