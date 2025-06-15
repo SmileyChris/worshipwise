@@ -8,6 +8,7 @@ A modern worship song tracking and setlist management system built for worship t
 ## ✨ Features
 
 ### ✅ **Completed Features**
+
 - **Complete Authentication System** with role-based access (musicians, leaders, admins)
 - **Comprehensive Song Management** with CRUD operations, search, and filtering
 - **File Upload System** for chord charts, sheet music, and audio files
@@ -16,11 +17,13 @@ A modern worship song tracking and setlist management system built for worship t
 - **Modern UI Component Library** built with Tailwind CSS
 
 ### 🚧 **In Development**
+
 - **Song Usage Tracking** to prevent repetition
 - **Basic Setlist Management** for service planning
 - **Visual Indicators** for song availability (green/yellow/red system)
 
 ### 🎯 **Planned Features**
+
 - Advanced setlist builder with drag-and-drop
 - Analytics dashboard with usage patterns
 - Team collaboration tools
@@ -30,6 +33,7 @@ A modern worship song tracking and setlist management system built for worship t
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+
 - npm or pnpm
 
@@ -53,19 +57,22 @@ npm run dev:all
 ### First Time Setup
 
 1. **Install PocketBase** (if needed):
+
    ```bash
    # Install latest version
    ./scripts/install-pocketbase.sh
-   
+
    # Or install specific version
    ./scripts/install-pocketbase.sh 0.28.3
    ```
 
 2. **Access PocketBase Admin Panel**:
-   - Go to http://localhost:8090/_/
+
+   - Go to http://localhost:8090/\_/
    - Create your admin account (one-time setup)
 
 3. **Access the Application**:
+
    - Frontend: http://localhost:5173
    - Register your first worship leader account
 
@@ -80,7 +87,7 @@ npm run dev:all
 ```bash
 # Development
 npm run dev                    # Start SvelteKit only
-npm run pb:start              # Start PocketBase only  
+npm run pb:start              # Start PocketBase only
 npm run dev:all               # Start both simultaneously
 ./scripts/start-dev.sh        # Recommended startup script
 
@@ -103,6 +110,7 @@ npm run test                 # Run all tests
 ### Architecture
 
 **Tech Stack:**
+
 - **Frontend**: SvelteKit 5 with Svelte Runes for state management
 - **Backend**: PocketBase (Go-based backend with SQLite)
 - **Database**: SQLite with PocketBase ORM
@@ -112,6 +120,7 @@ npm run test                 # Run all tests
 - **Testing**: Vitest (unit) + Playwright (E2E)
 
 **Deployment Architecture:**
+
 - Single-server deployment where PocketBase serves both API and static frontend
 - No CORS issues (same origin)
 - SvelteKit builds to static files served by PocketBase
@@ -148,6 +157,7 @@ worshipwise/
 ## 🗄️ Database Schema
 
 ### Core Collections
+
 - **Users** - Authentication with roles (musician, leader, admin)
 - **Songs** - Song catalog with metadata, keys, and file attachments
 - **Setlists** - Service planning with themes and dates
@@ -170,14 +180,17 @@ npm test
 ## 📈 Development Progress
 
 ### ✅ **Phase 1: Foundation Setup (Completed)**
+
 - Sprint 1: Project Infrastructure ✅
 - Sprint 2: Authentication & Basic UI ✅
 
 ### ✅ **Phase 2: Core Song Management (In Progress)**
+
 - Sprint 3: Songs CRUD & Library ✅
 - Sprint 4: Song Usage Tracking & Setlist Foundation 🚧
 
 ### 🎯 **Upcoming Phases**
+
 - Phase 3: Advanced Setlist Features (Sprints 5-6)
 - Phase 4: Analytics & Reporting (Sprints 7-8)
 - Phase 5: Mobile & PWA (Sprints 9-10)
@@ -188,11 +201,13 @@ See [plan/DEVELOPMENT_ROADMAP.md](plan/DEVELOPMENT_ROADMAP.md) for detailed deve
 ## 🔗 API Endpoints
 
 ### PocketBase URLs (Development)
+
 - **API Base**: http://localhost:8090/api/
-- **Admin Panel**: http://localhost:8090/_/
+- **Admin Panel**: http://localhost:8090/\_/
 - **File Storage**: http://localhost:8090/api/files/
 
 ### Production
+
 - Single-origin deployment: PocketBase serves both API and static assets
 - No environment configuration needed (auto-detects URLs)
 
@@ -234,6 +249,7 @@ See [plan/DEVELOPMENT_ROADMAP.md](plan/DEVELOPMENT_ROADMAP.md) for detailed deve
 ## 🆘 Support
 
 For development questions or issues:
+
 1. Check the documentation in the `plan/` directory
 2. Review the development roadmap for context
 3. Check existing issues and discussions

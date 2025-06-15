@@ -24,8 +24,8 @@ export class SystemAPI {
 			try {
 				const collections = await pb.collections.getFullList();
 				const requiredCollections = ['users', 'songs'];
-				status.collectionsExist = requiredCollections.every(name => 
-					collections.some(col => col.name === name)
+				status.collectionsExist = requiredCollections.every((name) =>
+					collections.some((col) => col.name === name)
 				);
 			} catch (error) {
 				console.warn('Could not check collections:', error);
@@ -55,16 +55,13 @@ export class SystemAPI {
 			// Check if admin exists (this is approximate - we can't directly check admin users)
 			// We'll assume if there are users and collections exist, admin was set up
 			status.adminExists = status.collectionsExist && status.usersExist;
-
 		} catch (error) {
 			console.warn('PocketBase health check failed:', error);
 			status.pocketbaseRunning = false;
 		}
 
 		// Determine if setup is needed
-		status.needsSetup = !status.pocketbaseRunning || 
-						   !status.collectionsExist || 
-						   !status.usersExist;
+		status.needsSetup = !status.pocketbaseRunning || !status.collectionsExist || !status.usersExist;
 
 		return status;
 	}
@@ -101,7 +98,7 @@ export class SystemAPI {
 					'Content-Type': 'application/json'
 				}
 			});
-			
+
 			// If we get any response (even 401), admin interface is working
 			return response.status !== 500;
 		} catch (error) {

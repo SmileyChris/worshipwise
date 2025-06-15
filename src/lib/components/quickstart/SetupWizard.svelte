@@ -7,10 +7,10 @@
 	let { open = $bindable(false) } = $props();
 
 	const store = quickstartStore;
-	
+
 	// Modal state management
 	let modalOpen = $state(false);
-	
+
 	// Sync with parent prop
 	$effect(() => {
 		modalOpen = open;
@@ -48,7 +48,7 @@
 
 		try {
 			await store.executeStep(step.id);
-			
+
 			// Auto-advance for completed steps
 			if (step.status === 'completed') {
 				setTimeout(() => {
@@ -78,9 +78,7 @@
 <Modal open={modalOpen} size="lg" onclose={handleClose}>
 	<div class="p-6">
 		<div class="mb-6">
-			<h2 class="text-2xl font-bold text-gray-900 mb-2">
-				🎵 Welcome to WorshipWise
-			</h2>
+			<h2 class="mb-2 text-2xl font-bold text-gray-900">🎵 Welcome to WorshipWise</h2>
 			<p class="text-gray-600">
 				Let's get your worship song management system set up in just a few steps.
 			</p>
@@ -88,49 +86,59 @@
 
 		<!-- Progress indicator -->
 		<div class="mb-8">
-			<div class="flex items-center justify-between mb-4">
+			<div class="mb-4 flex items-center justify-between">
 				<span class="text-sm font-medium text-gray-700">Setup Progress</span>
 				<span class="text-sm text-gray-500">
-					{store.completedSteps.length} of {store.setupSteps.filter(s => !s.optional).length} complete
+					{store.completedSteps.length} of {store.setupSteps.filter((s) => !s.optional).length} complete
 				</span>
 			</div>
-			
-			<div class="w-full bg-gray-200 rounded-full h-2">
-				<div 
-					class="bg-blue-600 h-2 rounded-full transition-all duration-300"
-					style="width: {(store.completedSteps.length / store.setupSteps.filter(s => !s.optional).length) * 100}%"
+
+			<div class="h-2 w-full rounded-full bg-gray-200">
+				<div
+					class="h-2 rounded-full bg-blue-600 transition-all duration-300"
+					style="width: {(store.completedSteps.length /
+						store.setupSteps.filter((s) => !s.optional).length) *
+						100}%"
 				></div>
 			</div>
 		</div>
 
 		<!-- Steps list -->
-		<div class="space-y-4 mb-8">
+		<div class="mb-8 space-y-4">
 			{#each store.setupSteps as step, index}
 				{@const StepIcon = getStepIcon(step.status)}
-				<div class="flex items-start space-x-3 p-3 rounded-lg border {index === store.currentStepIndex ? 'border-blue-200 bg-blue-50' : 'border-gray-200'}">
-					<div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center {getStepClass(step.status)}">
-						<StepIcon class="w-4 h-4" />
+				<div
+					class="flex items-start space-x-3 rounded-lg border p-3 {index === store.currentStepIndex
+						? 'border-blue-200 bg-blue-50'
+						: 'border-gray-200'}"
+				>
+					<div
+						class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full {getStepClass(
+							step.status
+						)}"
+					>
+						<StepIcon class="h-4 w-4" />
 					</div>
-					
-					<div class="flex-1 min-w-0">
+
+					<div class="min-w-0 flex-1">
 						<div class="flex items-center space-x-2">
 							<h3 class="text-sm font-medium text-gray-900">
 								{step.title}
 							</h3>
 							{#if step.optional}
-								<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+								<span
+									class="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-800"
+								>
 									Optional
 								</span>
 							{/if}
 						</div>
-						<p class="text-sm text-gray-500 mt-1">
+						<p class="mt-1 text-sm text-gray-500">
 							{step.description}
 						</p>
-						
+
 						{#if step.status === 'error'}
-							<p class="text-sm text-red-600 mt-1">
-								⚠️ This step requires attention
-							</p>
+							<p class="mt-1 text-sm text-red-600">⚠️ This step requires attention</p>
 						{/if}
 					</div>
 				</div>
@@ -139,56 +147,52 @@
 
 		<!-- Current step actions -->
 		{#if store.currentStep}
-			<div class="bg-gray-50 rounded-lg p-4 mb-6">
-				<h4 class="font-medium text-gray-900 mb-2">
+			<div class="mb-6 rounded-lg bg-gray-50 p-4">
+				<h4 class="mb-2 font-medium text-gray-900">
 					Current Step: {store.currentStep.title}
 				</h4>
-				
+
 				{#if store.currentStep.id === 'health-check'}
-					<p class="text-sm text-gray-600 mb-3">
+					<p class="mb-3 text-sm text-gray-600">
 						Checking if PocketBase server is running on localhost:8090...
 					</p>
 					<Button onclick={handleExecuteStep} disabled={store.isLoading}>
 						{store.isLoading ? 'Checking...' : 'Check Connection'}
 					</Button>
-					
 				{:else if store.currentStep.id === 'admin-setup'}
-					<p class="text-sm text-gray-600 mb-3">
-						You need to create a PocketBase admin account. This will open the admin panel in a new tab.
+					<p class="mb-3 text-sm text-gray-600">
+						You need to create a PocketBase admin account. This will open the admin panel in a new
+						tab.
 					</p>
 					<div class="flex space-x-2">
 						<Button onclick={handleOpenAdmin} variant="primary">
-							<ExternalLink class="w-4 h-4 mr-2" />
+							<ExternalLink class="mr-2 h-4 w-4" />
 							Open Admin Panel
 						</Button>
 						<Button onclick={() => store.nextStep()} variant="secondary">
 							I've Created Admin Account
 						</Button>
 					</div>
-					
 				{:else if store.currentStep.id === 'collections-check'}
-					<p class="text-sm text-gray-600 mb-3">
+					<p class="mb-3 text-sm text-gray-600">
 						Checking if database collections have been created by the admin setup...
 					</p>
 					<Button onclick={handleExecuteStep} disabled={store.isLoading}>
 						{store.isLoading ? 'Checking...' : 'Check Collections'}
 					</Button>
-					
 				{:else if store.currentStep.id === 'user-account'}
-					<p class="text-sm text-gray-600 mb-3">
-						Now create your worship leader account. You can close this wizard and use the Register link.
+					<p class="mb-3 text-sm text-gray-600">
+						Now create your worship leader account. You can close this wizard and use the Register
+						link.
 					</p>
 					<div class="flex space-x-2">
-						<Button onclick={handleClose} variant="primary">
-							Close & Register Account
-						</Button>
+						<Button onclick={handleClose} variant="primary">Close & Register Account</Button>
 						<Button onclick={() => store.nextStep()} variant="secondary">
 							I Already Have an Account
 						</Button>
 					</div>
-					
 				{:else if store.currentStep.id === 'sample-data'}
-					<p class="text-sm text-gray-600 mb-3">
+					<p class="mb-3 text-sm text-gray-600">
 						Import sample songs and setlists to explore WorshipWise features right away.
 					</p>
 					<div class="flex space-x-2">
@@ -196,9 +200,7 @@
 							{store.isLoading ? 'Importing...' : 'Import Sample Data'}
 						</Button>
 						{#if store.currentStep.optional}
-							<Button onclick={handleSkipStep} variant="secondary">
-								Skip This Step
-							</Button>
+							<Button onclick={handleSkipStep} variant="secondary">Skip This Step</Button>
 						{/if}
 					</div>
 				{/if}
@@ -207,23 +209,19 @@
 
 		<!-- Navigation -->
 		<div class="flex justify-between">
-			<Button 
-				onclick={() => store.prevStep()} 
+			<Button
+				onclick={() => store.prevStep()}
 				variant="secondary"
 				disabled={store.currentStepIndex === 0}
 			>
 				Previous
 			</Button>
-			
+
 			<div class="flex space-x-2">
 				{#if store.isSetupComplete}
-					<Button onclick={handleClose} variant="primary">
-						Complete Setup
-					</Button>
+					<Button onclick={handleClose} variant="primary">Complete Setup</Button>
 				{:else}
-					<Button onclick={handleClose} variant="secondary">
-						Close Wizard
-					</Button>
+					<Button onclick={handleClose} variant="secondary">Close Wizard</Button>
 				{/if}
 			</div>
 		</div>

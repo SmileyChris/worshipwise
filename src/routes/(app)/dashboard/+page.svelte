@@ -33,7 +33,7 @@
 <!-- Dashboard content -->
 <div class="space-y-6">
 	<!-- Stats overview -->
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+	<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 		<Card>
 			<div class="flex items-center">
 				<div class="flex-shrink-0">
@@ -84,18 +84,18 @@
 	</div>
 
 	<!-- Quick actions -->
-	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+	<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 		<!-- Recent songs -->
 		<Card>
-			<div class="flex items-center justify-between mb-4">
+			<div class="mb-4 flex items-center justify-between">
 				<h3 class="text-lg font-medium text-gray-900">Recent Songs</h3>
 				<a href="/songs" class="text-sm text-blue-600 hover:text-blue-800">View All</a>
 			</div>
-			
+
 			{#if songs.songs.length > 0}
 				<div class="space-y-3">
 					{#each songs.songs.slice(0, 5) as song}
-						<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+						<div class="flex items-center justify-between rounded-lg bg-gray-50 p-3">
 							<div>
 								<div class="font-medium text-gray-900">{song.title}</div>
 								{#if song.artist}
@@ -103,7 +103,9 @@
 								{/if}
 							</div>
 							{#if song.key_signature}
-								<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+								<span
+									class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800"
+								>
 									{song.key_signature}
 								</span>
 							{/if}
@@ -111,10 +113,13 @@
 					{/each}
 				</div>
 			{:else}
-				<div class="text-center py-6 text-gray-500">
-					<Music class="h-12 w-12 mx-auto mb-4 text-gray-300" />
+				<div class="py-6 text-center text-gray-500">
+					<Music class="mx-auto mb-4 h-12 w-12 text-gray-300" />
 					<p>No songs added yet</p>
-					<a href="/songs" class="inline-block mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+					<a
+						href="/songs"
+						class="mt-2 inline-block rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+					>
 						Add Your First Song
 					</a>
 				</div>
@@ -123,23 +128,29 @@
 
 		<!-- Quick actions -->
 		<Card>
-			<h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+			<h3 class="mb-4 text-lg font-medium text-gray-900">Quick Actions</h3>
 			<div class="space-y-3">
-				<a href="/songs" class="flex items-center w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-					<Music class="w-4 h-4 mr-2" />
+				<a
+					href="/songs"
+					class="flex w-full items-center rounded-md bg-blue-600 px-4 py-3 text-white hover:bg-blue-700"
+				>
+					<Music class="mr-2 h-4 w-4" />
 					Manage Songs
 				</a>
-				
-				<a href="/setlists" class="flex items-center w-full px-4 py-3 border border-gray-300 rounded-md hover:bg-gray-50">
-					<Clock class="w-4 h-4 mr-2" />
+
+				<a
+					href="/setlists"
+					class="flex w-full items-center rounded-md border border-gray-300 px-4 py-3 hover:bg-gray-50"
+				>
+					<Clock class="mr-2 h-4 w-4" />
 					Plan Setlists
 				</a>
-				
-				<button 
-					onclick={() => quickstart.showSetupWizard = true} 
-					class="flex items-center w-full px-4 py-3 border border-gray-300 rounded-md hover:bg-gray-50 text-left"
+
+				<button
+					onclick={() => (quickstart.showSetupWizard = true)}
+					class="flex w-full items-center rounded-md border border-gray-300 px-4 py-3 text-left hover:bg-gray-50"
 				>
-					<TrendingUp class="w-4 h-4 mr-2" />
+					<TrendingUp class="mr-2 h-4 w-4" />
 					Setup Wizard
 				</button>
 			</div>
@@ -149,32 +160,41 @@
 	<!-- Getting started tips -->
 	{#if songs.songs.length < 5}
 		<Card>
-			<h3 class="text-lg font-medium text-gray-900 mb-4">Getting Started Tips</h3>
+			<h3 class="mb-4 text-lg font-medium text-gray-900">Getting Started Tips</h3>
 			<div class="space-y-3 text-sm text-gray-600">
 				<div class="flex items-start">
-					<div class="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5">
-						<span class="text-blue-600 font-semibold text-xs">1</span>
+					<div
+						class="mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-100"
+					>
+						<span class="text-xs font-semibold text-blue-600">1</span>
 					</div>
 					<div>
-						<strong>Add your songs:</strong> Start by adding your church's most commonly used worship songs with details like key, tempo, and tags.
+						<strong>Add your songs:</strong> Start by adding your church's most commonly used worship
+						songs with details like key, tempo, and tags.
 					</div>
 				</div>
-				
+
 				<div class="flex items-start">
-					<div class="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5">
-						<span class="text-blue-600 font-semibold text-xs">2</span>
+					<div
+						class="mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-100"
+					>
+						<span class="text-xs font-semibold text-blue-600">2</span>
 					</div>
 					<div>
-						<strong>Upload files:</strong> Attach chord charts, sheet music, and audio files to make planning easier.
+						<strong>Upload files:</strong> Attach chord charts, sheet music, and audio files to make
+						planning easier.
 					</div>
 				</div>
-				
+
 				<div class="flex items-start">
-					<div class="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5">
-						<span class="text-blue-600 font-semibold text-xs">3</span>
+					<div
+						class="mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-100"
+					>
+						<span class="text-xs font-semibold text-blue-600">3</span>
 					</div>
 					<div>
-						<strong>Plan setlists:</strong> Create setlists for services and track which songs you've used recently.
+						<strong>Plan setlists:</strong> Create setlists for services and track which songs you've
+						used recently.
 					</div>
 				</div>
 			</div>

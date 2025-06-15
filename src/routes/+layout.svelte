@@ -7,27 +7,27 @@
 	import '../app.css';
 
 	let { children } = $props();
-	
+
 	// Public routes that don't require authentication
 	const publicRoutes = ['/login', '/register', '/'];
-	
+
 	let isReady = $state(false);
 	let currentPath = $state('');
-	
+
 	// Subscribe to page changes
 	$effect(() => {
 		if (browser) {
-			page.subscribe(p => {
+			page.subscribe((p) => {
 				currentPath = p.url.pathname;
 			});
 		}
 	});
-	
+
 	// Handle authentication check
 	$effect(() => {
 		if (browser) {
 			const isPublicRoute = publicRoutes.includes(currentPath);
-			
+
 			if (auth.isValid || isPublicRoute) {
 				isReady = true;
 			} else if (currentPath && !isPublicRoute) {
@@ -41,15 +41,18 @@
 			isReady = true;
 		}
 	});
-	
+
 	// Auto-refresh auth token periodically
 	onMount(() => {
 		if (auth.isValid) {
 			// Refresh auth token every 30 minutes
-			const interval = setInterval(() => {
-				auth.refreshAuth();
-			}, 30 * 60 * 1000);
-			
+			const interval = setInterval(
+				() => {
+					auth.refreshAuth();
+				},
+				30 * 60 * 1000
+			);
+
 			return () => clearInterval(interval);
 		}
 	});
@@ -64,9 +67,9 @@
 	{@render children()}
 {:else}
 	<!-- Loading state -->
-	<div class="min-h-screen flex items-center justify-center bg-gray-50">
+	<div class="flex min-h-screen items-center justify-center bg-gray-50">
 		<div class="text-center">
-			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+			<div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
 			<p class="mt-2 text-sm text-gray-500">Loading...</p>
 		</div>
 	</div>

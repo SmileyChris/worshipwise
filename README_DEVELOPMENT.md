@@ -3,7 +3,8 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - npm or pnpm
 - PocketBase (already downloaded)
 
@@ -13,7 +14,7 @@
 # Start PocketBase only
 npm run pb:start
 
-# Start SvelteKit only  
+# Start SvelteKit only
 npm run dev
 
 # Start both simultaneously
@@ -47,12 +48,14 @@ worshipwise/
 ### First Time Setup
 
 1. **Start PocketBase** to initialize the database:
+
    ```bash
    npm run pb:start
    ```
 
-2. **Access Admin Panel**: 
-   - Go to http://localhost:8090/_/
+2. **Access Admin Panel**:
+
+   - Go to http://localhost:8090/\_/
    - Create your admin account
    - This only needs to be done once
 
@@ -61,22 +64,25 @@ worshipwise/
 ### PocketBase URLs
 
 - **API**: http://localhost:8090/api/
-- **Admin Panel**: http://localhost:8090/_/
+- **Admin Panel**: http://localhost:8090/\_/
 - **Health Check**: http://localhost:8090/api/health
 
 ## 🔧 Development Workflow
 
 ### 1. Environment Setup
+
 - PocketBase runs on port 8090
 - SvelteKit dev server runs on port 5173
 - The client automatically detects development vs production URLs
 
 ### 2. API Integration
+
 - Use `src/lib/api/client.ts` for PocketBase connection
 - API methods are organized by feature (songs, setlists, etc.)
 - Real-time subscriptions available for collaborative features
 
 ### 3. Type Safety
+
 - All PocketBase responses are typed in `src/lib/types/`
 - TypeScript strict mode enabled
 - Use interfaces for data structures
@@ -87,7 +93,7 @@ worshipwise/
 # Run unit tests
 npm run test:unit
 
-# Run E2E tests  
+# Run E2E tests
 npm run test:e2e
 
 # Run all tests
@@ -97,22 +103,25 @@ npm test
 ## 📝 Next Development Steps
 
 ### Current Status: ✅ Sprint 1 Complete
+
 - [x] PocketBase downloaded and configured
 - [x] Client integration created
 - [x] Development scripts set up
 - [x] Type definitions established
 
 ### Next: Sprint 2 - Authentication & Basic UI
+
 1. **Create auth store with Svelte 5 runes**
 2. **Build login/register pages**
 3. **Set up protected route layout**
 4. **Create basic UI component library**
 
 ### Ready to Start
+
 The foundation is now in place! You can:
 
 1. **Start development servers**: `./scripts/start-dev.sh`
-2. **Access PocketBase admin**: http://localhost:8090/_/
+2. **Access PocketBase admin**: http://localhost:8090/\_/
 3. **View SvelteKit app**: http://localhost:5173
 4. **Begin implementing authentication**
 

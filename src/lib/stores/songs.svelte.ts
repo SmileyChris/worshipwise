@@ -1,358 +1,360 @@
 import { songsApi } from '$lib/api/songs';
-import type { Song, CreateSongData, UpdateSongData, SongFilterOptions, SongStats } from '$lib/types/song';
+import type {
+	Song,
+	CreateSongData,
+	UpdateSongData,
+	SongFilterOptions,
+	SongStats
+} from '$lib/types/song';
 
 class SongsStore {
-  // Reactive state using Svelte 5 runes
-  songs = $state<Song[]>([]);
-  loading = $state<boolean>(false);
-  error = $state<string | null>(null);
-  
-  // Pagination state
-  currentPage = $state<number>(1);
-  totalPages = $state<number>(1);
-  totalItems = $state<number>(0);
-  perPage = $state<number>(20);
-  
-  // Filter state
-  filters = $state<SongFilterOptions>({
-    search: '',
-    key: '',
-    tags: [],
-    sort: '-created'
-  });
-  
-  // Stats
-  stats = $state<SongStats>({
-    totalSongs: 0,
-    availableSongs: 0,
-    recentlyUsed: 0
-  });
+	// Reactive state using Svelte 5 runes
+	songs = $state<Song[]>([]);
+	loading = $state<boolean>(false);
+	error = $state<string | null>(null);
 
-  // Selected song for editing
-  selectedSong = $state<Song | null>(null);
+	// Pagination state
+	currentPage = $state<number>(1);
+	totalPages = $state<number>(1);
+	totalItems = $state<number>(0);
+	perPage = $state<number>(20);
 
-  // Derived computed values
-  filteredSongsCount = $derived(this.songs.length);
-  hasNextPage = $derived(this.currentPage < this.totalPages);
-  hasPrevPage = $derived(this.currentPage > 1);
-  
-  // Available keys for filtering (derived from songs)
-  availableKeys = $derived(() => {
-    const keys = new Set<string>();
-    this.songs.forEach(song => {
-      if (song.key_signature) {
-        keys.add(song.key_signature);
-      }
-    });
-    return Array.from(keys).sort();
-  });
+	// Filter state
+	filters = $state<SongFilterOptions>({
+		search: '',
+		key: '',
+		tags: [],
+		sort: '-created'
+	});
 
-  // Available tags for filtering (derived from songs)
-  availableTags = $derived(() => {
-    const tags = new Set<string>();
-    this.songs.forEach(song => {
-      if (song.tags) {
-        song.tags.forEach(tag => tags.add(tag));
-      }
-    });
-    return Array.from(tags).sort();
-  });
+	// Stats
+	stats = $state<SongStats>({
+		totalSongs: 0,
+		availableSongs: 0,
+		recentlyUsed: 0
+	});
 
-  /**
-   * Load songs with current filters and pagination
-   */
-  async loadSongs(resetPage = false): Promise<void> {
-    if (resetPage) {
-      this.currentPage = 1;
-    }
+	// Selected song for editing
+	selectedSong = $state<Song | null>(null);
 
-    this.loading = true;
-    this.error = null;
+	// Derived computed values
+	filteredSongsCount = $derived(this.songs.length);
+	hasNextPage = $derived(this.currentPage < this.totalPages);
+	hasPrevPage = $derived(this.currentPage > 1);
 
-    try {
-      const result = await songsApi.getSongsPaginated(
-        this.currentPage,
-        this.perPage,
-        this.filters
-      );
+	// Available keys for filtering (derived from songs)
+	availableKeys = $derived(() => {
+		const keys = new Set<string>();
+		this.songs.forEach((song) => {
+			if (song.key_signature) {
+				keys.add(song.key_signature);
+			}
+		});
+		return Array.from(keys).sort();
+	});
 
-      this.songs = result.items;
-      this.totalPages = result.totalPages;
-      this.totalItems = result.totalItems;
-      this.currentPage = result.page;
-      this.perPage = result.perPage;
+	// Available tags for filtering (derived from songs)
+	availableTags = $derived(() => {
+		const tags = new Set<string>();
+		this.songs.forEach((song) => {
+			if (song.tags) {
+				song.tags.forEach((tag) => tags.add(tag));
+			}
+		});
+		return Array.from(tags).sort();
+	});
 
-      // Update stats
-      await this.updateStats();
-    } catch (error: any) {
-      console.error('Failed to load songs:', error);
-      this.error = this.getErrorMessage(error);
-    } finally {
-      this.loading = false;
-    }
-  }
+	/**
+	 * Load songs with current filters and pagination
+	 */
+	async loadSongs(resetPage = false): Promise<void> {
+		if (resetPage) {
+			this.currentPage = 1;
+		}
 
-  /**
-   * Load all songs without pagination (for stats and dropdowns)
-   */
-  async loadAllSongs(): Promise<Song[]> {
-    try {
-      return await songsApi.getSongs();
-    } catch (error: any) {
-      console.error('Failed to load all songs:', error);
-      return [];
-    }
-  }
+		this.loading = true;
+		this.error = null;
 
-  /**
-   * Create a new song
-   */
-  async createSong(data: CreateSongData): Promise<Song> {
-    this.loading = true;
-    this.error = null;
+		try {
+			const result = await songsApi.getSongsPaginated(this.currentPage, this.perPage, this.filters);
 
-    try {
-      const newSong = await songsApi.createSong(data);
-      
-      // Refresh the list to include the new song
-      await this.loadSongs();
-      
-      return newSong;
-    } catch (error: any) {
-      console.error('Failed to create song:', error);
-      this.error = this.getErrorMessage(error);
-      throw error;
-    } finally {
-      this.loading = false;
-    }
-  }
+			this.songs = result.items;
+			this.totalPages = result.totalPages;
+			this.totalItems = result.totalItems;
+			this.currentPage = result.page;
+			this.perPage = result.perPage;
 
-  /**
-   * Update an existing song
-   */
-  async updateSong(id: string, data: UpdateSongData): Promise<Song> {
-    this.loading = true;
-    this.error = null;
+			// Update stats
+			await this.updateStats();
+		} catch (error: any) {
+			console.error('Failed to load songs:', error);
+			this.error = this.getErrorMessage(error);
+		} finally {
+			this.loading = false;
+		}
+	}
 
-    try {
-      const updatedSong = await songsApi.updateSong(id, data);
-      
-      // Update the song in the local array
-      const index = this.songs.findIndex(song => song.id === id);
-      if (index !== -1) {
-        this.songs[index] = updatedSong;
-      }
-      
-      return updatedSong;
-    } catch (error: any) {
-      console.error('Failed to update song:', error);
-      this.error = this.getErrorMessage(error);
-      throw error;
-    } finally {
-      this.loading = false;
-    }
-  }
+	/**
+	 * Load all songs without pagination (for stats and dropdowns)
+	 */
+	async loadAllSongs(): Promise<Song[]> {
+		try {
+			return await songsApi.getSongs();
+		} catch (error: any) {
+			console.error('Failed to load all songs:', error);
+			return [];
+		}
+	}
 
-  /**
-   * Delete a song (soft delete)
-   */
-  async deleteSong(id: string): Promise<void> {
-    this.loading = true;
-    this.error = null;
+	/**
+	 * Create a new song
+	 */
+	async createSong(data: CreateSongData): Promise<Song> {
+		this.loading = true;
+		this.error = null;
 
-    try {
-      await songsApi.deleteSong(id);
-      
-      // Remove from local array
-      this.songs = this.songs.filter(song => song.id !== id);
-      this.totalItems = Math.max(0, this.totalItems - 1);
-      
-      // Update stats
-      await this.updateStats();
-    } catch (error: any) {
-      console.error('Failed to delete song:', error);
-      this.error = this.getErrorMessage(error);
-      throw error;
-    } finally {
-      this.loading = false;
-    }
-  }
+		try {
+			const newSong = await songsApi.createSong(data);
 
-  /**
-   * Search songs
-   */
-  async searchSongs(query: string): Promise<void> {
-    this.filters.search = query;
-    await this.loadSongs(true);
-  }
+			// Refresh the list to include the new song
+			await this.loadSongs();
 
-  /**
-   * Apply filters
-   */
-  async applyFilters(newFilters: Partial<SongFilterOptions>): Promise<void> {
-    this.filters = { ...this.filters, ...newFilters };
-    await this.loadSongs(true);
-  }
+			return newSong;
+		} catch (error: any) {
+			console.error('Failed to create song:', error);
+			this.error = this.getErrorMessage(error);
+			throw error;
+		} finally {
+			this.loading = false;
+		}
+	}
 
-  /**
-   * Clear all filters
-   */
-  async clearFilters(): Promise<void> {
-    this.filters = {
-      search: '',
-      key: '',
-      tags: [],
-      sort: '-created'
-    };
-    await this.loadSongs(true);
-  }
+	/**
+	 * Update an existing song
+	 */
+	async updateSong(id: string, data: UpdateSongData): Promise<Song> {
+		this.loading = true;
+		this.error = null;
 
-  /**
-   * Navigate to next page
-   */
-  async nextPage(): Promise<void> {
-    if (this.hasNextPage) {
-      this.currentPage += 1;
-      await this.loadSongs();
-    }
-  }
+		try {
+			const updatedSong = await songsApi.updateSong(id, data);
 
-  /**
-   * Navigate to previous page
-   */
-  async prevPage(): Promise<void> {
-    if (this.hasPrevPage) {
-      this.currentPage -= 1;
-      await this.loadSongs();
-    }
-  }
+			// Update the song in the local array
+			const index = this.songs.findIndex((song) => song.id === id);
+			if (index !== -1) {
+				this.songs[index] = updatedSong;
+			}
 
-  /**
-   * Go to specific page
-   */
-  async goToPage(page: number): Promise<void> {
-    if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
-      this.currentPage = page;
-      await this.loadSongs();
-    }
-  }
+			return updatedSong;
+		} catch (error: any) {
+			console.error('Failed to update song:', error);
+			this.error = this.getErrorMessage(error);
+			throw error;
+		} finally {
+			this.loading = false;
+		}
+	}
 
-  /**
-   * Update statistics
-   */
-  private async updateStats(): Promise<void> {
-    try {
-      const allSongs = await this.loadAllSongs();
-      
-      this.stats = {
-        totalSongs: allSongs.length,
-        availableSongs: allSongs.filter(song => !this.isRecentlyUsed(song)).length,
-        recentlyUsed: allSongs.filter(song => this.isRecentlyUsed(song)).length,
-        mostUsedKey: this.getMostUsedKey(allSongs),
-        averageTempo: this.getAverageTempo(allSongs)
-      };
-    } catch (error) {
-      console.error('Failed to update stats:', error);
-    }
-  }
+	/**
+	 * Delete a song (soft delete)
+	 */
+	async deleteSong(id: string): Promise<void> {
+		this.loading = true;
+		this.error = null;
 
-  /**
-   * Check if song was recently used (placeholder logic)
-   */
-  private isRecentlyUsed(song: Song): boolean {
-    // This would need to check against song_usage collection
-    // For now, return false as placeholder
-    return false;
-  }
+		try {
+			await songsApi.deleteSong(id);
 
-  /**
-   * Get most frequently used key
-   */
-  private getMostUsedKey(songs: Song[]): string | undefined {
-    const keyCounts = new Map<string, number>();
-    
-    songs.forEach(song => {
-      if (song.key_signature) {
-        keyCounts.set(song.key_signature, (keyCounts.get(song.key_signature) || 0) + 1);
-      }
-    });
+			// Remove from local array
+			this.songs = this.songs.filter((song) => song.id !== id);
+			this.totalItems = Math.max(0, this.totalItems - 1);
 
-    let mostUsedKey = '';
-    let maxCount = 0;
+			// Update stats
+			await this.updateStats();
+		} catch (error: any) {
+			console.error('Failed to delete song:', error);
+			this.error = this.getErrorMessage(error);
+			throw error;
+		} finally {
+			this.loading = false;
+		}
+	}
 
-    keyCounts.forEach((count, key) => {
-      if (count > maxCount) {
-        maxCount = count;
-        mostUsedKey = key;
-      }
-    });
+	/**
+	 * Search songs
+	 */
+	async searchSongs(query: string): Promise<void> {
+		this.filters.search = query;
+		await this.loadSongs(true);
+	}
 
-    return mostUsedKey || undefined;
-  }
+	/**
+	 * Apply filters
+	 */
+	async applyFilters(newFilters: Partial<SongFilterOptions>): Promise<void> {
+		this.filters = { ...this.filters, ...newFilters };
+		await this.loadSongs(true);
+	}
 
-  /**
-   * Calculate average tempo
-   */
-  private getAverageTempo(songs: Song[]): number | undefined {
-    const songsWithTempo = songs.filter(song => song.tempo && song.tempo > 0);
-    
-    if (songsWithTempo.length === 0) return undefined;
+	/**
+	 * Clear all filters
+	 */
+	async clearFilters(): Promise<void> {
+		this.filters = {
+			search: '',
+			key: '',
+			tags: [],
+			sort: '-created'
+		};
+		await this.loadSongs(true);
+	}
 
-    const totalTempo = songsWithTempo.reduce((sum, song) => sum + (song.tempo || 0), 0);
-    return Math.round(totalTempo / songsWithTempo.length);
-  }
+	/**
+	 * Navigate to next page
+	 */
+	async nextPage(): Promise<void> {
+		if (this.hasNextPage) {
+			this.currentPage += 1;
+			await this.loadSongs();
+		}
+	}
 
-  /**
-   * Select a song for editing
-   */
-  selectSong(song: Song | null): void {
-    this.selectedSong = song;
-  }
+	/**
+	 * Navigate to previous page
+	 */
+	async prevPage(): Promise<void> {
+		if (this.hasPrevPage) {
+			this.currentPage -= 1;
+			await this.loadSongs();
+		}
+	}
 
-  /**
-   * Get error message from API error
-   */
-  private getErrorMessage(error: any): string {
-    if (error?.response?.data?.message) {
-      return error.response.data.message;
-    }
-    if (error?.message) {
-      return error.message;
-    }
-    return 'An unexpected error occurred';
-  }
+	/**
+	 * Go to specific page
+	 */
+	async goToPage(page: number): Promise<void> {
+		if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+			this.currentPage = page;
+			await this.loadSongs();
+		}
+	}
 
-  /**
-   * Clear error state
-   */
-  clearError(): void {
-    this.error = null;
-  }
+	/**
+	 * Update statistics
+	 */
+	private async updateStats(): Promise<void> {
+		try {
+			const allSongs = await this.loadAllSongs();
 
-  /**
-   * Subscribe to real-time updates
-   */
-  async subscribeToUpdates(): Promise<() => void> {
-    return await songsApi.subscribe((data) => {
-      console.log('Real-time song update:', data);
-      
-      if (data.action === 'create') {
-        // Add new song to the beginning of the list if it matches current filters
-        this.songs = [data.record as unknown as Song, ...this.songs];
-        this.totalItems += 1;
-      } else if (data.action === 'update') {
-        // Update existing song
-        const index = this.songs.findIndex(s => s.id === data.record.id);
-        if (index !== -1) {
-          this.songs[index] = data.record as unknown as Song;
-        }
-      } else if (data.action === 'delete') {
-        // Remove deleted song
-        this.songs = this.songs.filter(s => s.id !== data.record.id);
-        this.totalItems = Math.max(0, this.totalItems - 1);
-      }
-    });
-  }
+			this.stats = {
+				totalSongs: allSongs.length,
+				availableSongs: allSongs.filter((song) => !this.isRecentlyUsed(song)).length,
+				recentlyUsed: allSongs.filter((song) => this.isRecentlyUsed(song)).length,
+				mostUsedKey: this.getMostUsedKey(allSongs),
+				averageTempo: this.getAverageTempo(allSongs)
+			};
+		} catch (error) {
+			console.error('Failed to update stats:', error);
+		}
+	}
+
+	/**
+	 * Check if song was recently used (placeholder logic)
+	 */
+	private isRecentlyUsed(song: Song): boolean {
+		// This would need to check against song_usage collection
+		// For now, return false as placeholder
+		return false;
+	}
+
+	/**
+	 * Get most frequently used key
+	 */
+	private getMostUsedKey(songs: Song[]): string | undefined {
+		const keyCounts = new Map<string, number>();
+
+		songs.forEach((song) => {
+			if (song.key_signature) {
+				keyCounts.set(song.key_signature, (keyCounts.get(song.key_signature) || 0) + 1);
+			}
+		});
+
+		let mostUsedKey = '';
+		let maxCount = 0;
+
+		keyCounts.forEach((count, key) => {
+			if (count > maxCount) {
+				maxCount = count;
+				mostUsedKey = key;
+			}
+		});
+
+		return mostUsedKey || undefined;
+	}
+
+	/**
+	 * Calculate average tempo
+	 */
+	private getAverageTempo(songs: Song[]): number | undefined {
+		const songsWithTempo = songs.filter((song) => song.tempo && song.tempo > 0);
+
+		if (songsWithTempo.length === 0) return undefined;
+
+		const totalTempo = songsWithTempo.reduce((sum, song) => sum + (song.tempo || 0), 0);
+		return Math.round(totalTempo / songsWithTempo.length);
+	}
+
+	/**
+	 * Select a song for editing
+	 */
+	selectSong(song: Song | null): void {
+		this.selectedSong = song;
+	}
+
+	/**
+	 * Get error message from API error
+	 */
+	private getErrorMessage(error: any): string {
+		if (error?.response?.data?.message) {
+			return error.response.data.message;
+		}
+		if (error?.message) {
+			return error.message;
+		}
+		return 'An unexpected error occurred';
+	}
+
+	/**
+	 * Clear error state
+	 */
+	clearError(): void {
+		this.error = null;
+	}
+
+	/**
+	 * Subscribe to real-time updates
+	 */
+	async subscribeToUpdates(): Promise<() => void> {
+		return await songsApi.subscribe((data) => {
+			console.log('Real-time song update:', data);
+
+			if (data.action === 'create') {
+				// Add new song to the beginning of the list if it matches current filters
+				this.songs = [data.record as unknown as Song, ...this.songs];
+				this.totalItems += 1;
+			} else if (data.action === 'update') {
+				// Update existing song
+				const index = this.songs.findIndex((s) => s.id === data.record.id);
+				if (index !== -1) {
+					this.songs[index] = data.record as unknown as Song;
+				}
+			} else if (data.action === 'delete') {
+				// Remove deleted song
+				this.songs = this.songs.filter((s) => s.id !== data.record.id);
+				this.totalItems = Math.max(0, this.totalItems - 1);
+			}
+		});
+	}
 }
 
 // Export singleton instance

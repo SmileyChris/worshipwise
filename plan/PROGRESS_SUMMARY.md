@@ -3,10 +3,12 @@
 ## 📅 **Timeline: December 2024**
 
 ### **Sprint 1: Project Infrastructure** ✅ **COMPLETED**
+
 **Duration**: Initial setup  
 **Goal**: Establish basic project structure and development environment
 
 #### ✅ **Completed Tasks:**
+
 - **PocketBase Setup**: Downloaded PocketBase v0.28.3, configured for development
 - **Client Integration**: Created PocketBase client with automatic dev/prod URL detection
 - **Development Scripts**: Set up npm scripts and shell scripts for concurrent development
@@ -14,6 +16,7 @@
 - **Environment Configuration**: Created .env files and development documentation
 
 #### 📂 **Key Files Created:**
+
 - `pocketbase/` - PocketBase binary and configuration
 - `src/lib/api/client.ts` - PocketBase client setup
 - `src/lib/api/songs.ts` - Songs API methods
@@ -23,10 +26,12 @@
 ---
 
 ### **Sprint 2: Authentication & Basic UI** ✅ **COMPLETED**
+
 **Duration**: Authentication implementation  
 **Goal**: Implement user authentication and basic application shell
 
 #### ✅ **Completed Tasks:**
+
 - **Authentication Store**: Built with Svelte 5 runes (`$state`, `$derived`, `$effect`)
 - **Login/Register Pages**: Complete forms with validation and error handling
 - **Protected Routes**: Automatic redirects and route protection
@@ -35,6 +40,7 @@
 - **Landing Page**: Feature showcase and call-to-action
 
 #### 🔐 **Authentication Features:**
+
 - Role-based access control (musician, leader, admin)
 - Automatic token refresh and session management
 - Real-time validation with user-friendly error messages
@@ -42,6 +48,7 @@
 - Protected route system with `(app)` route group
 
 #### 🎨 **UI Components:**
+
 - `Button` - Multiple variants (primary, secondary, danger, ghost)
 - `Input` - With validation and accessibility features
 - `Card` - Content containers with flexible padding
@@ -50,10 +57,12 @@
 ---
 
 ### **Sprint 3: Songs CRUD & Library** ✅ **COMPLETED**
+
 **Duration**: Song management system  
 **Goal**: Build comprehensive song management system
 
 #### ✅ **Completed Tasks:**
+
 - **PocketBase Songs Collection**: Full schema with migrations
 - **Songs API**: Complete CRUD with pagination and file uploads
 - **Songs Store**: Svelte 5 runes-based reactive state management
@@ -62,6 +71,7 @@
 - **Song Cards**: Metadata display with action buttons
 
 #### 🎵 **Song Management Features:**
+
 - **File Uploads**: Chord charts (PDF/images), audio files (MP3/WAV), sheet music
 - **Advanced Search**: Title, artist, key signature, tags
 - **Filtering & Sorting**: By key, artist, date, with multiple sort options
@@ -70,27 +80,29 @@
 - **Role-Based Permissions**: View/edit/delete based on user role
 
 #### 📊 **Data Schema:**
+
 ```typescript
 interface Song {
-  title: string;           // Required song title
-  artist?: string;         // Artist/author name
-  key_signature?: string;  // Musical key (C, G, Am, etc.)
-  tempo?: number;          // BPM (60-200)
-  duration_seconds?: number; // Song length
-  tags?: string[];         // Categorization tags
-  lyrics?: string;         // Full lyrics text
-  chord_chart?: File;      // PDF/image chord chart
-  audio_file?: File;       // MP3/WAV audio file
-  sheet_music?: File[];    // Up to 3 sheet music files
-  ccli_number?: string;    // Copyright license number
-  copyright_info?: string; // Copyright information
-  notes?: string;          // Additional notes
-  created_by: string;      // User who created the song
-  is_active: boolean;      // Soft delete flag
+	title: string; // Required song title
+	artist?: string; // Artist/author name
+	key_signature?: string; // Musical key (C, G, Am, etc.)
+	tempo?: number; // BPM (60-200)
+	duration_seconds?: number; // Song length
+	tags?: string[]; // Categorization tags
+	lyrics?: string; // Full lyrics text
+	chord_chart?: File; // PDF/image chord chart
+	audio_file?: File; // MP3/WAV audio file
+	sheet_music?: File[]; // Up to 3 sheet music files
+	ccli_number?: string; // Copyright license number
+	copyright_info?: string; // Copyright information
+	notes?: string; // Additional notes
+	created_by: string; // User who created the song
+	is_active: boolean; // Soft delete flag
 }
 ```
 
 #### 🧩 **Additional UI Components:**
+
 - `Select` - Dropdown selections with options
 - `Badge` - Status and metadata display
 - `Modal` - Overlay dialogs with transitions and accessibility
@@ -101,6 +113,7 @@ interface Song {
 ## 🎯 **Current Status: Ready for Sprint 4**
 
 ### **✅ What's Working:**
+
 1. **Authentication System**: Users can register, login, and access role-based features
 2. **Song Library**: Complete CRUD operations with search, filtering, and file uploads
 3. **Real-Time Updates**: Live collaboration through WebSocket subscriptions
@@ -109,6 +122,7 @@ interface Song {
 6. **Type Safety**: Full TypeScript coverage with comprehensive error handling
 
 ### **🚀 Ready to Test:**
+
 ```bash
 # Start development environment
 ./scripts/start-dev.sh
@@ -120,6 +134,7 @@ interface Song {
 ```
 
 ### **👥 User Roles & Permissions:**
+
 - **Musicians**: View songs and setlists, access assigned content
 - **Leaders**: Full song and setlist management, team collaboration
 - **Admins**: Complete system administration, user management
@@ -129,6 +144,7 @@ interface Song {
 ## 📈 **Architecture Highlights**
 
 ### **🏗️ Technology Stack:**
+
 - **Frontend**: SvelteKit 5 with static adapter for single-page application
 - **Backend**: PocketBase for API, database, and file storage
 - **State Management**: Svelte 5 runes (`$state`, `$derived`, `$effect`)
@@ -137,6 +153,7 @@ interface Song {
 - **Real-Time**: WebSocket subscriptions for live collaboration
 
 ### **🔧 Development Experience:**
+
 - **Hot Reload**: Both frontend and backend restart automatically
 - **Type Safety**: Full IntelliSense and compile-time error checking
 - **Component Library**: Reusable, accessible UI components
@@ -144,6 +161,7 @@ interface Song {
 - **Git Workflow**: Clean commit history with detailed messages
 
 ### **📦 Deployment Strategy:**
+
 - **Single Server**: PocketBase serves both API and static frontend
 - **No CORS Issues**: Same-origin deployment eliminates complexity
 - **Static Build**: SvelteKit generates optimized static files
@@ -155,6 +173,7 @@ interface Song {
 ## 🎯 **Next Phase: Sprint 4 - Usage Tracking**
 
 ### **📋 Planned Features:**
+
 1. **Song Usage Collection**: Track when and how songs are used
 2. **Setlist Management**: Create and manage worship service setlists
 3. **Repetition Prevention**: Visual indicators for recently used songs
@@ -162,6 +181,7 @@ interface Song {
 5. **Smart Recommendations**: Suggest songs based on usage patterns
 
 ### **🏗️ Technical Implementation:**
+
 - **Usage Tracking**: Automatic logging when songs are added to setlists
 - **Repetition Algorithm**: Configurable timeframes for "recently used" status
 - **Visual Indicators**: Color-coded badges (green/yellow/red) for song availability
@@ -173,6 +193,7 @@ interface Song {
 ## 📊 **Metrics & Success Criteria**
 
 ### **✅ Completed Metrics:**
+
 - **Development Speed**: 3 sprints completed in rapid succession
 - **Code Quality**: 100% TypeScript coverage, comprehensive error handling
 - **User Experience**: Responsive design, real-time updates, intuitive interface
@@ -180,6 +201,7 @@ interface Song {
 - **Security**: Role-based permissions, input validation, secure file uploads
 
 ### **🎯 Sprint 4 Success Criteria:**
+
 - [ ] Complete setlist CRUD operations
 - [ ] Implement usage tracking algorithm
 - [ ] Build visual repetition indicators
@@ -187,6 +209,7 @@ interface Song {
 - [ ] Add drag-and-drop setlist builder
 
 ### **📈 Overall Project Goals:**
+
 - **50% time reduction** in worship planning
 - **80% reduction** in song repetition conflicts
 - **100% user adoption** within beta churches
@@ -197,6 +220,7 @@ interface Song {
 ## 🔍 **Lessons Learned**
 
 ### **✅ What Worked Well:**
+
 1. **Svelte 5 Runes**: Excellent developer experience with reactive state
 2. **PocketBase Integration**: Rapid backend development with built-in features
 3. **TypeScript**: Caught numerous errors early, improved code quality
@@ -204,6 +228,7 @@ interface Song {
 5. **Real-Time Features**: WebSocket integration was straightforward
 
 ### **🔧 Technical Decisions:**
+
 1. **Static Adapter**: Chosen for simple deployment with PocketBase
 2. **Single-Server Architecture**: Eliminates CORS and deployment complexity
 3. **File Upload Strategy**: FormData with PocketBase handles all file management
@@ -211,6 +236,7 @@ interface Song {
 5. **UI Framework**: Tailwind CSS provided rapid, responsive design development
 
 ### **📚 Documentation Impact:**
+
 - **Comprehensive Planning**: Detailed roadmap and guides accelerated development
 - **Clear Architecture**: Well-defined patterns made implementation straightforward
 - **Testing Strategy**: Prepared framework for quality assurance
@@ -221,6 +247,7 @@ interface Song {
 ## 🚀 **Ready for Production Considerations**
 
 ### **✅ Production-Ready Features:**
+
 - Authentication and authorization
 - File upload and management
 - Real-time collaboration
@@ -229,6 +256,7 @@ interface Song {
 - Type safety and testing framework
 
 ### **🔧 Still Needed for Production:**
+
 - Usage tracking and analytics (Sprint 4)
 - Performance optimization and monitoring
 - Backup and disaster recovery procedures

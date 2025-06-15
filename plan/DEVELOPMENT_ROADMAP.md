@@ -3,6 +3,7 @@
 This document outlines the step-by-step development plan for implementing WorshipWise, broken down into manageable phases with clear deliverables.
 
 ## 🎯 **Current Status: Sprint 3 Complete**
+
 **Last Updated**: December 2024  
 **Progress**: 3 of 12 sprints completed (25%)  
 **Next Up**: Sprint 4 - Song Usage Tracking & Repetition Prevention
@@ -10,16 +11,20 @@ This document outlines the step-by-step development plan for implementing Worshi
 ## Phase 1: Foundation Setup (Sprints 1-2)
 
 ### Sprint 1: Project Infrastructure ✅ **COMPLETED**
+
 **Goal**: Establish basic project structure and development environment
 
 #### Tasks:
+
 1. **Project Setup**
+
    - ✅ Initialize SvelteKit with static adapter
    - ✅ Configure Tailwind CSS with forms and typography plugins
    - ✅ Set up TypeScript configuration
    - ✅ Configure Vite with testing setup
 
 2. **PocketBase Integration**
+
    - ✅ Download and set up local PocketBase instance (v0.28.3)
    - ✅ Create basic PocketBase client configuration
    - ✅ Set up development scripts for running both frontend and backend
@@ -31,22 +36,27 @@ This document outlines the step-by-step development plan for implementing Worshi
    - ✅ Git hooks for code quality
 
 #### Deliverables:
+
 - ✅ Working development environment
 - ✅ Basic SvelteKit app connecting to PocketBase
 - ✅ Development scripts and tooling configured
 - ✅ Repository with proper .gitignore and documentation
 
 ### Sprint 2: Authentication & Basic UI ✅ **COMPLETED**
+
 **Goal**: Implement user authentication and basic application shell
 
 #### Tasks:
+
 1. **Authentication System**
+
    - ✅ Create PocketBase Users collection with roles
    - ✅ Implement auth store with Svelte 5 runes
    - ✅ Build login/register pages
    - ✅ Set up protected route layout
 
 2. **UI Foundation**
+
    - ✅ Create basic component library (Button, Input, Modal, etc.)
    - ✅ Implement responsive navigation layout
    - ✅ Set up Tailwind design system with custom colors
@@ -58,6 +68,7 @@ This document outlines the step-by-step development plan for implementing Worshi
    - ✅ Create landing page and error pages
 
 #### Deliverables:
+
 - ✅ Complete authentication flow
 - ✅ Protected application with role-based access
 - ✅ Basic UI component library
@@ -66,16 +77,20 @@ This document outlines the step-by-step development plan for implementing Worshi
 ## Phase 2: Core Song Management (Sprints 3-4)
 
 ### Sprint 3: Songs CRUD & Library ✅ **COMPLETED**
+
 **Goal**: Build comprehensive song management system
 
 #### Tasks:
+
 1. **PocketBase Songs Collection**
+
    - ✅ Design and implement Songs schema with migrations
    - ✅ Set up file upload for attachments (sheet music, audio, chord charts)
    - ✅ Configure search indexes and relationships
    - ✅ Implement API permissions and validation rules
 
 2. **Song Components**
+
    - ✅ SongCard component with metadata display and file indicators
    - ✅ SongForm for create/edit operations with file uploads
    - ✅ Advanced search with filtering and sorting
@@ -88,22 +103,27 @@ This document outlines the step-by-step development plan for implementing Worshi
    - ✅ Modal-based editing workflow
 
 #### Deliverables:
+
 - ✅ Complete song CRUD operations
 - ✅ Song library with search and filtering
 - ✅ File attachment system (chord charts, audio, sheet music)
 - ✅ Responsive song management interface
 
 ### Sprint 4: Song Usage Tracking & Setlist Foundation 🚧 **IN PROGRESS**
+
 **Goal**: Implement song usage tracking and basic setlist functionality
 
 #### Tasks:
+
 1. **Usage Tracking Schema**
+
    - Create Song Usage collection with migration
    - Create Setlists collection with basic structure
    - Create Setlist Songs junction table
    - Set up relationships and cascade rules
 
 2. **Basic Setlist Management**
+
    - Setlist CRUD operations
    - Simple setlist builder interface
    - Add/remove songs from setlists
@@ -116,6 +136,7 @@ This document outlines the step-by-step development plan for implementing Worshi
    - Usage statistics in song library
 
 #### Deliverables:
+
 - [ ] Song usage collection and tracking
 - [ ] Basic setlist management
 - [ ] Usage-based visual indicators
@@ -124,16 +145,20 @@ This document outlines the step-by-step development plan for implementing Worshi
 ## Phase 3: Advanced Setlist Features (Sprints 5-6)
 
 ### Sprint 5: Enhanced Setlist Builder
+
 **Goal**: Advanced setlist building with drag-and-drop and team features
 
 #### Tasks:
+
 1. **Advanced Setlist Builder**
+
    - Drag-and-drop song reordering
    - Key transposition per song in setlist
    - Service timing and duration tracking
    - Song transition notes and instructions
 
 2. **Team Collaboration**
+
    - Team member assignment to setlists
    - Role-based setlist permissions
    - Real-time collaborative editing
@@ -146,22 +171,27 @@ This document outlines the step-by-step development plan for implementing Worshi
    - Setlist scheduling and calendar view
 
 #### Deliverables:
+
 - [ ] Drag-and-drop setlist builder
 - [ ] Team collaboration features
 - [ ] Setlist templates and duplication
 - [ ] Enhanced service planning workflow
 
 ### Sprint 6: Real-Time Collaboration
+
 **Goal**: Enable live collaborative setlist editing
 
 #### Tasks:
+
 1. **Real-Time Infrastructure**
+
    - PocketBase WebSocket subscriptions
    - Connection state management
    - Conflict resolution strategies
    - Offline support with sync
 
 2. **Collaborative Features**
+
    - Live cursor indicators
    - Real-time updates notifications
    - User presence indicators
@@ -174,6 +204,7 @@ This document outlines the step-by-step development plan for implementing Worshi
    - Connection recovery handling
 
 #### Deliverables:
+
 - [ ] Real-time collaborative editing
 - [ ] Conflict resolution system
 - [ ] Offline support with sync
@@ -182,16 +213,20 @@ This document outlines the step-by-step development plan for implementing Worshi
 ## Phase 4: Analytics & Reporting (Sprints 7-8)
 
 ### Sprint 7: Analytics Dashboard
+
 **Goal**: Provide insights into song usage patterns
 
 #### Tasks:
+
 1. **Analytics Data Processing**
+
    - Aggregation queries for usage statistics
    - Time-based analysis (weekly/monthly trends)
    - Song popularity rankings
    - Worship leader activity tracking
 
 2. **Visualization Components**
+
    - Usage frequency charts
    - Service timeline visualization
    - Song rotation heat maps
@@ -204,22 +239,27 @@ This document outlines the step-by-step development plan for implementing Worshi
    - Automated insights and recommendations
 
 #### Deliverables:
+
 - [ ] Comprehensive analytics dashboard
 - [ ] Interactive data visualizations
 - [ ] Exportable reports
 - [ ] Automated insights system
 
 ### Sprint 8: Advanced Features
+
 **Goal**: Implement worship leader preferences and advanced functionality
 
 #### Tasks:
+
 1. **User Preferences System**
+
    - Worship leader song preferences
    - Favorite songs and blacklists
    - Service style templates
    - Personal dashboard customization
 
 2. **Advanced Search & Filtering**
+
    - Saved searches and filters
    - Smart song recommendations
    - Similar songs suggestions
@@ -232,6 +272,7 @@ This document outlines the step-by-step development plan for implementing Worshi
    - API endpoints for third-party integration
 
 #### Deliverables:
+
 - [ ] User preferences system
 - [ ] Advanced search capabilities
 - [ ] Smart recommendations engine
@@ -240,16 +281,20 @@ This document outlines the step-by-step development plan for implementing Worshi
 ## Phase 5: Mobile & PWA (Sprints 9-10)
 
 ### Sprint 9: Mobile Optimization
+
 **Goal**: Ensure excellent mobile experience
 
 #### Tasks:
+
 1. **Responsive Design Improvements**
+
    - Mobile-first component redesign
    - Touch-friendly interactions
    - Gesture support for common actions
    - Optimized mobile navigation
 
 2. **Mobile-Specific Features**
+
    - Swipe gestures for song browsing
    - Bottom sheet modals
    - Mobile-optimized forms
@@ -262,22 +307,27 @@ This document outlines the step-by-step development plan for implementing Worshi
    - Reduced data usage modes
 
 #### Deliverables:
+
 - [ ] Fully responsive mobile interface
 - [ ] Touch-optimized interactions
 - [ ] Mobile performance optimizations
 - [ ] Gesture-based navigation
 
 ### Sprint 10: PWA Implementation
+
 **Goal**: Enable offline functionality and app-like experience
 
 #### Tasks:
+
 1. **Service Worker Setup**
+
    - Cache strategies for different content types
    - Offline page and functionality
    - Background sync for queued actions
    - Push notifications for updates
 
 2. **App-Like Features**
+
    - Install prompts and app icons
    - Splash screens and theming
    - Keyboard shortcuts
@@ -290,6 +340,7 @@ This document outlines the step-by-step development plan for implementing Worshi
    - Offline usage tracking
 
 #### Deliverables:
+
 - [ ] Full PWA implementation
 - [ ] Offline functionality
 - [ ] App installation capability
@@ -298,16 +349,20 @@ This document outlines the step-by-step development plan for implementing Worshi
 ## Phase 6: Testing & Polish (Sprints 11-12)
 
 ### Sprint 11: Comprehensive Testing
+
 **Goal**: Ensure reliability through thorough testing
 
 #### Tasks:
+
 1. **Unit Testing Coverage**
+
    - Store logic testing
    - Utility function tests
    - Component unit tests
    - API integration tests
 
 2. **E2E Testing Suite**
+
    - Critical user journey tests
    - Cross-browser compatibility
    - Mobile device testing
@@ -320,22 +375,27 @@ This document outlines the step-by-step development plan for implementing Worshi
    - Accessibility audits
 
 #### Deliverables:
+
 - [ ] 90%+ test coverage
 - [ ] Comprehensive E2E test suite
 - [ ] Beta testing feedback incorporated
 - [ ] Accessibility compliance
 
 ### Sprint 12: Production Preparation
+
 **Goal**: Prepare for production deployment
 
 #### Tasks:
+
 1. **Production Optimization**
+
    - Bundle analysis and optimization
    - Performance monitoring setup
    - Error tracking and logging
    - Security audit and hardening
 
 2. **Documentation & Training**
+
    - User documentation and guides
    - Admin setup instructions
    - Troubleshooting documentation
@@ -348,6 +408,7 @@ This document outlines the step-by-step development plan for implementing Worshi
    - Rollback procedures
 
 #### Deliverables:
+
 - [ ] Production-ready application
 - [ ] Complete documentation suite
 - [ ] Automated deployment pipeline
@@ -356,6 +417,7 @@ This document outlines the step-by-step development plan for implementing Worshi
 ## Development Guidelines
 
 ### Daily Development Workflow
+
 1. **Start of Day**: Review todo list and prioritize tasks
 2. **Feature Development**: Use TDD approach with failing tests first
 3. **Code Review**: Self-review changes before committing
@@ -363,6 +425,7 @@ This document outlines the step-by-step development plan for implementing Worshi
 5. **Documentation**: Update relevant docs for new features
 
 ### Code Quality Standards
+
 - **TypeScript**: Strict mode enabled, no `any` types
 - **Testing**: Minimum 80% code coverage for new features
 - **Components**: Reusable, well-documented, accessible
@@ -370,6 +433,7 @@ This document outlines the step-by-step development plan for implementing Worshi
 - **Security**: Input validation, XSS prevention, secure API calls
 
 ### Git Workflow
+
 - **Feature Branches**: Create branches from main for each feature
 - **Commit Messages**: Follow conventional commit format
 - **Pull Requests**: Required for all changes with code review
@@ -378,18 +442,21 @@ This document outlines the step-by-step development plan for implementing Worshi
 ## Success Metrics
 
 ### Technical Metrics
+
 - [ ] <100ms API response times
-- [ ] >95% uptime in production
+- [ ] > 95% uptime in production
 - [ ] <500kb initial bundle size
-- [ ] >90% Lighthouse performance score
+- [ ] > 90% Lighthouse performance score
 
 ### User Experience Metrics
+
 - [ ] <2 clicks to add song to setlist
 - [ ] <5 seconds to load song library
-- [ ] >90% user satisfaction in beta testing
+- [ ] > 90% user satisfaction in beta testing
 - [ ] Zero data loss incidents
 
 ### Business Metrics
+
 - [ ] 50% time reduction in setlist planning
 - [ ] 80% reduction in song repetition conflicts
 - [ ] 100% user adoption within beta churches
@@ -398,12 +465,14 @@ This document outlines the step-by-step development plan for implementing Worshi
 ## Risk Mitigation
 
 ### Technical Risks
+
 - **PocketBase Limitations**: Regular evaluation of alternatives, abstraction layer
 - **Performance Issues**: Continuous monitoring, optimization sprints
 - **Data Loss**: Regular backups, data validation, audit logs
 - **Security Vulnerabilities**: Regular security audits, dependency updates
 
-### Project Risks  
+### Project Risks
+
 - **Scope Creep**: Strict phase adherence, stakeholder communication
 - **Timeline Delays**: Buffer time built in, early identification of blockers
 - **Resource Constraints**: Clear priority setting, MVP focus
@@ -412,22 +481,26 @@ This document outlines the step-by-step development plan for implementing Worshi
 ## 📊 **Progress Summary**
 
 ### **✅ Completed (25% - 3/12 Sprints)**
+
 1. **Sprint 1**: Project Infrastructure ✅
-2. **Sprint 2**: Authentication & Basic UI ✅  
+2. **Sprint 2**: Authentication & Basic UI ✅
 3. **Sprint 3**: Songs CRUD & Library ✅
 
 ### **🚧 Current Status**
+
 - **Sprint 4**: Song Usage Tracking & Setlist Foundation (In Progress)
 - **Ready for Production**: Authentication, song management, file uploads
 - **Core Features Working**: User roles, song CRUD, real-time updates, responsive design
 
 ### **🎯 Immediate Next Steps**
+
 1. Create Song Usage and Setlists collections in PocketBase
 2. Implement basic setlist CRUD operations
 3. Add usage tracking when setlists are completed
 4. Build visual indicators for song availability
 
 ### **🏗️ Architecture Achievements**
+
 - ✅ **Svelte 5 Runes**: Full reactive state management
 - ✅ **PocketBase Integration**: Backend, file storage, real-time updates
 - ✅ **TypeScript**: 100% type coverage with strict configuration
@@ -438,6 +511,7 @@ This document outlines the step-by-step development plan for implementing Worshi
 - ✅ **Role-Based Access**: Musicians, leaders, admins with proper permissions
 
 ### **📈 Development Velocity**
+
 - **3 sprints completed** in rapid succession
 - **Comprehensive documentation** guiding implementation
 - **Clean git history** with detailed commit messages

@@ -53,52 +53,47 @@ class QuickstartStore {
 
 	currentStep = $derived(this.setupSteps[this.currentStepIndex]);
 
-	completedSteps = $derived(this.setupSteps.filter(step => step.status === 'completed'));
+	completedSteps = $derived(this.setupSteps.filter((step) => step.status === 'completed'));
 
 	isSetupComplete = $derived.by(() => {
-		const requiredSteps = this.setupSteps.filter(step => !step.optional);
-		return requiredSteps.every(step => step.status === 'completed');
+		const requiredSteps = this.setupSteps.filter((step) => !step.optional);
+		return requiredSteps.every((step) => step.status === 'completed');
 	});
 
 	async checkSystemStatus() {
 		this.isLoading = true;
-		
+
 		try {
 			this.systemStatus = await SystemAPI.getSystemStatus();
-			
+
 			// Update setup steps based on system status
-			this.updateStepStatus('health-check', 
+			this.updateStepStatus(
+				'health-check',
 				this.systemStatus.pocketbaseRunning ? 'completed' : 'error'
 			);
-			
-			this.updateStepStatus('admin-setup',
-				this.systemStatus.adminExists ? 'completed' : 'pending'
-			);
-			
-			this.updateStepStatus('collections-check',
+
+			this.updateStepStatus('admin-setup', this.systemStatus.adminExists ? 'completed' : 'pending');
+
+			this.updateStepStatus(
+				'collections-check',
 				this.systemStatus.collectionsExist ? 'completed' : 'pending'
 			);
-			
-			this.updateStepStatus('user-account',
-				this.systemStatus.usersExist ? 'completed' : 'pending'
-			);
-			
-			this.updateStepStatus('sample-data',
-				this.systemStatus.songsExist ? 'completed' : 'pending'
-			);
+
+			this.updateStepStatus('user-account', this.systemStatus.usersExist ? 'completed' : 'pending');
+
+			this.updateStepStatus('sample-data', this.systemStatus.songsExist ? 'completed' : 'pending');
 
 			// Show setup wizard if needed
 			this.showSetupWizard = this.systemStatus.needsSetup;
-			
+
 			// Set current step to first incomplete step
 			this.currentStepIndex = this.setupSteps.findIndex(
-				step => step.status === 'pending' || step.status === 'error'
+				(step) => step.status === 'pending' || step.status === 'error'
 			);
-			
+
 			if (this.currentStepIndex === -1) {
 				this.currentStepIndex = 0;
 			}
-			
 		} catch (error) {
 			console.error('Failed to check system status:', error);
 		} finally {
@@ -107,14 +102,14 @@ class QuickstartStore {
 	}
 
 	updateStepStatus(stepId: string, status: SetupStep['status']) {
-		const step = this.setupSteps.find(s => s.id === stepId);
+		const step = this.setupSteps.find((s) => s.id === stepId);
 		if (step) {
 			step.status = status;
 		}
 	}
 
 	async executeStep(stepId: string) {
-		const step = this.setupSteps.find(s => s.id === stepId);
+		const step = this.setupSteps.find((s) => s.id === stepId);
 		if (!step) return;
 
 		step.status = 'in_progress';
@@ -157,7 +152,7 @@ class QuickstartStore {
 		// This step requires manual intervention - direct user to admin panel
 		const adminUrl = SystemAPI.getAdminUrl();
 		window.open(adminUrl, '_blank');
-		
+
 		// For now, we'll mark this as pending since it requires manual setup
 		// In a future version, we could integrate admin creation via API
 		this.updateStepStatus('admin-setup', 'pending');
@@ -166,11 +161,11 @@ class QuickstartStore {
 	private async checkCollections() {
 		// Re-check system status to see if collections were created
 		await this.checkSystemStatus();
-		
+
 		if (!this.systemStatus.collectionsExist) {
 			throw new Error('Required collections not found. Please ensure PocketBase admin is set up.');
 		}
-		
+
 		this.updateStepStatus('collections-check', 'completed');
 	}
 
@@ -178,7 +173,7 @@ class QuickstartStore {
 		// This requires a logged-in user, so we'll check if auth is available
 		const { auth } = await import('$lib/stores/auth.svelte.js');
 		const currentUser = auth.user;
-		
+
 		if (!currentUser) {
 			throw new Error('Must be logged in to import sample data');
 		}
@@ -212,7 +207,7 @@ class QuickstartStore {
 	}
 
 	resetSetup() {
-		this.setupSteps.forEach(step => {
+		this.setupSteps.forEach((step) => {
 			step.status = 'pending';
 		});
 		this.currentStepIndex = 0;

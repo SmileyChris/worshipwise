@@ -18,7 +18,7 @@ chmod +x pocketbase
 
 ### 2. Access Admin Interface
 
-1. Open http://localhost:8090/_/
+1. Open http://localhost:8090/\_/
 2. Create admin account on first visit
 3. Access Collections tab to begin schema setup
 
@@ -28,16 +28,18 @@ chmod +x pocketbase
 
 **Collection Name**: `users`  
 **Type**: Auth Collection  
-**Settings**: 
+**Settings**:
+
 - Allow registration: true
 - Email verification: optional
 - Password reset: true
 
 #### Fields:
+
 ```javascript
 {
   // Built-in auth fields (email, password, etc.)
-  
+
   // Custom fields:
   "name": {
     "type": "text",
@@ -72,6 +74,7 @@ chmod +x pocketbase
 ```
 
 #### API Rules:
+
 ```javascript
 {
   "listRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || @request.auth.id = id)",
@@ -88,6 +91,7 @@ chmod +x pocketbase
 **Type**: Base Collection
 
 #### Fields:
+
 ```javascript
 {
   "title": {
@@ -172,6 +176,7 @@ chmod +x pocketbase
 ```
 
 #### API Rules:
+
 ```javascript
 {
   "listRule": "@request.auth.id != '' && is_active = true",
@@ -183,6 +188,7 @@ chmod +x pocketbase
 ```
 
 #### Indexes:
+
 - `title` (for search)
 - `artist` (for filtering)
 - `created_by` (for user songs)
@@ -194,6 +200,7 @@ chmod +x pocketbase
 **Type**: Base Collection
 
 #### Fields:
+
 ```javascript
 {
   "title": {
@@ -257,6 +264,7 @@ chmod +x pocketbase
 ```
 
 #### API Rules:
+
 ```javascript
 {
   "listRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || worship_leader = @request.auth.id || team_members ?~ @request.auth.id)",
@@ -268,6 +276,7 @@ chmod +x pocketbase
 ```
 
 #### Indexes:
+
 - `service_date` (for calendar views)
 - `worship_leader` (for user setlists)
 - `status` (for filtering)
@@ -278,6 +287,7 @@ chmod +x pocketbase
 **Type**: Base Collection
 
 #### Fields:
+
 ```javascript
 {
   "setlist": {
@@ -321,6 +331,7 @@ chmod +x pocketbase
 ```
 
 #### API Rules:
+
 ```javascript
 {
   "listRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || setlist.worship_leader = @request.auth.id || setlist.team_members ?~ @request.auth.id)",
@@ -332,6 +343,7 @@ chmod +x pocketbase
 ```
 
 #### Indexes:
+
 - `setlist` (for setlist queries)
 - `order` (for sorting)
 - Composite: `(setlist, order)` (for ordered queries)
@@ -342,6 +354,7 @@ chmod +x pocketbase
 **Type**: Base Collection
 
 #### Fields:
+
 ```javascript
 {
   "song": {
@@ -380,6 +393,7 @@ chmod +x pocketbase
 ```
 
 #### API Rules:
+
 ```javascript
 {
   "listRule": "@request.auth.id != ''",
@@ -391,6 +405,7 @@ chmod +x pocketbase
 ```
 
 #### Indexes:
+
 - `song` (for song usage queries)
 - `usage_date` (for date filtering)
 - `worship_leader` (for leader analytics)
@@ -405,7 +420,7 @@ This is created as a database view for optimized analytics queries:
 
 ```sql
 CREATE VIEW song_analytics_view AS
-SELECT 
+SELECT
   s.id as song_id,
   s.title,
   s.artist,
@@ -479,37 +494,37 @@ song_usage ────┬─── (1) song
 
 ```javascript
 [
-  {
-    "title": "Amazing Grace",
-    "artist": "Traditional",
-    "key_signature": "G",
-    "tempo": 80,
-    "duration_seconds": 240,
-    "tags": ["traditional", "hymn", "grace"],
-    "ccli_number": "22025",
-    "is_active": true
-  },
-  {
-    "title": "How Great Thou Art",
-    "artist": "Traditional",
-    "key_signature": "C",
-    "tempo": 72,
-    "duration_seconds": 280,
-    "tags": ["traditional", "hymn", "worship"],
-    "ccli_number": "14181",
-    "is_active": true
-  },
-  {
-    "title": "10,000 Reasons",
-    "artist": "Matt Redman",
-    "key_signature": "A",
-    "tempo": 125,
-    "duration_seconds": 230,
-    "tags": ["contemporary", "worship", "praise"],
-    "ccli_number": "6016351",
-    "is_active": true
-  }
-]
+	{
+		title: 'Amazing Grace',
+		artist: 'Traditional',
+		key_signature: 'G',
+		tempo: 80,
+		duration_seconds: 240,
+		tags: ['traditional', 'hymn', 'grace'],
+		ccli_number: '22025',
+		is_active: true
+	},
+	{
+		title: 'How Great Thou Art',
+		artist: 'Traditional',
+		key_signature: 'C',
+		tempo: 72,
+		duration_seconds: 280,
+		tags: ['traditional', 'hymn', 'worship'],
+		ccli_number: '14181',
+		is_active: true
+	},
+	{
+		title: '10,000 Reasons',
+		artist: 'Matt Redman',
+		key_signature: 'A',
+		tempo: 125,
+		duration_seconds: 230,
+		tags: ['contemporary', 'worship', 'praise'],
+		ccli_number: '6016351',
+		is_active: true
+	}
+];
 ```
 
 ## Security Configuration
@@ -526,32 +541,35 @@ In PocketBase Admin → Settings:
 ### 2. API Security Rules Best Practices
 
 #### Rule Components:
+
 - `@request.auth.id`: Current authenticated user ID
 - `@request.auth.role`: Current user's role
 - `@request.data`: Data being submitted
 - `@collection`: Reference to other collections
 
 #### Common Patterns:
+
 ```javascript
 // Only authenticated users
-"@request.auth.id != ''"
+"@request.auth.id != ''";
 
 // Only admins or record owner
-"@request.auth.role = 'admin' || created_by = @request.auth.id"
+"@request.auth.role = 'admin' || created_by = @request.auth.id";
 
 // Role-based access
-"@request.auth.role ?~ 'leader|admin'"
+"@request.auth.role ?~ 'leader|admin'";
 
 // Relation-based access
-"setlist.worship_leader = @request.auth.id"
+'setlist.worship_leader = @request.auth.id';
 
 // Multiple conditions
-"@request.auth.id != '' && (is_active = true || created_by = @request.auth.id)"
+"@request.auth.id != '' && (is_active = true || created_by = @request.auth.id)";
 ```
 
 ### 3. File Upload Security
 
 Configure file upload rules for each collection:
+
 - **Allowed extensions**: pdf, jpg, jpeg, png, mp3, wav, m4a
 - **Max file size**: 50MB for audio, 10MB for documents/images
 - **Virus scanning**: Enable if available
@@ -582,6 +600,7 @@ echo "PocketBase backup completed: pb_data_$DATE.tar.gz"
 ### 2. Database Maintenance
 
 Regular maintenance tasks:
+
 - **Vacuum database**: Monthly vacuum for SQLite optimization
 - **File cleanup**: Remove orphaned files from failed uploads
 - **Log rotation**: Manage PocketBase logs to prevent disk space issues
@@ -594,24 +613,24 @@ For schema changes, create migration scripts:
 ```javascript
 // migration_001_add_song_duration.js
 migrate((db) => {
-  const dao = new Dao(db)
-  const collection = dao.findCollectionByNameOrId("songs")
-  
-  // Add new field
-  const field = new SchemaField({
-    "system": false,
-    "id": "duration",
-    "name": "duration_seconds",
-    "type": "number",
-    "required": false,
-    "min": 30,
-    "max": 1800
-  })
-  
-  collection.schema.addField(field)
-  
-  return dao.saveCollection(collection)
-})
+	const dao = new Dao(db);
+	const collection = dao.findCollectionByNameOrId('songs');
+
+	// Add new field
+	const field = new SchemaField({
+		system: false,
+		id: 'duration',
+		name: 'duration_seconds',
+		type: 'number',
+		required: false,
+		min: 30,
+		max: 1800
+	});
+
+	collection.schema.addField(field);
+
+	return dao.saveCollection(collection);
+});
 ```
 
 ## Troubleshooting
@@ -627,6 +646,7 @@ migrate((db) => {
 ### Debug Mode
 
 Enable debug mode for development:
+
 ```bash
 ./pocketbase serve --debug
 ```
@@ -636,6 +656,7 @@ This provides detailed logging for troubleshooting API issues and performance pr
 ### Health Checks
 
 Implement health check endpoints:
+
 - Database connectivity
 - File system access
 - Memory usage
