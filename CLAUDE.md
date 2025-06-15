@@ -9,12 +9,19 @@ WorshipWise is a worship song tracking system built with SvelteKit 5 + PocketBas
 **Key Technologies:**
 
 - SvelteKit with Static Adapter (pre-rendered SPA)
-- Svelte 5 Runes for state management
+- Svelte 5 Runes for state management (no external state libraries needed)
 - PocketBase as backend API + file server
-- TypeScript throughout
+- TypeScript throughout (100% coverage)
 - Tailwind CSS for styling
-- Vitest for unit testing
+- Vitest for unit testing (multi-project setup)
 - Playwright for E2E testing
+
+**Reference Documentation:**
+- Development roadmap: `plan/DEVELOPMENT_ROADMAP.md`
+- Component patterns: `plan/COMPONENT_GUIDE.md`
+- PocketBase setup: `plan/POCKETBASE_SETUP.md`
+- Testing guide: `plan/TESTING_GUIDE.md`
+- Svelte 5 best practices: `plan/SVELTE.md` and `plan/PB_SVELTE.md`
 
 ## Development Commands
 
@@ -35,8 +42,10 @@ npm run lint                 # Run ESLint and Prettier checks
 
 # Testing
 npm run test:unit            # Run unit tests with Vitest
+npm run test:unit:ui         # Run unit tests with UI
 npm run test                 # Run both unit and E2E tests
 npm run test:e2e             # Run Playwright E2E tests
+npm run test:coverage        # Generate coverage report
 ```
 
 ## Architecture
@@ -50,12 +59,14 @@ npm run test:e2e             # Run Playwright E2E tests
 
 ### Core Collections (PocketBase Schema)
 
-1. **Users** - Auth-enabled worship leaders with roles
-2. **Songs** - Central repository with metadata, keys, tempo
+1. **Users** - Auth-enabled worship leaders with roles (musician, leader, admin)
+2. **Songs** - Central repository with metadata, keys, tempo, file attachments
 3. **Setlists** - Service planning with dates and themes
 4. **Setlist Songs** - Junction table for drag-and-drop ordering
 5. **Song Usage** - Analytics tracking (populated on service completion)
 6. **Analytics View** - Pre-aggregated reporting data
+
+For detailed schema and security rules, see `plan/POCKETBASE_SETUP.md`.
 
 ### Project Structure
 
@@ -112,17 +123,25 @@ src/
 
 ### State Management with Svelte 5 Runes
 
-- Use `$state()` for reactive data
-- Use `$derived()` for computed values
+- Use `$state()` for reactive data (declare once at component init)
+- Use `$derived()` for computed values (keep pure, no side effects)
+- Use `$effect()` sparingly as escape hatch only
+- Use `$props()` with destructuring and defaults
 - Stores are classes with runes, not traditional Svelte stores
+- Export functions/getters for cross-module state access
 - PocketBase client initialization uses relative URLs for same-origin requests
+
+See `plan/SVELTE.md` and `plan/PB_SVELTE.md` for detailed patterns.
 
 ### API Integration Patterns
 
 - PocketBase client: `new PocketBase(browser ? window.location.origin : '')`
+- Single global PocketBase instance
+- Disable auto-cancellation for better UX: `pb.autoCancellation(false)`
 - Real-time subscriptions for collaborative features
 - Client-side caching with smart invalidation
 - Optimistic updates for better UX
+- Proper cleanup of subscriptions in `onDestroy`
 
 ### Testing Strategy
 
@@ -130,13 +149,27 @@ src/
 - Component tests with Testing Library for Svelte
 - E2E tests with Playwright for user workflows
 - Mock PocketBase API calls in tests
+- Coverage requirements: 80% minimum for all metrics
+- Multi-project Vitest setup for client/server separation
+
+See `plan/TESTING_GUIDE.md` for comprehensive testing patterns.
 
 ### Performance Considerations
 
 - Lazy loading for heavy components (charts, analytics)
+- Virtual lists for long song lists
 - API response caching with TTL
 - Code splitting for route-based chunks
+- Optimistic UI updates with rollback on failure
 - PWA support with service worker for offline functionality
+
+### Component Development
+
+Follow the standardized component structure and patterns in `plan/COMPONENT_GUIDE.md`:
+- Consistent import order and organization
+- TypeScript interfaces for all props
+- Proper Svelte 5 runes usage
+- Comprehensive test coverage for new components
 
 ## Deployment
 
@@ -152,7 +185,17 @@ src/
 - Use static adapter in `svelte.config.js`
 - SPA mode with `fallback: 'index.html'` for client-side routing
 - PocketBase rules handle API security and rate limiting
+- JavaScript-based migrations for schema changes
+- Daily automated backups with 30-day retention
 
-## Memories
+See `plan/POCKETBASE_SETUP.md` for detailed configuration.
 
-- Ensure we use and update the plan/DEVELOPMENT_ROADMAP.md
+## Important Guidelines
+
+- Always check and follow the development roadmap in `plan/DEVELOPMENT_ROADMAP.md`
+- Reference plan files for detailed implementation guidance
+- Do what has been asked; nothing more, nothing less
+- NEVER create files unless they're absolutely necessary for achieving your goal
+- ALWAYS prefer editing an existing file to creating a new one
+- NEVER proactively create documentation files (*.md) or README files unless explicitly requested
+- Follow the established patterns and conventions in the codebase
