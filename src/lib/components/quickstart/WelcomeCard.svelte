@@ -58,11 +58,11 @@
 					Import Sample Songs
 				</Button>
 				
-				<Button href="/songs" variant="outline">
+				<Button href="/songs" variant="secondary">
 					Add Your First Song
 				</Button>
 				
-				<Button onclick={handleOpenWizard} variant="outline">
+				<Button onclick={handleOpenWizard} variant="secondary">
 					<Settings class="w-4 h-4 mr-2" />
 					Setup Wizard
 				</Button>

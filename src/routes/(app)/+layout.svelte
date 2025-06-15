@@ -43,7 +43,7 @@
       </main>
       
       <!-- Setup wizard modal -->
-      <SetupWizard bind:open={quickstartStore.showSetupWizard} />
+      <SetupWizard open={quickstartStore.showSetupWizard} />
     </div>
   </ErrorBoundary>
 {:else}

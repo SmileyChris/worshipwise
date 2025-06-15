@@ -7,6 +7,14 @@
 	let { open = $bindable(false) } = $props();
 
 	const store = quickstartStore;
+	
+	// Modal state management
+	let modalOpen = $state(false);
+	
+	// Sync with parent prop
+	$effect(() => {
+		modalOpen = open;
+	});
 
 	function getStepIcon(status: string) {
 		switch (status) {
@@ -63,12 +71,11 @@
 	}
 
 	function handleClose() {
-		open = false;
 		store.dismissSetupWizard();
 	}
 </script>
 
-<Modal bind:open size="lg">
+<Modal open={modalOpen} size="lg" on:close={handleClose}>
 	<div class="p-6">
 		<div class="mb-6">
 			<h2 class="text-2xl font-bold text-gray-900 mb-2">
@@ -99,9 +106,9 @@
 		<!-- Steps list -->
 		<div class="space-y-4 mb-8">
 			{#each store.setupSteps as step, index}
+				{@const StepIcon = getStepIcon(step.status)}
 				<div class="flex items-start space-x-3 p-3 rounded-lg border {index === store.currentStepIndex ? 'border-blue-200 bg-blue-50' : 'border-gray-200'}">
 					<div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center {getStepClass(step.status)}">
-						{@const StepIcon = getStepIcon(step.status)}
 						<StepIcon class="w-4 h-4" />
 					</div>
 					
@@ -154,7 +161,7 @@
 							<ExternalLink class="w-4 h-4 mr-2" />
 							Open Admin Panel
 						</Button>
-						<Button onclick={() => store.nextStep()} variant="outline">
+						<Button onclick={() => store.nextStep()} variant="secondary">
 							I've Created Admin Account
 						</Button>
 					</div>
@@ -175,7 +182,7 @@
 						<Button onclick={handleClose} variant="primary">
 							Close & Register Account
 						</Button>
-						<Button onclick={() => store.nextStep()} variant="outline">
+						<Button onclick={() => store.nextStep()} variant="secondary">
 							I Already Have an Account
 						</Button>
 					</div>
@@ -189,7 +196,7 @@
 							{store.isLoading ? 'Importing...' : 'Import Sample Data'}
 						</Button>
 						{#if store.currentStep.optional}
-							<Button onclick={handleSkipStep} variant="outline">
+							<Button onclick={handleSkipStep} variant="secondary">
 								Skip This Step
 							</Button>
 						{/if}
@@ -202,7 +209,7 @@
 		<div class="flex justify-between">
 			<Button 
 				onclick={() => store.prevStep()} 
-				variant="outline"
+				variant="secondary"
 				disabled={store.currentStepIndex === 0}
 			>
 				Previous
@@ -214,7 +221,7 @@
 						Complete Setup
 					</Button>
 				{:else}
-					<Button onclick={handleClose} variant="outline">
+					<Button onclick={handleClose} variant="secondary">
 						Close Wizard
 					</Button>
 				{/if}
