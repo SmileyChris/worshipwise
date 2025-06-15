@@ -1,35 +1,24 @@
 // Setlist related types for WorshipWise
+import type { User } from './auth';
+import type { Song } from './song';
 
 export interface Setlist {
 	id: string;
 	title: string;
 	service_date: string;
-	service_type?:
-		| 'Sunday Morning'
-		| 'Sunday Evening'
-		| 'Wednesday Night'
-		| 'Special Event'
-		| 'Youth Service'
-		| 'Prayer Meeting'
-		| 'Conference'
-		| 'Outreach';
+	service_type?: string;
 	theme?: string;
 	notes?: string;
 	worship_leader: string;
-	team_members?: string[];
-	status: 'draft' | 'planned' | 'in_progress' | 'completed' | 'archived';
-	estimated_duration?: number;
-	actual_duration?: number;
-	created_by: string;
-	is_template?: boolean;
+	team_members?: Record<string, any>;
+	is_completed?: boolean;
+	is_archived?: boolean;
 	created: string;
 	updated: string;
 
 	// Expanded fields
 	expand?: {
 		worship_leader?: User;
-		team_members?: User[];
-		created_by?: User;
 	};
 }
 
@@ -39,57 +28,17 @@ export interface SetlistSong {
 	song_id: string;
 	order_position: number;
 	transposed_key?: string;
-	tempo_override?: number;
-	transition_notes?: string;
-	section_type?:
-		| 'Opening'
-		| 'Call to Worship'
-		| 'Praise & Worship'
-		| 'Intercession'
-		| 'Offering'
-		| 'Communion'
-		| 'Response'
-		| 'Closing'
-		| 'Special Music';
-	duration_override?: number;
-	added_by: string;
+	special_notes?: string;
 	created: string;
 	updated: string;
 
 	// Expanded fields
 	expand?: {
-		song_id?: import('./song').Song;
-		added_by?: User;
-	};
-}
-
-export interface SongUsage {
-	id: string;
-	song_id: string;
-	setlist_id: string;
-	used_date: string;
-	used_key?: string;
-	position_in_setlist?: number;
-	worship_leader: string;
-	service_type?: string;
-	created: string;
-	updated: string;
-
-	// Expanded fields
-	expand?: {
-		song_id?: import('./song').Song;
+		song_id?: Song;
 		setlist_id?: Setlist;
-		worship_leader?: User;
 	};
 }
 
-// User type reference (should be imported from auth.ts)
-interface User {
-	id: string;
-	name: string;
-	email: string;
-	role: 'musician' | 'leader' | 'admin';
-}
 
 // Create/Update DTOs
 export interface CreateSetlistData {

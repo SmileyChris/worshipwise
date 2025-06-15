@@ -2,14 +2,24 @@ export interface User {
 	id: string;
 	email: string;
 	name: string;
-	role: 'musician' | 'leader' | 'admin';
-	church_name?: string;
-	preferred_keys?: string[];
-	notification_preferences?: Record<string, any>;
-	is_active: boolean;
 	created: string;
 	updated: string;
 	verified: boolean;
+	avatar: string;
+	emailVisibility: boolean;
+}
+
+export interface Profile {
+	id: string;
+	user_id: string;
+	name: string;
+	role: 'musician' | 'leader' | 'admin';
+	church_name?: string;
+	preferred_keys?: Record<string, any>;
+	notification_preferences?: Record<string, any>;
+	is_active?: boolean;
+	created: string;
+	updated: string;
 }
 
 export interface LoginCredentials {

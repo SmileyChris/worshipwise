@@ -68,9 +68,9 @@ export interface UpdateSongData {
 
 export interface SongUsage {
 	id: string;
-	song: string;
-	setlist: string;
-	usage_date: string;
+	song_id: string;
+	setlist_id: string;
+	used_date: string;
 	worship_leader: string;
 	key_used?: string;
 	service_type?: string;

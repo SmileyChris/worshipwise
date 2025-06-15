@@ -1,11 +1,12 @@
 import { pb } from '$lib/api/client';
 import { goto } from '$app/navigation';
 import { browser } from '$app/environment';
-import type { User, LoginCredentials, RegisterData } from '$lib/types/auth';
+import type { User, Profile, LoginCredentials, RegisterData } from '$lib/types/auth';
 
 class AuthStore {
 	// Reactive state using Svelte 5 runes
 	user = $state<User | null>(null);
+	profile = $state<Profile | null>(null);
 	token = $state<string>('');
 	isValid = $state<boolean>(false);
 	loading = $state<boolean>(false);
@@ -67,23 +68,32 @@ class AuthStore {
 		this.error = null;
 
 		try {
-			// Create the user account
+			// Create the user account (basic auth fields only)
 			const user = await pb.collection('users').create({
 				email: data.email,
 				password: data.password,
-				passwordConfirm: data.passwordConfirm,
+				passwordConfirm: data.passwordConfirm
+			});
+
+			console.log('User account created:', user.email);
+
+			// Auto-login to get authenticated context
+			await pb.collection('users').authWithPassword(data.email, data.password);
+
+			// Create the profile record with additional user data
+			const profile = await pb.collection('profiles').create({
+				user_id: user.id,
 				name: data.name,
 				role: data.role || 'musician',
-				church_name: data.church_name
+				church_name: data.church_name || '',
+				is_active: true
 			});
 
+			console.log('Profile created:', profile.name);
 			console.log('Registration successful:', user.email);
 
-			// Auto-login after successful registration
-			await this.login({
-				email: data.email,
-				password: data.password
-			});
+			// Redirect to dashboard
+			await goto('/dashboard');
 		} catch (error: any) {
 			console.error('Registration failed:', error);
 			this.error = this.getErrorMessage(error);
