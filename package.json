@@ -51,6 +51,7 @@
 		"vitest": "^3.2.3"
 	},
 	"dependencies": {
+		"chart.js": "^4.5.0",
 		"lucide-svelte": "^0.515.0",
 		"pocketbase": "^0.26.1"
 	}

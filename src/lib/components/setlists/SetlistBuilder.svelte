@@ -130,13 +130,13 @@
 					const songs = [...setlistsStore.currentSetlistSongs];
 					const [movedSong] = songs.splice(fromIndex, 1);
 					songs.splice(dropIndex, 0, movedSong);
-					
+
 					// Generate the new order array
 					const newOrder = songs.map((song, index) => ({
 						id: song.id,
 						position: index
 					}));
-					
+
 					await setlistsStore.reorderSetlistSongs(newOrder);
 				}
 			}

@@ -142,42 +142,113 @@ This document outlines the step-by-step development plan for implementing Worshi
 - ✅ Usage-based visual indicators (green/yellow/red)
 - ✅ Foundation for repetition prevention
 
-## Phase 3: Advanced Setlist Features (Sprints 5-6)
+## Phase 3: Analytics & Insights (Sprints 5-6)
 
-### Sprint 5: Enhanced Setlist Builder
+### Sprint 5: Analytics Dashboard
 
-**Goal**: Advanced setlist building with drag-and-drop and team features
+**Goal**: Provide insights into song usage patterns and service analytics
 
 #### Tasks:
 
-1. **Advanced Setlist Builder**
+1. **Analytics Data Processing**
 
-   - Drag-and-drop song reordering
-   - Key transposition per song in setlist
-   - Service timing and duration tracking
-   - Song transition notes and instructions
+   - Aggregation queries for usage statistics
+   - Time-based analysis (weekly/monthly trends)
+   - Song popularity rankings
+   - Worship leader activity tracking
+   - Service type analysis
 
-2. **Team Collaboration**
+2. **Visualization Components**
 
-   - Team member assignment to setlists
-   - Role-based setlist permissions
-   - Real-time collaborative editing
-   - Comments and feedback system
+   - Usage frequency charts with Chart.js
+   - Service timeline visualization
+   - Song rotation heat maps
+   - Popular songs rankings
+   - Key usage distribution charts
 
-3. **Setlist Templates & Planning**
+3. **Analytics Dashboard UI**
+   - Analytics page with overview cards
+   - Interactive charts and filters
+   - Date range selection
+   - Export functionality (CSV)
+   - Responsive dashboard layout
+
+#### Deliverables:
+
+- [ ] Analytics API with aggregation queries
+- [ ] Interactive analytics dashboard page
+- [ ] Chart visualizations for usage patterns
+- [ ] Export functionality for reports
+
+### Sprint 6: Advanced Analytics & Reporting
+
+**Goal**: Enhanced reporting and worship insights
+
+#### Tasks:
+
+1. **Advanced Reporting**
+
+   - Exportable reports (PDF, CSV)
+   - Custom date range filtering
+   - Comparative analysis tools
+   - Automated insights and recommendations
+
+2. **Worship Insights**
+
+   - Song rotation recommendations
+   - Service balance analysis (fast/slow songs)
+   - Key compatibility suggestions
+   - Seasonal trending analysis
+
+3. **Performance Analytics**
+   - Service duration trends
+   - Song transition analysis
+   - Popular service types
+   - Worship leader performance metrics
+
+#### Deliverables:
+
+- [ ] Advanced export and reporting system
+- [ ] Intelligent worship recommendations
+- [ ] Comprehensive service analytics
+- [ ] Performance optimization insights
+
+## Phase 4: Enhanced Setlist Features (Sprints 7-8)
+
+### Sprint 7: Enhanced Setlist Builder
+
+**Goal**: Advanced setlist building with templates and team features
+
+#### Tasks:
+
+1. **Setlist Templates & Planning**
+
    - Save setlists as templates
    - Duplicate existing setlists
    - Service type categorization
    - Setlist scheduling and calendar view
 
+2. **Team Collaboration**
+
+   - Team member assignment to setlists
+   - Role-based setlist permissions
+   - Comments and feedback system
+   - Approval workflows
+
+3. **Advanced Builder Features**
+   - Bulk song operations
+   - Service flow optimization
+   - Auto-suggest based on analytics
+   - Advanced search and filtering
+
 #### Deliverables:
 
-- [ ] Drag-and-drop setlist builder
-- [ ] Team collaboration features
 - [ ] Setlist templates and duplication
+- [ ] Team collaboration features
 - [ ] Enhanced service planning workflow
+- [ ] AI-powered song suggestions
 
-### Sprint 6: Real-Time Collaboration
+### Sprint 8: Real-Time Collaboration
 
 **Goal**: Enable live collaborative setlist editing
 
@@ -210,42 +281,9 @@ This document outlines the step-by-step development plan for implementing Worshi
 - [ ] Offline support with sync
 - [ ] Performance optimizations
 
-## Phase 4: Analytics & Reporting (Sprints 7-8)
+## Phase 5: Mobile & PWA (Sprints 9-10)
 
-### Sprint 7: Analytics Dashboard
-
-**Goal**: Provide insights into song usage patterns
-
-#### Tasks:
-
-1. **Analytics Data Processing**
-
-   - Aggregation queries for usage statistics
-   - Time-based analysis (weekly/monthly trends)
-   - Song popularity rankings
-   - Worship leader activity tracking
-
-2. **Visualization Components**
-
-   - Usage frequency charts
-   - Service timeline visualization
-   - Song rotation heat maps
-   - Popular songs rankings
-
-3. **Reporting Features**
-   - Exportable reports (PDF, CSV)
-   - Custom date range filtering
-   - Comparative analysis tools
-   - Automated insights and recommendations
-
-#### Deliverables:
-
-- [ ] Comprehensive analytics dashboard
-- [ ] Interactive data visualizations
-- [ ] Exportable reports
-- [ ] Automated insights system
-
-### Sprint 8: Advanced Features
+### Sprint 9: Mobile Optimization
 
 **Goal**: Implement worship leader preferences and advanced functionality
 
@@ -489,17 +527,17 @@ This document outlines the step-by-step development plan for implementing Worshi
 
 ### **🚧 Current Status**
 
-- **Ready for Sprint 5**: Enhanced Setlist Builder
+- **Ready for Sprint 5**: Analytics Dashboard
 - **Ready for Production**: Authentication, song management, file uploads, basic setlist builder
 - **Core Features Working**: User roles, song CRUD, setlist management, usage tracking, visual indicators, real-time updates, responsive design
 
 ### **🎯 Immediate Next Steps**
 
-1. Enhanced drag-and-drop setlist builder with better UX
-2. Key transposition per song in setlist
-3. Service timing and duration tracking
-4. Song transition notes and instructions
-5. Team member assignment to setlists
+1. Analytics API with aggregation queries for usage data
+2. Interactive analytics dashboard with charts
+3. Usage frequency and popularity visualizations
+4. Song rotation and service analytics
+5. Export functionality for reports
 
 ### **🏗️ Architecture Achievements**
 
