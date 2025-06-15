@@ -1,0 +1,414 @@
+import { describe, it, expect } from 'vitest';
+import {
+  SECTION_TYPES,
+  calculateServiceDuration,
+  formatServiceDuration,
+  formatServiceDurationLong,
+  reorderSongs,
+  generateOrderMapping,
+  checkSchedulingConflicts,
+  validateSetlistData,
+  groupSongsBySection,
+  calculateSectionDuration,
+  findOptimalInsertionPosition,
+  generateSetlistPDFData,
+  validateServiceFlow
+} from '$lib/utils/setlist-utils';
+
+describe('Setlist Utils', () => {
+  const mockSetlistSongs = [
+    {
+      id: '1',
+      order_position: 1,
+      section_type: 'Opening' as const,
+      duration_override: 240,
+      expand: { song_id: { duration_seconds: 180, title: 'Song 1' } }
+    },
+    {
+      id: '2',
+      order_position: 2,
+      section_type: 'Praise & Worship' as const,
+      expand: { song_id: { duration_seconds: 300, title: 'Song 2' } }
+    },
+    {
+      id: '3',
+      order_position: 3,
+      section_type: 'Closing' as const,
+      expand: { song_id: { duration_seconds: 200, title: 'Song 3' } }
+    }
+  ];
+
+  describe('SECTION_TYPES', () => {
+    it('should contain all standard service sections', () => {
+      expect(SECTION_TYPES).toContain('Opening');
+      expect(SECTION_TYPES).toContain('Praise & Worship');
+      expect(SECTION_TYPES).toContain('Closing');
+      expect(SECTION_TYPES).toHaveLength(9);
+    });
+  });
+
+  describe('calculateServiceDuration', () => {
+    it('should calculate total duration using duration overrides and defaults', () => {
+      const duration = calculateServiceDuration(mockSetlistSongs);
+      // 240 (override) + 300 (default) + 200 (default) = 740
+      expect(duration).toBe(740);
+    });
+
+    it('should handle empty song list', () => {
+      expect(calculateServiceDuration([])).toBe(0);
+    });
+
+    it('should handle songs without duration', () => {
+      const songsWithoutDuration = [
+        {
+          id: '1',
+          order_position: 1,
+          section_type: 'Opening' as const,
+          expand: { song_id: { title: 'Song 1' } }
+        }
+      ];
+      expect(calculateServiceDuration(songsWithoutDuration)).toBe(0);
+    });
+  });
+
+  describe('formatServiceDuration', () => {
+    it('should format zero duration', () => {
+      expect(formatServiceDuration(0)).toBe('0:00');
+    });
+
+    it('should format seconds', () => {
+      expect(formatServiceDuration(45)).toBe('0:45');
+    });
+
+    it('should format minutes and seconds', () => {
+      expect(formatServiceDuration(125)).toBe('2:05');
+    });
+
+    it('should pad single digit seconds', () => {
+      expect(formatServiceDuration(65)).toBe('1:05');
+    });
+  });
+
+  describe('formatServiceDurationLong', () => {
+    it('should format zero duration', () => {
+      expect(formatServiceDurationLong(0)).toBe('0 minutes');
+    });
+
+    it('should format single minute', () => {
+      expect(formatServiceDurationLong(60)).toBe('1 minute');
+    });
+
+    it('should format multiple minutes', () => {
+      expect(formatServiceDurationLong(300)).toBe('5 minutes');
+    });
+
+    it('should format hours', () => {
+      expect(formatServiceDurationLong(3600)).toBe('1 hour');
+    });
+
+    it('should format hours and minutes', () => {
+      expect(formatServiceDurationLong(3900)).toBe('1 hour 5 minutes');
+    });
+
+    it('should handle plural hours', () => {
+      expect(formatServiceDurationLong(7200)).toBe('2 hours');
+    });
+  });
+
+  describe('reorderSongs', () => {
+    const songs = [
+      { id: '1' },
+      { id: '2' },
+      { id: '3' },
+      { id: '4' }
+    ];
+
+    it('should reorder songs correctly', () => {
+      const result = reorderSongs(songs, 0, 2);
+      expect(result.map(s => s.id)).toEqual(['2', '3', '1', '4']);
+    });
+
+    it('should handle moving to end', () => {
+      const result = reorderSongs(songs, 0, 3);
+      expect(result.map(s => s.id)).toEqual(['2', '3', '4', '1']);
+    });
+
+    it('should handle same position', () => {
+      const result = reorderSongs(songs, 1, 1);
+      expect(result.map(s => s.id)).toEqual(['1', '2', '3', '4']);
+    });
+
+    it('should handle invalid indices', () => {
+      expect(reorderSongs(songs, -1, 2)).toEqual(songs);
+      expect(reorderSongs(songs, 0, 10)).toEqual(songs);
+    });
+  });
+
+  describe('generateOrderMapping', () => {
+    it('should generate correct order mapping', () => {
+      const songs = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+      const mapping = generateOrderMapping(songs);
+      
+      expect(mapping).toEqual([
+        { id: 'a', position: 0 },
+        { id: 'b', position: 1 },
+        { id: 'c', position: 2 }
+      ]);
+    });
+
+    it('should handle empty array', () => {
+      expect(generateOrderMapping([])).toEqual([]);
+    });
+  });
+
+  describe('checkSchedulingConflicts', () => {
+    const existingSetlists = [
+      { id: '1', service_date: '2024-01-01', service_type: 'Sunday Morning' },
+      { id: '2', service_date: '2024-01-01', service_type: 'Sunday Evening' },
+      { id: '3', service_date: '2024-01-02', service_type: 'Sunday Morning' }
+    ];
+
+    it('should detect conflicts', () => {
+      const result = checkSchedulingConflicts(
+        '2024-01-01',
+        'Sunday Morning',
+        existingSetlists
+      );
+      
+      expect(result.hasConflict).toBe(true);
+      expect(result.conflictMessage).toContain('already scheduled');
+    });
+
+    it('should not detect conflicts for different dates', () => {
+      const result = checkSchedulingConflicts(
+        '2024-01-03',
+        'Sunday Morning',
+        existingSetlists
+      );
+      
+      expect(result.hasConflict).toBe(false);
+    });
+
+    it('should not detect conflicts for different service types', () => {
+      const result = checkSchedulingConflicts(
+        '2024-01-01',
+        'Wednesday Night',
+        existingSetlists
+      );
+      
+      expect(result.hasConflict).toBe(false);
+    });
+
+    it('should exclude current setlist when editing', () => {
+      const result = checkSchedulingConflicts(
+        '2024-01-01',
+        'Sunday Morning',
+        existingSetlists,
+        '1'
+      );
+      
+      expect(result.hasConflict).toBe(false);
+    });
+  });
+
+  describe('validateSetlistData', () => {
+    it('should validate correct data', () => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowString = tomorrow.toISOString().split('T')[0];
+
+      const data = {
+        title: 'Sunday Service',
+        service_date: tomorrowString,
+        estimated_duration: 60
+      };
+      
+      const result = validateSetlistData(data);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toEqual({});
+    });
+
+    it('should require title', () => {
+      const data = {
+        title: '',
+        service_date: '2024-12-31'
+      };
+      
+      const result = validateSetlistData(data);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.title).toBe('Title is required');
+    });
+
+    it('should validate title length', () => {
+      const data = {
+        title: 'a'.repeat(201),
+        service_date: '2024-12-31'
+      };
+      
+      const result = validateSetlistData(data);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.title).toBe('Title must be less than 200 characters');
+    });
+
+    it('should require service date', () => {
+      const data = {
+        title: 'Sunday Service',
+        service_date: ''
+      };
+      
+      const result = validateSetlistData(data);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.service_date).toBe('Service date is required');
+    });
+
+    it('should validate duration range', () => {
+      const data = {
+        title: 'Sunday Service',
+        service_date: '2024-12-31',
+        estimated_duration: 500
+      };
+      
+      const result = validateSetlistData(data);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.estimated_duration).toBe('Duration must be between 10 minutes and 8 hours');
+    });
+  });
+
+  describe('groupSongsBySection', () => {
+    it('should group songs by section type', () => {
+      const grouped = groupSongsBySection(mockSetlistSongs);
+      
+      expect(grouped['Opening']).toHaveLength(1);
+      expect(grouped['Praise & Worship']).toHaveLength(1);
+      expect(grouped['Closing']).toHaveLength(1);
+    });
+
+    it('should handle songs without section type', () => {
+      const songsWithoutSection = [
+        { ...mockSetlistSongs[0], section_type: undefined }
+      ];
+      
+      const grouped = groupSongsBySection(songsWithoutSection);
+      expect(grouped['Uncategorized']).toHaveLength(1);
+    });
+  });
+
+  describe('calculateSectionDuration', () => {
+    it('should calculate section duration', () => {
+      const openingSongs = mockSetlistSongs.filter(s => s.section_type === 'Opening');
+      const duration = calculateSectionDuration(openingSongs);
+      expect(duration).toBe(240); // duration_override
+    });
+  });
+
+  describe('findOptimalInsertionPosition', () => {
+    it('should find position after same section type', () => {
+      const songs = [
+        { section_type: 'Opening' },
+        { section_type: 'Opening' },
+        { section_type: 'Praise & Worship' }
+      ];
+      
+      const position = findOptimalInsertionPosition(songs, 'Opening');
+      expect(position).toBe(2);
+    });
+
+    it('should find position based on service flow order', () => {
+      const songs = [
+        { section_type: 'Opening' },
+        { section_type: 'Closing' }
+      ];
+      
+      const position = findOptimalInsertionPosition(songs, 'Praise & Worship');
+      expect(position).toBe(1);
+    });
+
+    it('should append at end if no appropriate position found', () => {
+      const songs = [
+        { section_type: 'Opening' }
+      ];
+      
+      const position = findOptimalInsertionPosition(songs, 'Special Music');
+      expect(position).toBe(1);
+    });
+  });
+
+  describe('generateSetlistPDFData', () => {
+    const mockSetlist = {
+      title: 'Sunday Service',
+      service_date: '2024-01-01',
+      service_type: 'Sunday Morning',
+      theme: 'New Beginnings',
+      expand: { worship_leader: { name: 'John Doe' } }
+    };
+
+    it('should generate correct PDF data structure', () => {
+      const pdfData = generateSetlistPDFData(mockSetlist, mockSetlistSongs);
+      
+      expect(pdfData.title).toBe('Sunday Service');
+      expect(pdfData.date).toBe('2024-01-01');
+      expect(pdfData.worshipLeader).toBe('John Doe');
+      expect(pdfData.sections).toHaveLength(3);
+    });
+
+    it('should handle missing data gracefully', () => {
+      const minimalSetlist = {
+        title: 'Service',
+        service_date: '2024-01-01'
+      };
+      
+      const pdfData = generateSetlistPDFData(minimalSetlist, []);
+      expect(pdfData.worshipLeader).toBe('Unknown');
+      expect(pdfData.sections).toHaveLength(0);
+    });
+  });
+
+  describe('validateServiceFlow', () => {
+    it('should validate good service flow', () => {
+      const goodFlow = [
+        { 
+          section_type: 'Opening',
+          duration_override: 300,
+          expand: { song_id: { duration_seconds: 300 } }
+        },
+        { 
+          section_type: 'Praise & Worship',
+          expand: { song_id: { duration_seconds: 400 } }
+        },
+        { 
+          section_type: 'Closing',
+          expand: { song_id: { duration_seconds: 400 } }
+        }
+      ];
+      
+      const result = validateServiceFlow(goodFlow);
+      expect(result.warnings).toHaveLength(0);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should suggest missing sections', () => {
+      const missingOpening = [
+        { section_type: 'Praise & Worship' },
+        { section_type: 'Closing' }
+      ];
+      
+      const result = validateServiceFlow(missingOpening);
+      expect(result.suggestions).toContain('Consider adding an opening song to start the service');
+    });
+
+    it('should warn about long services', () => {
+      const longSongs = Array(10).fill(null).map((_, i) => ({
+        section_type: 'Praise & Worship',
+        duration_override: 800 // 13+ minutes each = over 2 hours total
+      }));
+      
+      const result = validateServiceFlow(longSongs);
+      expect(result.warnings).toContain('Service duration is very long (over 2 hours)');
+    });
+
+    it('should handle empty service', () => {
+      const result = validateServiceFlow([]);
+      expect(result.isValid).toBe(true);
+    });
+  });
+});

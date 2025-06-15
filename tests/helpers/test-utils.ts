@@ -25,12 +25,16 @@ export const createMockSetlist = (overrides: Partial<MockRecord> = {}): MockReco
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   title: 'Sunday Morning Service',
-  date: '2024-01-01',
-  service_type: 'Morning',
+  service_date: '2024-01-01',
+  service_type: 'Sunday Morning',
   theme: 'New Beginnings',
   notes: 'New Year service',
-  is_completed: false,
+  status: 'draft',
   worship_leader: 'user_123',
+  team_members: [],
+  created_by: 'user_123',
+  is_template: false,
+  estimated_duration: 60,
   ...overrides
 });
 
@@ -40,9 +44,13 @@ export const createMockSetlistSong = (overrides: Partial<MockRecord> = {}): Mock
   updated: new Date().toISOString(),
   setlist_id: 'setlist_123',
   song_id: 'song_123',
-  position: 1,
-  key_override: null,
-  notes: '',
+  order_position: 1,
+  transposed_key: null,
+  tempo_override: null,
+  transition_notes: '',
+  section_type: 'Praise & Worship',
+  duration_override: null,
+  added_by: 'user_123',
   ...overrides
 });
 
