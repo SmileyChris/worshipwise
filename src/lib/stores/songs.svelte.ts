@@ -332,19 +332,19 @@ class SongsStore {
   /**
    * Subscribe to real-time updates
    */
-  subscribeToUpdates(): () => void {
-    return songsApi.subscribe((data) => {
+  async subscribeToUpdates(): Promise<() => void> {
+    return await songsApi.subscribe((data) => {
       console.log('Real-time song update:', data);
       
       if (data.action === 'create') {
         // Add new song to the beginning of the list if it matches current filters
-        this.songs = [data.record as Song, ...this.songs];
+        this.songs = [data.record as unknown as Song, ...this.songs];
         this.totalItems += 1;
       } else if (data.action === 'update') {
         // Update existing song
         const index = this.songs.findIndex(s => s.id === data.record.id);
         if (index !== -1) {
-          this.songs[index] = data.record as Song;
+          this.songs[index] = data.record as unknown as Song;
         }
       } else if (data.action === 'delete') {
         // Remove deleted song

@@ -52,7 +52,7 @@ export class SongsAPI {
         expand: 'created_by'
       });
       
-      return records as Song[];
+      return records as unknown as Song[];
     } catch (error) {
       console.error('Failed to fetch songs:', error);
       throw error;
@@ -89,7 +89,7 @@ export class SongsAPI {
         sort: '-created'
       });
       
-      return availableSongs as Song[];
+      return availableSongs as unknown as Song[];
     } catch (error) {
       console.error('Failed to fetch available songs:', error);
       throw error;
@@ -104,7 +104,7 @@ export class SongsAPI {
       const record = await pb.collection(this.collection).getOne(id, {
         expand: 'created_by'
       });
-      return record as Song;
+      return record as unknown as Song;
     } catch (error) {
       console.error('Failed to fetch song:', error);
       throw error;
@@ -157,7 +157,7 @@ export class SongsAPI {
       });
 
       return {
-        items: result.items as Song[],
+        items: result.items as unknown as Song[],
         totalItems: result.totalItems,
         totalPages: result.totalPages,
         page: result.page,
@@ -211,7 +211,7 @@ export class SongsAPI {
       formData.append('is_active', 'true');
 
       const record = await pb.collection(this.collection).create(formData);
-      return record as Song;
+      return record as unknown as Song;
     } catch (error) {
       console.error('Failed to create song:', error);
       throw error;
@@ -224,7 +224,7 @@ export class SongsAPI {
   async updateSong(id: string, data: UpdateSongData): Promise<Song> {
     try {
       const record = await pb.collection(this.collection).update(id, data);
-      return record as Song;
+      return record as unknown as Song;
     } catch (error) {
       console.error('Failed to update song:', error);
       throw error;
@@ -254,7 +254,7 @@ export class SongsAPI {
         sort: '-created',
         expand: 'created_by'
       });
-      return records as Song[];
+      return records as unknown as Song[];
     } catch (error) {
       console.error('Failed to search songs:', error);
       throw error;

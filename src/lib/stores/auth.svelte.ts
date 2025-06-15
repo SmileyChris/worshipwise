@@ -154,7 +154,7 @@ class AuthStore {
     try {
       const updatedUser = await pb.collection('users').update(this.user.id, data);
       // Update local state - PocketBase won't automatically trigger onChange for profile updates
-      this.user = updatedUser as User;
+      this.user = updatedUser as unknown as User;
       console.log('Profile updated successfully');
     } catch (error: any) {
       console.error('Profile update failed:', error);
