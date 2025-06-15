@@ -43,21 +43,33 @@ cd worshipwise
 # Install dependencies
 npm install
 
+# Install PocketBase (if not already installed)
+./scripts/install-pocketbase.sh
+
 # Start development servers (both PocketBase and SvelteKit)
 npm run dev:all
 ```
 
 ### First Time Setup
 
-1. **Access PocketBase Admin Panel**:
+1. **Install PocketBase** (if needed):
+   ```bash
+   # Install latest version
+   ./scripts/install-pocketbase.sh
+   
+   # Or install specific version
+   ./scripts/install-pocketbase.sh 0.28.3
+   ```
+
+2. **Access PocketBase Admin Panel**:
    - Go to http://localhost:8090/_/
    - Create your admin account (one-time setup)
 
-2. **Access the Application**:
+3. **Access the Application**:
    - Frontend: http://localhost:5173
    - Register your first worship leader account
 
-3. **Start Managing Songs**:
+4. **Start Managing Songs**:
    - Add your first song with details and attachments
    - Create your first setlist
 

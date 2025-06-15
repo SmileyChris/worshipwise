@@ -1,0 +1,18 @@
+# PocketBase data directory (contains database and uploaded files)
+pb_data/
+
+# PocketBase migrations directory (auto-generated)
+pb_migrations/
+
+# PocketBase executable (downloaded by install script)
+pocketbase
+
+# Log files
+*.log
+
+# Backup files
+*.backup
+
+# Temporary files
+*.tmp
+*.temp
