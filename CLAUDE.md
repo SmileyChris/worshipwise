@@ -60,12 +60,12 @@ npm run test:coverage        # Generate coverage report
 
 ### Core Collections (PocketBase Schema)
 
-1. **Users** - Auth-enabled worship leaders with roles (musician, leader, admin)
-2. **Songs** - Central repository with metadata, keys, tempo, file attachments
-3. **Setlists** - Service planning with dates and themes
-4. **Setlist Songs** - Junction table for drag-and-drop ordering
-5. **Song Usage** - Analytics tracking (populated on service completion)
-6. **Analytics View** - Pre-aggregated reporting data
+1. **Users** - Authentication with basic user data (email, password)
+2. **Profiles** - Extended user metadata (name, role, church_name, preferences)
+3. **Songs** - Central repository with metadata, keys, tempo, file attachments
+4. **Setlists** - Service planning with dates and themes
+5. **Setlist Songs** - Junction table for drag-and-drop ordering
+6. **Song Usage** - Analytics tracking (populated on service completion)
 
 For detailed schema and security rules, see `plan/POCKETBASE_SETUP.md`.
 
@@ -196,6 +196,10 @@ See `plan/POCKETBASE_SETUP.md` for detailed configuration.
 
 - Always check and follow the development roadmap in `plan/DEVELOPMENT_ROADMAP.md`
 - **Update progress tracking**: When completing work outlined in `plan/DEVELOPMENT_ROADMAP.md` or `plan/TESTING_ROADMAP.md`, update those files to mark completed tasks and reflect current status
+- **Update documentation when appropriate**:
+  - **README.md**: Update sprint status, feature completions, and user-facing information when major features are completed
+  - **README_DEVELOPMENT.md**: Update technical details, architecture changes, or development workflow modifications
+  - **plan/DEVELOPMENT_ROADMAP.md**: Mark completed sprints/tasks and update current status
 - Reference plan files for detailed implementation guidance
 - Do what has been asked; nothing more, nothing less
 - NEVER create files unless they're absolutely necessary for achieving your goal
