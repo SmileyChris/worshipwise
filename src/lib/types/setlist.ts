@@ -10,9 +10,14 @@ export interface Setlist {
 	theme?: string;
 	notes?: string;
 	worship_leader: string;
-	team_members?: Record<string, any>;
+	team_members?: string[] | Record<string, any>;
 	is_completed?: boolean;
 	is_archived?: boolean;
+	// Optional advanced fields (may not exist in all environments)
+	status?: 'draft' | 'planned' | 'in_progress' | 'completed' | 'archived';
+	estimated_duration?: number;
+	actual_duration?: number;
+	is_template?: boolean;
 	created: string;
 	updated: string;
 
@@ -29,6 +34,11 @@ export interface SetlistSong {
 	order_position: number;
 	transposed_key?: string;
 	special_notes?: string;
+	// Optional advanced fields (may not exist in all environments)
+	section_type?: string;
+	tempo_override?: number;
+	duration_override?: number;
+	transition_notes?: string;
 	created: string;
 	updated: string;
 
@@ -48,7 +58,7 @@ export interface CreateSetlistData {
 	theme?: string;
 	notes?: string;
 	worship_leader: string;
-	team_members?: string[];
+	team_members?: string[] | Record<string, any>;
 	estimated_duration?: number;
 	is_template?: boolean;
 	status?: Setlist['status'];
@@ -61,7 +71,7 @@ export interface UpdateSetlistData {
 	theme?: string;
 	notes?: string;
 	worship_leader?: string;
-	team_members?: string[];
+	team_members?: string[] | Record<string, any>;
 	status?: Setlist['status'];
 	estimated_duration?: number;
 	actual_duration?: number;

@@ -11,14 +11,14 @@ export function testComponent(
   props = {}
 ) {
   let component: any;
-  let cleanup: () => void;
+  let cleanup: (() => void) | undefined;
   
   // Use $effect.root pattern from testing guide
   // Note: This will be updated when we implement actual component tests
   try {
     component = { ...props }; // Placeholder for actual mount
-    testFn(component);
     cleanup = () => {}; // Placeholder for actual unmount
+    testFn(component);
   } finally {
     cleanup?.();
   }
@@ -28,7 +28,7 @@ export function testComponent(
  * Wait for DOM updates - useful for async operations
  */
 export function waitForUpdates(): Promise<void> {
-  return new Promise(resolve => requestAnimationFrame(resolve));
+  return new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
 }
 
 /**

@@ -11,7 +11,7 @@ vi.mock('$lib/api/client', () => ({
 describe('Setlists API', () => {
   beforeEach(() => {
     mockPb.reset();
-    mockPb.authStore.model = createMockUser({ id: 'user_1', name: 'Test User' });
+    mockPb.authStore.model = createMockUser({ id: 'user_1', name: 'Test User' }) as any;
   });
 
   describe('getSetlists', () => {
@@ -70,7 +70,7 @@ describe('Setlists API', () => {
     });
 
     it('should apply date range filters', async () => {
-      const mockSetlists = [];
+      const mockSetlists: any[] = [];
       mockPb.collection('setlists').mockGetFullList(mockSetlists);
 
       await setlistsApi.getSetlists({
@@ -86,7 +86,7 @@ describe('Setlists API', () => {
     });
 
     it('should exclude templates when specified', async () => {
-      const mockSetlists = [];
+      const mockSetlists: any[] = [];
       mockPb.collection('setlists').mockGetFullList(mockSetlists);
 
       await setlistsApi.getSetlists({ excludeTemplates: true });

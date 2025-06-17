@@ -243,8 +243,8 @@
 										<p class="mt-1 text-sm text-gray-500">Theme: {setlist.theme}</p>
 									{/if}
 								</div>
-								<Badge variant={getStatusVariant(setlist.status)}>
-									{setlist.status}
+								<Badge variant={getStatusVariant(setlist.status || 'draft')}>
+									{setlist.status || 'draft'}
 								</Badge>
 							</div>
 

@@ -19,16 +19,29 @@ class AuthStore {
 			this.token = pb.authStore.token;
 			this.isValid = pb.authStore.isValid;
 
+			// Load profile if user is already authenticated
+			if (this.isValid && this.user) {
+				this.loadProfile();
+			}
+
 			// Listen for auth changes from PocketBase
-			pb.authStore.onChange(() => {
+			pb.authStore.onChange(async () => {
 				this.user = pb.authStore.model as User | null;
 				this.token = pb.authStore.token;
 				this.isValid = pb.authStore.isValid;
 				this.error = null;
 
+				// Load profile data when user logs in
+				if (this.isValid && this.user) {
+					await this.loadProfile();
+				} else {
+					this.profile = null;
+				}
+
 				console.log('Auth state changed:', {
 					isValid: this.isValid,
-					user: this.user?.email
+					user: this.user?.email,
+					profile: this.profile?.name
 				});
 			});
 		}
@@ -88,6 +101,9 @@ class AuthStore {
 				church_name: data.church_name || '',
 				is_active: true
 			});
+
+			// Set the profile in the store
+			this.profile = profile as unknown as Profile;
 
 			console.log('Profile created:', profile.name);
 			console.log('Registration successful:', user.email);
@@ -175,23 +191,42 @@ class AuthStore {
 	}
 
 	/**
+	 * Load user profile data
+	 */
+	async loadProfile(): Promise<void> {
+		if (!this.user) return;
+
+		try {
+			const profiles = await pb.collection('profiles').getList(1, 1, {
+				filter: `user_id = "${this.user.id}"`
+			});
+
+			if (profiles.items.length > 0) {
+				this.profile = profiles.items[0] as unknown as Profile;
+			}
+		} catch (error) {
+			console.error('Failed to load profile:', error);
+		}
+	}
+
+	/**
 	 * Check if user has specific role
 	 */
 	hasRole(role: string): boolean {
-		return this.user?.role === role;
+		return this.profile?.role === role;
 	}
 
 	/**
 	 * Check if user has any of the specified roles
 	 */
 	hasAnyRole(roles: string[]): boolean {
-		return this.user ? roles.includes(this.user.role) : false;
+		return this.profile ? roles.includes(this.profile.role) : false;
 	}
 
 	/**
 	 * Get user's display name
 	 */
-	displayName = $derived(this.user?.name || this.user?.email || 'User');
+	displayName = $derived(this.profile?.name || this.user?.name || this.user?.email || 'User');
 
 	/**
 	 * Check if user can manage songs (leader or admin)

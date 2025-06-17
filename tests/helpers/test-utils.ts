@@ -114,10 +114,10 @@ export const mockURL = {
 // Setup function for common mocks
 export const setupTestEnvironment = () => {
   // Mock Blob constructor
-  global.Blob = mockBlobConstructor as any;
+  (globalThis as any).Blob = mockBlobConstructor as any;
   
   // Mock URL API
-  global.URL = mockURL as any;
+  (globalThis as any).URL = mockURL as any;
   
   // Mock document methods
   const mockElement = {
@@ -125,7 +125,7 @@ export const setupTestEnvironment = () => {
     remove: vi.fn()
   };
   
-  global.document = {
+  (globalThis as any).document = {
     createElement: vi.fn(() => mockElement),
     body: {
       appendChild: vi.fn(),

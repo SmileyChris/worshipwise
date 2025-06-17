@@ -93,10 +93,10 @@ export function aggregateUsageData(
   }, {} as Record<string, number>);
   
   const topServiceEntry = Object.entries(serviceTypeCounts)
-    .sort(([, a], [, b]) => b - a)[0];
+    .sort(([, a], [, b]) => (b as number) - (a as number))[0];
   
   const topServiceType = topServiceEntry
-    ? { type: topServiceEntry[0], count: topServiceEntry[1] }
+    ? { type: topServiceEntry[0], count: topServiceEntry[1] as number }
     : { type: 'No data', count: 0 };
   
   // Count active worship leaders
