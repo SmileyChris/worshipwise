@@ -253,6 +253,14 @@
 		</Button>
 	</form>
 
+	{#if isLogin}
+		<div class="mt-4 text-center">
+			<a href="/reset-password" class="text-sm text-blue-600 hover:text-blue-500">
+				Forgot your password?
+			</a>
+		</div>
+	{/if}
+
 	<div class="mt-6 text-center">
 		<p class="text-sm text-gray-600">
 			{#if isLogin}

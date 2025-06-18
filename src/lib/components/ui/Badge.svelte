@@ -1,16 +1,35 @@
 <script lang="ts">
 	interface Props {
 		variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger';
+		color?: 'default' | 'red' | 'yellow' | 'blue' | 'green' | 'gray';
 		size?: 'sm' | 'md';
 		class?: string;
 		children?: import('svelte').Snippet;
 	}
 
-	let { variant = 'default', size = 'sm', class: className = '', children }: Props = $props();
+	let { variant = 'default', color, size = 'sm', class: className = '', children }: Props = $props();
 
 	let baseClasses = 'inline-flex items-center font-medium rounded-full';
 
 	let variantClasses = $derived(() => {
+		// Color prop takes precedence over variant
+		if (color) {
+			switch (color) {
+				case 'red':
+					return 'bg-red-100 text-red-800';
+				case 'yellow':
+					return 'bg-yellow-100 text-yellow-800';
+				case 'blue':
+					return 'bg-blue-100 text-blue-800';
+				case 'green':
+					return 'bg-green-100 text-green-800';
+				case 'gray':
+					return 'bg-gray-100 text-gray-800';
+				default:
+					return 'bg-gray-100 text-gray-800';
+			}
+		}
+
 		switch (variant) {
 			case 'primary':
 				return 'bg-blue-100 text-blue-800';

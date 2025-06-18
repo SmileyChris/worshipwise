@@ -1,0 +1,28 @@
+# WorshipWise justfile
+
+# Show available commands
+default:
+    @just --list
+
+# Development
+dev:
+    ./scripts/start-dev.sh
+
+# Setup
+setup:
+    ./scripts/install-pocketbase.sh
+
+# Build
+build:
+    npm run build
+
+# Test
+test:
+    npm run test
+
+# Code quality
+check:
+    npm run check
+
+lint:
+    npm run lint

@@ -1,12 +1,13 @@
 <script lang="ts">
 	interface Props {
-		variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+		variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
 		size?: 'sm' | 'md' | 'lg';
 		disabled?: boolean;
 		loading?: boolean;
 		type?: 'button' | 'submit' | 'reset';
 		class?: string;
 		onclick?: () => void;
+		href?: string;
 		'data-testid'?: string;
 		children?: import('svelte').Snippet;
 	}
@@ -19,6 +20,7 @@
 		type = 'button',
 		class: className = '',
 		onclick = () => {},
+		href = '',
 		'data-testid': testId = '',
 		children
 	}: Props = $props();
@@ -35,7 +37,9 @@
 			case 'danger':
 				return 'bg-red-600 text-white hover:bg-red-700 shadow-sm';
 			case 'ghost':
-				return 'hover:bg-gray-100 text-gray-900';
+				return 'border border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900';
+			case 'outline':
+				return 'border border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900';
 			default:
 				return '';
 		}
@@ -57,20 +61,40 @@
 	let isDisabled = $derived(disabled || loading);
 </script>
 
-<button {type} class={combinedClasses} disabled={isDisabled} {onclick} data-testid={testId}>
-	{#if loading}
-		<svg class="mr-2 -ml-1 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-			<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-			></circle>
-			<path
-				class="opacity-75"
-				fill="currentColor"
-				d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-			></path>
-		</svg>
-	{/if}
+{#if href}
+	<a {href} class={combinedClasses} data-testid={testId}>
+		{#if loading}
+			<svg class="mr-2 -ml-1 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+				></circle>
+				<path
+					class="opacity-75"
+					fill="currentColor"
+					d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+				></path>
+			</svg>
+		{/if}
 
-	{#if children}
-		{@render children()}
-	{/if}
-</button>
+		{#if children}
+			{@render children()}
+		{/if}
+	</a>
+{:else}
+	<button {type} class={combinedClasses} disabled={isDisabled} {onclick} data-testid={testId}>
+		{#if loading}
+			<svg class="mr-2 -ml-1 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+				></circle>
+				<path
+					class="opacity-75"
+					fill="currentColor"
+					d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+				></path>
+			</svg>
+		{/if}
+
+		{#if children}
+			{@render children()}
+		{/if}
+	</button>
+{/if}

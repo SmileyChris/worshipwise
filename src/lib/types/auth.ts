@@ -36,6 +36,16 @@ export interface RegisterData {
 	church_name?: string;
 }
 
+export interface PasswordResetRequest {
+	email: string;
+}
+
+export interface PasswordResetConfirm {
+	token: string;
+	password: string;
+	passwordConfirm: string;
+}
+
 export interface AuthStore {
 	user: User | null;
 	token: string;

@@ -3,6 +3,9 @@
 	import { page as pageStore } from '$app/stores';
 	import Button from '$lib/components/ui/Button.svelte';
 
+	// User menu dropdown state
+	let userMenuOpen = $state(false);
+
 	// Navigation items based on user role
 	let navigationItems = $derived.by(() => {
 		const items = [
@@ -34,6 +37,34 @@
 	async function handleLogout() {
 		await auth.logout();
 	}
+
+	function toggleUserMenu() {
+		userMenuOpen = !userMenuOpen;
+	}
+
+	function closeUserMenu() {
+		userMenuOpen = false;
+	}
+
+	function handleClickOutside(event: MouseEvent) {
+		const target = event.target as Element;
+		const userMenu = document.getElementById('user-menu-button');
+		const userMenuDropdown = userMenu?.nextElementSibling;
+		
+		if (userMenuOpen && !userMenu?.contains(target) && !userMenuDropdown?.contains(target)) {
+			closeUserMenu();
+		}
+	}
+
+	// Add click outside listener
+	$effect(() => {
+		if (userMenuOpen) {
+			document.addEventListener('click', handleClickOutside);
+			return () => {
+				document.removeEventListener('click', handleClickOutside);
+			};
+		}
+	});
 </script>
 
 <nav class="border-b border-gray-200 bg-white shadow-sm">
@@ -73,16 +104,48 @@
 					</div>
 				</div>
 
-				<!-- User menu dropdown (simplified for now) -->
+				<!-- User menu dropdown -->
 				<div class="relative">
-					<Button
-						variant="ghost"
-						size="sm"
-						onclick={handleLogout}
-						class="text-gray-500 hover:text-gray-700"
+					<button
+						onclick={toggleUserMenu}
+						class="flex items-center rounded-full bg-white p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+						id="user-menu-button"
+						aria-expanded={userMenuOpen}
+						aria-haspopup="true"
 					>
-						Sign Out
-					</Button>
+						<span class="sr-only">Open user menu</span>
+						<div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+							<span class="text-sm font-medium text-blue-600">
+								{auth.displayName.charAt(0).toUpperCase()}
+							</span>
+						</div>
+					</button>
+
+					{#if userMenuOpen}
+						<div
+							class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+							role="menu"
+							aria-orientation="vertical"
+							aria-labelledby="user-menu-button"
+							tabindex="-1"
+						>
+							<a
+								href="/profile"
+								class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+								role="menuitem"
+								onclick={closeUserMenu}
+							>
+								Profile Settings
+							</a>
+							<button
+								onclick={handleLogout}
+								class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+								role="menuitem"
+							>
+								Sign Out
+							</button>
+						</div>
+					{/if}
 				</div>
 			</div>
 		</div>
@@ -122,6 +185,12 @@
 				</div>
 			</div>
 			<div class="mt-3 space-y-1">
+				<a
+					href="/profile"
+					class="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+				>
+					Profile Settings
+				</a>
 				<button
 					onclick={handleLogout}
 					class="block w-full px-4 py-2 text-left text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"

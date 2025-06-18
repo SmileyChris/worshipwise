@@ -168,6 +168,25 @@ class AuthStore {
 	}
 
 	/**
+	 * Confirm password reset with token
+	 */
+	async confirmPasswordReset(token: string, password: string, passwordConfirm: string): Promise<void> {
+		this.loading = true;
+		this.error = null;
+
+		try {
+			await pb.collection('users').confirmPasswordReset(token, password, passwordConfirm);
+			console.log('Password reset confirmed successfully');
+		} catch (error: any) {
+			console.error('Password reset confirmation failed:', error);
+			this.error = this.getErrorMessage(error);
+			throw error;
+		} finally {
+			this.loading = false;
+		}
+	}
+
+	/**
 	 * Update user profile
 	 */
 	async updateProfile(data: Partial<User>): Promise<void> {
@@ -183,6 +202,36 @@ class AuthStore {
 			console.log('Profile updated successfully');
 		} catch (error: any) {
 			console.error('Profile update failed:', error);
+			this.error = this.getErrorMessage(error);
+			throw error;
+		} finally {
+			this.loading = false;
+		}
+	}
+
+	/**
+	 * Update profile information
+	 */
+	async updateProfileInfo(profileData: Partial<Profile>, userData?: Partial<User>): Promise<void> {
+		if (!this.user || !this.profile) return;
+
+		this.loading = true;
+		this.error = null;
+
+		try {
+			// Update user record if userData is provided
+			if (userData) {
+				const updatedUser = await pb.collection('users').update(this.user.id, userData);
+				this.user = updatedUser as unknown as User;
+			}
+
+			// Update profile record
+			const updatedProfile = await pb.collection('profiles').update(this.profile.id, profileData);
+			this.profile = updatedProfile as unknown as Profile;
+
+			console.log('Profile information updated successfully');
+		} catch (error: any) {
+			console.error('Profile info update failed:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;
 		} finally {
@@ -246,7 +295,7 @@ class AuthStore {
 	/**
 	 * Extract user-friendly error message
 	 */
-	private getErrorMessage(error: any): string {
+	getErrorMessage(error: any): string {
 		if (error?.response?.data) {
 			const data = error.response.data;
 
