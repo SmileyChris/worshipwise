@@ -19,7 +19,8 @@
 	// Search state
 	let searchQuery = $state('');
 	let selectedKey = $state('');
-	let selectedSort = $state('-created');
+	let selectedSort = $state('title');
+	let initialLoadComplete = $state(false);
 
 	// Reactive data from store
 	let songs = $derived(songsStore.songs);
@@ -35,8 +36,6 @@
 
 	// Sort options
 	const sortOptions = [
-		{ value: '-created', label: 'Newest First' },
-		{ value: 'created', label: 'Oldest First' },
 		{ value: 'title', label: 'Title A-Z' },
 		{ value: '-title', label: 'Title Z-A' },
 		{ value: 'artist', label: 'Artist A-Z' },
@@ -51,22 +50,42 @@
 
 	// Load songs on mount
 	onMount(() => {
-		songsStore.loadSongs();
-
-		// Set up real-time updates
-		songsStore.subscribeToUpdates().then((unsubscribe) => {
-			return unsubscribe;
+		songsStore.loadSongs().then(() => {
+			initialLoadComplete = true;
 		});
+
+		// Set up real-time updates with proper cleanup
+		let unsubscribePromise = songsStore.subscribeToUpdates();
+		
+		return () => {
+			// Cleanup subscription on component unmount
+			unsubscribePromise.then((unsubscribe) => {
+				if (unsubscribe) unsubscribe();
+			});
+		};
 	});
 
-	// Watch for filter changes
+	// Watch for filter changes (avoiding infinite loops by not watching loading state)
 	$effect(() => {
-		const filters = {
-			search: searchQuery,
-			key: selectedKey,
-			sort: selectedSort
-		};
-		songsStore.applyFilters(filters);
+		// Only apply filters after initial load to avoid duplicate calls
+		if (initialLoadComplete) {
+			const filters = {
+				search: searchQuery,
+				key: selectedKey,
+				sort: selectedSort
+			};
+			
+			// Use a timeout to debounce rapid changes (especially for search)
+			const timeoutId = setTimeout(() => {
+				songsStore.applyFilters(filters).catch((error) => {
+					console.error('Failed to apply filters:', error);
+					// Don't rethrow to prevent infinite retries
+				});
+			}, 300);
+			
+			// Cleanup timeout on next effect run
+			return () => clearTimeout(timeoutId);
+		}
 	});
 
 	// Handlers
@@ -155,7 +174,7 @@
 			<p class="mt-1 text-sm text-gray-500">Manage your worship songs and track usage patterns</p>
 		</div>
 
-		{#if auth.canManageSongs}
+		{#if auth.canManageSongs()}
 			<div class="mt-4 flex md:mt-0 md:ml-4">
 				<Button variant="primary" onclick={handleAddSong}>Add New Song</Button>
 			</div>
@@ -216,7 +235,7 @@
 				<p class="mb-6 text-gray-500">
 					Get started by adding your first worship song to the library.
 				</p>
-				{#if auth.canManageSongs}
+				{#if auth.canManageSongs()}
 					<Button variant="primary" onclick={handleAddSong}>Add Your First Song</Button>
 				{:else}
 					<p class="text-sm text-gray-400">

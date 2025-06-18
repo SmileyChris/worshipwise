@@ -15,12 +15,12 @@
 		];
 
 		// Add analytics for leaders and admins
-		if (auth.canManageSetlists) {
+		if (auth.canManageSetlists()) {
 			items.push({ name: 'Analytics', href: '/analytics', icon: '📊' });
 		}
 
 		// Add admin section for admins only
-		if (auth.isAdmin) {
+		if (auth.isAdmin()) {
 			items.push({ name: 'Admin', href: '/admin', icon: '⚙️' });
 		}
 
@@ -99,7 +99,7 @@
 				<!-- User info -->
 				<div class="hidden sm:flex sm:items-center sm:space-x-2">
 					<div class="text-sm">
-						<p class="font-medium text-gray-900">{auth.displayName}</p>
+						<p class="font-medium text-gray-900">{auth.displayName()}</p>
 						<p class="text-xs text-gray-500 capitalize">{auth.profile?.role}</p>
 					</div>
 				</div>
@@ -116,7 +116,7 @@
 						<span class="sr-only">Open user menu</span>
 						<div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
 							<span class="text-sm font-medium text-blue-600">
-								{auth.displayName.charAt(0).toUpperCase()}
+								{auth.displayName().charAt(0).toUpperCase()}
 							</span>
 						</div>
 					</button>
@@ -175,12 +175,12 @@
 				<div class="flex-shrink-0">
 					<div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
 						<span class="text-sm font-medium text-blue-600">
-							{auth.displayName.charAt(0).toUpperCase()}
+							{auth.displayName().charAt(0).toUpperCase()}
 						</span>
 					</div>
 				</div>
 				<div class="ml-3">
-					<div class="text-base font-medium text-gray-800">{auth.displayName}</div>
+					<div class="text-base font-medium text-gray-800">{auth.displayName()}</div>
 					<div class="text-sm text-gray-500 capitalize">{auth.profile?.role}</div>
 				</div>
 			</div>

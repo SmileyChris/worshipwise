@@ -48,7 +48,7 @@ export class SongsAPI {
 
 			const records = await pb.collection(this.collection).getFullList({
 				filter,
-				sort: options.sort || '-created',
+				sort: options.sort || 'title',
 				expand: 'created_by'
 			});
 
@@ -69,11 +69,11 @@ export class SongsAPI {
 		try {
 			// First, get recently used song IDs
 			const recentUsage = await pb.collection('song_usage').getFullList({
-				filter: `usage_date >= "${cutoffDate.toISOString()}"`,
-				fields: 'song'
+				filter: `used_date >= "${cutoffDate.toISOString()}"`,
+				fields: 'song_id'
 			});
 
-			const recentSongIds = recentUsage.map((u) => u.song);
+			const recentSongIds = recentUsage.map((u) => u.song_id);
 
 			// Build filter to exclude recently used songs
 			let filterQuery = 'is_active = true';
@@ -86,7 +86,7 @@ export class SongsAPI {
 			const availableSongs = await pb.collection(this.collection).getFullList({
 				filter: filterQuery,
 				expand: 'song_usage_via_song',
-				sort: '-created'
+				sort: 'title'
 			});
 
 			return availableSongs as unknown as Song[];
@@ -156,7 +156,7 @@ export class SongsAPI {
 
 			const result = await pb.collection(this.collection).getList(page, perPage, {
 				filter,
-				sort: options.sort || '-created',
+				sort: options.sort || 'title',
 				expand: 'created_by'
 			});
 
@@ -256,7 +256,7 @@ export class SongsAPI {
 			const filter = `is_active = true && (title ~ "${query}" || artist ~ "${query}")`;
 			const records = await pb.collection(this.collection).getFullList({
 				filter,
-				sort: '-created',
+				sort: 'title',
 				expand: 'created_by'
 			});
 			return records as unknown as Song[];

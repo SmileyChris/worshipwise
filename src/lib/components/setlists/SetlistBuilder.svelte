@@ -43,7 +43,7 @@
 	});
 
 	let formattedDuration = $derived(() => {
-		const duration = Number(totalDuration) || 0;
+		const duration = Number(totalDuration()) || 0;
 		const minutes = Math.floor(duration / 60);
 		const seconds = duration % 60;
 		return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -233,7 +233,7 @@
 				</div>
 				<div class="flex items-center gap-4">
 					<Badge variant="primary">
-						{setlistsStore.currentSetlistSongs.length} songs • {formattedDuration}
+						{setlistsStore.currentSetlistSongs.length} songs • {formattedDuration()}
 					</Badge>
 					<Button variant="ghost" onclick={onClose}>Close</Button>
 				</div>

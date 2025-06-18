@@ -8,13 +8,13 @@
 
 	// Redirect if not admin
 	$effect(() => {
-		if (browser && auth.isValid && !auth.isAdmin) {
+		if (browser && auth.isValid && !auth.isAdmin()) {
 			goto('/dashboard');
 		}
 	});
 </script>
 
-{#if auth.isAdmin}
+{#if auth.isAdmin()}
 	<div class="admin-layout">
 		<!-- Admin page header -->
 		<div class="mb-6 border-b border-gray-200 pb-4">

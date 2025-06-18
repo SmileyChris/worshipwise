@@ -74,9 +74,9 @@
 	});
 
 	// Check if user can edit this song
-	let canEdit = $derived(auth.canManageSongs || song.created_by === auth.user?.id);
+	let canEdit = $derived(auth.canManageSongs() || song.created_by === auth.user?.id);
 
-	let canDelete = $derived(auth.isAdmin);
+	let canDelete = $derived(auth.isAdmin());
 </script>
 
 <div
@@ -201,7 +201,7 @@
 					</Button>
 				{/if}
 
-				{#if auth.canManageSetlists}
+				{#if auth.canManageSetlists()}
 					<Button variant="primary" size="sm" onclick={() => onAddToSetlist(song)}>
 						Add to Setlist
 					</Button>

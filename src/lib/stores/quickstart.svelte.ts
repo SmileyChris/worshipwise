@@ -159,8 +159,16 @@ class QuickstartStore {
 	}
 
 	private async checkCollections() {
+		// Store current admin status before re-checking
+		const wasAdminSetup = this.setupSteps.find(step => step.id === 'admin-setup')?.status === 'completed';
+		
 		// Re-check system status to see if collections were created
 		await this.checkSystemStatus();
+
+		// Preserve admin status if it was already marked as completed
+		if (wasAdminSetup) {
+			this.updateStepStatus('admin-setup', 'completed');
+		}
 
 		if (!this.systemStatus.collectionsExist) {
 			throw new Error('Required collections not found. Please ensure PocketBase admin is set up.');

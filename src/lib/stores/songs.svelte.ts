@@ -24,7 +24,7 @@ class SongsStore {
 		search: '',
 		key: '',
 		tags: [],
-		sort: '-created'
+		sort: 'title'
 	});
 
 	// Stats
@@ -226,7 +226,7 @@ class SongsStore {
 			search: '',
 			key: '',
 			tags: [],
-			sort: '-created'
+			sort: 'title'
 		};
 		await this.loadSongs(true);
 	}

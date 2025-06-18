@@ -55,7 +55,8 @@
 		}
 	}
 
-	async function handleSave() {
+	async function handleSave(event: Event) {
+		event.preventDefault();
 		if (!user) return;
 
 		try {
@@ -150,7 +151,7 @@
 		{/if}
 
 		<!-- Form -->
-		<form onsubmit|preventDefault={handleSave} class="space-y-4">
+		<form onsubmit={handleSave} class="space-y-4">
 			<!-- User Account Info -->
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				<div>

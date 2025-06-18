@@ -56,7 +56,7 @@
 		}
 	});
 
-	let combinedClasses = $derived(`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`);
+	let combinedClasses = $derived(`${baseClasses} ${variantClasses()} ${sizeClasses()} ${className}`);
 
 	let isDisabled = $derived(disabled || loading);
 </script>

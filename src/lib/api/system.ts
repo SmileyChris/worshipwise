@@ -20,12 +20,25 @@ export class SystemAPI {
 			await pb.health.check();
 			status.pocketbaseRunning = true;
 
-			// Check if required collections exist
+			// Check if required collections exist by trying to access them
 			try {
-				const collections = await pb.collections.getFullList();
+				// Instead of listing collections (which requires admin), try to access the collections directly
 				const requiredCollections = ['users', 'songs'];
-				status.collectionsExist = requiredCollections.every((name) =>
-					collections.some((col) => col.name === name)
+				const collectionChecks = await Promise.allSettled(
+					requiredCollections.map(async (collectionName) => {
+						try {
+							// Try to get a minimal response from each collection
+							await pb.collection(collectionName).getList(1, 1);
+							return true;
+						} catch (error: any) {
+							// Collection exists if we get any response other than 404
+							return error?.status !== 404;
+						}
+					})
+				);
+				
+				status.collectionsExist = collectionChecks.every(
+					(result) => result.status === 'fulfilled' && result.value === true
 				);
 			} catch (error) {
 				console.warn('Could not check collections:', error);
@@ -52,9 +65,15 @@ export class SystemAPI {
 				}
 			}
 
-			// Check if admin exists (this is approximate - we can't directly check admin users)
-			// We'll assume if there are users and collections exist, admin was set up
-			status.adminExists = status.collectionsExist && status.usersExist;
+			// Check if admin exists by trying to access admin endpoints
+			try {
+				const adminAccess = await SystemAPI.checkAdminAccess();
+				status.adminExists = adminAccess && status.collectionsExist;
+			} catch (error) {
+				console.warn('Could not check admin access:', error);
+				// Fallback to previous logic
+				status.adminExists = status.collectionsExist && status.usersExist;
+			}
 		} catch (error) {
 			console.warn('PocketBase health check failed:', error);
 			status.pocketbaseRunning = false;
@@ -91,16 +110,14 @@ export class SystemAPI {
 	 */
 	static async checkAdminAccess(): Promise<boolean> {
 		try {
-			// Try to fetch admin stats (this will fail if admin isn't set up)
-			const response = await fetch(`${pb.baseUrl}/api/admins`, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json'
-				}
+			// Try to access the admin interface
+			const response = await fetch(`${pb.baseUrl}/_/`, {
+				method: 'GET'
 			});
 
-			// If we get any response (even 401), admin interface is working
-			return response.status !== 500;
+			// If we get 200, admin interface is accessible
+			// If we get 404, admin is not set up yet
+			return response.status === 200;
 		} catch (error) {
 			console.warn('Admin access check failed:', error);
 			return false;
