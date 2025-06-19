@@ -1,5 +1,7 @@
 # Dynamic Song Availability System
 
+**Status**: 📋 **FUTURE ENHANCEMENT** - Advanced feature planned for Sprint 8-10
+
 ## Overview
 
 This plan outlines an advanced dynamic song availability system that goes beyond simple day-counting to provide intelligent, context-aware recommendations for worship song selection. The system will evolve the current green/yellow/red availability indicators into a sophisticated recommendation engine.

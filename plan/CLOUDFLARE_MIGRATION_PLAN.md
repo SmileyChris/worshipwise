@@ -1,5 +1,7 @@
 # Cloudflare-Only Deployment Architecture Plan
 
+**Status**: 📋 **OPTIONAL MIGRATION** - Alternative deployment strategy for large-scale usage
+
 ## Executive Summary
 
 This document analyzes migrating WorshipWise from its current PocketBase-based architecture to a fully Cloudflare-native deployment using Workers, D1, R2, and Pages. This migration would transform the application from a single-server deployment to a globally distributed, serverless architecture.

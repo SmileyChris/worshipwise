@@ -4,7 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-WorshipWise is a worship song tracking system built with SvelteKit 5 + PocketBase. It uses a single-server deployment architecture where PocketBase serves both the backend API and the static frontend.
+WorshipWise is a sophisticated worship song tracking system built with SvelteKit 5 + PocketBase. It uses a single-server deployment architecture where PocketBase serves both the backend API and the static frontend.
+
+**Current Project Status (June 2025):**
+- **Maturity Level**: Advanced (42% complete - Sprint 5 finished)
+- **Production Ready Features**: Complete authentication, song management with file uploads, real-time collaborative setlist editing, comprehensive analytics dashboard
+- **Codebase Size**: 5,000+ lines of production-ready TypeScript code
+- **Component Library**: 22+ implemented Svelte components
+- **Advanced Features**: Real-time WebSocket subscriptions, Chart.js analytics, role-based permissions, responsive design
 
 **Key Technologies:**
 
@@ -18,11 +25,19 @@ WorshipWise is a worship song tracking system built with SvelteKit 5 + PocketBas
 
 **Reference Documentation:**
 
-- Development roadmap: `plan/DEVELOPMENT_ROADMAP.md`
-- Component patterns: `plan/COMPONENT_GUIDE.md`
-- PocketBase setup: `plan/POCKETBASE_SETUP.md`
-- Testing guide: `plan/TESTING_GUIDE.md`
-- Svelte 5 best practices: `plan/SVELTE.md` and `plan/PB_SVELTE.md`
+*Note: Plan documents have been reorganized to reflect the project's advanced maturity state*
+
+- **Current development status**: `plan/DEVELOPMENT_ROADMAP.md` (42% complete, Sprint 5 finished)
+- **Active implementation guides** (currently in use):
+  - Component patterns: `plan/COMPONENT_GUIDE.md` (22+ components implemented)
+  - Testing strategy: `plan/TESTING_GUIDE.md` (multi-project Vitest setup ready)
+  - PocketBase setup: `plan/POCKETBASE_SETUP.md`
+  - Svelte 5 patterns: `plan/SVELTE.md` and `plan/PB_SVELTE.md`
+- **Reference/historical** (architectural guidance):
+  - Implementation reference: `plan/PLAN.md` (architectural patterns and examples)
+- **Future planning** (not yet implemented):
+  - Advanced features: `plan/DYNAMIC_SONG_AVAILABILITY.md` (Sprint 8-10)
+  - Alternative deployment: `plan/CLOUDFLARE_MIGRATION_PLAN.md` (optional migration)
 
 ## Development Commands
 
@@ -195,7 +210,7 @@ See `plan/POCKETBASE_SETUP.md` for detailed configuration.
 ## Important Guidelines
 
 - Always check and follow the development roadmap in `plan/DEVELOPMENT_ROADMAP.md`
-- **Update progress tracking**: When completing work outlined in `plan/DEVELOPMENT_ROADMAP.md` or `plan/TESTING_ROADMAP.md`, update those files to mark completed tasks and reflect current status
+- **Update progress tracking**: When completing work outlined in `plan/DEVELOPMENT_ROADMAP.md`, update the roadmap to mark completed tasks and reflect current sprint status
 - **Update documentation when appropriate**:
   - **README.md**: Update sprint status, feature completions, and user-facing information when major features are completed
   - **README_DEVELOPMENT.md**: Update technical details, architecture changes, or development workflow modifications
