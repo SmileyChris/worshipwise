@@ -85,7 +85,157 @@ chmod +x pocketbase
 }
 ```
 
-### 2. Songs Collection
+### 2. Categories Collection
+
+**Collection Name**: `categories`  
+**Type**: Base Collection
+
+#### Fields:
+
+```javascript
+{
+  "name": {
+    "type": "text",
+    "required": true,
+    "max": 100
+  },
+  "description": {
+    "type": "text",
+    "required": false,
+    "max": 500
+  },
+  "color": {
+    "type": "text",
+    "required": false,
+    "max": 7,
+    "pattern": "^#[0-9A-Fa-f]{6}$"
+  },
+  "sort_order": {
+    "type": "number",
+    "required": true,
+    "min": 0
+  },
+  "is_active": {
+    "type": "bool",
+    "required": true,
+    "default": true
+  }
+}
+```
+
+#### API Rules:
+
+```javascript
+{
+  "listRule": "@request.auth.id != ''",
+  "viewRule": "@request.auth.id != ''",
+  "createRule": "@request.auth.role = 'admin'",
+  "updateRule": "@request.auth.role = 'admin'",
+  "deleteRule": "@request.auth.role = 'admin'"
+}
+```
+
+#### Initial Categories Data:
+
+```javascript
+[
+  {
+    "name": "Hymns and Te Reo",
+    "description": "Traditional hymns and Te Reo Māori songs",
+    "color": "#8B4513",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "name": "Contemporary",
+    "description": "Contemporary worship songs",
+    "color": "#4169E1",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "name": "Seasonal (youth suggestions)",
+    "description": "Seasonal songs, often suggested by youth",
+    "color": "#32CD32",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "name": "Christmas Songs",
+    "description": "Christmas and holiday worship songs",
+    "color": "#DC143C",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "name": "Possible New Songs",
+    "description": "Songs being considered for regular use",
+    "color": "#FFD700",
+    "sort_order": 5,
+    "is_active": true
+  },
+  {
+    "name": "Modern (archive list)",
+    "description": "Modern songs from the archive",
+    "color": "#9932CC",
+    "sort_order": 6,
+    "is_active": true
+  }
+]
+```
+
+### 3. Labels Collection
+
+**Collection Name**: `labels`  
+**Type**: Base Collection
+
+#### Fields:
+
+```javascript
+{
+  "name": {
+    "type": "text",
+    "required": true,
+    "max": 50
+  },
+  "description": {
+    "type": "text",
+    "required": false,
+    "max": 200
+  },
+  "color": {
+    "type": "text",
+    "required": false,
+    "max": 7,
+    "pattern": "^#[0-9A-Fa-f]{6}$"
+  },
+  "created_by": {
+    "type": "relation",
+    "required": true,
+    "relatedCollection": "users",
+    "cascadeDelete": false
+  },
+  "is_active": {
+    "type": "bool",
+    "required": true,
+    "default": true
+  }
+}
+```
+
+#### API Rules:
+
+```javascript
+{
+  "listRule": "@request.auth.id != ''",
+  "viewRule": "@request.auth.id != ''",
+  "createRule": "@request.auth.id != '' && (@request.auth.role = 'leader' || @request.auth.role = 'admin')",
+  "updateRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || created_by = @request.auth.id)",
+  "deleteRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || created_by = @request.auth.id)"
+}
+```
+
+### 4. Songs Collection
 
 **Collection Name**: `songs`  
 **Type**: Base Collection
@@ -103,6 +253,20 @@ chmod +x pocketbase
     "type": "text",
     "required": false,
     "max": 100
+  },
+  "category": {
+    "type": "relation",
+    "required": true,
+    "relatedCollection": "categories",
+    "cascadeDelete": false,
+    "maxSelect": 1
+  },
+  "labels": {
+    "type": "relation",
+    "required": false,
+    "relatedCollection": "labels",
+    "cascadeDelete": false,
+    "maxSelect": 10
   },
   "key_signature": {
     "type": "select",
@@ -191,6 +355,8 @@ chmod +x pocketbase
 
 - `title` (for search)
 - `artist` (for filtering)
+- `category` (for category filtering)
+- `labels` (for label filtering)
 - `created_by` (for user songs)
 - `is_active` (for active songs filter)
 
@@ -440,10 +606,17 @@ GROUP BY s.id, s.title, s.artist;
 ```
 users (1) ─────┬─── (many) setlists
                ├─── (many) songs (created_by)
+               ├─── (many) labels (created_by)
                └─── (many) song_usage
 
+categories (1) ─── (many) songs
+
+labels (many) ─── (many) songs
+
 songs (1) ─────┬─── (many) setlist_songs
-               └─── (many) song_usage
+               ├─── (many) song_usage
+               ├─── (1) category
+               └─── (many) labels
 
 setlists (1) ──┬─── (many) setlist_songs
                └─── (many) song_usage

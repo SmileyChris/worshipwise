@@ -1,5 +1,45 @@
 import type { QuickstartData } from '$lib/types/quickstart.js';
 
+// Default categories for the church
+export const defaultCategories = [
+	{
+		name: 'Hymns and Te Reo',
+		description: 'Traditional hymns and Te Reo Māori songs',
+		color: '#8B4513',
+		sort_order: 1
+	},
+	{
+		name: 'Contemporary',
+		description: 'Contemporary worship songs',
+		color: '#4169E1',
+		sort_order: 2
+	},
+	{
+		name: 'Seasonal (youth suggestions)',
+		description: 'Seasonal songs, often suggested by youth',
+		color: '#32CD32',
+		sort_order: 3
+	},
+	{
+		name: 'Christmas Songs',
+		description: 'Christmas and holiday worship songs',
+		color: '#DC143C',
+		sort_order: 4
+	},
+	{
+		name: 'Possible New Songs',
+		description: 'Songs being considered for regular use',
+		color: '#FFD700',
+		sort_order: 5
+	},
+	{
+		name: 'Modern (archive list)',
+		description: 'Modern songs from the archive',
+		color: '#9932CC',
+		sort_order: 6
+	}
+];
+
 export const sampleData: QuickstartData = {
 	sampleSongs: [
 		{
@@ -7,7 +47,7 @@ export const sampleData: QuickstartData = {
 			artist: 'John Newton',
 			key_signature: 'G',
 			tempo: 72,
-			genre: 'Hymn',
+			category: 'Hymns and Te Reo',
 			tags: ['classic', 'hymn', 'grace'],
 			lyrics:
 				'Amazing grace how sweet the sound\nThat saved a wretch like me\nI once was lost but now am found\nWas blind but now I see'
@@ -17,7 +57,7 @@ export const sampleData: QuickstartData = {
 			artist: 'Carl Boberg',
 			key_signature: 'Bb',
 			tempo: 68,
-			genre: 'Hymn',
+			category: 'Hymns and Te Reo',
 			tags: ['classic', 'hymn', 'praise'],
 			lyrics:
 				'O Lord my God when I in awesome wonder\nConsider all the worlds thy hands have made\nI see the stars I hear the rolling thunder\nThy power throughout the universe displayed'
@@ -27,7 +67,7 @@ export const sampleData: QuickstartData = {
 			artist: 'Matt Redman',
 			key_signature: 'C',
 			tempo: 76,
-			genre: 'Contemporary',
+			category: 'Contemporary',
 			tags: ['contemporary', 'praise', 'worship'],
 			lyrics:
 				"Bless the Lord O my soul\nO my soul\nWorship His holy name\nSing like never before\nO my soul\nI'll worship Your holy name"
@@ -37,7 +77,7 @@ export const sampleData: QuickstartData = {
 			artist: 'Reginald Heber',
 			key_signature: 'Eb',
 			tempo: 80,
-			genre: 'Hymn',
+			category: 'Hymns and Te Reo',
 			tags: ['classic', 'hymn', 'trinity'],
 			lyrics:
 				'Holy holy holy Lord God Almighty\nEarly in the morning our song shall rise to Thee\nHoly holy holy merciful and mighty\nGod in three persons blessed Trinity'
@@ -47,7 +87,7 @@ export const sampleData: QuickstartData = {
 			artist: 'Hillsong',
 			key_signature: 'E',
 			tempo: 72,
-			genre: 'Contemporary',
+			category: 'Contemporary',
 			tags: ['contemporary', 'worship', 'hope'],
 			lyrics:
 				'My hope is built on nothing less\nThan Jesus blood and righteousness\nI dare not trust the sweetest frame\nBut wholly trust in Jesus name'
@@ -57,7 +97,7 @@ export const sampleData: QuickstartData = {
 			artist: 'Thomas Chisholm',
 			key_signature: 'F',
 			tempo: 70,
-			genre: 'Hymn',
+			category: 'Hymns and Te Reo',
 			tags: ['classic', 'hymn', 'faithfulness'],
 			lyrics:
 				'Great is thy faithfulness O God my Father\nThere is no shadow of turning with Thee\nThou changest not thy compassions they fail not\nAs Thou hast been Thou forever wilt be'
@@ -67,7 +107,7 @@ export const sampleData: QuickstartData = {
 			artist: 'Hillsong Worship',
 			key_signature: 'D',
 			tempo: 68,
-			genre: 'Contemporary',
+			category: 'Contemporary',
 			tags: ['contemporary', 'worship', 'jesus'],
 			lyrics:
 				'You were the Word at the beginning\nOne with God the Lord Most High\nYour hidden glory in creation\nNow revealed in You our Christ'
@@ -77,7 +117,7 @@ export const sampleData: QuickstartData = {
 			artist: 'Irish Traditional',
 			key_signature: 'D',
 			tempo: 88,
-			genre: 'Hymn',
+			category: 'Hymns and Te Reo',
 			tags: ['celtic', 'hymn', 'vision'],
 			lyrics:
 				'Be Thou my vision O Lord of my heart\nNaught be all else to me save that Thou art\nThou my best thought by day or by night\nWaking or sleeping Thy presence my light'
@@ -105,16 +145,45 @@ export const sampleData: QuickstartData = {
 	]
 };
 
-export async function importSampleData(songsAPI: any, user: any): Promise<void> {
+export async function createDefaultCategories(categoriesAPI: any): Promise<{ [key: string]: string }> {
+	console.log('Creating default categories...');
+
+	const categoryMap: { [key: string]: string } = {};
+	
+	for (const categoryData of defaultCategories) {
+		try {
+			const category = await categoriesAPI.createCategory(categoryData);
+			categoryMap[categoryData.name] = category.id;
+			console.log(`Created category: ${categoryData.name}`);
+		} catch (error) {
+			console.warn(`Failed to create category "${categoryData.name}":`, error);
+		}
+	}
+
+	console.log(`Successfully created ${Object.keys(categoryMap).length} categories`);
+	return categoryMap;
+}
+
+export async function importSampleData(songsAPI: any, categoriesAPI: any, user: any): Promise<void> {
 	console.log('Importing sample data...');
 
-	// Import songs
+	// First, create categories
+	const categoryMap = await createDefaultCategories(categoriesAPI);
+
+	// Import songs with categories
 	const importedSongs = [];
 	for (const songData of sampleData.sampleSongs) {
 		try {
+			const categoryId = categoryMap[songData.category];
+			if (!categoryId) {
+				console.warn(`Category "${songData.category}" not found for song "${songData.title}"`);
+				continue;
+			}
+
 			const song = await songsAPI.createSong({
 				title: songData.title,
 				artist: songData.artist,
+				category: categoryId,
 				key_signature: songData.key_signature,
 				tempo: songData.tempo,
 				lyrics: songData.lyrics,

@@ -1,6 +1,7 @@
 import { SystemAPI } from '$lib/api/system.js';
-import { importSampleData } from '$lib/data/sample-data.js';
+import { importSampleData, createDefaultCategories } from '$lib/data/sample-data.js';
 import { songsApi } from '$lib/api/songs.js';
+import { categoriesApi } from '$lib/api/categories.js';
 import type { SystemStatus, SetupStep } from '$lib/types/quickstart.js';
 
 class QuickstartStore {
@@ -30,6 +31,12 @@ class QuickstartStore {
 			id: 'collections-check',
 			title: 'Initialize Database',
 			description: 'Set up storage for songs, setlists, and user data',
+			status: 'pending'
+		},
+		{
+			id: 'default-categories',
+			title: 'Create Song Categories',
+			description: 'Set up your church\'s song categories for organization',
 			status: 'pending'
 		},
 		{
@@ -145,6 +152,9 @@ class QuickstartStore {
 				case 'collections-check':
 					await this.checkCollections();
 					break;
+				case 'default-categories':
+					await this.createDefaultCategories();
+					break;
 				case 'sample-data':
 					await this.importSampleData();
 					break;
@@ -206,8 +216,21 @@ class QuickstartStore {
 			throw new Error('Must be logged in to import sample data');
 		}
 
-		await importSampleData(songsApi, currentUser);
+		await importSampleData(songsApi, categoriesApi, currentUser);
 		this.updateStepStatus('sample-data', 'completed');
+	}
+
+	private async createDefaultCategories() {
+		// This requires a logged-in admin user
+		const { auth } = await import('$lib/stores/auth.svelte.js');
+		const currentUser = auth.user;
+
+		if (!currentUser || !auth.isAdmin) {
+			throw new Error('Must be logged in as admin to create categories');
+		}
+
+		await createDefaultCategories(categoriesApi);
+		this.updateStepStatus('default-categories', 'completed');
 	}
 
 	nextStep() {

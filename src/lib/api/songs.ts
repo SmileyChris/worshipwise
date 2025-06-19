@@ -17,6 +17,17 @@ export class SongsAPI {
 				filterParts.push(`(title ~ "${options.search}" || artist ~ "${options.search}")`);
 			}
 
+			// Add category filter
+			if (options.category) {
+				filterParts.push(`category = "${options.category}"`);
+			}
+
+			// Add labels filter
+			if (options.labels && options.labels.length > 0) {
+				const labelFilters = options.labels.map((labelId) => `labels ?~ "${labelId}"`);
+				filterParts.push(`(${labelFilters.join(' || ')})`);
+			}
+
 			// Add key filter
 			if (options.key) {
 				filterParts.push(`key_signature = "${options.key}"`);
@@ -49,7 +60,7 @@ export class SongsAPI {
 			const records = await pb.collection(this.collection).getFullList({
 				filter,
 				sort: options.sort || 'title',
-				expand: 'created_by'
+				expand: 'created_by,category,labels'
 			});
 
 			return records as unknown as Song[];
@@ -85,7 +96,7 @@ export class SongsAPI {
 			// Fetch available songs
 			const availableSongs = await pb.collection(this.collection).getFullList({
 				filter: filterQuery,
-				expand: 'song_usage_via_song',
+				expand: 'created_by,category,labels,song_usage_via_song',
 				sort: 'title'
 			});
 
@@ -102,7 +113,7 @@ export class SongsAPI {
 	async getSong(id: string): Promise<Song> {
 		try {
 			const record = await pb.collection(this.collection).getOne(id, {
-				expand: 'created_by'
+				expand: 'created_by,category,labels'
 			});
 			return record as unknown as Song;
 		} catch (error) {
@@ -133,6 +144,13 @@ export class SongsAPI {
 			if (options.search) {
 				filterParts.push(`(title ~ "${options.search}" || artist ~ "${options.search}")`);
 			}
+			if (options.category) {
+				filterParts.push(`category = "${options.category}"`);
+			}
+			if (options.labels && options.labels.length > 0) {
+				const labelFilters = options.labels.map((labelId) => `labels ?~ "${labelId}"`);
+				filterParts.push(`(${labelFilters.join(' || ')})`);
+			}
 			if (options.key) {
 				filterParts.push(`key_signature = "${options.key}"`);
 			}
@@ -157,7 +175,7 @@ export class SongsAPI {
 			const result = await pb.collection(this.collection).getList(page, perPage, {
 				filter,
 				sort: options.sort || 'title',
-				expand: 'created_by'
+				expand: 'created_by,category,labels'
 			});
 
 			return {
@@ -184,6 +202,12 @@ export class SongsAPI {
 			// Add text fields
 			formData.append('title', data.title);
 			if (data.artist) formData.append('artist', data.artist);
+			formData.append('category', data.category);
+			if (data.labels && data.labels.length > 0) {
+				data.labels.forEach((labelId) => {
+					formData.append('labels', labelId);
+				});
+			}
 			if (data.key_signature) formData.append('key_signature', data.key_signature);
 			if (data.tempo) formData.append('tempo', data.tempo.toString());
 			if (data.duration_seconds)
@@ -257,7 +281,7 @@ export class SongsAPI {
 			const records = await pb.collection(this.collection).getFullList({
 				filter,
 				sort: 'title',
-				expand: 'created_by'
+				expand: 'created_by,category,labels'
 			});
 			return records as unknown as Song[];
 		} catch (error) {

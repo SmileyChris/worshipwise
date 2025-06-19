@@ -7,6 +7,8 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import CategorySelect from '$lib/components/ui/CategorySelect.svelte';
+	import LabelSelector from '$lib/components/ui/LabelSelector.svelte';
 
 	interface Props {
 		song?: Song | null;
@@ -27,6 +29,8 @@
 	// Form state
 	let title = $state(song?.title || '');
 	let artist = $state(song?.artist || '');
+	let category = $state(song?.category || '');
+	let selectedLabelIds = $state(song?.labels || []);
 	let keySignature = $state(song?.key_signature || '');
 	let tempo = $state(song?.tempo?.toString() || '');
 	let durationMinutes = $state('');
@@ -44,6 +48,7 @@
 
 	// Validation state
 	let titleError = $state('');
+	let categoryError = $state('');
 	let tempoError = $state('');
 	let durationError = $state('');
 
@@ -52,6 +57,8 @@
 		if (song) {
 			title = song.title;
 			artist = song.artist || '';
+			category = song.category || '';
+			selectedLabelIds = song.labels || [];
 			keySignature = song.key_signature || '';
 			tempo = song.tempo?.toString() || '';
 			ccliNumber = song.ccli_number || '';
@@ -105,7 +112,7 @@
 
 	// Computed values
 	let isEditing = $derived(!!song);
-	let isValid = $derived(title.trim().length > 0 && !titleError && !tempoError && !durationError);
+	let isValid = $derived(title.trim().length > 0 && category.trim().length > 0 && !titleError && !categoryError && !tempoError && !durationError);
 	let canDelete = $derived(isEditing && auth.isAdmin);
 	
 	// Delete confirmation state
@@ -115,6 +122,11 @@
 	function validateTitle(value: string): string {
 		if (!value.trim()) return 'Title is required';
 		if (value.length > 200) return 'Title must be less than 200 characters';
+		return '';
+	}
+
+	function validateCategory(value: string): string {
+		if (!value.trim()) return 'Category is required';
 		return '';
 	}
 
@@ -150,6 +162,10 @@
 	});
 
 	$effect(() => {
+		categoryError = validateCategory(category);
+	});
+
+	$effect(() => {
 		tempoError = validateTempo(tempo);
 	});
 
@@ -178,14 +194,16 @@
 
 		// Final validation
 		const finalTitleError = validateTitle(title);
+		const finalCategoryError = validateCategory(category);
 		const finalTempoError = validateTempo(tempo);
 		const finalDurationError = validateDuration();
 
 		titleError = finalTitleError;
+		categoryError = finalCategoryError;
 		tempoError = finalTempoError;
 		durationError = finalDurationError;
 
-		if (finalTitleError || finalTempoError || finalDurationError) {
+		if (finalTitleError || finalCategoryError || finalTempoError || finalDurationError) {
 			return;
 		}
 
@@ -207,6 +225,8 @@
 		const formData: CreateSongData = {
 			title: title.trim(),
 			artist: artist.trim() || undefined,
+			category: category.trim(),
+			labels: selectedLabelIds.length > 0 ? selectedLabelIds : undefined,
 			key_signature: keySignature || undefined,
 			tempo: tempo ? parseInt(tempo) : undefined,
 			duration_seconds: durationInSeconds,
@@ -300,6 +320,26 @@
 			/>
 		</div>
 
+		<!-- Category and Labels -->
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+			<div>
+				<label class="mb-1 block text-sm leading-6 font-medium text-gray-900">
+					Category <span class="text-red-500">*</span>
+				</label>
+				<CategorySelect bind:value={category} required />
+				{#if categoryError}
+					<p class="mt-1 text-sm text-red-600">{categoryError}</p>
+				{/if}
+			</div>
+
+			<div>
+				<label class="mb-1 block text-sm leading-6 font-medium text-gray-900">
+					Labels (optional)
+				</label>
+				<LabelSelector bind:selectedLabelIds />
+			</div>
+		</div>
+
 		<!-- Musical Information -->
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 			<Select
@@ -353,10 +393,11 @@
 
 		<!-- Tags -->
 		<Input
-			label="Tags"
+			label="Tags (optional)"
 			name="tags"
 			bind:value={tagsInput}
 			placeholder="worship, contemporary, fast (comma-separated)"
+			help="Additional tags for searching and organization"
 		/>
 
 		<!-- Lyrics -->

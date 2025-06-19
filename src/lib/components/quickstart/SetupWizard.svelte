@@ -183,6 +183,15 @@
 					<Button onclick={handleExecuteStep} disabled={store.isLoading}>
 						{store.isLoading ? 'Initializing...' : 'Initialize Database'}
 					</Button>
+				{:else if store.currentStep.id === 'default-categories'}
+					<p class="mb-3 text-sm text-gray-600">
+						Create your church's song categories: Hymns and Te Reo, Contemporary, Seasonal, 
+						Christmas Songs, Possible New Songs, and Modern (archive list). This helps organize 
+						your worship songs for easy setlist building.
+					</p>
+					<Button onclick={handleExecuteStep} disabled={store.isLoading}>
+						{store.isLoading ? 'Creating Categories...' : 'Create Song Categories'}
+					</Button>
 				{:else if store.currentStep.id === 'user-account'}
 					<p class="mb-3 text-sm text-gray-600">
 						Now create your personal worship leader account to start managing songs and setlists. 

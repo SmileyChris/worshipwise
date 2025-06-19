@@ -3,6 +3,8 @@
 	import { auth } from '$lib/stores/auth.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
+	import CategoryBadge from '$lib/components/ui/CategoryBadge.svelte';
+	import LabelBadge from '$lib/components/ui/LabelBadge.svelte';
 
 	interface Props {
 		song: Song;
@@ -85,6 +87,19 @@
 			{#if song.artist}
 				<p class="truncate text-sm text-gray-600">{song.artist}</p>
 			{/if}
+
+			<!-- Category and Labels -->
+			<div class="mt-2 flex flex-wrap items-center gap-2">
+				{#if song.expand?.category}
+					<CategoryBadge category={song.expand.category} size="sm" />
+				{/if}
+
+				{#if song.expand?.labels && song.expand.labels.length > 0}
+					{#each song.expand.labels as label}
+						<LabelBadge {label} size="sm" />
+					{/each}
+				{/if}
+			</div>
 
 			<!-- Metadata badges -->
 			<div class="mt-2 flex flex-wrap items-center gap-2">

@@ -1,7 +1,40 @@
+export interface Category {
+	id: string;
+	name: string;
+	description?: string;
+	color?: string;
+	sort_order: number;
+	is_active: boolean;
+	created: string;
+	updated: string;
+}
+
+export interface Label {
+	id: string;
+	name: string;
+	description?: string;
+	color?: string;
+	created_by: string;
+	is_active: boolean;
+	created: string;
+	updated: string;
+
+	// Expanded relations
+	expand?: {
+		created_by?: {
+			id: string;
+			name: string;
+			email: string;
+		};
+	};
+}
+
 export interface Song {
 	id: string;
 	title: string;
 	artist?: string;
+	category: string;
+	labels?: string[];
 	key_signature?: string;
 	tempo?: number;
 	duration_seconds?: number;
@@ -30,6 +63,8 @@ export interface Song {
 			name: string;
 			email: string;
 		};
+		category?: Category;
+		labels?: Label[];
 		song_usage_via_song?: SongUsage[];
 	};
 }
@@ -37,6 +72,8 @@ export interface Song {
 export interface CreateSongData {
 	title: string;
 	artist?: string;
+	category: string;
+	labels?: string[];
 	key_signature?: string;
 	tempo?: number;
 	duration_seconds?: number;
@@ -53,6 +90,8 @@ export interface CreateSongData {
 export interface UpdateSongData {
 	title?: string;
 	artist?: string;
+	category?: string;
+	labels?: string[];
 	key_signature?: string;
 	tempo?: number;
 	duration_seconds?: number;
@@ -88,6 +127,8 @@ export interface SongWithUsageStatus extends Song {
 
 export interface SongFilterOptions {
 	search?: string;
+	category?: string;
+	labels?: string[];
 	key?: string;
 	tags?: string[];
 	minTempo?: number;

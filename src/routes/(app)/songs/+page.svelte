@@ -10,6 +10,8 @@
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import SongCard from '$lib/components/songs/SongCard.svelte';
 	import SongForm from '$lib/components/songs/SongForm.svelte';
+	import CategorySelect from '$lib/components/ui/CategorySelect.svelte';
+	import LabelSelector from '$lib/components/ui/LabelSelector.svelte';
 
 	// Modal state
 	let showSongForm = $state(false);
@@ -19,6 +21,8 @@
 	// Search state
 	let searchQuery = $state('');
 	let selectedKey = $state('');
+	let selectedCategory = $state('');
+	let selectedLabelIds = $state<string[]>([]);
 	let selectedSort = $state('title');
 	let initialLoadComplete = $state(false);
 
@@ -72,6 +76,8 @@
 			const filters = {
 				search: searchQuery,
 				key: selectedKey,
+				category: selectedCategory,
+				labels: selectedLabelIds.length > 0 ? selectedLabelIds : undefined,
 				sort: selectedSort
 			};
 			
@@ -248,7 +254,8 @@
 	{:else}
 		<!-- Search and filters -->
 		<Card padding={false} class="p-4">
-			<div class="flex flex-col gap-4 md:flex-row">
+			<div class="space-y-4">
+				<!-- Search bar -->
 				<div class="flex-1">
 					<Input
 						name="search"
@@ -258,21 +265,36 @@
 					/>
 				</div>
 
-				<div class="flex gap-4">
-					<Select
-						name="key_filter"
-						bind:value={selectedKey}
-						options={keyOptions}
-						placeholder="Filter by key"
-						class="min-w-[120px]"
-					/>
+				<!-- Filters row -->
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+					<div>
+						<label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+						<CategorySelect bind:value={selectedCategory} placeholder="All categories" />
+					</div>
 
-					<Select
-						name="sort"
-						bind:value={selectedSort}
-						options={sortOptions}
-						class="min-w-[140px]"
-					/>
+					<div>
+						<label class="block text-sm font-medium text-gray-700 mb-1">Labels</label>
+						<LabelSelector bind:selectedLabelIds />
+					</div>
+
+					<div>
+						<label class="block text-sm font-medium text-gray-700 mb-1">Key</label>
+						<Select
+							name="key_filter"
+							bind:value={selectedKey}
+							options={keyOptions}
+							placeholder="All keys"
+						/>
+					</div>
+
+					<div>
+						<label class="block text-sm font-medium text-gray-700 mb-1">Sort</label>
+						<Select
+							name="sort"
+							bind:value={selectedSort}
+							options={sortOptions}
+						/>
+					</div>
 				</div>
 			</div>
 		</Card>
