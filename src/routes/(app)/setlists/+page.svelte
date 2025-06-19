@@ -150,7 +150,7 @@
 				<p class="mt-1 text-sm text-gray-500">Plan and manage your worship service setlists</p>
 			</div>
 
-			{#if auth.canManageSetlists()}
+			{#if auth.canManageSetlists}
 				<div class="mt-4 flex md:mt-0 md:ml-4">
 					<Button variant="primary" onclick={() => (showCreateModal = true)}>
 						Create New Setlist
@@ -211,7 +211,7 @@
 					<p class="mb-6 text-gray-500">
 						Create setlists, track song usage, and collaborate with your team.
 					</p>
-					{#if auth.canManageSetlists()}
+					{#if auth.canManageSetlists}
 						<Button variant="primary" onclick={() => (showCreateModal = true)}>
 							Create Your First Setlist
 						</Button>

@@ -52,7 +52,7 @@
 
 	// Filter role options based on current user permissions
 	let availableRoleOptions = $derived.by(() => {
-		if (auth.isAdmin()) {
+		if (auth.isAdmin) {
 			return roleOptions; // Admin can choose any role
 		} else if (auth.hasRole('leader')) {
 			return roleOptions.filter(opt => opt.value !== 'admin'); // Leaders can't become admin

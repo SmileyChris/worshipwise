@@ -16,32 +16,32 @@ class QuickstartStore {
 	setupSteps = $state<SetupStep[]>([
 		{
 			id: 'health-check',
-			title: 'Check PocketBase Connection',
-			description: 'Verify that PocketBase server is running and accessible',
+			title: 'Connect to Server',
+			description: 'Verify your WorshipWise server is running and ready',
 			status: 'pending'
 		},
 		{
 			id: 'admin-setup',
-			title: 'Admin Account Setup',
-			description: 'Create PocketBase admin account for system management',
+			title: 'System Administrator',
+			description: 'Create admin access to manage your worship system',
 			status: 'pending'
 		},
 		{
 			id: 'collections-check',
-			title: 'Database Collections',
-			description: 'Ensure required database collections are created',
+			title: 'Initialize Database',
+			description: 'Set up storage for songs, setlists, and user data',
 			status: 'pending'
 		},
 		{
 			id: 'user-account',
-			title: 'Create Worship Leader Account',
-			description: 'Set up your first worship leader account',
+			title: 'Your Worship Account',
+			description: 'Create your personal account to start managing songs',
 			status: 'pending'
 		},
 		{
 			id: 'sample-data',
-			title: 'Import Sample Data',
-			description: 'Add demo songs and setlists to explore features',
+			title: 'Demo Songs & Setlists',
+			description: 'Add example content to explore WorshipWise features',
 			status: 'pending',
 			optional: true
 		}

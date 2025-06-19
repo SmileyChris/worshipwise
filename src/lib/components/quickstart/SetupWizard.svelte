@@ -80,7 +80,8 @@
 		<div class="mb-6">
 			<h2 class="mb-2 text-2xl font-bold text-gray-900">🎵 Welcome to WorshipWise</h2>
 			<p class="text-gray-600">
-				Let's get your worship song management system set up in just a few steps.
+				Your complete worship song management solution. We'll set up everything you need to organize songs, 
+				build setlists, collaborate with your team, and track usage patterns.
 			</p>
 		</div>
 
@@ -154,56 +155,71 @@
 
 				{#if store.currentStep.id === 'health-check'}
 					<p class="mb-3 text-sm text-gray-600">
-						Checking if PocketBase server is running on localhost:8090...
+						First, we'll verify your WorshipWise server is running. This ensures all features work properly.
 					</p>
 					<Button onclick={handleExecuteStep} disabled={store.isLoading}>
-						{store.isLoading ? 'Checking...' : 'Check Connection'}
+						{store.isLoading ? 'Checking Connection...' : 'Test Server Connection'}
 					</Button>
 				{:else if store.currentStep.id === 'admin-setup'}
 					<p class="mb-3 text-sm text-gray-600">
-						You need to create a PocketBase admin account. This will open the admin panel in a new
-						tab.
+						Create a system administrator account to manage your WorshipWise installation. 
+						This opens the admin interface where you'll set up your login credentials.
 					</p>
 					<div class="flex space-x-2">
 						<Button onclick={handleOpenAdmin} variant="primary">
 							<ExternalLink class="mr-2 h-4 w-4" />
-							Open Admin Panel
+							Open Admin Setup
 						</Button>
 						<Button onclick={() => store.nextStep()} variant="secondary">
-							I've Created Admin Account
+							Admin Account Created
 						</Button>
 					</div>
 				{:else if store.currentStep.id === 'collections-check'}
 					<p class="mb-3 text-sm text-gray-600">
-						Checking if database collections have been created by the admin setup...
+						Setting up data storage for your songs, setlists, and user accounts. 
+						This happens automatically when you create the admin account.
 					</p>
 					<Button onclick={handleExecuteStep} disabled={store.isLoading}>
-						{store.isLoading ? 'Checking...' : 'Check Collections'}
+						{store.isLoading ? 'Initializing...' : 'Initialize Database'}
 					</Button>
 				{:else if store.currentStep.id === 'user-account'}
 					<p class="mb-3 text-sm text-gray-600">
-						Now create your worship leader account. You can close this wizard and use the Register
-						link.
+						Now create your personal worship leader account to start managing songs and setlists. 
+						You'll use this account to log in daily.
 					</p>
 					<div class="flex space-x-2">
-						<Button onclick={handleClose} variant="primary">Close & Register Account</Button>
+						<Button onclick={handleClose} variant="primary">Create My Account</Button>
 						<Button onclick={() => store.nextStep()} variant="secondary">
 							I Already Have an Account
 						</Button>
 					</div>
 				{:else if store.currentStep.id === 'sample-data'}
 					<p class="mb-3 text-sm text-gray-600">
-						Import sample songs and setlists to explore WorshipWise features right away.
+						Get started quickly with example songs and setlists. This shows you how WorshipWise works 
+						and you can delete the sample content later.
 					</p>
 					<div class="flex space-x-2">
 						<Button onclick={handleExecuteStep} disabled={store.isLoading}>
-							{store.isLoading ? 'Importing...' : 'Import Sample Data'}
+							{store.isLoading ? 'Adding Demo Content...' : 'Add Demo Content'}
 						</Button>
 						{#if store.currentStep.optional}
-							<Button onclick={handleSkipStep} variant="secondary">Skip This Step</Button>
+							<Button onclick={handleSkipStep} variant="secondary">Skip Demo Content</Button>
 						{/if}
 					</div>
 				{/if}
+			</div>
+		{/if}
+
+		<!-- Completion message -->
+		{#if store.isSetupComplete}
+			<div class="mb-6 rounded-lg bg-green-50 border border-green-200 p-4">
+				<div class="flex items-center">
+					<Check class="h-5 w-5 text-green-600 mr-3" />
+					<div>
+						<h4 class="font-medium text-green-900">Setup Complete! 🎉</h4>
+						<p class="text-sm text-green-700">Your WorshipWise system is ready. You can now start managing songs and building setlists.</p>
+					</div>
+				</div>
 			</div>
 		{/if}
 
@@ -219,7 +235,7 @@
 
 			<div class="flex space-x-2">
 				{#if store.isSetupComplete}
-					<Button onclick={handleClose} variant="primary">Complete Setup</Button>
+					<Button onclick={handleClose} variant="primary">🎉 Start Using WorshipWise</Button>
 				{:else}
 					<Button onclick={handleClose} variant="secondary">Close Wizard</Button>
 				{/if}

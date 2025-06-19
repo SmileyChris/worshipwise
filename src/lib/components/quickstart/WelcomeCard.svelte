@@ -24,28 +24,28 @@
 			<h3 class="mb-2 text-lg font-medium text-gray-900">Welcome to WorshipWise! 🎵</h3>
 
 			<p class="mx-auto mb-6 max-w-2xl text-gray-600">
-				Your worship song management system is ready to go. Start by adding your first songs or
-				import our sample data to explore the features.
+				Your worship team's complete song management solution. Organize your repertoire, 
+				prevent song repetition, and collaborate seamlessly on service planning.
 			</p>
 
 			<!-- Feature highlights -->
 			<div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
 				<div class="rounded-lg bg-gray-50 p-4 text-center">
 					<Music class="mx-auto mb-2 h-8 w-8 text-blue-600" />
-					<h4 class="font-medium text-gray-900">Song Management</h4>
-					<p class="text-sm text-gray-600">Store songs with keys, tempo, files, and lyrics</p>
+					<h4 class="font-medium text-gray-900">Smart Song Library</h4>
+					<p class="text-sm text-gray-600">Organize songs with keys, lyrics, chord charts, and audio files</p>
 				</div>
 
 				<div class="rounded-lg bg-gray-50 p-4 text-center">
 					<Users class="mx-auto mb-2 h-8 w-8 text-green-600" />
-					<h4 class="font-medium text-gray-900">Team Collaboration</h4>
-					<p class="text-sm text-gray-600">Work together on setlists and song planning</p>
+					<h4 class="font-medium text-gray-900">Team Setlists</h4>
+					<p class="text-sm text-gray-600">Build worship sets together with real-time collaboration</p>
 				</div>
 
 				<div class="rounded-lg bg-gray-50 p-4 text-center">
 					<BarChart3 class="mx-auto mb-2 h-8 w-8 text-purple-600" />
-					<h4 class="font-medium text-gray-900">Usage Tracking</h4>
-					<p class="text-sm text-gray-600">Prevent repetition with smart analytics</p>
+					<h4 class="font-medium text-gray-900">Repetition Prevention</h4>
+					<p class="text-sm text-gray-600">Track usage and get alerts to keep services fresh</p>
 				</div>
 			</div>
 

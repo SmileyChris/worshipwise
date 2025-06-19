@@ -174,7 +174,7 @@
 			<p class="mt-1 text-sm text-gray-500">Manage your worship songs and track usage patterns</p>
 		</div>
 
-		{#if auth.canManageSongs()}
+		{#if auth.canManageSongs}
 			<div class="mt-4 flex md:mt-0 md:ml-4">
 				<Button variant="primary" onclick={handleAddSong}>Add New Song</Button>
 			</div>
@@ -235,7 +235,7 @@
 				<p class="mb-6 text-gray-500">
 					Get started by adding your first worship song to the library.
 				</p>
-				{#if auth.canManageSongs()}
+				{#if auth.canManageSongs}
 					<Button variant="primary" onclick={handleAddSong}>Add Your First Song</Button>
 				{:else}
 					<p class="text-sm text-gray-400">
