@@ -41,9 +41,76 @@
 		'Outreach'
 	] as const;
 
-	// Load setlists on mount
+	// Load setlists on mount and set default date
 	onMount(async () => {
 		await setlistsStore.loadSetlists();
+		updateDefaultServiceDate();
+	});
+
+	// Calculate next available Sunday
+	function findNextAvailableSunday(): string {
+		// Use local date to avoid timezone issues
+		const today = new Date();
+		today.setHours(0, 0, 0, 0); // Start of day
+		
+		const setlists = setlistsStore.setlists;
+		
+		// Get existing service dates (convert to date strings for comparison)
+		const existingDates = new Set(
+			setlists.map(s => s.service_date).filter(Boolean)
+		);
+		
+		// Start from next Sunday (or today if it's Sunday)
+		let nextSunday = new Date(today);
+		const todayDayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+		
+		// Calculate days until next Sunday
+		const daysUntilSunday = todayDayOfWeek === 0 ? 0 : 7 - todayDayOfWeek;
+		nextSunday.setDate(today.getDate() + daysUntilSunday);
+		
+		// Keep checking Sundays until we find one without a setlist
+		let attempts = 0;
+		const maxAttempts = 52; // Don't check more than a year ahead
+		
+		while (attempts < maxAttempts) {
+			// Format as YYYY-MM-DD for comparison
+			const year = nextSunday.getFullYear();
+			const month = String(nextSunday.getMonth() + 1).padStart(2, '0');
+			const day = String(nextSunday.getDate()).padStart(2, '0');
+			const dateString = `${year}-${month}-${day}`;
+			
+			if (!existingDates.has(dateString)) {
+				return dateString;
+			}
+			
+			// Move to next Sunday
+			nextSunday.setDate(nextSunday.getDate() + 7);
+			attempts++;
+		}
+		
+		// Fallback to next Sunday if all are taken (unlikely)
+		const fallbackSunday = new Date(today);
+		const fallbackDaysUntilSunday = todayDayOfWeek === 0 ? 7 : 7 - todayDayOfWeek;
+		fallbackSunday.setDate(today.getDate() + fallbackDaysUntilSunday);
+		
+		const year = fallbackSunday.getFullYear();
+		const month = String(fallbackSunday.getMonth() + 1).padStart(2, '0');
+		const day = String(fallbackSunday.getDate()).padStart(2, '0');
+		return `${year}-${month}-${day}`;
+	}
+
+	// Update the default service date when setlists change
+	function updateDefaultServiceDate() {
+		if (createForm.service_date === '') {
+			createForm.service_date = findNextAvailableSunday();
+		}
+	}
+
+	// Update default date when setlists change
+	$effect(() => {
+		if (setlistsStore.setlists.length >= 0) { // Trigger when setlists are loaded
+			updateDefaultServiceDate();
+		}
 	});
 
 	// Stats from store
@@ -78,16 +145,8 @@
 				status: 'draft'
 			});
 
-			// Reset form
-			createForm = {
-				title: '',
-				service_date: '',
-				service_type: 'Sunday Morning',
-				theme: '',
-				notes: '',
-				worship_leader: auth.user?.id || '',
-				estimated_duration: 3600
-			};
+			// Reset form with next available Sunday
+			resetCreateForm();
 
 			showCreateModal = false;
 
@@ -133,6 +192,42 @@
 				return 'default';
 		}
 	}
+
+	// Get friendly date description for form
+	function getDateDescription(dateString: string): string {
+		if (!dateString) return '';
+		
+		const date = new Date(dateString);
+		const today = new Date();
+		const diffTime = date.getTime() - today.getTime();
+		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+		
+		if (diffDays === 0) return '(Today)';
+		if (diffDays === 1) return '(Tomorrow)';
+		if (diffDays > 0 && diffDays <= 7) return `(In ${diffDays} days)`;
+		if (diffDays > 7 && diffDays <= 14) return '(Next week)';
+		
+		return '';
+	}
+
+	// Reset form to defaults with fresh next Sunday calculation
+	function resetCreateForm() {
+		createForm = {
+			title: '',
+			service_date: findNextAvailableSunday(),
+			service_type: 'Sunday Morning',
+			theme: '',
+			notes: '',
+			worship_leader: auth.user?.id || '',
+			estimated_duration: 3600
+		};
+	}
+
+	// Open create modal with fresh form
+	function openCreateModal() {
+		resetCreateForm();
+		showCreateModal = true;
+	}
 </script>
 
 <svelte:head>
@@ -152,7 +247,7 @@
 
 			{#if auth.canManageSetlists}
 				<div class="mt-4 flex md:mt-0 md:ml-4">
-					<Button variant="primary" onclick={() => (showCreateModal = true)}>
+					<Button variant="primary" onclick={openCreateModal}>
 						Create New Setlist
 					</Button>
 				</div>
@@ -212,7 +307,7 @@
 						Create setlists, track song usage, and collaborate with your team.
 					</p>
 					{#if auth.canManageSetlists}
-						<Button variant="primary" onclick={() => (showCreateModal = true)}>
+						<Button variant="primary" onclick={openCreateModal}>
 							Create Your First Setlist
 						</Button>
 					{:else}
@@ -311,7 +406,7 @@
 
 			<div>
 				<label for="service_date" class="block text-sm font-medium text-gray-700">
-					Service Date *
+					Service Date * {getDateDescription(createForm.service_date)}
 				</label>
 				<input
 					id="service_date"
@@ -320,6 +415,11 @@
 					required
 					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
 				/>
+				{#if createForm.service_date}
+					<p class="mt-1 text-xs text-gray-500">
+						Next available Sunday selected automatically
+					</p>
+				{/if}
 			</div>
 
 			<div>
