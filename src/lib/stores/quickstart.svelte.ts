@@ -1,6 +1,6 @@
 import { SystemAPI } from '$lib/api/system.js';
 import { importSampleData } from '$lib/data/sample-data.js';
-import { SongsAPI } from '$lib/api/songs.js';
+import { songsApi } from '$lib/api/songs.js';
 import type { SystemStatus, SetupStep } from '$lib/types/quickstart.js';
 
 class QuickstartStore {
@@ -55,9 +55,17 @@ class QuickstartStore {
 
 	completedSteps = $derived(this.setupSteps.filter((step) => step.status === 'completed'));
 
+	completedRequiredSteps = $derived(this.setupSteps.filter((step) => step.status === 'completed' && !step.optional));
+
+	requiredSteps = $derived(this.setupSteps.filter((step) => !step.optional));
+
 	isSetupComplete = $derived.by(() => {
-		const requiredSteps = this.setupSteps.filter((step) => !step.optional);
-		return requiredSteps.every((step) => step.status === 'completed');
+		return this.requiredSteps.every((step) => step.status === 'completed');
+	});
+
+	hasActiveStep = $derived.by(() => {
+		// Has active step if there are incomplete required steps or incomplete optional steps
+		return this.setupSteps.some((step) => step.status === 'pending' || step.status === 'error');
 	});
 
 	async checkSystemStatus() {
@@ -86,13 +94,25 @@ class QuickstartStore {
 			// Show setup wizard if needed
 			this.showSetupWizard = this.systemStatus.needsSetup;
 
-			// Set current step to first incomplete step
-			this.currentStepIndex = this.setupSteps.findIndex(
-				(step) => step.status === 'pending' || step.status === 'error'
+			// Set current step to first incomplete required step, or first step if all required are done
+			const firstIncompleteRequiredIndex = this.setupSteps.findIndex(
+				(step) => !step.optional && (step.status === 'pending' || step.status === 'error')
 			);
 
-			if (this.currentStepIndex === -1) {
-				this.currentStepIndex = 0;
+			if (firstIncompleteRequiredIndex !== -1) {
+				this.currentStepIndex = firstIncompleteRequiredIndex;
+			} else {
+				// All required steps completed, check if there's an incomplete optional step
+				const firstIncompleteOptionalIndex = this.setupSteps.findIndex(
+					(step) => step.optional && (step.status === 'pending' || step.status === 'error')
+				);
+				
+				if (firstIncompleteOptionalIndex !== -1) {
+					this.currentStepIndex = firstIncompleteOptionalIndex;
+				} else {
+					// Everything is done, default to last step
+					this.currentStepIndex = this.setupSteps.length - 1;
+				}
 			}
 		} catch (error) {
 			console.error('Failed to check system status:', error);
@@ -186,7 +206,7 @@ class QuickstartStore {
 			throw new Error('Must be logged in to import sample data');
 		}
 
-		await importSampleData(SongsAPI, currentUser);
+		await importSampleData(songsApi, currentUser);
 		this.updateStepStatus('sample-data', 'completed');
 	}
 

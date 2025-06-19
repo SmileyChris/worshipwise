@@ -38,23 +38,6 @@
 			</div>
 		</div>
 	</div>
-{:else}
-	<div class="mb-6 rounded-lg border border-green-200 bg-green-50 p-4">
-		<div class="flex items-center">
-			<div class="flex-shrink-0">
-				<CheckCircle class="h-5 w-5 text-green-400" />
-			</div>
-			<div class="ml-3">
-				<h3 class="text-sm font-medium text-green-800">System Ready</h3>
-				<p class="mt-1 text-sm text-green-700">WorshipWise is fully set up and ready to use.</p>
-			</div>
-			<div class="ml-auto">
-				<Button onclick={handleRefreshStatus} size="sm" variant="secondary">
-					<RefreshCw class="h-4 w-4" />
-				</Button>
-			</div>
-		</div>
-	</div>
 {/if}
 
 <!-- Debug info in development -->

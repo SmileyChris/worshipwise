@@ -90,16 +90,14 @@
 			<div class="mb-4 flex items-center justify-between">
 				<span class="text-sm font-medium text-gray-700">Setup Progress</span>
 				<span class="text-sm text-gray-500">
-					{store.completedSteps.length} of {store.setupSteps.filter((s) => !s.optional).length} complete
+					{store.completedRequiredSteps.length} of {store.requiredSteps.length} complete
 				</span>
 			</div>
 
 			<div class="h-2 w-full rounded-full bg-gray-200">
 				<div
 					class="h-2 rounded-full bg-blue-600 transition-all duration-300"
-					style="width: {(store.completedSteps.length /
-						store.setupSteps.filter((s) => !s.optional).length) *
-						100}%"
+					style="width: {(store.completedRequiredSteps.length / store.requiredSteps.length) * 100}%"
 				></div>
 			</div>
 		</div>
@@ -198,14 +196,20 @@
 						Get started quickly with example songs and setlists. This shows you how WorshipWise works 
 						and you can delete the sample content later.
 					</p>
-					<div class="flex space-x-2">
-						<Button onclick={handleExecuteStep} disabled={store.isLoading}>
-							{store.isLoading ? 'Adding Demo Content...' : 'Add Demo Content'}
-						</Button>
-						{#if store.currentStep.optional}
-							<Button onclick={handleSkipStep} variant="secondary">Skip Demo Content</Button>
-						{/if}
-					</div>
+					{#if store.hasActiveStep}
+						<div class="flex space-x-2">
+							<Button onclick={handleExecuteStep} disabled={store.isLoading}>
+								{store.isLoading ? 'Adding Demo Content...' : 'Add Demo Content'}
+							</Button>
+							{#if store.currentStep.optional}
+								<Button onclick={handleSkipStep} variant="secondary">Skip Demo Content</Button>
+							{/if}
+						</div>
+					{:else}
+						<p class="text-sm text-green-600">✓ Step completed</p>
+					{/if}
+				{:else if !store.hasActiveStep}
+					<p class="text-sm text-green-600">✓ Step completed</p>
 				{/if}
 			</div>
 		{/if}
@@ -225,13 +229,22 @@
 
 		<!-- Navigation -->
 		<div class="flex justify-between">
-			<Button
-				onclick={() => store.prevStep()}
-				variant="secondary"
-				disabled={store.currentStepIndex === 0}
-			>
-				Previous
-			</Button>
+			<div class="flex space-x-2">
+				<Button
+					onclick={() => store.prevStep()}
+					variant="secondary"
+					disabled={store.currentStepIndex === 0}
+				>
+					Previous
+				</Button>
+				<Button
+					onclick={() => store.nextStep()}
+					variant="secondary"
+					disabled={store.currentStepIndex >= store.setupSteps.length - 1}
+				>
+					Next
+				</Button>
+			</div>
 
 			<div class="flex space-x-2">
 				{#if store.isSetupComplete}

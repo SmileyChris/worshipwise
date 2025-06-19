@@ -112,10 +112,13 @@ export async function importSampleData(songsAPI: any, user: any): Promise<void> 
 	const importedSongs = [];
 	for (const songData of sampleData.sampleSongs) {
 		try {
-			const song = await songsAPI.create({
-				...songData,
-				created_by: user.id,
-				tags: JSON.stringify(songData.tags || [])
+			const song = await songsAPI.createSong({
+				title: songData.title,
+				artist: songData.artist,
+				key_signature: songData.key_signature,
+				tempo: songData.tempo,
+				lyrics: songData.lyrics,
+				tags: songData.tags || []
 			});
 			importedSongs.push(song);
 			console.log(`Imported song: ${songData.title}`);
