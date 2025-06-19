@@ -9,7 +9,7 @@
 	let { children } = $props();
 
 	// Public routes that don't require authentication
-	const publicRoutes = ['/login', '/register', '/'];
+	const publicRoutes = ['/login', '/register', '/', '/reset-password', '/reset-password/confirm'];
 
 	let isReady = $state(false);
 	let currentPath = $state('');
