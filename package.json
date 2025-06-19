@@ -18,7 +18,6 @@
 		"pocketbase": "cd pocketbase && ./pocketbase serve",
 		"pb:start": "cd pocketbase && ./pocketbase serve --dev",
 		"pb:migrate": "cd pocketbase && ./pocketbase migrate up",
-		"dev:all": "concurrently \"npm run pocketbase\" \"npm run dev\"",
 		"dev:pb": "npm run pb:start"
 	},
 	"devDependencies": {
@@ -33,7 +32,6 @@
 		"@tailwindcss/vite": "^4.0.0",
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/svelte": "^5.2.4",
-		"concurrently": "^9.1.2",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",

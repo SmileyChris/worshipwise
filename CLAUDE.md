@@ -42,8 +42,9 @@ WorshipWise is a sophisticated worship song tracking system built with SvelteKit
 ## Development Commands
 
 ```bash
-# Development
-npm run dev                    # Start dev server
+# Development (recommended)
+just dev                       # Start both PocketBase + SvelteKit with smart detection
+npm run dev                    # Start SvelteKit dev server only
 npm run dev -- --open        # Start dev server and open browser
 
 # Building

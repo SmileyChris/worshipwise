@@ -22,8 +22,8 @@ npm install
 # Install PocketBase (if not already installed)
 ./scripts/install-pocketbase.sh
 
-# Start development servers (both PocketBase and SvelteKit)
-npm run dev:all
+# Start development servers (recommended)
+just dev
 ```
 
 ### First Time Setup
@@ -54,16 +54,29 @@ npm run dev:all
 
 ## 🛠 Development Commands
 
+### Recommended (using justfile):
+
+```bash
+# Development (recommended)
+just dev                      # Start both servers with smart detection
+just setup                    # Install PocketBase
+just build                    # Build for production
+just test                     # Run tests
+just check                    # Type checking
+just lint                     # Code quality checks
+```
+
+### Direct npm scripts:
+
 ```bash
 # Development
-npm run dev                    # Start SvelteKit only
-npm run pb:start              # Start PocketBase only
-npm run dev:all               # Start both simultaneously
-./scripts/start-dev.sh        # Recommended startup script
+npm run dev                   # Start SvelteKit only
+npm run pb:start             # Start PocketBase only
+./scripts/start-dev.sh       # Start both (advanced script)
 
 # Building
-npm run build                 # Build for production
-npm run preview              # Preview production build
+npm run build                # Build for production
+npm run preview             # Preview production build
 
 # Code Quality
 npm run check                # TypeScript checking
