@@ -9,7 +9,6 @@
 		showUsageIndicator?: boolean;
 		showActions?: boolean;
 		onEdit?: (song: Song) => void;
-		onDelete?: (song: Song) => void;
 		onAddToSetlist?: (song: Song) => void;
 		class?: string;
 	}
@@ -19,7 +18,6 @@
 		showUsageIndicator = true,
 		showActions = true,
 		onEdit = () => {},
-		onDelete = () => {},
 		onAddToSetlist = () => {},
 		class: className = ''
 	}: Props = $props();
@@ -75,8 +73,6 @@
 
 	// Check if user can edit this song
 	let canEdit = $derived(auth.canManageSongs || song.created_by === auth.user?.id);
-
-	let canDelete = $derived(auth.isAdmin);
 </script>
 
 <div
@@ -204,17 +200,6 @@
 				{#if auth.canManageSetlists}
 					<Button variant="primary" size="sm" onclick={() => onAddToSetlist(song)}>
 						Add to Setlist
-					</Button>
-				{/if}
-
-				{#if canDelete}
-					<Button
-						variant="danger"
-						size="sm"
-						onclick={() => onDelete(song)}
-						class="text-red-600 hover:text-red-800"
-					>
-						Delete
 					</Button>
 				{/if}
 			</div>

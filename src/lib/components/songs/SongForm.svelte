@@ -1,22 +1,26 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
+	import { auth } from '$lib/stores/auth.svelte';
 	import type { Song, CreateSongData, UpdateSongData } from '$lib/types/song';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
+	import Modal from '$lib/components/ui/Modal.svelte';
 
 	interface Props {
 		song?: Song | null;
 		loading?: boolean;
 		error?: string | null;
 		oncancel?: () => void;
+		ondelete?: (song: Song) => void;
 	}
 
-	let { song = null, loading = false, error = null, oncancel = () => {} }: Props = $props();
+	let { song = null, loading = false, error = null, oncancel = () => {}, ondelete = () => {} }: Props = $props();
 
 	const dispatch = createEventDispatcher<{
 		submit: CreateSongData | { id: string; data: UpdateSongData };
+		delete: Song;
 		cancel: void;
 	}>();
 
@@ -102,6 +106,10 @@
 	// Computed values
 	let isEditing = $derived(!!song);
 	let isValid = $derived(title.trim().length > 0 && !titleError && !tempoError && !durationError);
+	let canDelete = $derived(isEditing && auth.isAdmin);
+	
+	// Delete confirmation state
+	let showDeleteConfirm = $state(false);
 
 	// Validation functions
 	function validateTitle(value: string): string {
@@ -222,6 +230,22 @@
 	function handleCancel() {
 		oncancel();
 		dispatch('cancel');
+	}
+	
+	function handleDeleteClick() {
+		showDeleteConfirm = true;
+	}
+	
+	function handleDeleteConfirm() {
+		if (song) {
+			showDeleteConfirm = false;
+			ondelete(song);
+			dispatch('delete', song);
+		}
+	}
+	
+	function handleDeleteCancel() {
+		showDeleteConfirm = false;
 	}
 </script>
 
@@ -428,20 +452,58 @@
 		</div>
 
 		<!-- Form Actions -->
-		<div class="flex justify-end gap-3 pt-4">
-			<Button type="button" variant="secondary" onclick={handleCancel} disabled={loading}>
-				Cancel
-			</Button>
+		<div class="flex {canDelete ? 'justify-between' : 'justify-end'} gap-3 pt-4">
+			{#if canDelete}
+				<Button type="button" variant="danger" onclick={handleDeleteClick} disabled={loading}>
+					Delete Song
+				</Button>
+			{/if}
+			
+			<div class="flex gap-3">
+				<Button type="button" variant="secondary" onclick={handleCancel} disabled={loading}>
+					Cancel
+				</Button>
 
-			<Button
-				type="submit"
-				variant="primary"
-				{loading}
-				disabled={!isValid || loading}
-				data-testid="save-button"
-			>
-				{loading ? 'Saving...' : isEditing ? 'Update Song' : 'Add Song'}
-			</Button>
+				<Button
+					type="submit"
+					variant="primary"
+					{loading}
+					disabled={!isValid || loading}
+					data-testid="save-button"
+				>
+					{loading ? 'Saving...' : isEditing ? 'Update Song' : 'Add Song'}
+				</Button>
+			</div>
 		</div>
 	</form>
 </Card>
+
+<!-- Delete Confirmation Modal -->
+<Modal
+	open={showDeleteConfirm}
+	title="Delete Song"
+	size="sm"
+	onclose={handleDeleteCancel}
+>
+	{#if song}
+		<div class="text-center">
+			<div class="mb-4 text-6xl text-red-600">⚠️</div>
+			<p class="mb-4 text-gray-900">
+				Are you sure you want to delete "<strong>{song.title}</strong>"?
+			</p>
+			<p class="mb-6 text-sm text-gray-500">
+				This action cannot be undone. The song will be permanently removed from your library.
+			</p>
+		</div>
+	{/if}
+
+	{#snippet footer()}
+		<Button variant="secondary" onclick={handleDeleteCancel} disabled={loading}>
+			Cancel
+		</Button>
+
+		<Button variant="danger" onclick={handleDeleteConfirm} {loading} disabled={loading}>
+			{loading ? 'Deleting...' : 'Delete Song'}
+		</Button>
+	{/snippet}
+</Modal>

@@ -110,6 +110,7 @@
 				await songsStore.deleteSong(songToDelete.id);
 				showDeleteConfirm = false;
 				songToDelete = null;
+				showSongForm = false; // Close the song form if it's open
 			} catch (error) {
 				console.error('Failed to delete song:', error);
 			}
@@ -288,7 +289,6 @@
 					<SongCard
 						{song}
 						onEdit={handleEditSong}
-						onDelete={handleDeleteSong}
 						onAddToSetlist={handleAddToSetlist}
 					/>
 				{/each}
@@ -335,7 +335,7 @@
 	size="lg"
 	onclose={handleSongFormCancel}
 >
-	<SongForm song={selectedSong} {loading} {error} oncancel={handleSongFormCancel} />
+	<SongForm song={selectedSong} {loading} {error} oncancel={handleSongFormCancel} ondelete={handleDeleteSong} />
 </Modal>
 
 <!-- Delete Confirmation Modal -->
@@ -367,3 +367,4 @@
 		</Button>
 	{/snippet}
 </Modal>
+
