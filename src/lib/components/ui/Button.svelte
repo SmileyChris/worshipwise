@@ -28,7 +28,7 @@
 	let baseClasses =
 		'inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 rounded-md';
 
-	let variantClasses = $derived(() => {
+	let variantClasses = $derived.by(() => {
 		switch (variant) {
 			case 'primary':
 				return 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm';
@@ -45,7 +45,7 @@
 		}
 	});
 
-	let sizeClasses = $derived(() => {
+	let sizeClasses = $derived.by(() => {
 		switch (size) {
 			case 'sm':
 				return 'h-8 px-3 text-sm';
@@ -56,7 +56,7 @@
 		}
 	});
 
-	let combinedClasses = $derived(`${baseClasses} ${variantClasses()} ${sizeClasses()} ${className}`);
+	let combinedClasses = $derived(`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`);
 
 	let isDisabled = $derived(disabled || loading);
 </script>

@@ -43,7 +43,7 @@ class SongsStore {
 	hasPrevPage = $derived(this.currentPage > 1);
 
 	// Available keys for filtering (derived from songs)
-	availableKeys = $derived(() => {
+	availableKeys = $derived.by(() => {
 		const keys = new Set<string>();
 		this.songs.forEach((song) => {
 			if (song.key_signature) {
@@ -54,7 +54,7 @@ class SongsStore {
 	});
 
 	// Available tags for filtering (derived from songs)
-	availableTags = $derived(() => {
+	availableTags = $derived.by(() => {
 		const tags = new Set<string>();
 		this.songs.forEach((song) => {
 			if (song.tags) {

@@ -11,7 +11,7 @@
 
 	let baseClasses = 'inline-flex items-center font-medium rounded-full';
 
-	let variantClasses = $derived(() => {
+	let variantClasses = $derived.by(() => {
 		// Color prop takes precedence over variant
 		if (color) {
 			switch (color) {
@@ -44,7 +44,7 @@
 		}
 	});
 
-	let sizeClasses = $derived(() => {
+	let sizeClasses = $derived.by(() => {
 		switch (size) {
 			case 'md':
 				return 'px-3 py-1 text-sm';

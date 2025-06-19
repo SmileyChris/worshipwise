@@ -10,7 +10,7 @@
 
 	let { data, class: className = '' }: Props = $props();
 
-	let chartConfig = $derived(() => {
+	let chartConfig = $derived.by(() => {
 		const labels = data.map((item) => item.serviceType);
 		const counts = data.map((item) => item.count);
 		const avgSongs = data.map((item) => item.avgSongs);

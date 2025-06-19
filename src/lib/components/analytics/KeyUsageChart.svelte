@@ -26,7 +26,7 @@
 		'rgb(244, 114, 182)' // light pink
 	];
 
-	let chartConfig = $derived(() => {
+	let chartConfig = $derived.by(() => {
 		const labels = data.map((item) => item.key);
 		const counts = data.map((item) => item.count);
 		const backgroundColors = data.map((_, index) => colors[index % colors.length]);

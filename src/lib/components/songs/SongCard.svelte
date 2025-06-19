@@ -25,7 +25,7 @@
 	}: Props = $props();
 
 	// Format duration from seconds to minutes:seconds
-	let formattedDuration = $derived(() => {
+	let formattedDuration = $derived.by(() => {
 		if (!song.duration_seconds) return null;
 		const minutes = Math.floor(song.duration_seconds / 60);
 		const seconds = song.duration_seconds % 60;

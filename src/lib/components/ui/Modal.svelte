@@ -6,6 +6,7 @@
 	interface Props {
 		open?: boolean;
 		title?: string;
+		subtitle?: string;
 		size?: 'sm' | 'md' | 'lg' | 'xl';
 		showCloseButton?: boolean;
 		onclose?: () => void;
@@ -16,6 +17,7 @@
 	let {
 		open = false,
 		title = '',
+		subtitle = '',
 		size = 'md',
 		showCloseButton = true,
 		onclose,
@@ -27,7 +29,7 @@
 		close: void;
 	}>();
 
-	let sizeClasses = $derived(() => {
+	let sizeClasses = $derived.by(() => {
 		switch (size) {
 			case 'sm':
 				return 'max-w-md';
@@ -81,7 +83,12 @@
 			{#if title || showCloseButton}
 				<div class="flex flex-shrink-0 items-center justify-between border-b border-gray-200 p-6">
 					{#if title}
-						<h2 id="modal-title" class="text-lg font-semibold text-gray-900">{title}</h2>
+						<div>
+							<h2 id="modal-title" class="text-lg font-semibold text-gray-900">{title}</h2>
+							{#if subtitle}
+								<p class="mt-1 text-sm text-gray-600">{subtitle}</p>
+							{/if}
+						</div>
 					{:else}
 						<div></div>
 					{/if}

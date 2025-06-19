@@ -27,7 +27,7 @@
 	let error = $state<string | null>(null);
 
 	// Computed values
-	let filteredSongs = $derived(() => {
+	let filteredSongs = $derived.by(() => {
 		const songs = songsStore.songs || [];
 		if (!searchQuery) return songs;
 		const query = searchQuery.toLowerCase();
@@ -38,12 +38,12 @@
 		);
 	});
 
-	let totalDuration = $derived(() => {
+	let totalDuration = $derived.by(() => {
 		return setlistsStore.currentSetlistDuration || 0;
 	});
 
-	let formattedDuration = $derived(() => {
-		const duration = Number(totalDuration()) || 0;
+	let formattedDuration = $derived.by(() => {
+		const duration = Number(totalDuration) || 0;
 		const minutes = Math.floor(duration / 60);
 		const seconds = duration % 60;
 		return `${minutes}:${seconds.toString().padStart(2, '0')}`;

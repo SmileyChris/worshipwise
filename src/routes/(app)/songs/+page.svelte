@@ -45,7 +45,7 @@
 	// Key options (will be populated from available keys)
 	let keyOptions = $derived.by(() => [
 		{ value: '', label: 'All Keys' },
-		...availableKeys().map((key: string) => ({ value: key, label: key }))
+		...availableKeys.map((key: string) => ({ value: key, label: key }))
 	]);
 
 	// Load songs on mount

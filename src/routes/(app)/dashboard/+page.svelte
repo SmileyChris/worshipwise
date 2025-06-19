@@ -146,13 +146,15 @@
 					Plan Setlists
 				</a>
 
-				<button
-					onclick={() => (quickstart.showSetupWizard = true)}
-					class="flex w-full items-center rounded-md border border-gray-300 px-4 py-3 text-left hover:bg-gray-50"
-				>
-					<TrendingUp class="mr-2 h-4 w-4" />
-					Setup Wizard
-				</button>
+				{#if !quickstart.isSetupComplete}
+					<button
+						onclick={() => (quickstart.showSetupWizard = true)}
+						class="flex w-full items-center rounded-md border border-gray-300 px-4 py-3 text-left hover:bg-gray-50"
+					>
+						<TrendingUp class="mr-2 h-4 w-4" />
+						Setup Wizard
+					</button>
+				{/if}
 			</div>
 		</Card>
 	</div>

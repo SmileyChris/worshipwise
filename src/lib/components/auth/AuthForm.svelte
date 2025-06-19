@@ -81,7 +81,7 @@
 	});
 
 	// Form validation
-	let isValid = $derived(() => {
+	let isValid = $derived.by(() => {
 		if (isLogin) {
 			return email && password && !emailError && !passwordError;
 		} else {

@@ -49,7 +49,7 @@
 	}
 
 	// Get insights
-	let insights = $derived(() => analyticsStore.getInsights());
+	let insights = $derived.by(() => analyticsStore.getInsights());
 
 	// Format duration in minutes to readable format
 	function formatDuration(minutes: number): string {
@@ -77,7 +77,7 @@
 		</div>
 
 		<div class="mt-4 flex items-center gap-3 md:mt-0 md:ml-4">
-			{#if insights().length > 0}
+			{#if insights.length > 0}
 				<Button
 					variant="ghost"
 					onclick={() => (showInsights = !showInsights)}
@@ -141,12 +141,12 @@
 	</Card>
 
 	<!-- Insights -->
-	{#if showInsights && insights().length > 0}
+	{#if showInsights && insights.length > 0}
 		<Card>
 			<div class="p-4">
 				<h3 class="mb-3 text-lg font-medium text-gray-900">📊 Key Insights</h3>
 				<div class="space-y-2">
-					{#each insights() as insight}
+					{#each insights as insight}
 						<div class="flex items-start gap-2">
 							<div class="mt-1 h-1.5 w-1.5 rounded-full bg-blue-600"></div>
 							<p class="text-sm text-gray-700">{insight}</p>

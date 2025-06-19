@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { auth } from '$lib/stores/auth.svelte';
+	import { quickstartStore } from '$lib/stores/quickstart.svelte';
 	import { page as pageStore } from '$app/stores';
 	import Button from '$lib/components/ui/Button.svelte';
 
@@ -45,6 +46,11 @@
 
 	function closeUserMenu() {
 		userMenuOpen = false;
+	}
+
+	function handleOpenSetupWizard() {
+		quickstartStore.showSetupWizard = true;
+		closeUserMenu();
 	}
 
 	function handleClickOutside(event: MouseEvent) {
@@ -139,6 +145,13 @@
 								Profile Settings
 							</a>
 							<button
+								onclick={handleOpenSetupWizard}
+								class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+								role="menuitem"
+							>
+								Setup Wizard
+							</button>
+							<button
 								onclick={handleLogout}
 								class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
 								role="menuitem"
@@ -192,6 +205,12 @@
 				>
 					Profile Settings
 				</a>
+				<button
+					onclick={handleOpenSetupWizard}
+					class="block w-full px-4 py-2 text-left text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+				>
+					Setup Wizard
+				</button>
 				<button
 					onclick={handleLogout}
 					class="block w-full px-4 py-2 text-left text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"

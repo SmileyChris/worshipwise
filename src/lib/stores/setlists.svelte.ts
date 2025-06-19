@@ -48,7 +48,7 @@ class SetlistsStore {
 
 	// Derived computed values
 	filteredSetlistsCount = $derived(this.setlists.length);
-	currentSetlistDuration = $derived(() => {
+	currentSetlistDuration = $derived.by(() => {
 		return this.currentSetlistSongs.reduce((total, song) => {
 			return total + (song.duration_override || song.expand?.song_id?.duration_seconds || 0);
 		}, 0);

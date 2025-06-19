@@ -11,7 +11,7 @@
 
 	let { data, interval, class: className = '' }: Props = $props();
 
-	let chartConfig = $derived(() => {
+	let chartConfig = $derived.by(() => {
 		// Prepare chart data
 		const labels = data.map((trend) => {
 			const date = new Date(trend.date);

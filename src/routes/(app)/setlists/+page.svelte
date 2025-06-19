@@ -114,7 +114,7 @@
 	});
 
 	// Stats from store
-	let stats = $derived(() => {
+	let stats = $derived.by(() => {
 		const setlists = setlistsStore.setlists;
 		return {
 			total: setlists.length,

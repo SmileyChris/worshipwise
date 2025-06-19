@@ -75,15 +75,18 @@
 	}
 </script>
 
-<Modal open={modalOpen} size="lg" onclose={handleClose}>
-	<div class="p-6">
-		<div class="mb-6">
-			<h2 class="mb-2 text-2xl font-bold text-gray-900">🎵 Welcome to WorshipWise</h2>
-			<p class="text-gray-600">
-				Your complete worship song management solution. We'll set up everything you need to organize songs, 
-				build setlists, collaborate with your team, and track usage patterns.
-			</p>
-		</div>
+<Modal 
+	open={modalOpen} 
+	size="lg" 
+	title="🎵 Welcome to WorshipWise" 
+	subtitle="Your complete worship song management solution."
+	onclose={handleClose}
+>
+	<div class="mb-6">
+		<p class="text-gray-600">
+			Let's set up everything you need to organize songs, build setlists, collaborate with your team, and track usage patterns.
+		</p>
+	</div>
 
 		<!-- Progress indicator -->
 		<div class="mb-8">
@@ -254,5 +257,4 @@
 				{/if}
 			</div>
 		</div>
-	</div>
 </Modal>

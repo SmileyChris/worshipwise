@@ -39,17 +39,17 @@ class AnalyticsStore {
 	exportLoading = $state<boolean>(false);
 
 	// Derived computed values
-	hasData = $derived(() => {
+	hasData = $derived.by(() => {
 		return (
 			this.overview !== null || this.songUsageStats.length > 0 || this.serviceTypeStats.length > 0
 		);
 	});
 
-	isDateFiltered = $derived(() => {
+	isDateFiltered = $derived.by(() => {
 		return this.dateRange.from !== null || this.dateRange.to !== null;
 	});
 
-	dateRangeText = $derived(() => {
+	dateRangeText = $derived.by(() => {
 		if (!this.isDateFiltered) return 'All Time';
 
 		const from = this.dateRange.from
@@ -61,17 +61,17 @@ class AnalyticsStore {
 	});
 
 	// Most popular song
-	mostPopularSong = $derived(() => {
+	mostPopularSong = $derived.by(() => {
 		return this.songUsageStats.length > 0 ? this.songUsageStats[0] : null;
 	});
 
 	// Most used key
-	mostUsedKey = $derived(() => {
+	mostUsedKey = $derived.by(() => {
 		return this.keyUsageStats.length > 0 ? this.keyUsageStats[0] : null;
 	});
 
 	// Most active worship leader
-	mostActiveLeader = $derived(() => {
+	mostActiveLeader = $derived.by(() => {
 		return this.worshipLeaderStats.length > 0 ? this.worshipLeaderStats[0] : null;
 	});
 
