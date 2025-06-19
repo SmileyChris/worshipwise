@@ -14,8 +14,9 @@
 			{ name: 'Setlists', href: '/setlists', icon: '📋' }
 		];
 
-		// Add analytics for leaders and admins
+		// Add insights and analytics for leaders and admins
 		if (auth.canManageSetlists()) {
+			items.push({ name: 'Insights', href: '/insights', icon: '💡' });
 			items.push({ name: 'Analytics', href: '/analytics', icon: '📊' });
 		}
 

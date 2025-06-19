@@ -180,38 +180,38 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 - ✅ Chart visualizations for usage patterns
 - ✅ Export functionality for reports
 
-### Sprint 6: Advanced Analytics & Reporting
+### Sprint 6: Intelligent Worship Insights
 
-**Goal**: Enhanced reporting and worship insights
+**Goal**: Add smart recommendations and insights to enhance worship planning
 
 #### Tasks:
 
-1. **Advanced Reporting**
+1. **Smart Recommendations Engine**
 
-   - Exportable reports (PDF, CSV)
-   - Custom date range filtering
-   - Comparative analysis tools
-   - Automated insights and recommendations
+   - Song rotation analysis and recommendations
+   - Service balance suggestions (fast/slow songs, worship flow)
+   - Key compatibility analysis for seamless transitions
+   - "Songs to consider" based on usage patterns
 
-2. **Worship Insights**
+2. **Worship Planning Intelligence**
 
-   - Song rotation recommendations
-   - Service balance analysis (fast/slow songs)
-   - Key compatibility suggestions
-   - Seasonal trending analysis
+   - Seasonal trending analysis (Christmas, Easter, etc.)
+   - Comparative period analysis (this month vs last month)
+   - Service type analysis and optimization
+   - Popular song combinations and sequences
 
-3. **Performance Analytics**
-   - Service duration trends
-   - Song transition analysis
-   - Popular service types
-   - Worship leader performance metrics
+3. **Enhanced Analytics Views**
+   - Worship leader performance insights
+   - Song effectiveness metrics
+   - Service flow optimization suggestions
+   - Usage pattern visualizations with actionable insights
 
 #### Deliverables:
 
-- [ ] Advanced export and reporting system
-- [ ] Intelligent worship recommendations
-- [ ] Comprehensive service analytics
-- [ ] Performance optimization insights
+- [ ] Intelligent song recommendation system
+- [ ] Worship flow optimization tools
+- [ ] Seasonal and comparative analytics
+- [ ] Actionable worship planning insights
 
 ## Phase 4: Enhanced Setlist Features (Sprints 7-8)
 
@@ -419,6 +419,37 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 - [ ] Beta testing feedback incorporated
 - [ ] Accessibility compliance
 
+### Sprint 11.5: Advanced Export & Reporting
+
+**Goal**: Comprehensive export capabilities for worship teams
+
+#### Tasks:
+
+1. **Advanced Export System**
+   - PDF report generation with charts and branding
+   - Advanced CSV formats with multiple data views
+   - Automated/scheduled reports
+   - Custom report templates
+
+2. **Report Customization**
+   - Configurable report layouts
+   - Church branding integration
+   - Date range and filter options
+   - Multi-format export (PDF, CSV, Excel)
+
+3. **Batch Operations**
+   - Bulk data export
+   - Historical data archiving
+   - Import/export for migrations
+   - Backup generation
+
+#### Deliverables:
+
+- [ ] Professional PDF report system
+- [ ] Advanced CSV/Excel export capabilities
+- [ ] Custom report templates
+- [ ] Automated reporting features
+
 ### Sprint 12: Production Preparation
 
 **Goal**: Prepare for production deployment
@@ -528,17 +559,17 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 
 ### **🚧 Current Status**
 
-- **Next Priority**: Sprint 6 - Advanced Analytics & Reporting
+- **Next Priority**: Sprint 6 - Intelligent Worship Insights
 - **Production Ready Features**: Complete authentication system, comprehensive song management with file uploads, real-time setlist collaboration, full analytics dashboard with Chart.js visualizations
 - **Advanced Implementation**: 5,000+ lines of production-ready code with TypeScript, real-time WebSocket subscriptions, role-based permissions, responsive design
 
 ### **🎯 Immediate Next Steps (Sprint 6)**
 
-1. Enhanced export capabilities (PDF reports, advanced CSV formats)
-2. Intelligent worship recommendations using analytics data
-3. Song rotation analysis and balance recommendations  
-4. Seasonal trending and comparative period analysis
-5. Performance optimization and bundle analysis
+1. Smart song recommendation engine based on usage patterns and rotation analysis
+2. Worship flow optimization (fast/slow song balance, key transitions)
+3. Seasonal trending analysis (Christmas, Easter, summer themes)
+4. Comparative analytics (this month vs last month, year-over-year)
+5. Actionable insights for worship leaders (service planning intelligence)
 
 ### **🏗️ Architecture Achievements**
 
