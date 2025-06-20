@@ -68,26 +68,27 @@ The schema uses **six primary collections** that work together to track songs, m
 The Song Usage collection is populated when a worship leader marks a service as "Complete":
 
 ```typescript
-// lib/api/setlists.ts
-export async function completeService(setlistId: string) {
-	const setlist = await pb.collection('setlists').getOne(setlistId, {
-		expand: 'setlist_songs_via_setlist.song'
+// lib/api/services.ts
+export async function completeService(serviceId: string) {
+	// Note: Database collection is still named 'setlists' for compatibility
+	const service = await pb.collection('setlists').getOne(serviceId, {
+		expand: 'setlist_songs_via_setlist.song'  // Database relation names
 	});
 
 	// Create usage records for each song
-	const usagePromises = setlist.expand.setlist_songs_via_setlist.map((item) =>
+	const usagePromises = service.expand.setlist_songs_via_setlist.map((item) =>
 		pb.collection('song_usage').create({
 			song: item.song,
-			setlist: setlistId,
-			usage_date: setlist.service_date,
-			worship_leader: setlist.worship_leader
+			setlist: serviceId,  // Database field name (refers to service)
+			usage_date: service.service_date,
+			worship_leader: service.worship_leader
 		})
 	);
 
 	await Promise.all(usagePromises);
 
-	// Mark setlist as completed
-	await pb.collection('setlists').update(setlistId, {
+	// Mark service as completed
+	await pb.collection('setlists').update(serviceId, {
 		status: 'completed'
 	});
 }
@@ -103,18 +104,18 @@ worshipwise/
 │   ├── lib/
 │   │   ├── components/
 │   │   │   ├── songs/          # SongCard, SongForm, SongSearch
-│   │   │   ├── setlists/       # SetlistBuilder, SetlistTimeline
+│   │   │   ├── services/       # ServiceBuilder, ServiceTimeline
 │   │   │   ├── analytics/      # FrequencyChart, UsageHeatmap
 │   │   │   └── ui/             # Shared components (Button, Modal, etc.)
 │   │   ├── stores/
 │   │   │   ├── auth.svelte.ts       # PocketBase auth state
 │   │   │   ├── songs.svelte.ts      # Song management with API calls
-│   │   │   ├── setlists.svelte.ts   # Setlist state and subscriptions
+│   │   │   ├── services.svelte.ts   # Service state and subscriptions
 │   │   │   └── analytics.svelte.ts  # Analytics data fetching
 │   │   ├── api/
 │   │   │   ├── client.ts            # PocketBase client initialization
 │   │   │   ├── songs.ts             # Song CRUD operations
-│   │   │   ├── setlists.ts          # Setlist operations
+│   │   │   ├── services.ts          # Service operations
 │   │   │   └── realtime.ts          # WebSocket subscriptions
 │   │   └── utils/
 │   │       ├── repetition.ts         # Song repetition algorithms
@@ -125,7 +126,7 @@ worshipwise/
 │   │   ├── +page.svelte         # Landing/dashboard
 │   │   ├── login/               # Auth pages
 │   │   ├── songs/               # Song library views
-│   │   ├── setlists/           # Setlist management
+│   │   ├── services/           # Service management
 │   │   └── analytics/          # Reporting dashboard
 │   └── app.html
 ├── static/
@@ -375,15 +376,16 @@ class SongStore {
 import { pb } from './client';
 import { browser } from '$app/environment';
 
-export function subscribeToSetlist(setlistId: string, callback: (data: any) => void) {
-	return pb.collection('setlist_songs').subscribe(`setlist="${setlistId}"`, callback);
+export function subscribeToService(serviceId: string, callback: (data: any) => void) {
+	// Database collection and field names remain legacy for compatibility
+	return pb.collection('setlist_songs').subscribe(`setlist="${serviceId}"`, callback);
 }
 
-// lib/stores/setlists.svelte.ts
-import { subscribeToSetlist } from '$lib/api/realtime';
+// lib/stores/services.svelte.ts
+import { subscribeToService } from '$lib/api/realtime';
 
-class SetlistStore {
-	currentSetlist = $state(null);
+class ServicesStore {
+	currentService = $state(null);
 	songs = $state([]);
 	loading = $state(false);
 	subscription = null;
@@ -392,9 +394,9 @@ class SetlistStore {
 		// Handle connection recovery
 		if (browser) {
 			window.addEventListener('online', () => {
-				if (this.currentSetlist) {
-					console.log('Connection restored. Refreshing setlist...');
-					this.loadSetlist(this.currentSetlist.id);
+				if (this.currentService) {
+					console.log('Connection restored. Refreshing service...');
+					this.loadService(this.currentService.id);
 				}
 			});
 		}
@@ -403,8 +405,8 @@ class SetlistStore {
 	async loadSetlist(id: string) {
 		this.loading = true;
 		try {
-			// Fetch setlist with related data
-			this.currentSetlist = await pb.collection('setlists').getOne(id, {
+			// Fetch service data (collection name is legacy)
+			this.currentService = await pb.collection('setlists').getOne(id, {
 				expand: 'worship_leader'
 			});
 
@@ -462,12 +464,12 @@ class SetlistStore {
 ### Drag-and-Drop Component
 
 ```svelte
-<!-- lib/components/setlists/SetlistBuilder.svelte -->
+<!-- lib/components/services/ServiceBuilder.svelte -->
 <script lang="ts">
 	import { flip } from 'svelte/animate';
 	import { dndzone } from 'svelte-dnd-action';
 
-	let { setlist = $bindable() } = $props();
+	let { service = $bindable() } = $props();  // Note: May use legacy field names internally
 
 	function handleSort(e) {
 		setlist.songs = e.detail.items;
@@ -664,7 +666,7 @@ class PreferencesStore {
 ```javascript
 // static/sw.js
 const CACHE_NAME = 'worshipwise-v1';
-const urlsToCache = ['/', '/songs', '/setlists', '/analytics', '/manifest.json'];
+const urlsToCache = ['/', '/songs', '/services', '/analytics', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
 	event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache)));
@@ -728,7 +730,7 @@ Every interface follows **thumb-friendly navigation** patterns:
 The system implements **role-based progressive disclosure**:
 
 1. **Musicians**: See only their parts, keys, and practice resources
-2. **Worship Leaders**: Full setlist management and analytics
+2. **Worship Leaders**: Full service management and analytics
 3. **Admins**: Complete system configuration and user management
 
 ### Real-Time Collaboration
@@ -736,11 +738,11 @@ The system implements **role-based progressive disclosure**:
 PocketBase subscriptions enable **live multi-user editing**:
 
 ```javascript
-// Real-time setlist updates
+// Real-time service updates
 pb.collection('setlist_songs').subscribe('*', (e) => {
-	if (e.record.setlist === currentSetlistId) {
-		refreshSetlistView();
-		showToast(`${e.record.expand.user.name} updated the setlist`);
+	if (e.record.setlist === currentServiceId) {  // Database field name
+		refreshServiceView();
+		showToast(`${e.record.expand.user.name} updated the service`);
 	}
 });
 ```
@@ -808,8 +810,8 @@ export const apiCache = new APICache();
 ### 3. Optimistic UI Updates
 
 ```typescript
-// lib/stores/setlists.svelte.ts
-async addSongToSetlist(song: any) {
+// lib/stores/services.svelte.ts
+async addSongToService(song: any) {
   // Optimistically update UI
   const tempId = `temp_${Date.now()}`;
   const optimisticSong = {
@@ -824,7 +826,7 @@ async addSongToSetlist(song: any) {
   try {
     // Make API call
     const created = await pb.collection('setlist_songs').create({
-      setlist: this.currentSetlist.id,
+      setlist: this.currentService.id,  // Database field name
       song: song.id,
       order: this.songs.length - 1
     });
@@ -1080,7 +1082,7 @@ export const rateLimiter = new RateLimiter();
 - **Week 1**: Project setup with SvelteKit static adapter, PocketBase instance deployment
 - **Week 2**: Authentication flow, protected routes, basic UI components
 - **Week 3**: Song library with CRUD operations, search, and filtering
-- **Week 4**: Basic setlist builder with drag-and-drop functionality
+- **Week 4**: Basic service builder with drag-and-drop functionality
 
 ### Phase 2: Smart Features (Weeks 5-8)
 
@@ -1134,7 +1136,7 @@ describe('SongStore', () => {
 ### E2E Testing with Playwright
 
 ```javascript
-// tests/e2e/setlist.spec.ts
+// tests/e2e/service.spec.ts
 import { test, expect } from '@playwright/test';
 
 test.describe('Setlist Management', () => {
@@ -1146,7 +1148,7 @@ test.describe('Setlist Management', () => {
 	});
 
 	test('allows drag and drop song reordering', async ({ page }) => {
-		await page.goto('/setlists/new');
+		await page.goto('/services/new');
 
 		// Drag first song to last position
 		const firstSong = page.locator('.song-card').first();

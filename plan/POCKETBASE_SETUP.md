@@ -360,10 +360,11 @@ chmod +x pocketbase
 - `created_by` (for user songs)
 - `is_active` (for active songs filter)
 
-### 3. Setlists Collection (Services)
+### 3. Services Collection
 
-**Collection Name**: `setlists`  
-**Type**: Base Collection
+**Collection Name**: `setlists` *(legacy database name for compatibility)*  
+**Type**: Base Collection  
+**Purpose**: Manages worship services and service planning
 
 #### Fields:
 
@@ -444,22 +445,23 @@ chmod +x pocketbase
 #### Indexes:
 
 - `service_date` (for calendar views)
-- `worship_leader` (for user setlists)
+- `worship_leader` (for user services)
 - `status` (for filtering)
 
-### 4. Setlist Songs Collection (Service Songs Junction Table)
+### 4. Service Songs Collection (Junction Table)
 
-**Collection Name**: `setlist_songs`  
-**Type**: Base Collection
+**Collection Name**: `setlist_songs` *(legacy database name for compatibility)*  
+**Type**: Base Collection  
+**Purpose**: Junction table linking songs to services with ordering and customization
 
 #### Fields:
 
 ```javascript
 {
-  "setlist": {
+  "setlist": {  // Links to service (collection name is legacy)
     "type": "relation",
     "required": true,
-    "relatedCollection": "setlists",
+    "relatedCollection": "setlists",  // Points to Services collection
     "cascadeDelete": true
   },
   "song": {
@@ -498,6 +500,8 @@ chmod +x pocketbase
 
 #### API Rules:
 
+*Note: `setlist` in rules refers to the service record (database field name)*
+
 ```javascript
 {
   "listRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || setlist.worship_leader = @request.auth.id || setlist.team_members ?~ @request.auth.id)",
@@ -510,9 +514,9 @@ chmod +x pocketbase
 
 #### Indexes:
 
-- `setlist` (for setlist queries)
+- `setlist` (for service queries - database field name)
 - `order` (for sorting)
-- Composite: `(setlist, order)` (for ordered queries)
+- Composite: `(setlist, order)` (for ordered service song queries)
 
 ### 5. Song Usage Collection
 
@@ -618,15 +622,15 @@ songs (1) ─────┬─── (many) setlist_songs
                ├─── (1) category
                └─── (many) labels
 
-setlists (1) ──┬─── (many) setlist_songs
-               └─── (many) song_usage
+setlists (1) ──┬─── (many) setlist_songs  # Services → Service Songs
+               └─── (many) song_usage   # Services → Usage Records
 
-setlist_songs ─┬─── (1) setlist
-               └─── (1) song
+setlist_songs ─┬─── (1) setlist  # Service Songs → Parent Service  
+               └─── (1) song     # Service Songs → Song
 
-song_usage ────┬─── (1) song
-               ├─── (1) setlist
-               └─── (1) worship_leader
+song_usage ────┬─── (1) song     # Usage → Song
+               ├─── (1) setlist  # Usage → Service (database field)
+               └─── (1) worship_leader  # Usage → Leader
 ```
 
 ## Initial Data Setup
