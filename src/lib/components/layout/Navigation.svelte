@@ -11,11 +11,11 @@
 		const items = [
 			{ name: 'Dashboard', href: '/dashboard', icon: '🏠' },
 			{ name: 'Songs', href: '/songs', icon: '🎵' },
-			{ name: 'Setlists', href: '/setlists', icon: '📋' }
+			{ name: 'Services', href: '/services', icon: '📋' }
 		];
 
 		// Add insights and analytics for leaders and admins
-		if (auth.canManageSetlists) {
+		if (auth.canManageServices) {
 			items.push({ name: 'Insights', href: '/insights', icon: '💡' });
 			items.push({ name: 'Analytics', href: '/analytics', icon: '📊' });
 		}

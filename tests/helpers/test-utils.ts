@@ -20,8 +20,8 @@ export const createMockSong = (overrides: Partial<MockRecord> = {}): MockRecord 
   ...overrides
 });
 
-export const createMockSetlist = (overrides: Partial<MockRecord> = {}): MockRecord => ({
-  id: 'setlist_' + Math.random().toString(36).substr(2, 9),
+export const createMockService = (overrides: Partial<MockRecord> = {}): MockRecord => ({
+  id: 'service_' + Math.random().toString(36).substr(2, 9),
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   title: 'Sunday Morning Service',
@@ -38,11 +38,14 @@ export const createMockSetlist = (overrides: Partial<MockRecord> = {}): MockReco
   ...overrides
 });
 
-export const createMockSetlistSong = (overrides: Partial<MockRecord> = {}): MockRecord => ({
-  id: 'setlist_song_' + Math.random().toString(36).substr(2, 9),
+// Backward compatibility alias
+export const createMockSetlist = createMockService;
+
+export const createMockServiceSong = (overrides: Partial<MockRecord> = {}): MockRecord => ({
+  id: 'service_song_' + Math.random().toString(36).substr(2, 9),
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
-  setlist_id: 'setlist_123',
+  service_id: 'service_123',
   song_id: 'song_123',
   order_position: 1,
   transposed_key: null,
@@ -54,12 +57,15 @@ export const createMockSetlistSong = (overrides: Partial<MockRecord> = {}): Mock
   ...overrides
 });
 
+// Backward compatibility alias
+export const createMockSetlistSong = createMockServiceSong;
+
 export const createMockSongUsage = (overrides: Partial<MockRecord> = {}): MockRecord => ({
   id: 'usage_' + Math.random().toString(36).substr(2, 9),
   created: new Date().toISOString(),
   updated: new Date().toISOString(),
   song_id: 'song_123',
-  setlist_id: 'setlist_123',
+  service_id: 'service_123',
   used_date: new Date().toISOString().split('T')[0],
   service_type: 'Morning',
   worship_leader: 'user_123',

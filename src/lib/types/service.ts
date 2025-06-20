@@ -1,8 +1,8 @@
-// Setlist related types for WorshipWise
+// Service related types for WorshipWise
 import type { User } from './auth';
 import type { Song } from './song';
 
-export interface Setlist {
+export interface Service {
 	id: string;
 	title: string;
 	service_date: string;
@@ -27,9 +27,9 @@ export interface Setlist {
 	};
 }
 
-export interface SetlistSong {
+export interface ServiceSong {
 	id: string;
-	setlist_id: string;
+	service_id: string;
 	song_id: string;
 	order_position: number;
 	transposed_key?: string;
@@ -45,63 +45,63 @@ export interface SetlistSong {
 	// Expanded fields
 	expand?: {
 		song_id?: Song;
-		setlist_id?: Setlist;
+		service_id?: Service;
 	};
 }
 
 
 // Create/Update DTOs
-export interface CreateSetlistData {
+export interface CreateServiceData {
 	title: string;
 	service_date: string;
-	service_type?: Setlist['service_type'];
+	service_type?: Service['service_type'];
 	theme?: string;
 	notes?: string;
 	worship_leader: string;
 	team_members?: string[] | Record<string, any>;
 	estimated_duration?: number;
 	is_template?: boolean;
-	status?: Setlist['status'];
+	status?: Service['status'];
 }
 
-export interface UpdateSetlistData {
+export interface UpdateServiceData {
 	title?: string;
 	service_date?: string;
-	service_type?: Setlist['service_type'];
+	service_type?: Service['service_type'];
 	theme?: string;
 	notes?: string;
 	worship_leader?: string;
 	team_members?: string[] | Record<string, any>;
-	status?: Setlist['status'];
+	status?: Service['status'];
 	estimated_duration?: number;
 	actual_duration?: number;
 	is_template?: boolean;
 }
 
-export interface CreateSetlistSongData {
-	setlist_id: string;
+export interface CreateServiceSongData {
+	service_id: string;
 	song_id: string;
 	order_position?: number;
 	transposed_key?: string;
 	tempo_override?: number;
 	transition_notes?: string;
-	section_type?: SetlistSong['section_type'];
+	section_type?: ServiceSong['section_type'];
 	duration_override?: number;
 }
 
-export interface UpdateSetlistSongData {
+export interface UpdateServiceSongData {
 	order_position?: number;
 	transposed_key?: string;
 	tempo_override?: number;
 	transition_notes?: string;
-	section_type?: SetlistSong['section_type'];
+	section_type?: ServiceSong['section_type'];
 	duration_override?: number;
 }
 
 // Filter options
-export interface SetlistFilterOptions {
+export interface ServiceFilterOptions {
 	search?: string;
-	status?: Setlist['status'];
+	status?: Service['status'];
 	serviceType?: Setlist['service_type'];
 	worshipLeader?: string;
 	dateFrom?: string;
@@ -121,10 +121,10 @@ export interface SongAvailability {
 	message?: string;
 }
 
-// Setlist analytics
-export interface SetlistAnalytics {
-	totalSetlists: number;
-	completedSetlists: number;
+// Service analytics
+export interface ServiceAnalytics {
+	totalServices: number;
+	completedServices: number;
 	averageDuration: number;
 	mostUsedSongs: Array<{
 		songId: string;
@@ -135,7 +135,7 @@ export interface SetlistAnalytics {
 	worshipLeaderStats: Array<{
 		leaderId: string;
 		name: string;
-		setlistCount: number;
+		serviceCount: number;
 	}>;
 }
 
@@ -151,13 +151,13 @@ export interface DraggedSong {
 
 export interface DropZoneData {
 	position: number;
-	sectionType?: SetlistSong['section_type'];
+	sectionType?: ServiceSong['section_type'];
 }
 
-// Setlist builder state
-export interface SetlistBuilderState {
-	setlist: Setlist | null;
-	songs: SetlistSong[];
+// Service builder state
+export interface ServiceBuilderState {
+	service: Service | null;
+	songs: ServiceSong[];
 	isLoading: boolean;
 	isDirty: boolean;
 	error: string | null;
@@ -166,8 +166,8 @@ export interface SetlistBuilderState {
 }
 
 // Real-time collaboration
-export interface SetlistCollaborationEvent {
-	type: 'song_added' | 'song_removed' | 'song_updated' | 'song_reordered' | 'setlist_updated';
+export interface ServiceCollaborationEvent {
+	type: 'song_added' | 'song_removed' | 'song_updated' | 'song_reordered' | 'service_updated';
 	userId: string;
 	userName?: string;
 	timestamp: string;

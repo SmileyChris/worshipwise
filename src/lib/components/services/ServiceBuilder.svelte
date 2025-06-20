@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { Setlist, SetlistSong, CreateSetlistSongData } from '$lib/types/setlist';
+	import type { Service, ServiceSong, CreateServiceSongData } from '$lib/types/service';
 	import type { Song } from '$lib/types/song';
-	import { setlistsStore } from '$lib/stores/setlists.svelte';
+	import { servicesStore } from '$lib/stores/services.svelte';
 	import { songsStore } from '$lib/stores/songs.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -12,16 +12,16 @@
 	import { fade } from 'svelte/transition';
 
 	interface Props {
-		setlistId: string;
+		serviceId: string;
 		onClose?: () => void;
 	}
 
-	let { setlistId, onClose = () => {} }: Props = $props();
+	let { serviceId, onClose = () => {} }: Props = $props();
 
 	let searchQuery = $state('');
-	let selectedSection = $state<SetlistSong['section_type']>('Praise & Worship');
+	let selectedSection = $state<ServiceSong['section_type']>('Praise & Worship');
 	let draggedSong = $state<Song | null>(null);
-	let draggedSetlistSong = $state<SetlistSong | null>(null);
+	let draggedServiceSong = $state<ServiceSong | null>(null);
 	let dragOverIndex = $state<number | null>(null);
 	let loading = $state(false);
 	let error = $state<string | null>(null);
@@ -39,7 +39,7 @@
 	});
 
 	let totalDuration = $derived.by(() => {
-		return setlistsStore.currentSetlistDuration || 0;
+		return servicesStore.currentServiceDuration || 0;
 	});
 
 	let formattedDuration = $derived.by(() => {
@@ -50,7 +50,7 @@
 	});
 
 	// Section types for dropdown
-	const sectionTypes: SetlistSong['section_type'][] = [
+	const sectionTypes: ServiceSong['section_type'][] = [
 		'Opening',
 		'Call to Worship',
 		'Praise & Worship',
@@ -65,12 +65,12 @@
 	onMount(async () => {
 		loading = true;
 		try {
-			// Load the setlist and its songs
-			await setlistsStore.loadSetlist(setlistId);
+			// Load the service and its songs
+			await servicesStore.loadService(serviceId);
 			// Load available songs
 			await songsStore.loadSongs();
 		} catch (err: any) {
-			error = err.message || 'Failed to load setlist';
+			error = err.message || 'Failed to load service';
 		} finally {
 			loading = false;
 		}
@@ -79,16 +79,16 @@
 	// Drag and drop handlers for songs from library
 	function handleSongDragStart(event: DragEvent, song: Song) {
 		draggedSong = song;
-		draggedSetlistSong = null;
+		draggedServiceSong = null;
 		if (event.dataTransfer) {
 			event.dataTransfer.effectAllowed = 'copy';
 			event.dataTransfer.setData('text/plain', song.id);
 		}
 	}
 
-	// Drag and drop handlers for reordering setlist songs
-	function handleSetlistSongDragStart(event: DragEvent, song: SetlistSong, index: number) {
-		draggedSetlistSong = song;
+	// Drag and drop handlers for reordering service songs
+	function handleServiceSongDragStart(event: DragEvent, song: ServiceSong, index: number) {
+		draggedServiceSong = song;
 		draggedSong = null;
 		if (event.dataTransfer) {
 			event.dataTransfer.effectAllowed = 'move';
@@ -114,20 +114,20 @@
 
 		try {
 			if (draggedSong) {
-				// Adding a new song to the setlist
-				const newSong: CreateSetlistSongData = {
-					setlist_id: setlistId,
+				// Adding a new song to the service
+				const newSong: CreateServiceSongData = {
+					service_id: serviceId,
 					song_id: draggedSong.id,
 					order_position: dropIndex,
 					section_type: selectedSection
 				};
-				await setlistsStore.addSongToSetlist(newSong);
-			} else if (draggedSetlistSong && event.dataTransfer) {
+				await servicesStore.addSongToService(newSong);
+			} else if (draggedServiceSong && event.dataTransfer) {
 				// Reordering existing songs
 				const fromIndex = parseInt(event.dataTransfer.getData('text/plain'));
 				if (fromIndex !== dropIndex) {
 					// Create new order for all songs
-					const songs = [...setlistsStore.currentSetlistSongs];
+					const songs = [...servicesStore.currentServiceSongs];
 					const [movedSong] = songs.splice(fromIndex, 1);
 					songs.splice(dropIndex, 0, movedSong);
 
@@ -137,20 +137,20 @@
 						position: index
 					}));
 
-					await setlistsStore.reorderSetlistSongs(newOrder);
+					await servicesStore.reorderServiceSongs(newOrder);
 				}
 			}
 		} catch (err: any) {
-			error = err.message || 'Failed to update setlist';
+			error = err.message || 'Failed to update service';
 		} finally {
 			draggedSong = null;
-			draggedSetlistSong = null;
+			draggedServiceSong = null;
 		}
 	}
 
-	async function removeSongFromSetlist(songId: string) {
+	async function removeSongFromService(songId: string) {
 		try {
-			await setlistsStore.removeSongFromSetlist(songId);
+			await servicesStore.removeSongFromService(songId);
 		} catch (err: any) {
 			error = err.message || 'Failed to remove song';
 		}
@@ -158,7 +158,7 @@
 
 	async function updateSongKey(songId: string, newKey: string) {
 		try {
-			await setlistsStore.updateSetlistSong(songId, { transposed_key: newKey });
+			await servicesStore.updateServiceSong(songId, { transposed_key: newKey });
 		} catch (err: any) {
 			error = err.message || 'Failed to update key';
 		}
@@ -166,7 +166,7 @@
 
 	async function updateSongNotes(songId: string, notes: string) {
 		try {
-			await setlistsStore.updateSetlistSong(songId, { transition_notes: notes });
+			await servicesStore.updateServiceSong(songId, { transition_notes: notes });
 		} catch (err: any) {
 			error = err.message || 'Failed to update notes';
 		}
@@ -209,31 +209,31 @@
 
 {#if loading}
 	<div class="flex h-64 items-center justify-center">
-		<div class="text-gray-500">Loading setlist...</div>
+		<div class="text-gray-500">Loading service...</div>
 	</div>
 {:else if error}
 	<div class="rounded-lg bg-red-50 p-4 text-red-800">
 		{error}
 	</div>
-{:else if setlistsStore.currentSetlist}
+{:else if servicesStore.currentService}
 	<div class="flex h-full flex-col">
 		<!-- Header -->
 		<div class="border-b border-gray-200 p-4">
 			<div class="flex items-center justify-between">
 				<div>
 					<h2 class="text-xl font-semibold font-title text-gray-900">
-						{setlistsStore.currentSetlist.title}
+						{servicesStore.currentService.title}
 					</h2>
 					<p class="text-sm text-gray-600">
-						{new Date(setlistsStore.currentSetlist.service_date).toLocaleDateString()}
-						{#if setlistsStore.currentSetlist.service_type}
-							• {setlistsStore.currentSetlist.service_type}
+						{new Date(servicesStore.currentService.service_date).toLocaleDateString()}
+						{#if servicesStore.currentService.service_type}
+							• {servicesStore.currentService.service_type}
 						{/if}
 					</p>
 				</div>
 				<div class="flex items-center gap-4">
 					<Badge variant="primary">
-						{setlistsStore.currentSetlistSongs.length} songs • {formattedDuration()}
+						{servicesStore.currentServiceSongs.length} songs • {formattedDuration()}
 					</Badge>
 					<Button variant="ghost" onclick={onClose}>Close</Button>
 				</div>
@@ -303,18 +303,18 @@
 				</div>
 			</div>
 
-			<!-- Setlist -->
+			<!-- Service -->
 			<div class="flex-1 p-4">
 				<h3 class="mb-3 text-lg font-medium font-title text-gray-900">Service Order</h3>
 
 				<div class="space-y-2">
-					{#each setlistsStore.currentSetlistSongs as song, index (song.id)}
+					{#each servicesStore.currentServiceSongs as song, index (song.id)}
 						<div
 							role="button"
 							tabindex="0"
 							animate:flip={{ duration: 200 }}
 							draggable="true"
-							ondragstart={(e) => handleSetlistSongDragStart(e, song, index)}
+							ondragstart={(e) => handleServiceSongDragStart(e, song, index)}
 							ondragover={(e) => handleDragOver(e, index)}
 							ondragleave={handleDragLeave}
 							ondrop={(e) => handleDrop(e, index)}
@@ -412,7 +412,7 @@
 								<Button
 									variant="ghost"
 									size="sm"
-									onclick={() => removeSongFromSetlist(song.id)}
+									onclick={() => removeSongFromService(song.id)}
 									class="opacity-0 transition-opacity group-hover:opacity-100"
 								>
 									<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -431,15 +431,15 @@
 					<!-- Drop zone for new songs -->
 					<div
 						role="region"
-						ondragover={(e) => handleDragOver(e, setlistsStore.currentSetlistSongs.length)}
+						ondragover={(e) => handleDragOver(e, servicesStore.currentServiceSongs.length)}
 						ondragleave={handleDragLeave}
-						ondrop={(e) => handleDrop(e, setlistsStore.currentSetlistSongs.length)}
+						ondrop={(e) => handleDrop(e, servicesStore.currentServiceSongs.length)}
 						class="rounded-lg border-2 border-dashed p-8 text-center transition-colors {dragOverIndex ===
-						setlistsStore.currentSetlistSongs.length
+						servicesStore.currentServiceSongs.length
 							? 'border-blue-400 bg-blue-50'
 							: 'border-gray-300'}"
 					>
-						<p class="text-sm text-gray-500">Drag songs here to add them to the setlist</p>
+						<p class="text-sm text-gray-500">Drag songs here to add them to the service</p>
 					</div>
 				</div>
 			</div>

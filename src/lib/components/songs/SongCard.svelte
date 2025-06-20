@@ -212,9 +212,9 @@
 					</Button>
 				{/if}
 
-				{#if auth.canManageSetlists}
+				{#if auth.canManageServices}
 					<Button variant="primary" size="sm" onclick={() => onAddToSetlist(song)}>
-						Add to Setlist
+						Add to Service
 					</Button>
 				{/if}
 			</div>

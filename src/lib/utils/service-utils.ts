@@ -1,8 +1,8 @@
 /**
- * Setlist-related utility functions
+ * Service-related utility functions
  */
 
-import type { SetlistSong } from '$lib/types/setlist';
+import type { ServiceSong } from '$lib/types/service';
 
 /**
  * Service section types
@@ -20,9 +20,9 @@ export const SECTION_TYPES = [
 ] as const;
 
 /**
- * Calculates total duration of a setlist in seconds
+ * Calculates total duration of a service in seconds
  */
-export function calculateServiceDuration(songs: SetlistSong[]): number {
+export function calculateServiceDuration(songs: ServiceSong[]): number {
   return songs.reduce((total, song) => {
     // Use duration override if available, otherwise use song's default duration
     const duration = song.duration_override || song.expand?.song_id?.duration_seconds || 0;
@@ -65,7 +65,7 @@ export function formatServiceDurationLong(seconds: number): string {
 }
 
 /**
- * Reorders songs in a setlist based on drag and drop
+ * Reorders songs in a service based on drag and drop
  */
 export function reorderSongs<T extends { id: string }>(
   songs: T[],
@@ -95,20 +95,20 @@ export function generateOrderMapping(songs: Array<{ id: string }>): Array<{ id: 
 }
 
 /**
- * Checks for scheduling conflicts between setlists
+ * Checks for scheduling conflicts between services
  */
 export function checkSchedulingConflicts(
   newDate: string,
   newServiceType: string,
-  existingSetlists: Array<{ service_date: string; service_type?: string; id?: string }>,
+  existingServices: Array<{ service_date: string; service_type?: string; id?: string }>,
   excludeId?: string
 ): { hasConflict: boolean; conflictMessage?: string } {
-  const conflicts = existingSetlists.filter(setlist => {
-    // Skip the setlist being edited
-    if (excludeId && setlist.id === excludeId) return false;
+  const conflicts = existingServices.filter(service => {
+    // Skip the service being edited
+    if (excludeId && service.id === excludeId) return false;
     
     // Check for same date and service type
-    return setlist.service_date === newDate && setlist.service_type === newServiceType;
+    return service.service_date === newDate && service.service_type === newServiceType;
   });
   
   if (conflicts.length > 0) {
@@ -122,9 +122,9 @@ export function checkSchedulingConflicts(
 }
 
 /**
- * Validates setlist data
+ * Validates service data
  */
-export function validateSetlistData(data: {
+export function validateServiceData(data: {
   title: string;
   service_date: string;
   estimated_duration?: number;
@@ -165,9 +165,9 @@ export function validateSetlistData(data: {
 }
 
 /**
- * Groups setlist songs by section type
+ * Groups service songs by section type
  */
-export function groupSongsBySection(songs: SetlistSong[]): Record<string, SetlistSong[]> {
+export function groupSongsBySection(songs: ServiceSong[]): Record<string, ServiceSong[]> {
   return songs.reduce((groups, song) => {
     const section = song.section_type || 'Uncategorized';
     if (!groups[section]) {
@@ -175,13 +175,13 @@ export function groupSongsBySection(songs: SetlistSong[]): Record<string, Setlis
     }
     groups[section].push(song);
     return groups;
-  }, {} as Record<string, SetlistSong[]>);
+  }, {} as Record<string, ServiceSong[]>);
 }
 
 /**
  * Calculates section duration
  */
-export function calculateSectionDuration(songs: SetlistSong[]): number {
+export function calculateSectionDuration(songs: ServiceSong[]): number {
   return calculateServiceDuration(songs);
 }
 
@@ -189,7 +189,7 @@ export function calculateSectionDuration(songs: SetlistSong[]): number {
  * Finds the optimal insertion position for a new song
  */
 export function findOptimalInsertionPosition(
-  songs: SetlistSong[],
+  songs: ServiceSong[],
   sectionType: string
 ): number {
   // Find the last song of the same section type
@@ -215,18 +215,18 @@ export function findOptimalInsertionPosition(
 }
 
 /**
- * Generates a setlist PDF export data structure
+ * Generates a service PDF export data structure
  */
-export function generateSetlistPDFData(setlist: any, songs: SetlistSong[]) {
+export function generateServicePDFData(service: any, songs: ServiceSong[]) {
   const sections = groupSongsBySection(songs);
   const totalDuration = calculateServiceDuration(songs);
   
   return {
-    title: setlist.title,
-    date: setlist.service_date,
-    serviceType: setlist.service_type,
-    theme: setlist.theme,
-    worshipLeader: setlist.expand?.worship_leader?.name || 'Unknown',
+    title: service.title,
+    date: service.service_date,
+    serviceType: service.service_type,
+    theme: service.theme,
+    worshipLeader: service.expand?.worship_leader?.name || 'Unknown',
     totalDuration: formatServiceDurationLong(totalDuration),
     sections: Object.entries(sections).map(([sectionName, sectionSongs]) => ({
       name: sectionName,
@@ -245,7 +245,7 @@ export function generateSetlistPDFData(setlist: any, songs: SetlistSong[]) {
 /**
  * Validates song ordering for logical service flow
  */
-export function validateServiceFlow(songs: SetlistSong[]): {
+export function validateServiceFlow(songs: ServiceSong[]): {
   isValid: boolean;
   warnings: string[];
   suggestions: string[];

@@ -283,9 +283,9 @@ class AuthStore {
 	canManageSongs = $derived(this.hasAnyRole(['leader', 'admin']));
 
 	/**
-	 * Check if user can manage setlists (leader or admin)
+	 * Check if user can manage services (leader or admin)
 	 */
-	canManageSetlists = $derived(this.hasAnyRole(['leader', 'admin']));
+	canManageServices = $derived(this.hasAnyRole(['leader', 'admin']));
 
 	/**
 	 * Check if user is admin

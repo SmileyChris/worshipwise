@@ -360,7 +360,7 @@ chmod +x pocketbase
 - `created_by` (for user songs)
 - `is_active` (for active songs filter)
 
-### 3. Setlists Collection
+### 3. Setlists Collection (Services)
 
 **Collection Name**: `setlists`  
 **Type**: Base Collection
@@ -447,7 +447,7 @@ chmod +x pocketbase
 - `worship_leader` (for user setlists)
 - `status` (for filtering)
 
-### 4. Setlist Songs Collection (Junction Table)
+### 4. Setlist Songs Collection (Service Songs Junction Table)
 
 **Collection Name**: `setlist_songs`  
 **Type**: Base Collection

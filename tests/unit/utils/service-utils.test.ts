@@ -7,16 +7,16 @@ import {
   reorderSongs,
   generateOrderMapping,
   checkSchedulingConflicts,
-  validateSetlistData,
+  validateServiceData,
   groupSongsBySection,
   calculateSectionDuration,
   findOptimalInsertionPosition,
-  generateSetlistPDFData,
+  generateServicePDFData,
   validateServiceFlow
-} from '$lib/utils/setlist-utils';
+} from '$lib/utils/service-utils';
 
-describe('Setlist Utils', () => {
-  const mockSetlistSongs = [
+describe('Service Utils', () => {
+  const mockServiceSongs = [
     {
       id: '1',
       order_position: 1,
@@ -49,7 +49,7 @@ describe('Setlist Utils', () => {
 
   describe('calculateServiceDuration', () => {
     it('should calculate total duration using duration overrides and defaults', () => {
-      const duration = calculateServiceDuration(mockSetlistSongs);
+      const duration = calculateServiceDuration(mockServiceSongs);
       // 240 (override) + 300 (default) + 200 (default) = 740
       expect(duration).toBe(740);
     });
@@ -162,7 +162,7 @@ describe('Setlist Utils', () => {
   });
 
   describe('checkSchedulingConflicts', () => {
-    const existingSetlists = [
+    const existingServices = [
       { id: '1', service_date: '2024-01-01', service_type: 'Sunday Morning' },
       { id: '2', service_date: '2024-01-01', service_type: 'Sunday Evening' },
       { id: '3', service_date: '2024-01-02', service_type: 'Sunday Morning' }
@@ -172,7 +172,7 @@ describe('Setlist Utils', () => {
       const result = checkSchedulingConflicts(
         '2024-01-01',
         'Sunday Morning',
-        existingSetlists
+        existingServices
       );
       
       expect(result.hasConflict).toBe(true);
@@ -183,7 +183,7 @@ describe('Setlist Utils', () => {
       const result = checkSchedulingConflicts(
         '2024-01-03',
         'Sunday Morning',
-        existingSetlists
+        existingServices
       );
       
       expect(result.hasConflict).toBe(false);
@@ -193,17 +193,17 @@ describe('Setlist Utils', () => {
       const result = checkSchedulingConflicts(
         '2024-01-01',
         'Wednesday Night',
-        existingSetlists
+        existingServices
       );
       
       expect(result.hasConflict).toBe(false);
     });
 
-    it('should exclude current setlist when editing', () => {
+    it('should exclude current service when editing', () => {
       const result = checkSchedulingConflicts(
         '2024-01-01',
         'Sunday Morning',
-        existingSetlists,
+        existingServices,
         '1'
       );
       
@@ -211,7 +211,7 @@ describe('Setlist Utils', () => {
     });
   });
 
-  describe('validateSetlistData', () => {
+  describe('validateServiceData', () => {
     it('should validate correct data', () => {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
@@ -223,7 +223,7 @@ describe('Setlist Utils', () => {
         estimated_duration: 60
       };
       
-      const result = validateSetlistData(data);
+      const result = validateServiceData(data);
       expect(result.isValid).toBe(true);
       expect(result.errors).toEqual({});
     });
@@ -234,7 +234,7 @@ describe('Setlist Utils', () => {
         service_date: '2024-12-31'
       };
       
-      const result = validateSetlistData(data);
+      const result = validateServiceData(data);
       expect(result.isValid).toBe(false);
       expect(result.errors.title).toBe('Title is required');
     });
@@ -245,7 +245,7 @@ describe('Setlist Utils', () => {
         service_date: '2024-12-31'
       };
       
-      const result = validateSetlistData(data);
+      const result = validateServiceData(data);
       expect(result.isValid).toBe(false);
       expect(result.errors.title).toBe('Title must be less than 200 characters');
     });
@@ -256,7 +256,7 @@ describe('Setlist Utils', () => {
         service_date: ''
       };
       
-      const result = validateSetlistData(data);
+      const result = validateServiceData(data);
       expect(result.isValid).toBe(false);
       expect(result.errors.service_date).toBe('Service date is required');
     });
@@ -268,7 +268,7 @@ describe('Setlist Utils', () => {
         estimated_duration: 500
       };
       
-      const result = validateSetlistData(data);
+      const result = validateServiceData(data);
       expect(result.isValid).toBe(false);
       expect(result.errors.estimated_duration).toBe('Duration must be between 10 minutes and 8 hours');
     });
@@ -276,7 +276,7 @@ describe('Setlist Utils', () => {
 
   describe('groupSongsBySection', () => {
     it('should group songs by section type', () => {
-      const grouped = groupSongsBySection(mockSetlistSongs);
+      const grouped = groupSongsBySection(mockServiceSongs);
       
       expect(grouped['Opening']).toHaveLength(1);
       expect(grouped['Praise & Worship']).toHaveLength(1);
@@ -285,7 +285,7 @@ describe('Setlist Utils', () => {
 
     it('should handle songs without section type', () => {
       const songsWithoutSection = [
-        { ...mockSetlistSongs[0], section_type: undefined }
+        { ...mockServiceSongs[0], section_type: undefined }
       ];
       
       const grouped = groupSongsBySection(songsWithoutSection);
@@ -295,7 +295,7 @@ describe('Setlist Utils', () => {
 
   describe('calculateSectionDuration', () => {
     it('should calculate section duration', () => {
-      const openingSongs = mockSetlistSongs.filter(s => s.section_type === 'Opening');
+      const openingSongs = mockServiceSongs.filter(s => s.section_type === 'Opening');
       const duration = calculateSectionDuration(openingSongs);
       expect(duration).toBe(240); // duration_override
     });
@@ -333,8 +333,8 @@ describe('Setlist Utils', () => {
     });
   });
 
-  describe('generateSetlistPDFData', () => {
-    const mockSetlist = {
+  describe('generateServicePDFData', () => {
+    const mockService = {
       title: 'Sunday Service',
       service_date: '2024-01-01',
       service_type: 'Sunday Morning',
@@ -343,7 +343,7 @@ describe('Setlist Utils', () => {
     };
 
     it('should generate correct PDF data structure', () => {
-      const pdfData = generateSetlistPDFData(mockSetlist, mockSetlistSongs);
+      const pdfData = generateServicePDFData(mockService, mockServiceSongs);
       
       expect(pdfData.title).toBe('Sunday Service');
       expect(pdfData.date).toBe('2024-01-01');
@@ -352,12 +352,12 @@ describe('Setlist Utils', () => {
     });
 
     it('should handle missing data gracefully', () => {
-      const minimalSetlist = {
+      const minimalService = {
         title: 'Service',
         service_date: '2024-01-01'
       };
       
-      const pdfData = generateSetlistPDFData(minimalSetlist, []);
+      const pdfData = generateServicePDFData(minimalService, []);
       expect(pdfData.worshipLeader).toBe('Unknown');
       expect(pdfData.sections).toHaveLength(0);
     });

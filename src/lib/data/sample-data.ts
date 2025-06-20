@@ -198,6 +198,6 @@ export async function importSampleData(songsAPI: any, categoriesAPI: any, user: 
 
 	console.log(`Successfully imported ${importedSongs.length} sample songs`);
 
-	// Note: Setlist import would require the setlists API to be implemented
-	// This will be added when Sprint 4 (setlist functionality) is completed
+	// Note: Service import would require the services API to be implemented
+	// This will be added when Sprint 4 (service functionality) is completed
 }

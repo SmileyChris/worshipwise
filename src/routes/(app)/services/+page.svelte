@@ -1,21 +1,21 @@
 <script lang="ts">
 	import { auth } from '$lib/stores/auth.svelte';
-	import { setlistsStore } from '$lib/stores/setlists.svelte';
+	import { servicesStore } from '$lib/stores/services.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
-	import SetlistBuilder from '$lib/components/setlists/SetlistBuilder.svelte';
-	import type { CreateSetlistData } from '$lib/types/setlist';
+	import ServiceBuilder from '$lib/components/services/ServiceBuilder.svelte';
+	import type { CreateServiceData } from '$lib/types/service';
 	import { onMount } from 'svelte';
 
 	let showCreateModal = $state(false);
 	let showBuilder = $state(false);
-	let selectedSetlistId = $state<string | null>(null);
+	let selectedServiceId = $state<string | null>(null);
 
-	// Form state for creating setlists
+	// Form state for creating services
 	let createForm = $state({
 		title: '',
 		service_date: '',
@@ -41,9 +41,9 @@
 		'Outreach'
 	] as const;
 
-	// Load setlists on mount and set default date
+	// Load services on mount and set default date
 	onMount(async () => {
-		await setlistsStore.loadSetlists();
+		await servicesStore.loadServices();
 		updateDefaultServiceDate();
 	});
 
@@ -53,11 +53,11 @@
 		const today = new Date();
 		today.setHours(0, 0, 0, 0); // Start of day
 		
-		const setlists = setlistsStore.setlists;
+		const services = servicesStore.services;
 		
 		// Get existing service dates (convert to date strings for comparison)
 		const existingDates = new Set(
-			setlists.map(s => s.service_date).filter(Boolean)
+			services.map(s => s.service_date).filter(Boolean)
 		);
 		
 		// Start from next Sunday (or today if it's Sunday)
@@ -68,7 +68,7 @@
 		const daysUntilSunday = todayDayOfWeek === 0 ? 0 : 7 - todayDayOfWeek;
 		nextSunday.setDate(today.getDate() + daysUntilSunday);
 		
-		// Keep checking Sundays until we find one without a setlist
+		// Keep checking Sundays until we find one without a service
 		let attempts = 0;
 		const maxAttempts = 52; // Don't check more than a year ahead
 		
@@ -99,32 +99,32 @@
 		return `${year}-${month}-${day}`;
 	}
 
-	// Update the default service date when setlists change
+	// Update the default service date when services change
 	function updateDefaultServiceDate() {
 		if (createForm.service_date === '') {
 			createForm.service_date = findNextAvailableSunday();
 		}
 	}
 
-	// Update default date when setlists change
+	// Update default date when services change
 	$effect(() => {
-		if (setlistsStore.setlists.length >= 0) { // Trigger when setlists are loaded
+		if (servicesStore.services.length >= 0) { // Trigger when services are loaded
 			updateDefaultServiceDate();
 		}
 	});
 
 	// Stats from store
 	let stats = $derived.by(() => {
-		const setlists = setlistsStore.setlists;
+		const services = servicesStore.services;
 		return {
-			total: setlists.length,
-			draft: setlists.filter((s) => s.status === 'draft').length,
-			planned: setlists.filter((s) => s.status === 'planned').length,
-			completed: setlists.filter((s) => s.status === 'completed').length
+			total: services.length,
+			draft: services.filter((s) => s.status === 'draft').length,
+			planned: services.filter((s) => s.status === 'planned').length,
+			completed: services.filter((s) => s.status === 'completed').length
 		};
 	});
 
-	async function handleCreateSetlist() {
+	async function handleCreateService() {
 		if (!createForm.title || !createForm.service_date || !createForm.worship_leader) {
 			error = 'Please fill in all required fields';
 			return;
@@ -134,7 +134,7 @@
 		error = null;
 
 		try {
-			const newSetlist = await setlistsStore.createSetlist({
+			const newService = await servicesStore.createService({
 				title: createForm.title,
 				service_date: createForm.service_date,
 				service_type: createForm.service_type,
@@ -150,24 +150,24 @@
 
 			showCreateModal = false;
 
-			// Open builder for the new setlist
-			selectedSetlistId = newSetlist.id;
+			// Open builder for the new service
+			selectedServiceId = newService.id;
 			showBuilder = true;
 		} catch (err: any) {
-			error = err.message || 'Failed to create setlist';
+			error = err.message || 'Failed to create service';
 		} finally {
 			loading = false;
 		}
 	}
 
-	function openBuilder(setlistId: string) {
-		selectedSetlistId = setlistId;
+	function openBuilder(serviceId: string) {
+		selectedServiceId = serviceId;
 		showBuilder = true;
 	}
 
 	function closeBuilder() {
 		showBuilder = false;
-		selectedSetlistId = null;
+		selectedServiceId = null;
 	}
 
 	function formatDate(dateString: string): string {
@@ -231,24 +231,24 @@
 </script>
 
 <svelte:head>
-	<title>Setlists - WorshipWise</title>
+	<title>Services - WorshipWise</title>
 </svelte:head>
 
-{#if showBuilder && selectedSetlistId}
-	<SetlistBuilder setlistId={selectedSetlistId} onClose={closeBuilder} />
+{#if showBuilder && selectedServiceId}
+	<ServiceBuilder serviceId={selectedServiceId} onClose={closeBuilder} />
 {:else}
 	<div class="space-y-6">
 		<!-- Page header -->
 		<div class="md:flex md:items-center md:justify-between">
 			<div class="min-w-0 flex-1">
-				<h2 class="text-2xl font-bold font-title text-gray-900 sm:text-3xl">Setlists</h2>
-				<p class="mt-1 text-sm text-gray-500">Plan and manage your worship service setlists</p>
+				<h2 class="text-2xl font-bold font-title text-gray-900 sm:text-3xl">Services</h2>
+				<p class="mt-1 text-sm text-gray-500">Plan and manage your worship services</p>
 			</div>
 
-			{#if auth.canManageSetlists}
+			{#if auth.canManageServices}
 				<div class="mt-4 flex md:mt-0 md:ml-4">
 					<Button variant="primary" onclick={openCreateModal}>
-						Create New Setlist
+						Create New Service
 					</Button>
 				</div>
 			{/if}
@@ -266,7 +266,7 @@
 			<Card>
 				<div class="text-center">
 					<div class="text-2xl font-bold font-title text-gray-900">{stats().total}</div>
-					<div class="text-sm text-gray-500">Total Setlists</div>
+					<div class="text-sm text-gray-500">Total Services</div>
 				</div>
 			</Card>
 
@@ -292,81 +292,81 @@
 			</Card>
 		</div>
 
-		<!-- Setlists list -->
-		{#if setlistsStore.loading}
+		<!-- Services list -->
+		{#if servicesStore.loading}
 			<div class="flex h-64 items-center justify-center">
-				<div class="text-gray-500">Loading setlists...</div>
+				<div class="text-gray-500">Loading services...</div>
 			</div>
-		{:else if setlistsStore.setlists.length === 0}
+		{:else if servicesStore.services.length === 0}
 			<!-- Welcome message -->
 			<Card>
 				<div class="py-8 text-center">
 					<div class="mb-4 text-6xl">📋</div>
 					<h3 class="mb-2 text-lg font-medium font-title text-gray-900">Plan Your Worship Services</h3>
 					<p class="mb-6 text-gray-500">
-						Create setlists, track song usage, and collaborate with your team.
+						Create services, track song usage, and collaborate with your team.
 					</p>
-					{#if auth.canManageSetlists}
+					{#if auth.canManageServices}
 						<Button variant="primary" onclick={openCreateModal}>
-							Create Your First Setlist
+							Create Your First Service
 						</Button>
 					{:else}
 						<p class="text-sm text-gray-400">
-							View setlists assigned to you by your worship leader.
+							View services assigned to you by your worship leader.
 						</p>
 					{/if}
 				</div>
 			</Card>
 		{:else}
-			<!-- Setlists grid -->
+			<!-- Services grid -->
 			<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-				{#each setlistsStore.setlists as setlist}
+				{#each servicesStore.services as service}
 					<Card class="transition-shadow hover:shadow-lg">
 						<div class="p-6">
 							<div class="flex items-start justify-between">
 								<div class="min-w-0 flex-1">
 									<h3 class="truncate text-lg font-medium text-gray-900">
-										{setlist.title}
+										{service.title}
 									</h3>
 									<p class="mt-1 text-sm text-gray-600">
-										{formatDate(setlist.service_date)}
-										{#if setlist.service_type}
-											• {setlist.service_type}
+										{formatDate(service.service_date)}
+										{#if service.service_type}
+											• {service.service_type}
 										{/if}
 									</p>
-									{#if setlist.theme}
-										<p class="mt-1 text-sm text-gray-500">Theme: {setlist.theme}</p>
+									{#if service.theme}
+										<p class="mt-1 text-sm text-gray-500">Theme: {service.theme}</p>
 									{/if}
 								</div>
-								<Badge variant={getStatusVariant(setlist.status || 'draft')}>
-									{setlist.status || 'draft'}
+								<Badge variant={getStatusVariant(service.status || 'draft')}>
+									{service.status || 'draft'}
 								</Badge>
 							</div>
 
-							{#if setlist.notes}
+							{#if service.notes}
 								<p class="mt-3 line-clamp-2 text-sm text-gray-600">
-									{setlist.notes}
+									{service.notes}
 								</p>
 							{/if}
 
 							<div class="mt-4 flex items-center justify-between">
 								<div class="text-sm text-gray-500">
-									{#if setlist.estimated_duration}
-										{Math.floor(setlist.estimated_duration / 60)}:{(setlist.estimated_duration % 60)
+									{#if service.estimated_duration}
+										{Math.floor(service.estimated_duration / 60)}:{(service.estimated_duration % 60)
 											.toString()
 											.padStart(2, '0')} estimated
 									{/if}
 								</div>
 								<div class="flex gap-2">
-									<Button variant="primary" size="sm" onclick={() => openBuilder(setlist.id)}>
+									<Button variant="primary" size="sm" onclick={() => openBuilder(service.id)}>
 										Edit
 									</Button>
-									{#if setlist.status === 'draft'}
+									{#if service.status === 'draft'}
 										<Button
 											variant="ghost"
 											size="sm"
 											onclick={async () => {
-												await setlistsStore.updateSetlist(setlist.id, { status: 'planned' });
+												await servicesStore.updateService(service.id, { status: 'planned' });
 											}}
 										>
 											Plan
@@ -382,14 +382,14 @@
 	</div>
 {/if}
 
-<!-- Create setlist modal -->
-<Modal open={showCreateModal} title="Create New Setlist" onclose={() => (showCreateModal = false)}>
+<!-- Create service modal -->
+<Modal open={showCreateModal} title="Create New Service" onclose={() => (showCreateModal = false)}>
 	{#snippet children()}
 		<form
 			class="space-y-4"
 			onsubmit={(e) => {
 				e.preventDefault();
-				handleCreateSetlist();
+				handleCreateService();
 			}}
 		>
 			<div>
@@ -466,7 +466,7 @@
 			<div class="flex justify-end gap-3 pt-4">
 				<Button variant="ghost" onclick={() => (showCreateModal = false)}>Cancel</Button>
 				<Button type="submit" variant="primary" disabled={loading}>
-					{loading ? 'Creating...' : 'Create Setlist'}
+					{loading ? 'Creating...' : 'Create Service'}
 				</Button>
 			</div>
 		</form>
