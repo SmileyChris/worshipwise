@@ -627,13 +627,13 @@ import { test, expect } from '@playwright/test';
 test.describe('Service Management', () => {
 	test('creates and manages service', async ({ page }) => {
 		// Mock APIs
-		await page.route('**/api/collections/setlists/records', async (route) => {
+		await page.route('**/api/collections/setlists/records', async (route) => {  // Database collection name
 			if (route.request().method() === 'POST') {
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
 					body: JSON.stringify({
-						id: 'setlist1',
+						id: 'service1',
 						title: 'Sunday Morning Service',
 						service_date: '2023-12-10',
 						status: 'draft'
@@ -642,44 +642,44 @@ test.describe('Service Management', () => {
 			}
 		});
 
-		await page.goto('/setlists');
-		await page.click('[data-testid="create-setlist-button"]');
+		await page.goto('/services');
+		await page.click('[data-testid="create-service-button"]');
 
-		// Fill setlist form
-		await page.fill('[data-testid="setlist-title"]', 'Sunday Morning Service');
+		// Fill service form
+		await page.fill('[data-testid="service-title"]', 'Sunday Morning Service');
 		await page.fill('[data-testid="service-date"]', '2023-12-10');
 		await page.selectOption('[data-testid="service-type"]', 'Sunday Morning');
 
 		await page.click('[data-testid="create-button"]');
 
-		// Verify setlist creation
+		// Verify service creation
 		await expect(page.getByText('Sunday Morning Service')).toBeVisible();
 	});
 
-	test('adds songs to setlist with drag and drop', async ({ page }) => {
-		await page.goto('/setlists/setlist1/edit');
+	test('adds songs to service with drag and drop', async ({ page }) => {
+		await page.goto('/services/service1/edit');
 
-		// Drag song from library to setlist
+		// Drag song from library to service
 		const songCard = page.locator('[data-testid="song-card"]').first();
-		const setlistArea = page.locator('[data-testid="setlist-songs"]');
+		const serviceArea = page.locator('[data-testid="service-songs"]');
 
-		await songCard.dragTo(setlistArea);
+		await songCard.dragTo(serviceArea);
 
 		// Verify song was added
-		await expect(setlistArea.getByText('Amazing Grace')).toBeVisible();
+		await expect(serviceArea.getByText('Amazing Grace')).toBeVisible();
 	});
 
-	test('reorders songs in setlist', async ({ page }) => {
-		await page.goto('/setlists/setlist1/edit');
+	test('reorders songs in service', async ({ page }) => {
+		await page.goto('/services/service1/edit');
 
-		// Assuming songs are already in the setlist
-		const firstSong = page.locator('[data-testid="setlist-song"]').first();
-		const secondSong = page.locator('[data-testid="setlist-song"]').nth(1);
+		// Assuming songs are already in the service
+		const firstSong = page.locator('[data-testid="service-song"]').first();
+		const secondSong = page.locator('[data-testid="service-song"]').nth(1);
 
 		await firstSong.dragTo(secondSong);
 
 		// Verify reordering
-		await expect(page.locator('[data-testid="setlist-song"]').first()).not.toContainText(
+		await expect(page.locator('[data-testid="service-song"]').first()).not.toContainText(
 			'Amazing Grace'
 		);
 	});
@@ -698,9 +698,9 @@ test.describe('Visual Tests', () => {
 		await expect(page).toHaveScreenshot('song-library.png');
 	});
 
-	test('setlist builder page', async ({ page }) => {
-		await page.goto('/setlists/new');
-		await expect(page).toHaveScreenshot('setlist-builder.png');
+	test('service builder page', async ({ page }) => {
+		await page.goto('/services/new');
+		await expect(page).toHaveScreenshot('service-builder.png');
 	});
 
 	test('analytics dashboard', async ({ page }) => {
@@ -996,7 +996,7 @@ describe('SongsAPI', () => {
 			"url": [
 				"http://localhost:4173",
 				"http://localhost:4173/songs",
-				"http://localhost:4173/setlists",
+				"http://localhost:4173/services",
 				"http://localhost:4173/analytics"
 			],
 			"startServerCommand": "npm run preview",
