@@ -9,7 +9,7 @@ This guide outlines the patterns, conventions, and best practices for developing
 ### Component Types
 
 1. **UI Components** (`src/lib/components/ui/`): Reusable, generic interface elements
-2. **Feature Components** (`src/lib/components/songs/`, `src/lib/components/setlists/`): Domain-specific components
+2. **Feature Components** (`src/lib/components/songs/`, `src/lib/components/services/`): Domain-specific components
 3. **Layout Components** (`src/lib/components/layout/`): Page structure and navigation
 4. **Form Components** (`src/lib/components/forms/`): Input handling and validation
 
@@ -381,7 +381,7 @@ Each component should follow this structure:
 		showUsageIndicator?: boolean;
 		showActions?: boolean;
 		onEdit?: (song: Song) => void;
-		onAddToSetlist?: (song: Song) => void;
+		onAddToService?: (song: Song) => void;
 		class?: string;
 	}
 
@@ -390,7 +390,7 @@ Each component should follow this structure:
 		showUsageIndicator = true,
 		showActions = true,
 		onEdit = () => {},
-		onAddToSetlist = () => {},
+		onAddToService = () => {},
 		class: className = ''
 	}: Props = $props();
 
@@ -466,8 +466,8 @@ Each component should follow this structure:
 		{#if showActions}
 			<div class="ml-4 flex gap-2">
 				<Button variant="ghost" size="sm" onclick={() => onEdit(song)}>Edit</Button>
-				<Button variant="primary" size="sm" onclick={() => onAddToSetlist(song)}>
-					Add to Setlist
+				<Button variant="primary" size="sm" onclick={() => onAddToService(song)}>
+					Add to Service
 				</Button>
 			</div>
 		{/if}
@@ -586,7 +586,7 @@ Each component should follow this structure:
 ```svelte
 <script lang="ts">
 	import { songStore } from '$lib/stores/songs.svelte';
-	import { setlistStore } from '$lib/stores/setlists.svelte';
+	import { servicesStore } from '$lib/stores/services.svelte';
 
 	// Access store state
 	let songs = $derived(songStore.songs);
@@ -659,7 +659,7 @@ describe('SongCard', () => {
 		render(SongCard, { song: mockSong, showActions: false });
 
 		expect(screen.queryByText('Edit')).not.toBeInTheDocument();
-		expect(screen.queryByText('Add to Setlist')).not.toBeInTheDocument();
+		expect(screen.queryByText('Add to Service')).not.toBeInTheDocument();
 	});
 });
 ```

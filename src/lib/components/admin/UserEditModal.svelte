@@ -31,7 +31,7 @@
 
 	let loading = $state(false);
 	let error = $state<string | null>(null);
-	let userActivity = $state<{ lastLogin?: string; setlistsCreated: number; songsAdded: number } | null>(null);
+	let userActivity = $state<{ lastLogin?: string; servicesCreated: number; songsAdded: number } | null>(null);
 
 	// Initialize form data when user changes
 	$effect(() => {
@@ -128,8 +128,8 @@
 					<h4 class="text-sm font-medium text-gray-900 mb-3">User Activity</h4>
 					<div class="grid grid-cols-2 gap-4 text-sm">
 						<div>
-							<span class="text-gray-500">Setlists Created:</span>
-							<span class="ml-2 font-medium">{userActivity.setlistsCreated}</span>
+							<span class="text-gray-500">Services Created:</span>
+							<span class="ml-2 font-medium">{userActivity.servicesCreated}</span>
 						</div>
 						<div>
 							<span class="text-gray-500">Songs Added:</span>

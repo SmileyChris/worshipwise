@@ -22,9 +22,9 @@ describe('Analytics API - Basic Tests', () => {
 
       expect(result).toEqual({
         totalSongs: 0,
-        totalSetlists: 0,
+        totalServices: 0,
         totalUsages: 0,
-        avgSongsPerSetlist: 0,
+        avgSongsPerService: 0,
         avgServiceDuration: 0,
         activeWorshipLeaders: 0
       });
@@ -38,7 +38,7 @@ describe('Analytics API - Basic Tests', () => {
       const result = await analyticsApi.getOverview();
 
       expect(result.totalSongs).toBe(5);
-      expect(result.totalSetlists).toBe(3);
+      expect(result.totalServices).toBe(3);
       expect(result.totalUsages).toBe(10);
     });
   });
@@ -54,7 +54,7 @@ describe('Analytics API - Basic Tests', () => {
   });
 
   describe('getServiceTypeStats', () => {
-    it('should return empty array when no setlists', async () => {
+    it('should return empty array when no services', async () => {
       mockPb.collection('setlists').mockGetFullList([]);
 
       const result = await analyticsApi.getServiceTypeStats();
@@ -85,7 +85,7 @@ describe('Analytics API - Basic Tests', () => {
   });
 
   describe('getWorshipLeaderStats', () => {
-    it('should return empty array when no setlists', async () => {
+    it('should return empty array when no services', async () => {
       mockPb.collection('setlists').mockGetFullList([]);
 
       const result = await analyticsApi.getWorshipLeaderStats();

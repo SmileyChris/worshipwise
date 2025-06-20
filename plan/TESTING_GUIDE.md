@@ -618,14 +618,14 @@ test.describe('Song Management', () => {
 });
 ```
 
-### 5. Setlist E2E Testing
+### 5. Service E2E Testing
 
 ```typescript
-// e2e/setlists.spec.ts
+// e2e/services.spec.ts
 import { test, expect } from '@playwright/test';
 
-test.describe('Setlist Management', () => {
-	test('creates and manages setlist', async ({ page }) => {
+test.describe('Service Management', () => {
+	test('creates and manages service', async ({ page }) => {
 		// Mock APIs
 		await page.route('**/api/collections/setlists/records', async (route) => {
 			if (route.request().method() === 'POST') {

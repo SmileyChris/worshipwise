@@ -1,6 +1,6 @@
 [
   {
-    "id": "setlist_1",
+    "id": "service_1",
     "created": "2024-01-01T08:00:00Z",
     "updated": "2024-01-01T08:00:00Z",
     "title": "New Year Sunday",
@@ -12,7 +12,7 @@
     "worship_leader": "user_1"
   },
   {
-    "id": "setlist_2",
+    "id": "service_2",
     "created": "2024-01-08T08:00:00Z",
     "updated": "2024-01-08T08:00:00Z",
     "title": "Sunday Evening Worship",
@@ -24,7 +24,7 @@
     "worship_leader": "user_2"
   },
   {
-    "id": "setlist_3",
+    "id": "service_3",
     "created": "2024-01-15T08:00:00Z",
     "updated": "2024-01-15T08:00:00Z",
     "title": "Youth Service",

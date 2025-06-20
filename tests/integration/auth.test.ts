@@ -409,19 +409,19 @@ describe('Authentication Integration Tests', () => {
 
       // Test different permission levels
       expect(auth.canManageSongs).toBe(false); // Musicians can't manage songs
-      expect(auth.canManageSetlists).toBe(false); // Musicians can't manage setlists
+      expect(auth.canManageServices).toBe(false); // Musicians can't manage services
       expect(auth.isAdmin).toBe(false); // Not an admin
 
       // Change to leader role
       auth.profile = { ...auth.profile, role: 'leader' };
       expect(auth.canManageSongs).toBe(true); // Leaders can manage songs
-      expect(auth.canManageSetlists).toBe(true); // Leaders can manage setlists
+      expect(auth.canManageServices).toBe(true); // Leaders can manage services
       expect(auth.isAdmin).toBe(false); // Still not an admin
 
       // Change to admin role
       auth.profile = { ...auth.profile, role: 'admin' };
       expect(auth.canManageSongs).toBe(true); // Admins can manage songs
-      expect(auth.canManageSetlists).toBe(true); // Admins can manage setlists
+      expect(auth.canManageServices).toBe(true); // Admins can manage services
       expect(auth.isAdmin).toBe(true); // Now an admin
     });
   });

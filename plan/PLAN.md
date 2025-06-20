@@ -54,12 +54,12 @@ WorshipWise leverages **PocketBase's built-in static file serving** to host both
 
 ### Core Collections Structure
 
-The schema uses **six primary collections** that work together to track songs, manage setlists, analyze usage, and prevent repetition:
+The schema uses **six primary collections** that work together to track songs, manage services, analyze usage, and prevent repetition:
 
 1. **Users Collection** (formerly Worship Leaders): Auth-enabled collection managing users with flexible roles (leader, musician, tech, admin)
 2. **Songs Collection**: Central repository with title, artist, key signature, tempo, tags, and file attachments
-3. **Setlists Collection**: Service planning with dates, themes, and team assignments
-4. **Setlist Songs Collection**: Junction table enabling drag-and-drop ordering and key overrides
+3. **Services Collection**: Service planning with dates, themes, and team assignments
+4. **Service Songs Collection**: Junction table enabling drag-and-drop ordering and key overrides
 5. **Song Usage Collection**: Tracking for analytics and repetition prevention (populated via "Complete Service" action)
 6. **Analytics View**: Pre-aggregated data for instant reporting
 

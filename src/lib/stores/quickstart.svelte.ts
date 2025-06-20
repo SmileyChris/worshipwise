@@ -30,7 +30,7 @@ class QuickstartStore {
 		{
 			id: 'collections-check',
 			title: 'Initialize Database',
-			description: 'Set up storage for songs, setlists, and user data',
+			description: 'Set up storage for songs, services, and user data',
 			status: 'pending'
 		},
 		{
@@ -47,7 +47,7 @@ class QuickstartStore {
 		},
 		{
 			id: 'sample-data',
-			title: 'Demo Songs & Setlists',
+			title: 'Demo Songs & Services',
 			description: 'Add example content to explore WorshipWise features',
 			status: 'pending',
 			optional: true

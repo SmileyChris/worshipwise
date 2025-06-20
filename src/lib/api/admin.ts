@@ -297,14 +297,14 @@ export async function changeUserRole(userId: string, newRole: 'musician' | 'lead
  */
 export async function getUserActivity(userId: string): Promise<{
 	lastLogin?: string;
-	setlistsCreated: number;
+	servicesCreated: number;
 	songsAdded: number;
 }> {
 	try {
 		// Note: PocketBase doesn't track last login by default
 		// You would need to implement this in your auth flow
 		
-		// Get setlists created by this user
+		// Get services created by this user
 		const setlists = await pb.collection('setlists').getList(1, 1, {
 			filter: `created_by = "${userId}"`,
 			fields: 'id'
@@ -317,13 +317,13 @@ export async function getUserActivity(userId: string): Promise<{
 		});
 
 		return {
-			setlistsCreated: setlists.totalItems,
+			servicesCreated: setlists.totalItems,
 			songsAdded: songs.totalItems
 		};
 	} catch (error) {
 		console.error('Failed to get user activity:', error);
 		return {
-			setlistsCreated: 0,
+			servicesCreated: 0,
 			songsAdded: 0
 		};
 	}

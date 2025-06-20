@@ -638,18 +638,18 @@ describe('AuthStore', () => {
       expect(auth.canManageSongs).toBe(false);
     });
 
-    it('should compute canManageSetlists correctly', () => {
-      // Leader can manage setlists
+    it('should compute canManageServices correctly', () => {
+      // Leader can manage services
       auth.profile = { role: 'leader' } as Profile;
-      expect(auth.canManageSetlists).toBe(true);
+      expect(auth.canManageServices).toBe(true);
 
-      // Admin can manage setlists
+      // Admin can manage services
       auth.profile = { role: 'admin' } as Profile;
-      expect(auth.canManageSetlists).toBe(true);
+      expect(auth.canManageServices).toBe(true);
 
-      // Musician cannot manage setlists
+      // Musician cannot manage services
       auth.profile = { role: 'musician' } as Profile;
-      expect(auth.canManageSetlists).toBe(false);
+      expect(auth.canManageServices).toBe(false);
     });
 
     it('should compute isAdmin correctly', () => {

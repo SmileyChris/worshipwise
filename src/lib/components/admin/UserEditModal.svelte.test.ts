@@ -39,7 +39,7 @@ describe('UserEditModal', () => {
 
   const mockUserActivity = {
     lastLogin: '2024-01-15T10:30:00Z',
-    setlistsCreated: 5,
+    servicesCreated: 5,
     songsAdded: 12
   };
 
@@ -93,7 +93,7 @@ describe('UserEditModal', () => {
 
       await waitFor(() => {
         expect(screen.getByText('User Activity')).toBeInTheDocument();
-        expect(screen.getByText('5')).toBeInTheDocument(); // setlistsCreated
+        expect(screen.getByText('5')).toBeInTheDocument(); // servicesCreated
         expect(screen.getByText('12')).toBeInTheDocument(); // songsAdded
       });
 
