@@ -17,6 +17,7 @@
 		class?: string;
 		'data-testid'?: string;
 		children?: any;
+		onchange?: (value: string) => void;
 	}
 
 	let {
@@ -31,7 +32,8 @@
 		error = '',
 		class: className = '',
 		'data-testid': testId = '',
-		children
+		children,
+		onchange
 	}: Props = $props();
 
 	let selectId = id || `select-${name}`;
@@ -64,6 +66,13 @@
 		aria-describedby={error ? errorId : undefined}
 		aria-invalid={error ? 'true' : 'false'}
 		data-testid={testId}
+		onchange={(e) => {
+			const target = e.target as HTMLSelectElement;
+			value = target.value;
+			if (onchange) {
+				onchange(value);
+			}
+		}}
 	>
 		<option value="">{placeholder}</option>
 		{#if children}

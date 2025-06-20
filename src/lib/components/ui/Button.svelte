@@ -8,6 +8,7 @@
 		class?: string;
 		onclick?: () => void;
 		href?: string;
+		target?: string;
 		'data-testid'?: string;
 		children?: import('svelte').Snippet;
 	}
@@ -21,6 +22,7 @@
 		class: className = '',
 		onclick = () => {},
 		href = '',
+		target = '',
 		'data-testid': testId = '',
 		children
 	}: Props = $props();
@@ -62,7 +64,7 @@
 </script>
 
 {#if href}
-	<a {href} class={combinedClasses} data-testid={testId}>
+	<a {href} {target} class={combinedClasses} data-testid={testId}>
 		{#if loading}
 			<svg class="mr-2 -ml-1 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
 				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"

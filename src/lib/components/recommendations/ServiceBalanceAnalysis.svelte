@@ -123,7 +123,7 @@
 								</div>
 								<div class="flex items-center gap-2">
 									<span class="text-gray-600">{tempo.value} songs</span>
-									<Badge variant="default" class={getBalanceColor(tempo.value, analysis.idealBalance[tempo.key], total)}>
+									<Badge variant="default" class={getBalanceColor(tempo.value, analysis.idealBalance[tempo.key as keyof typeof analysis.idealBalance], total)}>
 										{getBalancePercentage(tempo.value, total)}%
 									</Badge>
 								</div>

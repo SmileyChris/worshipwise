@@ -55,8 +55,8 @@
 	
 	// Create a set of song IDs that are in the current service for quick lookup
 	let songsInCurrentService = $derived.by(() => {
-		if (!currentServiceSongs) return new Set();
-		return new Set(currentServiceSongs.map(serviceSong => serviceSong.song_id));
+		if (!currentServiceSongs) return new Set<string>();
+		return new Set(currentServiceSongs.map(serviceSong => serviceSong.song_id as string));
 	});
 
 	// Sort options

@@ -61,7 +61,7 @@ describe('Service Utils', () => {
 
   describe('calculateServiceDuration', () => {
     it('should calculate total duration using duration overrides and defaults', () => {
-      const duration = calculateServiceDuration(mockServiceSongs);
+      const duration = calculateServiceDuration(mockServiceSongs as any);
       // 240 (override) + 300 (default) + 200 (default) = 740
       expect(duration).toBe(740);
     });
@@ -292,7 +292,7 @@ describe('Service Utils', () => {
 
   describe('groupSongsBySection', () => {
     it('should group songs by section type', () => {
-      const grouped = groupSongsBySection(mockServiceSongs);
+      const grouped = groupSongsBySection(mockServiceSongs as any);
       
       expect(grouped['Opening']).toHaveLength(1);
       expect(grouped['Praise & Worship']).toHaveLength(1);
@@ -359,7 +359,7 @@ describe('Service Utils', () => {
     };
 
     it('should generate correct PDF data structure', () => {
-      const pdfData = generateServicePDFData(mockService, mockServiceSongs);
+      const pdfData = generateServicePDFData(mockService, mockServiceSongs as any);
       
       expect(pdfData.title).toBe('Sunday Service');
       expect(pdfData.date).toBe('2024-01-01');
