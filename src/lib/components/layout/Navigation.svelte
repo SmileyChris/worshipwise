@@ -79,9 +79,11 @@
 			<!-- Logo and primary navigation -->
 			<div class="flex">
 				<div class="mr-4 flex flex-shrink-0 items-center pt-2">
-					<a href="/dashboard" class="flex items-baseline space-x-2">
-						<img src="/logo.svg" alt="WorshipWise" class="size-5" />
-						<span class="font-title text-xl font-bold" style="color: #163b93;">WorshipWise</span>
+					<a href="/dashboard" class="text-primary flex items-baseline space-x-2">
+						<svg class="size-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+							<use href="/logo.svg#svg1" width="24" height="24" />
+						</svg>
+						<span class="font-title text-xl font-bold">WorshipWise</span>
 					</a>
 				</div>
 

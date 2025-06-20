@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { quickstartStore } from '$lib/stores/quickstart.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import { Music, Users, BarChart3, Settings } from 'lucide-svelte';
+	import { quickstartStore } from '$lib/stores/quickstart.svelte';
+	import { BarChart3, Music, Settings, Users } from 'lucide-svelte';
 
 	const store = quickstartStore;
 
@@ -17,34 +17,42 @@
 {#if !store.systemStatus.songsExist && store.systemStatus.usersExist}
 	<div class="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
 		<div class="text-center">
-			<div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-				<Music class="h-6 w-6 text-blue-600" />
-			</div>
+			<svg
+				class="text-primary mx-auto mb-1 size-10"
+				viewBox="0 0 24 24"
+				xmlns="http://www.w3.org/2000/svg"
+			>
+				<use href="/logo.svg#svg1" width="24" height="24" />
+			</svg>
 
-			<h3 class="mb-2 text-lg font-medium font-title text-gray-900">Welcome to WorshipWise! 🎵</h3>
+			<h3 class="font-title mb-2 text-lg font-medium text-gray-900">Welcome to WorshipWise! 🎵</h3>
 
 			<p class="mx-auto mb-6 max-w-2xl text-gray-600">
-				Your worship team's complete song management solution. Organize your repertoire, 
-				prevent song repetition, and collaborate seamlessly on service planning.
+				Your worship team's complete song management solution. Organize your repertoire, prevent
+				song repetition, and collaborate seamlessly on service planning.
 			</p>
 
 			<!-- Feature highlights -->
 			<div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
 				<div class="rounded-lg bg-gray-50 p-4 text-center">
 					<Music class="mx-auto mb-2 h-8 w-8 text-blue-600" />
-					<h4 class="font-medium font-title text-gray-900">Smart Song Library</h4>
-					<p class="text-sm text-gray-600">Organize songs with keys, lyrics, chord charts, and audio files</p>
+					<h4 class="font-title font-medium text-gray-900">Smart Song Library</h4>
+					<p class="text-sm text-gray-600">
+						Organize songs with keys, lyrics, chord charts, and audio files
+					</p>
 				</div>
 
 				<div class="rounded-lg bg-gray-50 p-4 text-center">
 					<Users class="mx-auto mb-2 h-8 w-8 text-green-600" />
-					<h4 class="font-medium font-title text-gray-900">Team Setlists</h4>
-					<p class="text-sm text-gray-600">Build worship sets together with real-time collaboration</p>
+					<h4 class="font-title font-medium text-gray-900">Team Setlists</h4>
+					<p class="text-sm text-gray-600">
+						Build worship sets together with real-time collaboration
+					</p>
 				</div>
 
 				<div class="rounded-lg bg-gray-50 p-4 text-center">
 					<BarChart3 class="mx-auto mb-2 h-8 w-8 text-purple-600" />
-					<h4 class="font-medium font-title text-gray-900">Repetition Prevention</h4>
+					<h4 class="font-title font-medium text-gray-900">Repetition Prevention</h4>
 					<p class="text-sm text-gray-600">Track usage and get alerts to keep services fresh</p>
 				</div>
 			</div>

@@ -11,20 +11,48 @@
 		onchange?: (value: string) => void;
 	}
 
-	let { value = $bindable(), required = false, disabled = false, placeholder = 'Select category', onchange }: Props = $props();
+	let {
+		value = $bindable(),
+		required = false,
+		disabled = false,
+		placeholder = 'Select category',
+		onchange
+	}: Props = $props();
 
 	let categories: Category[] = $state([]);
 	let loading = $state(true);
 	let error = $state('');
 
-	onMount(async () => {
+	async function loadCategories() {
+		loading = true;
 		try {
 			categories = await categoriesApi.getCategories();
+			error = '';
 		} catch (err) {
 			error = 'Failed to load categories';
 			console.error('Error loading categories:', err);
 		} finally {
 			loading = false;
+		}
+	}
+
+	onMount(() => {
+		// Initial load
+		loadCategories();
+
+		// Listen for data refresh events
+		const handleDataRefresh = () => {
+			console.log('Refreshing categories due to data update');
+			loadCategories();
+		};
+
+		if (typeof window !== 'undefined') {
+			window.addEventListener('worshipwise:data-refreshed', handleDataRefresh);
+
+			// Cleanup on unmount
+			return () => {
+				window.removeEventListener('worshipwise:data-refreshed', handleDataRefresh);
+			};
 		}
 	});
 
@@ -39,10 +67,10 @@
 
 {#if loading}
 	<div class="animate-pulse">
-		<div class="h-10 bg-gray-200 rounded-md"></div>
+		<div class="h-10 rounded-md bg-gray-200"></div>
 	</div>
 {:else if error}
-	<div class="text-red-600 text-sm">{error}</div>
+	<div class="text-sm text-red-600">{error}</div>
 {:else}
 	<select
 		bind:value

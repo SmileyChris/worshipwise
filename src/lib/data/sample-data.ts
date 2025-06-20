@@ -145,12 +145,31 @@ export const sampleData: QuickstartData = {
 	]
 };
 
-export async function createDefaultCategories(categoriesAPI: any): Promise<{ [key: string]: string }> {
+export async function createDefaultCategories(
+	categoriesAPI: any
+): Promise<{ [key: string]: string }> {
 	console.log('Creating default categories...');
 
 	const categoryMap: { [key: string]: string } = {};
-	
+
+	// First, get existing categories to avoid duplicates
+	try {
+		const existingCategories = await categoriesAPI.getCategories();
+		for (const category of existingCategories) {
+			categoryMap[category.name] = category.id;
+			console.log(`Found existing category: ${category.name}`);
+		}
+	} catch (error) {
+		console.log('No existing categories found or error fetching them:', error);
+	}
+
+	// Create missing categories
 	for (const categoryData of defaultCategories) {
+		if (categoryMap[categoryData.name]) {
+			console.log(`Category "${categoryData.name}" already exists, skipping creation`);
+			continue;
+		}
+
 		try {
 			const category = await categoriesAPI.createCategory(categoryData);
 			categoryMap[categoryData.name] = category.id;
@@ -160,11 +179,15 @@ export async function createDefaultCategories(categoriesAPI: any): Promise<{ [ke
 		}
 	}
 
-	console.log(`Successfully created ${Object.keys(categoryMap).length} categories`);
+	console.log(`Successfully created/found ${Object.keys(categoryMap).length} categories`);
 	return categoryMap;
 }
 
-export async function importSampleData(songsAPI: any, categoriesAPI: any, user: any): Promise<void> {
+export async function importSampleData(
+	songsAPI: any,
+	categoriesAPI: any,
+	user: any
+): Promise<void> {
 	console.log('Importing sample data...');
 
 	// First, create categories
@@ -172,11 +195,61 @@ export async function importSampleData(songsAPI: any, categoriesAPI: any, user: 
 
 	// Import songs with categories
 	const importedSongs = [];
+
+	// Create a helper function to find category ID with fallback
+	const findCategoryId = async (categoryName: string) => {
+		// Try exact match first
+		if (categoryMap[categoryName]) {
+			return categoryMap[categoryName];
+		}
+
+		// Try case-insensitive match
+		const exactMatch = Object.keys(categoryMap).find(
+			(key) => key.toLowerCase() === categoryName.toLowerCase()
+		);
+		if (exactMatch) {
+			return categoryMap[exactMatch];
+		}
+
+		// Try partial match
+		const partialMatch = Object.keys(categoryMap).find(
+			(key) =>
+				key.toLowerCase().includes(categoryName.toLowerCase()) ||
+				categoryName.toLowerCase().includes(key.toLowerCase())
+		);
+		if (partialMatch) {
+			console.log(`Using partial match "${partialMatch}" for category "${categoryName}"`);
+			return categoryMap[partialMatch];
+		}
+
+		// Create a default "General" category if none exists
+		if (!categoryMap['General']) {
+			try {
+				console.log(
+					`Creating fallback "General" category for song with missing category "${categoryName}"`
+				);
+				const generalCategory = await categoriesAPI.createCategory({
+					name: 'General',
+					description: 'Songs without a specific category',
+					sort_order: 999,
+					is_active: true
+				});
+				categoryMap['General'] = generalCategory.id;
+				return generalCategory.id;
+			} catch (error) {
+				console.warn('Failed to create fallback General category:', error);
+				return null;
+			}
+		}
+
+		return categoryMap['General'];
+	};
+
 	for (const songData of sampleData.sampleSongs) {
 		try {
-			const categoryId = categoryMap[songData.category];
+			const categoryId = await findCategoryId(songData.category);
 			if (!categoryId) {
-				console.warn(`Category "${songData.category}" not found for song "${songData.title}"`);
+				console.warn(`Could not find or create category for song "${songData.title}", skipping`);
 				continue;
 			}
 

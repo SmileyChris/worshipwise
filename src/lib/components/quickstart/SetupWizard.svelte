@@ -66,8 +66,8 @@
 	}
 
 
-	function handleClose() {
-		store.dismissSetupWizard();
+	async function handleClose() {
+		await store.dismissSetupWizard();
 	}
 </script>
 

@@ -25,7 +25,7 @@ class QuickstartStore {
 		{
 			id: 'default-categories',
 			title: 'Song Categories',
-			description: 'Set up your church\'s song categories for organization',
+			description: "Set up your church's song categories for organization",
 			status: 'pending',
 			optional: true
 		},
@@ -46,7 +46,9 @@ class QuickstartStore {
 
 	completedSteps = $derived(this.setupSteps.filter((step) => step.status === 'completed'));
 
-	completedRequiredSteps = $derived(this.setupSteps.filter((step) => step.status === 'completed' && !step.optional));
+	completedRequiredSteps = $derived(
+		this.setupSteps.filter((step) => step.status === 'completed' && !step.optional)
+	);
 
 	requiredSteps = $derived(this.setupSteps.filter((step) => !step.optional));
 
@@ -67,7 +69,10 @@ class QuickstartStore {
 
 			// Update setup steps based on system status
 			this.updateStepStatus('user-account', this.systemStatus.usersExist ? 'completed' : 'pending');
-			this.updateStepStatus('default-categories', this.systemStatus.categoriesExist ? 'completed' : 'pending');
+			this.updateStepStatus(
+				'default-categories',
+				this.systemStatus.categoriesExist ? 'completed' : 'pending'
+			);
 			this.updateStepStatus('sample-data', this.systemStatus.songsExist ? 'completed' : 'pending');
 
 			// Show setup wizard if needed
@@ -85,7 +90,7 @@ class QuickstartStore {
 				const firstIncompleteOptionalIndex = this.setupSteps.findIndex(
 					(step) => step.optional && (step.status === 'pending' || step.status === 'error')
 				);
-				
+
 				if (firstIncompleteOptionalIndex !== -1) {
 					this.currentStepIndex = firstIncompleteOptionalIndex;
 				} else {
@@ -133,7 +138,6 @@ class QuickstartStore {
 		}
 	}
 
-
 	private async importSampleData() {
 		// This requires a logged-in user, so we'll check if auth is available
 		const { auth } = await import('$lib/stores/auth.svelte.js');
@@ -180,8 +184,36 @@ class QuickstartStore {
 		}
 	}
 
-	dismissSetupWizard() {
+	async dismissSetupWizard() {
 		this.showSetupWizard = false;
+
+		// Reload data to show newly created songs and categories
+		try {
+			// Import the songs store and reload songs
+			const { songsStore } = await import('$lib/stores/songs.svelte.js');
+			await songsStore.loadSongs(true); // Reset to first page
+
+			// Trigger a custom event that components can listen to for data refresh
+			if (typeof window !== 'undefined') {
+				window.dispatchEvent(
+					new CustomEvent('worshipwise:data-refreshed', {
+						detail: { source: 'setup-wizard-completion' }
+					})
+				);
+			}
+
+			console.log('Successfully reloaded songs and categories after setup completion');
+		} catch (error) {
+			console.error('Failed to reload data after setup:', error);
+
+			// As a fallback, suggest a page refresh if data reload fails
+			if (
+				typeof window !== 'undefined' &&
+				confirm('Setup completed! Would you like to refresh the page to see your new data?')
+			) {
+				window.location.reload();
+			}
+		}
 	}
 
 	resetSetup() {
