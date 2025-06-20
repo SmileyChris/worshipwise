@@ -368,6 +368,130 @@ export class SongsAPI {
 	}
 
 	/**
+	 * Get usage history for a specific song
+	 */
+	async getSongUsageHistory(songId: string): Promise<any[]> {
+		try {
+			const usageRecords = await pb.collection('song_usage').getFullList({
+				filter: `song_id = "${songId}"`,
+				sort: '-used_date',
+				expand: 'setlist_id,worship_leader'
+			});
+			
+			return usageRecords;
+		} catch (error) {
+			console.error('Failed to fetch song usage history:', error);
+			return [];
+		}
+	}
+
+	/**
+	 * Get most popular songs overall
+	 */
+	async getPopularSongs(limit = 10): Promise<Song[]> {
+		try {
+			// Get song usage counts
+			const usageStats = await pb.collection('song_usage').getFullList({
+				fields: 'song_id',
+				sort: 'song_id'
+			});
+
+			// Count uses per song
+			const usageCounts = new Map<string, number>();
+			usageStats.forEach(usage => {
+				const count = usageCounts.get(usage.song_id) || 0;
+				usageCounts.set(usage.song_id, count + 1);
+			});
+
+			// Get songs with highest usage counts
+			const popularSongIds = Array.from(usageCounts.entries())
+				.sort((a, b) => b[1] - a[1]) // Sort by usage count descending
+				.slice(0, limit)
+				.map(([songId, count]) => ({ songId, count }));
+
+			if (popularSongIds.length === 0) {
+				return [];
+			}
+
+			// Fetch the actual song records
+			const songIdsFilter = popularSongIds.map(({ songId }) => `id = "${songId}"`).join(' || ');
+			const songs = await pb.collection(this.collection).getFullList({
+				filter: `is_active = true && (${songIdsFilter})`,
+				expand: 'created_by,category,labels'
+			});
+
+			// Attach usage counts and sort by popularity
+			const songsWithCounts = songs.map(song => ({
+				...song,
+				expand: {
+					...song.expand,
+					usage_count: popularSongIds.find(p => p.songId === song.id)?.count || 0
+				}
+			}));
+
+			songsWithCounts.sort((a, b) => b.expand.usage_count - a.expand.usage_count);
+
+			return songsWithCounts as unknown as Song[];
+		} catch (error) {
+			console.error('Failed to fetch popular songs:', error);
+			return [];
+		}
+	}
+
+	/**
+	 * Get personal popular songs for a specific user
+	 */
+	async getPersonalPopularSongs(userId: string, limit = 10): Promise<Song[]> {
+		try {
+			// Get usage records for services where this user was the worship leader
+			const personalUsage = await pb.collection('song_usage').getFullList({
+				filter: `worship_leader = "${userId}"`,
+				fields: 'song_id'
+			});
+
+			if (personalUsage.length === 0) {
+				return [];
+			}
+
+			// Count uses per song for this user
+			const usageCounts = new Map<string, number>();
+			personalUsage.forEach(usage => {
+				const count = usageCounts.get(usage.song_id) || 0;
+				usageCounts.set(usage.song_id, count + 1);
+			});
+
+			// Get songs with highest personal usage counts
+			const popularSongIds = Array.from(usageCounts.entries())
+				.sort((a, b) => b[1] - a[1])
+				.slice(0, limit)
+				.map(([songId, count]) => ({ songId, count }));
+
+			// Fetch the actual song records
+			const songIdsFilter = popularSongIds.map(({ songId }) => `id = "${songId}"`).join(' || ');
+			const songs = await pb.collection(this.collection).getFullList({
+				filter: `is_active = true && (${songIdsFilter})`,
+				expand: 'created_by,category,labels'
+			});
+
+			// Attach personal usage counts and sort by personal popularity
+			const songsWithCounts = songs.map(song => ({
+				...song,
+				expand: {
+					...song.expand,
+					personal_usage_count: popularSongIds.find(p => p.songId === song.id)?.count || 0
+				}
+			}));
+
+			songsWithCounts.sort((a, b) => b.expand.personal_usage_count - a.expand.personal_usage_count);
+
+			return songsWithCounts as unknown as Song[];
+		} catch (error) {
+			console.error('Failed to fetch personal popular songs:', error);
+			return [];
+		}
+	}
+
+	/**
 	 * Subscribe to real-time updates for songs
 	 */
 	subscribe(callback: (data: any) => void) {

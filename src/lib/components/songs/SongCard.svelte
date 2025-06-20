@@ -12,6 +12,8 @@
 		showActions?: boolean;
 		onEdit?: (song: Song) => void;
 		onAddToService?: (song: Song) => void;
+		isInCurrentService?: boolean;
+		isEditingService?: boolean;
 		class?: string;
 	}
 
@@ -21,6 +23,8 @@
 		showActions = true,
 		onEdit = () => {},
 		onAddToService = () => {},
+		isInCurrentService = false,
+		isEditingService = false,
 		class: className = ''
 	}: Props = $props();
 
@@ -83,7 +87,14 @@
 	<div class="flex items-start justify-between">
 		<div class="min-w-0 flex-1">
 			<!-- Song title and artist -->
-			<h3 class="truncate text-lg font-semibold font-title text-gray-900">{song.title}</h3>
+			<h3 class="truncate text-lg font-semibold font-title">
+				<a 
+					href="/songs/{song.id}" 
+					class="text-gray-900 hover:text-primary transition-colors"
+				>
+					{song.title}
+				</a>
+			</h3>
 			{#if song.artist}
 				<p class="truncate text-sm text-gray-600">{song.artist}</p>
 			{/if}
@@ -201,6 +212,15 @@
 		<!-- Actions -->
 		{#if showActions}
 			<div class="ml-4 flex flex-shrink-0 flex-col gap-2">
+				<Button
+					variant="ghost"
+					size="sm"
+					href="/songs/{song.id}"
+					class="text-gray-600 hover:text-gray-800"
+				>
+					View Details
+				</Button>
+
 				{#if canEdit}
 					<Button
 						variant="ghost"
@@ -213,9 +233,20 @@
 				{/if}
 
 				{#if auth.canManageServices}
-					<Button variant="primary" size="sm" onclick={() => onAddToService(song)}>
-						Add to Service
-					</Button>
+					{#if isEditingService}
+						<Button 
+							variant={isInCurrentService ? "secondary" : "primary"} 
+							size="sm" 
+							onclick={() => onAddToService(song)}
+							disabled={isInCurrentService}
+						>
+							{isInCurrentService ? "In Service" : "Add to Service"}
+						</Button>
+					{:else}
+						<Button variant="secondary" size="sm" onclick={() => onAddToService(song)}>
+							Add to Service
+						</Button>
+					{/if}
 				{/if}
 			</div>
 		{/if}

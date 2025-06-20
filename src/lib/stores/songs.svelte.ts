@@ -365,6 +365,43 @@ class SongsStore {
 	}
 
 	/**
+	 * Get songs grouped by category with category information
+	 */
+	async getSongsByCategory(): Promise<Map<string, { category: any; songs: Song[] }>> {
+		try {
+			// Load all songs with expanded category information
+			const allSongs = await songsApi.getSongs({});
+			
+			// Group songs by category
+			const categoryMap = new Map<string, { category: any; songs: Song[] }>();
+			
+			allSongs.forEach(song => {
+				const categoryId = song.category;
+				const categoryInfo = song.expand?.category;
+				
+				if (!categoryMap.has(categoryId)) {
+					categoryMap.set(categoryId, {
+						category: categoryInfo || { id: categoryId, name: 'Unknown Category' },
+						songs: []
+					});
+				}
+				
+				categoryMap.get(categoryId)!.songs.push(song);
+			});
+			
+			// Sort songs within each category by title
+			categoryMap.forEach(({ songs }) => {
+				songs.sort((a, b) => a.title.localeCompare(b.title));
+			});
+			
+			return categoryMap;
+		} catch (error) {
+			console.error('Failed to get songs by category:', error);
+			throw error;
+		}
+	}
+
+	/**
 	 * Subscribe to real-time updates
 	 */
 	async subscribeToUpdates(): Promise<() => void> {

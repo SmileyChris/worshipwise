@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { songsStore } from '$lib/stores/songs.svelte';
+	import { servicesStore } from '$lib/stores/services.svelte';
 	import type { Song, CreateSongData, UpdateSongData } from '$lib/types/song';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -9,6 +10,8 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import SongCard from '$lib/components/songs/SongCard.svelte';
+	import CategoryCard from '$lib/components/songs/CategoryCard.svelte';
+	import SongsSidebar from '$lib/components/songs/SongsSidebar.svelte';
 	import SongForm from '$lib/components/songs/SongForm.svelte';
 	import CategorySelect from '$lib/components/ui/CategorySelect.svelte';
 	import LabelSelector from '$lib/components/ui/LabelSelector.svelte';
@@ -18,6 +21,9 @@
 	let showDeleteConfirm = $state(false);
 	let songToDelete = $state<Song | null>(null);
 
+	// View state
+	let viewMode = $state<'list' | 'categories'>('categories');
+
 	// Search state
 	let searchQuery = $state('');
 	let selectedKey = $state('');
@@ -25,6 +31,10 @@
 	let selectedLabelIds = $state<string[]>([]);
 	let selectedSort = $state('title');
 	let initialLoadComplete = $state(false);
+
+	// Category data
+	let categoriesData = $state<Map<string, { category: any; songs: Song[] }> | null>(null);
+	let categoriesLoading = $state(false);
 
 	// Reactive data from store
 	let songs = $derived(songsStore.songs);
@@ -37,6 +47,17 @@
 	let hasPrevPage = $derived(songsStore.hasPrevPage);
 	let selectedSong = $derived(songsStore.selectedSong);
 	let availableKeys = $derived(songsStore.availableKeys);
+
+	// Service editing state
+	let currentService = $derived(servicesStore.currentService);
+	let currentServiceSongs = $derived(servicesStore.currentServiceSongs);
+	let isEditingService = $derived(!!currentService);
+	
+	// Create a set of song IDs that are in the current service for quick lookup
+	let songsInCurrentService = $derived.by(() => {
+		if (!currentServiceSongs) return new Set();
+		return new Set(currentServiceSongs.map(serviceSong => serviceSong.song_id));
+	});
 
 	// Sort options
 	const sortOptions = [
@@ -52,11 +73,27 @@
 		...availableKeys.map((key: string) => ({ value: key, label: key }))
 	]);
 
+	// Load category data
+	async function loadCategoriesData() {
+		categoriesLoading = true;
+		try {
+			categoriesData = await songsStore.getSongsByCategory();
+		} catch (error) {
+			console.error('Failed to load categories data:', error);
+		} finally {
+			categoriesLoading = false;
+		}
+	}
+
 	// Load songs on mount
 	onMount(() => {
-		songsStore.loadSongs().then(() => {
-			initialLoadComplete = true;
-		});
+		if (viewMode === 'categories') {
+			loadCategoriesData();
+		} else {
+			songsStore.loadSongs().then(() => {
+				initialLoadComplete = true;
+			});
+		}
 
 		// Set up real-time updates with proper cleanup
 		let unsubscribePromise = songsStore.subscribeToUpdates();
@@ -69,10 +106,21 @@
 		};
 	});
 
+	// Watch for view mode changes
+	$effect(() => {
+		if (viewMode === 'categories') {
+			loadCategoriesData();
+		} else if (viewMode === 'list' && !initialLoadComplete) {
+			songsStore.loadSongs().then(() => {
+				initialLoadComplete = true;
+			});
+		}
+	});
+
 	// Watch for filter changes (avoiding infinite loops by not watching loading state)
 	$effect(() => {
-		// Only apply filters after initial load to avoid duplicate calls
-		if (initialLoadComplete) {
+		// Only apply filters after initial load to avoid duplicate calls (only for list view)
+		if (viewMode === 'list' && initialLoadComplete) {
 			const filters = {
 				search: searchQuery,
 				key: selectedKey,
@@ -123,9 +171,20 @@
 		}
 	}
 
-	function handleAddToService(song: Song) {
-		// TODO: Implement add to service functionality
-		console.log('Add to service:', song.title);
+	async function handleAddToService(song: Song) {
+		if (!currentService) {
+			// TODO: Show modal to select service or create new one
+			console.log('No service is currently being edited');
+			return;
+		}
+
+		try {
+			await servicesStore.addSongToService(song.id);
+			// Optional: Show success message
+		} catch (error) {
+			console.error('Failed to add song to service:', error);
+			// TODO: Show error message
+		}
 	}
 
 	async function handleSongFormSubmit(event: CustomEvent) {
@@ -181,12 +240,55 @@
 			<p class="mt-1 text-sm text-gray-500">Manage your worship songs and track usage patterns</p>
 		</div>
 
-		{#if auth.canManageSongs}
-			<div class="mt-4 flex md:mt-0 md:ml-4">
-				<Button variant="primary" onclick={handleAddSong}>Add New Song</Button>
+		<div class="mt-4 flex items-center gap-4 md:mt-0 md:ml-4">
+			<!-- View Toggle -->
+			<div class="flex rounded-lg border border-gray-300 p-1 bg-gray-50">
+				<button
+					onclick={() => viewMode = 'categories'}
+					class="px-3 py-1 text-sm font-medium rounded-md transition-colors {viewMode === 'categories' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}"
+				>
+					Categories
+				</button>
+				<button
+					onclick={() => viewMode = 'list'}
+					class="px-3 py-1 text-sm font-medium rounded-md transition-colors {viewMode === 'list' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}"
+				>
+					List
+				</button>
 			</div>
-		{/if}
+
+			{#if auth.canManageSongs}
+				<Button variant="primary" onclick={handleAddSong}>Add New Song</Button>
+			{/if}
+		</div>
 	</div>
+
+	<!-- Service Editing Banner -->
+	{#if isEditingService && currentService}
+		<Card class="bg-blue-50 border-blue-200">
+			<div class="flex items-center justify-between">
+				<div class="flex items-center gap-3">
+					<div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+					<div>
+						<p class="text-sm font-medium text-blue-900">
+							Currently editing: <span class="font-semibold">{currentService.title}</span>
+						</p>
+						<p class="text-xs text-blue-700">
+							Click "Add to Service" to add songs to this service
+						</p>
+					</div>
+				</div>
+				<Button 
+					variant="ghost" 
+					size="sm"
+					href="/services/{currentService.id}"
+					class="text-blue-700 hover:text-blue-900"
+				>
+					Go to Service
+				</Button>
+			</div>
+		</Card>
+	{/if}
 
 	<!-- Error display -->
 	{#if error}
@@ -209,145 +311,204 @@
 		</div>
 	{/if}
 
-	<!-- Stats cards -->
-	<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-		<Card>
-			<div class="text-center">
-				<div class="text-2xl font-bold font-title text-gray-900">{stats.totalSongs}</div>
-				<div class="text-sm text-gray-500">Total Songs</div>
-			</div>
-		</Card>
-
-		<Card>
-			<div class="text-center">
-				<div class="text-2xl font-bold font-title text-green-600">{stats.availableSongs}</div>
-				<div class="text-sm text-gray-500">Available Songs</div>
-			</div>
-		</Card>
-
-		<Card>
-			<div class="text-center">
-				<div class="text-2xl font-bold font-title text-yellow-600">{stats.recentlyUsed}</div>
-				<div class="text-sm text-gray-500">Recently Used</div>
-			</div>
-		</Card>
-	</div>
-
-	{#if songs.length === 0 && !loading}
-		<!-- Welcome message for new users -->
-		<Card>
-			<div class="py-8 text-center">
-				<div class="mb-4 text-6xl">🎵</div>
-				<h3 class="mb-2 text-lg font-medium text-gray-900">Welcome to your Song Library</h3>
-				<p class="mb-6 text-gray-500">
-					Get started by adding your first worship song to the library.
-				</p>
-				{#if auth.canManageSongs}
-					<Button variant="primary" onclick={handleAddSong}>Add Your First Song</Button>
-				{:else}
-					<p class="text-sm text-gray-400">
-						Contact your worship leader to add songs to the library.
-					</p>
-				{/if}
-			</div>
-		</Card>
-	{:else}
-		<!-- Search and filters -->
-		<Card padding={false} class="p-4">
-			<div class="space-y-4">
-				<!-- Search bar -->
-				<div class="flex-1">
-					<Input
-						name="search"
-						placeholder="Search songs by title or artist..."
-						bind:value={searchQuery}
-						class="w-full"
-					/>
-				</div>
-
-				<!-- Filters row -->
-				<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-						<CategorySelect bind:value={selectedCategory} placeholder="All categories" />
+	<!-- Main Layout with Sidebar -->
+	<div class="lg:grid lg:grid-cols-12 lg:gap-8">
+		<!-- Main Content -->
+		<div class="lg:col-span-9">
+			<!-- Stats cards (shown for both views) -->
+			<div class="grid grid-cols-1 gap-6 md:grid-cols-3 mb-6">
+				<Card>
+					<div class="text-center">
+						<div class="text-2xl font-bold font-title text-gray-900">{stats.totalSongs}</div>
+						<div class="text-sm text-gray-500">Total Songs</div>
 					</div>
+				</Card>
 
-					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Labels</label>
-						<LabelSelector bind:selectedLabelIds />
+				<Card>
+					<div class="text-center">
+						<div class="text-2xl font-bold font-title text-green-600">{stats.availableSongs}</div>
+						<div class="text-sm text-gray-500">Available Songs</div>
 					</div>
+				</Card>
 
-					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Key</label>
-						<Select
-							name="key_filter"
-							bind:value={selectedKey}
-							options={keyOptions}
-							placeholder="All keys"
-						/>
+				<Card>
+					<div class="text-center">
+						<div class="text-2xl font-bold font-title text-yellow-600">{stats.recentlyUsed}</div>
+						<div class="text-sm text-gray-500">Recently Used</div>
 					</div>
-
-					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Sort</label>
-						<Select
-							name="sort"
-							bind:value={selectedSort}
-							options={sortOptions}
-						/>
-					</div>
-				</div>
+				</Card>
 			</div>
-		</Card>
 
-		<!-- Songs grid -->
-		{#if loading}
+			{#if viewMode === 'categories'}
+		<!-- Categories View -->
+		{#if categoriesLoading}
 			<div class="py-8 text-center">
 				<div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
-				<p class="mt-2 text-sm text-gray-500">Loading songs...</p>
+				<p class="mt-2 text-sm text-gray-500">Loading categories...</p>
 			</div>
-		{:else}
-			<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-				{#each songs as song (song.id)}
-					<SongCard
-						{song}
-						onEdit={handleEditSong}
+		{:else if categoriesData && categoriesData.size > 0}
+			<div class="space-y-6">
+				{#each [...categoriesData.entries()] as [categoryId, { category, songs }] (categoryId)}
+					<CategoryCard
+						{category}
+						{songs}
+						onEditSong={handleEditSong}
 						onAddToService={handleAddToService}
+						{isEditingService}
+						{songsInCurrentService}
 					/>
 				{/each}
 			</div>
+		{:else}
+			<!-- Welcome message for new users -->
+			<Card>
+				<div class="py-8 text-center">
+					<div class="mb-4 text-6xl">🎵</div>
+					<h3 class="mb-2 text-lg font-medium text-gray-900">Welcome to your Song Library</h3>
+					<p class="mb-6 text-gray-500">
+						Get started by adding your first worship song to the library.
+					</p>
+					{#if auth.canManageSongs}
+						<Button variant="primary" onclick={handleAddSong}>Add Your First Song</Button>
+					{:else}
+						<p class="text-sm text-gray-400">
+							Contact your worship leader to add songs to the library.
+						</p>
+					{/if}
+				</div>
+			</Card>
+		{/if}
+	{:else}
+		<!-- List View -->
+		{#if songs.length === 0 && !loading}
+			<!-- Welcome message for new users -->
+			<Card>
+				<div class="py-8 text-center">
+					<div class="mb-4 text-6xl">🎵</div>
+					<h3 class="mb-2 text-lg font-medium text-gray-900">Welcome to your Song Library</h3>
+					<p class="mb-6 text-gray-500">
+						Get started by adding your first worship song to the library.
+					</p>
+					{#if auth.canManageSongs}
+						<Button variant="primary" onclick={handleAddSong}>Add Your First Song</Button>
+					{:else}
+						<p class="text-sm text-gray-400">
+							Contact your worship leader to add songs to the library.
+						</p>
+					{/if}
+				</div>
+			</Card>
+		{:else}
+			<!-- Search and filters -->
+			<Card padding={false} class="p-4">
+				<div class="space-y-4">
+					<!-- Search bar -->
+					<div class="flex-1">
+						<Input
+							name="search"
+							placeholder="Search songs by title or artist..."
+							bind:value={searchQuery}
+							class="w-full"
+						/>
+					</div>
 
-			<!-- Pagination -->
-			{#if totalPages > 1}
-				<Card padding={false} class="p-4">
-					<div class="flex items-center justify-between">
-						<div class="text-sm text-gray-500">
-							Page {currentPage} of {totalPages}
+					<!-- Filters row -->
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+						<div>
+							<label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+							<CategorySelect bind:value={selectedCategory} placeholder="All categories" />
 						</div>
 
-						<div class="flex gap-2">
-							<Button
-								variant="secondary"
-								size="sm"
-								onclick={handlePrevPage}
-								disabled={!hasPrevPage || loading}
-							>
-								Previous
-							</Button>
+						<div>
+							<label class="block text-sm font-medium text-gray-700 mb-1">Labels</label>
+							<LabelSelector bind:selectedLabelIds />
+						</div>
 
-							<Button
-								variant="secondary"
-								size="sm"
-								onclick={handleNextPage}
-								disabled={!hasNextPage || loading}
-							>
-								Next
-							</Button>
+						<div>
+							<label class="block text-sm font-medium text-gray-700 mb-1">Key</label>
+							<Select
+								name="key_filter"
+								bind:value={selectedKey}
+								options={keyOptions}
+								placeholder="All keys"
+							/>
+						</div>
+
+						<div>
+							<label class="block text-sm font-medium text-gray-700 mb-1">Sort</label>
+							<Select
+								name="sort"
+								bind:value={selectedSort}
+								options={sortOptions}
+							/>
 						</div>
 					</div>
-				</Card>
+				</div>
+			</Card>
+
+			<!-- Songs grid -->
+			{#if loading}
+				<div class="py-8 text-center">
+					<div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+					<p class="mt-2 text-sm text-gray-500">Loading songs...</p>
+				</div>
+			{:else}
+				<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+					{#each songs as song (song.id)}
+						<SongCard
+							{song}
+							onEdit={handleEditSong}
+							onAddToService={handleAddToService}
+							{isEditingService}
+							isInCurrentService={songsInCurrentService.has(song.id)}
+						/>
+					{/each}
+				</div>
+
+				<!-- Pagination -->
+				{#if totalPages > 1}
+					<Card padding={false} class="p-4">
+						<div class="flex items-center justify-between">
+							<div class="text-sm text-gray-500">
+								Page {currentPage} of {totalPages}
+							</div>
+
+							<div class="flex gap-2">
+								<Button
+									variant="secondary"
+									size="sm"
+									onclick={handlePrevPage}
+									disabled={!hasPrevPage || loading}
+								>
+									Previous
+								</Button>
+
+								<Button
+									variant="secondary"
+									size="sm"
+									onclick={handleNextPage}
+									disabled={!hasNextPage || loading}
+								>
+									Next
+								</Button>
+							</div>
+						</div>
+					</Card>
+				{/if}
 			{/if}
 		{/if}
-	{/if}
+			{/if}
+		</div>
+
+		<!-- Sidebar -->
+		<div class="lg:col-span-3 mt-6 lg:mt-0">
+			<SongsSidebar 
+				onAddToService={handleAddToService}
+				{isEditingService}
+				{songsInCurrentService}
+			/>
+		</div>
+	</div>
 </div>
 
 <!-- Song Form Modal -->
