@@ -79,8 +79,8 @@ npm run test:coverage        # Generate coverage report
 1. **Users** - Authentication with basic user data (email, password)
 2. **Profiles** - Extended user metadata (name, role, church_name, preferences)
 3. **Songs** - Central repository with metadata, keys, tempo, file attachments
-4. **Setlists** - Service planning with dates and themes
-5. **Setlist Songs** - Junction table for drag-and-drop ordering
+4. **Services** - Service planning with dates and themes
+5. **Service Songs** - Junction table for drag-and-drop ordering
 6. **Song Usage** - Analytics tracking (populated on service completion)
 
 For detailed schema and security rules, see `plan/POCKETBASE_SETUP.md`.

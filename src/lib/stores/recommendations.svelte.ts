@@ -74,14 +74,14 @@ class RecommendationsStore {
 	}
 
 	/**
-	 * Load worship flow suggestions for a specific setlist
+	 * Load worship flow suggestions for a specific service
 	 */
-	async loadWorshipFlowSuggestions(setlistId?: string) {
+	async loadWorshipFlowSuggestions(serviceId?: string) {
 		this.loading = true;
 		this.error = null;
 
 		try {
-			this.worshipFlowSuggestions = await recommendationsApi.getWorshipFlowSuggestions(setlistId);
+			this.worshipFlowSuggestions = await recommendationsApi.getWorshipFlowSuggestions(serviceId);
 		} catch (error) {
 			this.error = error instanceof Error ? error.message : 'Failed to load flow suggestions';
 			console.error('Failed to load worship flow suggestions:', error);
@@ -91,14 +91,14 @@ class RecommendationsStore {
 	}
 
 	/**
-	 * Analyze service balance for a setlist
+	 * Analyze service balance for a service
 	 */
-	async analyzeServiceBalance(setlistId: string) {
+	async analyzeServiceBalance(serviceId: string) {
 		this.loading = true;
 		this.error = null;
 
 		try {
-			this.serviceBalanceAnalysis = await recommendationsApi.analyzeServiceBalance(setlistId);
+			this.serviceBalanceAnalysis = await recommendationsApi.analyzeServiceBalance(serviceId);
 		} catch (error) {
 			this.error = error instanceof Error ? error.message : 'Failed to analyze service balance';
 			console.error('Failed to analyze service balance:', error);

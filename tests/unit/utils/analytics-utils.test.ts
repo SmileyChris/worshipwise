@@ -30,7 +30,7 @@ describe('Analytics Utils', () => {
       { id: '2', title: 'Song 2' }
     ];
 
-    const mockSetlists = [
+    const mockServices = [
       { id: '1', status: 'completed', actual_duration: 60, service_type: 'Sunday Morning', worship_leader: 'leader1' },
       { id: '2', status: 'completed', estimated_duration: 45, service_type: 'Sunday Morning', worship_leader: 'leader2' },
       { id: '3', status: 'draft', service_type: 'Wednesday Night', worship_leader: 'leader1' }
@@ -43,11 +43,11 @@ describe('Analytics Utils', () => {
     ];
 
     it('should aggregate data correctly', () => {
-      const overview = aggregateUsageData(mockSongs, mockSetlists, mockUsageData);
+      const overview = aggregateUsageData(mockSongs, mockServices, mockUsageData);
       
       expect(overview.totalSongs).toBe(2);
-      expect(overview.totalSetlists).toBe(3);
-      expect(overview.averageSetlistDuration).toBe(52.5); // (60 + 45) / 2
+      expect(overview.totalServices).toBe(3);
+      expect(overview.averageServiceDuration).toBe(52.5); // (60 + 45) / 2
       expect(overview.mostUsedSong.title).toBe('Song 1');
       expect(overview.mostUsedSong.count).toBe(2);
       expect(overview.topServiceType.type).toBe('Sunday Morning');
@@ -59,8 +59,8 @@ describe('Analytics Utils', () => {
       const overview = aggregateUsageData([], [], []);
       
       expect(overview.totalSongs).toBe(0);
-      expect(overview.totalSetlists).toBe(0);
-      expect(overview.averageSetlistDuration).toBe(0);
+      expect(overview.totalServices).toBe(0);
+      expect(overview.averageServiceDuration).toBe(0);
       expect(overview.mostUsedSong.title).toBe('No data');
       expect(overview.activeWorshipLeaders).toBe(0);
     });
@@ -170,8 +170,8 @@ describe('Analytics Utils', () => {
     it('should generate insights for popular song', () => {
       const overview = {
         totalSongs: 10,
-        totalSetlists: 5,
-        averageSetlistDuration: 60,
+        totalServices: 5,
+        averageServiceDuration: 60,
         mostUsedSong: { title: 'Amazing Grace', count: 8 },
         topServiceType: { type: 'Sunday Morning', count: 3 },
         activeWorshipLeaders: 2
@@ -185,7 +185,7 @@ describe('Analytics Utils', () => {
     it('should generate insights for service duration', () => {
       const overview = {
         totalSongs: 10,
-        totalSetlists: 5,
+        totalServices: 5,
         averageSetlistDuration: 100,
         mostUsedSong: { title: 'Song', count: 1 },
         topServiceType: { type: 'Sunday Morning', count: 1 },
@@ -200,8 +200,8 @@ describe('Analytics Utils', () => {
     it('should generate insights for leadership', () => {
       const overview = {
         totalSongs: 10,
-        totalSetlists: 5,
-        averageSetlistDuration: 60,
+        totalServices: 5,
+        averageServiceDuration: 60,
         mostUsedSong: { title: 'Song', count: 1 },
         topServiceType: { type: 'Sunday Morning', count: 1 },
         activeWorshipLeaders: 1

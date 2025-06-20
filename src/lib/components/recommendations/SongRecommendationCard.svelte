@@ -105,7 +105,7 @@
 				View Song
 			</Button>
 			<Button size="sm" variant="primary" class="text-xs">
-				Add to Setlist
+				Add to Service
 			</Button>
 		</div>
 	</div>

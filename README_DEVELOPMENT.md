@@ -161,8 +161,8 @@ worshipwise/
 - **Users** - Authentication with basic user data (email, password)
 - **Profiles** - Extended user metadata (name, role, church_name, preferences)
 - **Songs** - Song catalog with metadata, keys, and file attachments
-- **Setlists** - Service planning with themes and dates
-- **Setlist Songs** - Junction table for song ordering in services
+- **Services** - Service planning with themes and dates
+- **Service Songs** - Junction table for song ordering in services
 - **Song Usage** - Analytics tracking for repetition prevention
 
 ### Collection Relationships

@@ -7,22 +7,22 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import { AlertTriangle, CheckCircle, Music, ArrowRight } from 'lucide-svelte';
 
-	let selectedSetlistId = $state<string>('');
+	let selectedServiceId = $state<string>('');
 	let showGeneralTips = $state<boolean>(true);
 
 	onMount(async () => {
-		// Load setlists for selection
-		await setlistsStore.loadSetlists();
+		// Load services for selection
+		await servicesStore.loadServices();
 		
 		// Load general flow suggestions
-		if (!selectedSetlistId) {
+		if (!selectedServiceId) {
 			await recommendationsStore.loadWorshipFlowSuggestions();
 		}
 	});
 
-	async function analyzeSetlist() {
-		if (selectedSetlistId) {
-			await recommendationsStore.loadWorshipFlowSuggestions(selectedSetlistId);
+	async function analyzeService() {
+		if (selectedServiceId) {
+			await recommendationsStore.loadWorshipFlowSuggestions(selectedServiceId);
 			showGeneralTips = false;
 		}
 	}
@@ -49,27 +49,27 @@
 		<div class="space-y-4">
 			<div>
 				<label class="block text-sm font-medium text-gray-700 mb-2">
-					Select a setlist to analyze (optional)
+					Select a service to analyze (optional)
 				</label>
 				<div class="flex gap-3">
 					<select 
-						bind:value={selectedSetlistId}
+						bind:value={selectedServiceId}
 						class="flex-1 rounded-md border-gray-300"
 					>
 						<option value="">-- General flow tips --</option>
-						{#each setlistsStore.setlists as setlist}
-							<option value={setlist.id}>
-								{setlist.title || `Setlist ${new Date(setlist.service_date).toLocaleDateString()}`}
+						{#each servicesStore.services as service}
+							<option value={service.id}>
+								{service.title || `Service ${new Date(service.service_date).toLocaleDateString()}`}
 							</option>
 						{/each}
 					</select>
-					<Button onclick={analyzeSetlist} disabled={!selectedSetlistId}>
+					<Button onclick={analyzeService} disabled={!selectedServiceId}>
 						Analyze Flow
 					</Button>
 				</div>
 			</div>
 			
-			{#if !selectedSetlistId}
+			{#if !selectedServiceId}
 				<Button 
 					variant="secondary" 
 					onclick={() => { showGeneralTips = true; recommendationsStore.loadWorshipFlowSuggestions(); }}
@@ -91,7 +91,7 @@
 	<!-- Flow Suggestions -->
 	{#if !recommendationsStore.loading && recommendationsStore.worshipFlowSuggestions.length > 0}
 		<div class="space-y-4">
-			{#if selectedSetlistId && !showGeneralTips}
+			{#if selectedServiceId && !showGeneralTips}
 				<h3 class="text-lg font-semibold font-title">Setlist Flow Analysis</h3>
 			{:else}
 				<h3 class="text-lg font-semibold font-title">General Worship Flow Guidelines</h3>
@@ -157,20 +157,20 @@
 	{/if}
 
 	<!-- No Issues Found -->
-	{#if !recommendationsStore.loading && selectedSetlistId && !showGeneralTips && recommendationsStore.worshipFlowSuggestions.length === 0}
+	{#if !recommendationsStore.loading && selectedServiceId && !showGeneralTips && recommendationsStore.worshipFlowSuggestions.length === 0}
 		<Card class="border-green-200 bg-green-50">
 			<div class="flex items-center gap-3">
 				<CheckCircle class="h-5 w-5 text-green-600" />
 				<div>
 					<h4 class="font-medium text-green-900">Great Flow!</h4>
-					<p class="text-sm text-green-700">This setlist has good worship flow with no major issues detected.</p>
+					<p class="text-sm text-green-700">This service has good worship flow with no major issues detected.</p>
 				</div>
 			</div>
 		</Card>
 	{/if}
 
 	<!-- Worship Flow Best Practices -->
-	{#if showGeneralTips || !selectedSetlistId}
+	{#if showGeneralTips || !selectedServiceId}
 		<Card>
 			<h3 class="text-lg font-semibold font-title mb-4">Worship Flow Best Practices</h3>
 			<div class="space-y-4">

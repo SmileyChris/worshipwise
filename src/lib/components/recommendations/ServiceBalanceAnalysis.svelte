@@ -7,16 +7,16 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import { BarChart3, AlertCircle, CheckCircle, Zap, Clock, Heart } from 'lucide-svelte';
 
-	let selectedSetlistId = $state<string>('');
+	let selectedServiceId = $state<string>('');
 
 	onMount(async () => {
-		// Load setlists for selection
-		await setlistsStore.loadSetlists();
+		// Load services for selection
+		await servicesStore.loadServices();
 	});
 
 	async function analyzeBalance() {
-		if (selectedSetlistId) {
-			await recommendationsStore.analyzeServiceBalance(selectedSetlistId);
+		if (selectedServiceId) {
+			await recommendationsStore.analyzeServiceBalance(selectedServiceId);
 		}
 	}
 
@@ -58,33 +58,33 @@
 		<div class="space-y-4">
 			<div>
 				<label class="block text-sm font-medium text-gray-700 mb-2">
-					Select a setlist to analyze
+					Select a service to analyze
 				</label>
 				<div class="flex gap-3">
 					<select 
-						bind:value={selectedSetlistId}
+						bind:value={selectedServiceId}
 						class="flex-1 rounded-md border-gray-300"
 					>
-						<option value="">-- Choose a setlist --</option>
-						{#each setlistsStore.setlists as setlist}
-							<option value={setlist.id}>
-								{setlist.title || `Setlist ${new Date(setlist.service_date).toLocaleDateString()}`}
-								{#if setlist.theme}
-									- {setlist.theme}
+						<option value="">-- Choose a service --</option>
+						{#each servicesStore.services as service}
+							<option value={service.id}>
+								{service.title || `Service ${new Date(service.service_date).toLocaleDateString()}`}
+								{#if service.theme}
+									- {service.theme}
 								{/if}
 							</option>
 						{/each}
 					</select>
-					<Button onclick={analyzeBalance} disabled={!selectedSetlistId}>
+					<Button onclick={analyzeBalance} disabled={!selectedServiceId}>
 						<BarChart3 class="h-4 w-4 mr-2" />
 						Analyze
 					</Button>
 				</div>
 			</div>
 			
-			{#if !selectedSetlistId}
+			{#if !selectedServiceId}
 				<p class="text-sm text-gray-600">
-					Select a setlist to analyze the tempo balance and get recommendations for improvement.
+					Select a service to analyze the tempo balance and get recommendations for improvement.
 				</p>
 			{/if}
 		</div>
@@ -210,7 +210,7 @@
 						<CheckCircle class="h-5 w-5 text-green-600" />
 						<div>
 							<h3 class="font-semibold font-title text-green-900">Perfect Balance!</h3>
-							<p class="text-sm text-green-700">This setlist has an excellent tempo balance for worship flow.</p>
+							<p class="text-sm text-green-700">This service has an excellent tempo balance for worship flow.</p>
 						</div>
 					</div>
 				</Card>
@@ -264,13 +264,13 @@
 	{/if}
 
 	<!-- No Analysis State -->
-	{#if !selectedSetlistId && !recommendationsStore.loading}
+	{#if !selectedServiceId && !recommendationsStore.loading}
 		<Card>
 			<div class="text-center py-8">
 				<BarChart3 class="h-12 w-12 text-gray-400 mx-auto mb-4" />
 				<h3 class="text-lg font-medium text-gray-900 mb-2">Service Balance Analysis</h3>
 				<p class="text-gray-600 max-w-md mx-auto">
-					Select a setlist above to analyze the tempo balance and get recommendations for creating better worship flow.
+					Select a service above to analyze the tempo balance and get recommendations for creating better worship flow.
 				</p>
 			</div>
 		</Card>

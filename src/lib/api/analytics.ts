@@ -220,7 +220,7 @@ export class AnalyticsAPI {
 		try {
 			const dateFilter = this.buildDateFilter(dateFrom, dateTo);
 
-			const setlists = await pb.collection('setlists').getFullList({
+			const services = await pb.collection('setlists').getFullList({
 				filter: dateFilter ? `status = "completed" && ${dateFilter}` : 'status = "completed"',
 				expand: 'setlist_songs_via_setlist_id.song_id'
 			});
@@ -237,8 +237,8 @@ export class AnalyticsAPI {
 				}
 			>();
 
-			setlists.forEach((setlist) => {
-				const serviceType = setlist.service_type || 'Unknown';
+			services.forEach((service) => {
+				const serviceType = service.service_type || 'Unknown';
 
 				if (!serviceTypeMap.has(serviceType)) {
 					serviceTypeMap.set(serviceType, {

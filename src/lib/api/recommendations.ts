@@ -50,13 +50,13 @@ export interface ComparativePeriod {
 		period: string;
 		usageCount: number;
 		uniqueSongs: number;
-		avgSetlistLength: number;
+		avgServiceLength: number;
 	};
 	previous: {
 		period: string;
 		usageCount: number;
 		uniqueSongs: number;
-		avgSetlistLength: number;
+		avgServiceLength: number;
 	};
 	changes: {
 		usageChange: number;
@@ -182,15 +182,15 @@ class RecommendationsApi {
 	/**
 	 * Analyze worship flow and provide suggestions
 	 */
-	async getWorshipFlowSuggestions(setlistId?: string): Promise<WorshipFlowSuggestion[]> {
+	async getWorshipFlowSuggestions(serviceId?: string): Promise<WorshipFlowSuggestion[]> {
 		try {
-			// If analyzing an existing setlist
-			if (setlistId) {
-				const setlist = await pb.collection('setlists').getOne(setlistId, {
+			// If analyzing an existing service
+			if (serviceId) {
+				const service = await pb.collection('setlists').getOne(serviceId, {
 					expand: 'setlist_songs_via_setlist.song'
 				});
 
-				const songs = setlist.expand?.setlist_songs_via_setlist || [];
+				const songs = service.expand?.setlist_songs_via_setlist || [];
 				const suggestions: WorshipFlowSuggestion[] = [];
 
 				songs.forEach((item: any, index: number) => {
@@ -260,13 +260,13 @@ class RecommendationsApi {
 	/**
 	 * Analyze service balance (fast/slow songs)
 	 */
-	async analyzeServiceBalance(setlistId: string): Promise<ServiceBalanceAnalysis> {
+	async analyzeServiceBalance(serviceId: string): Promise<ServiceBalanceAnalysis> {
 		try {
-			const setlist = await pb.collection('setlists').getOne(setlistId, {
+			const service = await pb.collection('setlists').getOne(serviceId, {
 				expand: 'setlist_songs_via_setlist.song'
 			});
 
-			const songs = setlist.expand?.setlist_songs_via_setlist || [];
+			const songs = service.expand?.setlist_songs_via_setlist || [];
 			const analysis = { fast: 0, medium: 0, slow: 0 };
 
 			songs.forEach((item: any) => {
@@ -414,14 +414,14 @@ class RecommendationsApi {
 				period: this.formatPeriod(currentStart, currentEnd),
 				usageCount: currentUsages.length,
 				uniqueSongs: new Set(currentUsages.map(u => u.song)).size,
-				avgSetlistLength: currentUniqueSetlists > 0 ? currentUsages.length / currentUniqueSetlists : 0
+				avgServiceLength: currentUniqueSetlists > 0 ? currentUsages.length / currentUniqueSetlists : 0
 			};
 
 			const prevStats = {
 				period: this.formatPeriod(prevStart, prevEnd),
 				usageCount: prevUsages.length,
 				uniqueSongs: new Set(prevUsages.map(u => u.song)).size,
-				avgSetlistLength: prevUniqueSetlists > 0 ? prevUsages.length / prevUniqueSetlists : 0
+				avgServiceLength: prevUniqueSetlists > 0 ? prevUsages.length / prevUniqueSetlists : 0
 			};
 
 			// Calculate changes
@@ -430,8 +430,8 @@ class RecommendationsApi {
 					((currentStats.usageCount - prevStats.usageCount) / prevStats.usageCount) * 100 : 0,
 				diversityChange: prevStats.uniqueSongs > 0 ? 
 					((currentStats.uniqueSongs - prevStats.uniqueSongs) / prevStats.uniqueSongs) * 100 : 0,
-				lengthChange: prevStats.avgSetlistLength > 0 ? 
-					((currentStats.avgSetlistLength - prevStats.avgSetlistLength) / prevStats.avgSetlistLength) * 100 : 0
+				lengthChange: prevStats.avgServiceLength > 0 ? 
+					((currentStats.avgServiceLength - prevStats.avgServiceLength) / prevStats.avgServiceLength) * 100 : 0
 			};
 
 			// Generate insights
@@ -443,7 +443,7 @@ class RecommendationsApi {
 				insights.push(`Song variety ${changes.diversityChange > 0 ? 'increased' : 'decreased'} by ${Math.abs(changes.diversityChange).toFixed(1)}%`);
 			}
 			if (Math.abs(changes.lengthChange) > 15) {
-				insights.push(`Average setlist length ${changes.lengthChange > 0 ? 'increased' : 'decreased'} by ${Math.abs(changes.lengthChange).toFixed(1)}%`);
+				insights.push(`Average service length ${changes.lengthChange > 0 ? 'increased' : 'decreased'} by ${Math.abs(changes.lengthChange).toFixed(1)}%`);
 			}
 
 			return {

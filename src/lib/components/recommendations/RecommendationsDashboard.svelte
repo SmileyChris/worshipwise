@@ -207,7 +207,7 @@
 							</div>
 							
 							<div class="flex justify-between items-center">
-								<span class="text-gray-600">Setlist Length</span>
+								<span class="text-gray-600">Service Length</span>
 								<Badge>
 									{recommendationsStore.comparativePeriod.changes.lengthChange >= 0 ? '+' : ''}
 									{recommendationsStore.comparativePeriod.changes.lengthChange.toFixed(1)}%
