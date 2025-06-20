@@ -345,16 +345,16 @@ class AnalyticsStore {
 			if (currentUsage > avgUsage * 1.2) {
 				insights.push('Song usage is trending upward - your worship ministry is growing!');
 			} else if (currentUsage < avgUsage * 0.8) {
-				insights.push('Song usage has decreased recently - consider more varied setlists');
+				insights.push('Song usage has decreased recently - consider more varied services');
 			}
 		}
 
 		// Overview insights
 		if (this.overview) {
 			if (this.overview.avgSongsPerService < 4) {
-				insights.push('Your setlists are quite short - consider adding more songs for variety');
+				insights.push('Your services are quite short - consider adding more songs for variety');
 			} else if (this.overview.avgSongsPerService > 8) {
-				insights.push('Your setlists are quite long - ensure you have enough time for all songs');
+				insights.push('Your services are quite long - ensure you have enough time for all songs');
 			}
 		}
 

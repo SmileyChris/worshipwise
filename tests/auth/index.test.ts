@@ -117,7 +117,7 @@ describe('Authentication Test Suite', () => {
 
   it('should test role-based permissions', () => {
     const roles = ['musician', 'leader', 'admin'];
-    const permissions = ['canManageSongs', 'canManageSetlists', 'isAdmin'];
+    const permissions = ['canManageSongs', 'canManageServices', 'isAdmin'];
 
     expect(roles.length).toBe(3);
     expect(permissions.length).toBe(3);
