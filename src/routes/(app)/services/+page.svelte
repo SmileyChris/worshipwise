@@ -265,28 +265,28 @@
 		<div class="grid grid-cols-1 gap-6 md:grid-cols-4">
 			<Card>
 				<div class="text-center">
-					<div class="text-2xl font-bold font-title text-gray-900">{stats().total}</div>
+					<div class="text-2xl font-bold font-title text-gray-900">{stats.total}</div>
 					<div class="text-sm text-gray-500">Total Services</div>
 				</div>
 			</Card>
 
 			<Card>
 				<div class="text-center">
-					<div class="text-2xl font-bold font-title text-blue-600">{stats().draft}</div>
+					<div class="text-2xl font-bold font-title text-blue-600">{stats.draft}</div>
 					<div class="text-sm text-gray-500">Draft</div>
 				</div>
 			</Card>
 
 			<Card>
 				<div class="text-center">
-					<div class="text-2xl font-bold font-title text-green-600">{stats().planned}</div>
+					<div class="text-2xl font-bold font-title text-green-600">{stats.planned}</div>
 					<div class="text-sm text-gray-500">Planned</div>
 				</div>
 			</Card>
 
 			<Card>
 				<div class="text-center">
-					<div class="text-2xl font-bold font-title text-purple-600">{stats().completed}</div>
+					<div class="text-2xl font-bold font-title text-purple-600">{stats.completed}</div>
 					<div class="text-sm text-gray-500">Completed</div>
 				</div>
 			</Card>

@@ -247,7 +247,7 @@ export async function importSampleData(
 
 	for (const songData of sampleData.sampleSongs) {
 		try {
-			const categoryId = await findCategoryId(songData.category);
+			const categoryId = await findCategoryId(songData.category || 'General');
 			if (!categoryId) {
 				console.warn(`Could not find or create category for song "${songData.title}", skipping`);
 				continue;

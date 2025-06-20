@@ -115,7 +115,7 @@
 							
 							{#if isEditingService}
 								<Button
-									size="xs"
+									size="sm"
 									variant={songsInCurrentService.has(song.id) ? "secondary" : "primary"}
 									onclick={() => onAddToService(song)}
 									disabled={songsInCurrentService.has(song.id)}
@@ -170,7 +170,7 @@
 							
 							{#if isEditingService}
 								<Button
-									size="xs"
+									size="sm"
 									variant={songsInCurrentService.has(song.id) ? "secondary" : "primary"}
 									onclick={() => onAddToService(song)}
 									disabled={songsInCurrentService.has(song.id)}

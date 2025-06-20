@@ -119,7 +119,7 @@
 							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-2">
 									<svelte:component this={tempo.icon} class={`h-4 w-4 ${tempo.color}`} />
-									<span class="font-medium">{getTempoLabel(tempo.key)}</span>
+									<span class="font-medium">{getTempoLabel(tempo.key as 'fast' | 'medium' | 'slow')}</span>
 								</div>
 								<div class="flex items-center gap-2">
 									<span class="text-gray-600">{tempo.value} songs</span>
@@ -162,7 +162,7 @@
 							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-2">
 									<svelte:component this={tempo.icon} class={`h-4 w-4 ${tempo.color}`} />
-									<span class="font-medium">{getTempoLabel(tempo.key)}</span>
+									<span class="font-medium">{getTempoLabel(tempo.key as 'fast' | 'medium' | 'slow')}</span>
 								</div>
 								<div class="flex items-center gap-2">
 									<span class="text-gray-600">{tempo.value} songs</span>

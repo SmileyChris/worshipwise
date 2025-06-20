@@ -129,7 +129,7 @@
 				</div>
 				<div class="flex items-end gap-2">
 					<Button onclick={applyDateFilter}>Apply Filter</Button>
-					{#if analyticsStore.isDateFiltered()}
+					{#if analyticsStore.isDateFiltered}
 						<Button variant="ghost" onclick={clearDateFilter}>Clear</Button>
 					{/if}
 				</div>

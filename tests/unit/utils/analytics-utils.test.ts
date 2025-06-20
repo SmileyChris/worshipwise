@@ -282,13 +282,13 @@ describe('Analytics Utils', () => {
     beforeEach(() => {
       // Mock Blob constructor
       mockBlob = vi.fn().mockImplementation(() => ({}));
-      global.Blob = mockBlob as any;
+      globalThis.Blob = mockBlob as any;
 
       // Mock URL.createObjectURL
       mockURL = {
         createObjectURL: vi.fn().mockReturnValue('blob:mock-url')
       };
-      global.URL = mockURL as any;
+      globalThis.URL = mockURL as any;
 
       // Mock document.createElement
       mockLink = {
@@ -297,7 +297,7 @@ describe('Analytics Utils', () => {
         style: {}
       };
 
-      global.document = {
+      globalThis.document = {
         createElement: vi.fn().mockReturnValue(mockLink),
         body: {
           appendChild: vi.fn(),

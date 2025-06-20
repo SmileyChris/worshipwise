@@ -365,8 +365,8 @@
 							Previous
 						</Button>
 						<Button
-							onclick={() => { currentPage = Math.min(users.totalPages, currentPage + 1); loadUsers(); }}
-							disabled={currentPage >= users.totalPages || loading}
+							onclick={() => { currentPage = Math.min(users?.totalPages || 1, currentPage + 1); loadUsers(); }}
+							disabled={currentPage >= (users?.totalPages || 1) || loading}
 							variant="outline"
 							size="sm"
 						>
@@ -392,8 +392,8 @@
 									Previous
 								</Button>
 								<Button
-									onclick={() => { currentPage = Math.min(users.totalPages, currentPage + 1); loadUsers(); }}
-									disabled={currentPage >= users.totalPages || loading}
+									onclick={() => { currentPage = Math.min(users?.totalPages || 1, currentPage + 1); loadUsers(); }}
+									disabled={currentPage >= (users?.totalPages || 1) || loading}
 									variant="outline"
 									size="sm"
 								>
