@@ -62,7 +62,7 @@
 						</div>
 						<div class="ml-4">
 							<p class="text-sm font-medium text-gray-500">Total Users</p>
-							<p class="text-2xl font-semibold text-gray-900">{stats.totalUsers}</p>
+							<p class="text-2xl font-semibold font-title text-gray-900">{stats.totalUsers}</p>
 						</div>
 					</div>
 				</div>
@@ -79,7 +79,7 @@
 						</div>
 						<div class="ml-4">
 							<p class="text-sm font-medium text-gray-500">Active Users</p>
-							<p class="text-2xl font-semibold text-gray-900">{stats.activeUsers}</p>
+							<p class="text-2xl font-semibold font-title text-gray-900">{stats.activeUsers}</p>
 						</div>
 					</div>
 				</div>
@@ -96,7 +96,7 @@
 						</div>
 						<div class="ml-4">
 							<p class="text-sm font-medium text-gray-500">Inactive Users</p>
-							<p class="text-2xl font-semibold text-gray-900">{stats.inactiveUsers}</p>
+							<p class="text-2xl font-semibold font-title text-gray-900">{stats.inactiveUsers}</p>
 						</div>
 					</div>
 				</div>
@@ -113,7 +113,7 @@
 						</div>
 						<div class="ml-4">
 							<p class="text-sm font-medium text-gray-500">New (30 days)</p>
-							<p class="text-2xl font-semibold text-gray-900">{stats.recentlyCreated}</p>
+							<p class="text-2xl font-semibold font-title text-gray-900">{stats.recentlyCreated}</p>
 						</div>
 					</div>
 				</div>
@@ -123,7 +123,7 @@
 		<!-- Role Distribution -->
 		<Card>
 			<div class="p-6">
-				<h3 class="text-lg font-medium text-gray-900 mb-4">User Roles</h3>
+				<h3 class="text-lg font-medium font-title text-gray-900 mb-4">User Roles</h3>
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 					<div class="bg-red-50 rounded-lg p-4">
 						<div class="flex items-center">
@@ -132,7 +132,7 @@
 							</div>
 							<div class="ml-3">
 								<p class="text-sm font-medium text-red-900">Administrators</p>
-								<p class="text-2xl font-semibold text-red-700">{stats.usersByRole.admin}</p>
+								<p class="text-2xl font-semibold font-title text-red-700">{stats.usersByRole.admin}</p>
 							</div>
 						</div>
 					</div>
@@ -144,7 +144,7 @@
 							</div>
 							<div class="ml-3">
 								<p class="text-sm font-medium text-yellow-900">Leaders</p>
-								<p class="text-2xl font-semibold text-yellow-700">{stats.usersByRole.leader}</p>
+								<p class="text-2xl font-semibold font-title text-yellow-700">{stats.usersByRole.leader}</p>
 							</div>
 						</div>
 					</div>
@@ -156,7 +156,7 @@
 							</div>
 							<div class="ml-3">
 								<p class="text-sm font-medium text-blue-900">Musicians</p>
-								<p class="text-2xl font-semibold text-blue-700">{stats.usersByRole.musician}</p>
+								<p class="text-2xl font-semibold font-title text-blue-700">{stats.usersByRole.musician}</p>
 							</div>
 						</div>
 					</div>
@@ -167,7 +167,7 @@
 		<!-- Quick Actions -->
 		<Card>
 			<div class="p-6">
-				<h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+				<h3 class="text-lg font-medium font-title text-gray-900 mb-4">Quick Actions</h3>
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					<Button 
 						href="/admin/users" 

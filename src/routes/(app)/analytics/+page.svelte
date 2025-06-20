@@ -70,7 +70,7 @@
 	<!-- Page header -->
 	<div class="md:flex md:items-center md:justify-between">
 		<div class="min-w-0 flex-1">
-			<h2 class="text-2xl font-bold text-gray-900 sm:text-3xl">Analytics</h2>
+			<h2 class="text-2xl font-bold font-title text-gray-900 sm:text-3xl">Analytics</h2>
 			<p class="mt-1 text-sm text-gray-500">
 				Insights into your worship song usage and service patterns
 			</p>
@@ -107,7 +107,7 @@
 	<!-- Date Range Filter -->
 	<Card>
 		<div class="p-4">
-			<h3 class="mb-3 text-lg font-medium text-gray-900">Filter by Date Range</h3>
+			<h3 class="mb-3 text-lg font-medium font-title text-gray-900">Filter by Date Range</h3>
 			<div class="flex flex-wrap items-center gap-4">
 				<div>
 					<label for="date-from" class="block text-sm font-medium text-gray-700">From</label>
@@ -144,7 +144,7 @@
 	{#if showInsights && insights.length > 0}
 		<Card>
 			<div class="p-4">
-				<h3 class="mb-3 text-lg font-medium text-gray-900">📊 Key Insights</h3>
+				<h3 class="mb-3 text-lg font-medium font-title text-gray-900">📊 Key Insights</h3>
 				<div class="space-y-2">
 					{#each insights as insight}
 						<div class="flex items-start gap-2">
@@ -167,7 +167,7 @@
 		<Card>
 			<div class="py-8 text-center">
 				<div class="mb-4 text-6xl">📊</div>
-				<h3 class="mb-2 text-lg font-medium text-gray-900">No Analytics Data Yet</h3>
+				<h3 class="mb-2 text-lg font-medium font-title text-gray-900">No Analytics Data Yet</h3>
 				<p class="mb-6 text-gray-500">
 					Create some setlists and mark them as completed to see analytics data.
 				</p>
@@ -182,7 +182,7 @@
 			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 				<Card>
 					<div class="p-6 text-center">
-						<div class="text-3xl font-bold text-blue-600">
+						<div class="text-3xl font-bold font-title text-blue-600">
 							{formatNumber(analyticsStore.overview.totalSongs)}
 						</div>
 						<div class="text-sm text-gray-500">Total Songs</div>
@@ -191,7 +191,7 @@
 
 				<Card>
 					<div class="p-6 text-center">
-						<div class="text-3xl font-bold text-green-600">
+						<div class="text-3xl font-bold font-title text-green-600">
 							{formatNumber(analyticsStore.overview.totalSetlists)}
 						</div>
 						<div class="text-sm text-gray-500">Completed Setlists</div>
@@ -200,7 +200,7 @@
 
 				<Card>
 					<div class="p-6 text-center">
-						<div class="text-3xl font-bold text-purple-600">
+						<div class="text-3xl font-bold font-title text-purple-600">
 							{formatNumber(analyticsStore.overview.totalUsages)}
 						</div>
 						<div class="text-sm text-gray-500">Song Uses</div>
@@ -209,7 +209,7 @@
 
 				<Card>
 					<div class="p-6 text-center">
-						<div class="text-3xl font-bold text-yellow-600">
+						<div class="text-3xl font-bold font-title text-yellow-600">
 							{analyticsStore.overview.avgSongsPerSetlist}
 						</div>
 						<div class="text-sm text-gray-500">Avg Songs per Setlist</div>
@@ -218,7 +218,7 @@
 
 				<Card>
 					<div class="p-6 text-center">
-						<div class="text-3xl font-bold text-indigo-600">
+						<div class="text-3xl font-bold font-title text-indigo-600">
 							{formatDuration(analyticsStore.overview.avgServiceDuration)}
 						</div>
 						<div class="text-sm text-gray-500">Avg Service Duration</div>
@@ -227,7 +227,7 @@
 
 				<Card>
 					<div class="p-6 text-center">
-						<div class="text-3xl font-bold text-rose-600">
+						<div class="text-3xl font-bold font-title text-rose-600">
 							{formatNumber(analyticsStore.overview.activeWorshipLeaders)}
 						</div>
 						<div class="text-sm text-gray-500">Active Leaders</div>
@@ -243,7 +243,7 @@
 				<Card>
 					<div class="p-6">
 						<div class="mb-4 flex items-center justify-between">
-							<h3 class="text-lg font-medium text-gray-900">Most Popular Songs</h3>
+							<h3 class="text-lg font-medium font-title text-gray-900">Most Popular Songs</h3>
 							<Button
 								variant="ghost"
 								size="sm"
@@ -282,7 +282,7 @@
 				<Card>
 					<div class="p-6">
 						<div class="mb-4 flex items-center justify-between">
-							<h3 class="text-lg font-medium text-gray-900">Service Types</h3>
+							<h3 class="text-lg font-medium font-title text-gray-900">Service Types</h3>
 							<Button
 								variant="ghost"
 								size="sm"
@@ -315,7 +315,7 @@
 			{#if analyticsStore.keyUsageStats.length > 0}
 				<Card>
 					<div class="p-6">
-						<h3 class="mb-4 text-lg font-medium text-gray-900">Popular Keys</h3>
+						<h3 class="mb-4 text-lg font-medium font-title text-gray-900">Popular Keys</h3>
 						<div class="space-y-3">
 							{#each analyticsStore.keyUsageStats.slice(0, 8) as keyData}
 								<div class="flex items-center justify-between">
@@ -342,7 +342,7 @@
 				<Card>
 					<div class="p-6">
 						<div class="mb-4 flex items-center justify-between">
-							<h3 class="text-lg font-medium text-gray-900">Worship Leaders</h3>
+							<h3 class="text-lg font-medium font-title text-gray-900">Worship Leaders</h3>
 							<Button
 								variant="ghost"
 								size="sm"
@@ -388,7 +388,7 @@
 				<Card>
 					<div class="p-6">
 						<div class="mb-4 flex items-center justify-between">
-							<h3 class="text-lg font-medium text-gray-900">Usage Trends</h3>
+							<h3 class="text-lg font-medium font-title text-gray-900">Usage Trends</h3>
 							<select
 								bind:value={analyticsStore.trendInterval}
 								onchange={() => analyticsStore.setTrendInterval(analyticsStore.trendInterval)}
@@ -413,7 +413,7 @@
 			{#if analyticsStore.keyUsageStats.length > 0}
 				<Card>
 					<div class="p-6">
-						<h3 class="mb-4 text-lg font-medium text-gray-900">Key Distribution</h3>
+						<h3 class="mb-4 text-lg font-medium font-title text-gray-900">Key Distribution</h3>
 						<div class="h-64">
 							<KeyUsageChart data={analyticsStore.keyUsageStats} class="h-full w-full" />
 						</div>
@@ -425,7 +425,7 @@
 			{#if analyticsStore.serviceTypeStats.length > 0}
 				<Card class="lg:col-span-2">
 					<div class="p-6">
-						<h3 class="mb-4 text-lg font-medium text-gray-900">Service Type Analysis</h3>
+						<h3 class="mb-4 text-lg font-medium font-title text-gray-900">Service Type Analysis</h3>
 						<div class="h-64">
 							<ServiceTypeChart data={analyticsStore.serviceTypeStats} class="h-full w-full" />
 						</div>

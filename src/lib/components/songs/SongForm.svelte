@@ -271,7 +271,7 @@
 
 <Card class="mx-auto max-w-2xl">
 	<div class="mb-6">
-		<h2 class="text-xl font-bold text-gray-900">
+		<h2 class="text-xl font-bold font-title text-gray-900">
 			{isEditing ? 'Edit Song' : 'Add New Song'}
 		</h2>
 		<p class="text-sm text-gray-600">

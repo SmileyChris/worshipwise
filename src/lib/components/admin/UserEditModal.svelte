@@ -117,7 +117,7 @@
 	<div class="space-y-6">
 		<!-- Header -->
 		<div>
-			<h3 class="text-lg font-semibold text-gray-900">Edit User</h3>
+			<h3 class="text-lg font-semibold font-title text-gray-900">Edit User</h3>
 			<p class="text-sm text-gray-500">Update user information and profile details</p>
 		</div>
 

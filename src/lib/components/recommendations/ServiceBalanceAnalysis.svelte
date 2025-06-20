@@ -54,7 +54,7 @@
 <div class="space-y-6">
 	<!-- Setlist Selection -->
 	<Card>
-		<h3 class="text-lg font-semibold mb-4">Analyze Service Balance</h3>
+		<h3 class="text-lg font-semibold font-title mb-4">Analyze Service Balance</h3>
 		<div class="space-y-4">
 			<div>
 				<label class="block text-sm font-medium text-gray-700 mb-2">
@@ -109,7 +109,7 @@
 			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				<!-- Current Balance -->
 				<Card>
-					<h3 class="text-lg font-semibold mb-4">Current Balance</h3>
+					<h3 class="text-lg font-semibold font-title mb-4">Current Balance</h3>
 					<div class="space-y-4">
 						{#each [
 							{ key: 'fast', label: 'Fast', value: analysis.currentBalance.fast, icon: Zap, color: 'text-orange-600' },
@@ -152,7 +152,7 @@
 
 				<!-- Ideal Balance -->
 				<Card>
-					<h3 class="text-lg font-semibold mb-4">Recommended Balance</h3>
+					<h3 class="text-lg font-semibold font-title mb-4">Recommended Balance</h3>
 					<div class="space-y-4">
 						{#each [
 							{ key: 'fast', label: 'Fast', value: analysis.idealBalance.fast, icon: Zap, color: 'text-orange-600', percent: 30 },
@@ -195,7 +195,7 @@
 					<div class="flex items-start gap-3">
 						<AlertCircle class="h-5 w-5 text-yellow-600 mt-0.5" />
 						<div>
-							<h3 class="text-lg font-semibold text-yellow-900 mb-3">Balance Recommendations</h3>
+							<h3 class="text-lg font-semibold font-title text-yellow-900 mb-3">Balance Recommendations</h3>
 							<ul class="space-y-2">
 								{#each analysis.recommendations as recommendation}
 									<li class="text-sm text-yellow-800">• {recommendation}</li>
@@ -209,7 +209,7 @@
 					<div class="flex items-center gap-3">
 						<CheckCircle class="h-5 w-5 text-green-600" />
 						<div>
-							<h3 class="font-semibold text-green-900">Perfect Balance!</h3>
+							<h3 class="font-semibold font-title text-green-900">Perfect Balance!</h3>
 							<p class="text-sm text-green-700">This setlist has an excellent tempo balance for worship flow.</p>
 						</div>
 					</div>
@@ -218,7 +218,7 @@
 
 			<!-- Balance Tips -->
 			<Card>
-				<h3 class="text-lg font-semibold mb-4">Service Balance Guidelines</h3>
+				<h3 class="text-lg font-semibold font-title mb-4">Service Balance Guidelines</h3>
 				<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 					<div>
 						<div class="flex items-center gap-2 mb-2">

@@ -39,7 +39,7 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-3xl font-bold text-gray-900">Worship Insights</h1>
+			<h1 class="text-3xl font-bold font-title text-gray-900">Worship Insights</h1>
 			<p class="text-gray-600">Smart recommendations and analytics for better worship planning</p>
 		</div>
 		
@@ -61,7 +61,7 @@
 			<div class="flex items-start gap-3">
 				<Lightbulb class="h-5 w-5 text-blue-600 mt-0.5" />
 				<div>
-					<h3 class="font-semibold text-gray-900 mb-2">Key Insights</h3>
+					<h3 class="font-semibold font-title text-gray-900 mb-2">Key Insights</h3>
 					<ul class="space-y-1">
 						{#each recommendationsStore.getSummaryInsights() as insight}
 							<li class="text-sm text-gray-700">• {insight}</li>
@@ -157,7 +157,7 @@
 			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				<!-- Quick Stats -->
 				<Card>
-					<h3 class="text-lg font-semibold mb-4">Quick Stats</h3>
+					<h3 class="text-lg font-semibold font-title mb-4">Quick Stats</h3>
 					<div class="space-y-3">
 						<div class="flex justify-between">
 							<span class="text-gray-600">Total Recommendations</span>
@@ -186,7 +186,7 @@
 				<!-- Comparative Analysis -->
 				{#if recommendationsStore.comparativePeriod}
 					<Card>
-						<h3 class="text-lg font-semibold mb-4">This Month vs Last Month</h3>
+						<h3 class="text-lg font-semibold font-title mb-4">This Month vs Last Month</h3>
 						<div class="space-y-3">
 							<div class="flex justify-between items-center">
 								<span class="text-gray-600">Song Usage</span>
@@ -230,7 +230,7 @@
 
 				<!-- Top Rotation Recommendations -->
 				<Card class="lg:col-span-2">
-					<h3 class="text-lg font-semibold mb-4">Quick Rotation Suggestions</h3>
+					<h3 class="text-lg font-semibold font-title mb-4">Quick Rotation Suggestions</h3>
 					{#if recommendationsStore.getQuickRotationSuggestions(3).length > 0}
 						<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 							{#each recommendationsStore.getQuickRotationSuggestions(3) as recommendation}
@@ -248,7 +248,7 @@
 			<div class="space-y-6">
 				<!-- Filters -->
 				<Card>
-					<h3 class="text-lg font-semibold mb-4">Recommendation Filters</h3>
+					<h3 class="text-lg font-semibold font-title mb-4">Recommendation Filters</h3>
 					<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 						<div>
 							<label class="block text-sm font-medium text-gray-700 mb-2">
@@ -290,7 +290,7 @@
 					<!-- Rotation Recommendations -->
 					{#if recommendationsStore.rotationRecommendations.length > 0}
 						<Card>
-							<h3 class="text-lg font-semibold mb-4">Rotation Recommendations</h3>
+							<h3 class="text-lg font-semibold font-title mb-4">Rotation Recommendations</h3>
 							<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 								{#each recommendationsStore.rotationRecommendations as recommendation}
 									<SongRecommendationCard {recommendation} />
@@ -302,7 +302,7 @@
 					<!-- Seasonal Recommendations -->
 					{#if recommendationsStore.seasonalRecommendations.length > 0}
 						<Card>
-							<h3 class="text-lg font-semibold mb-4">Seasonal Recommendations</h3>
+							<h3 class="text-lg font-semibold font-title mb-4">Seasonal Recommendations</h3>
 							<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 								{#each recommendationsStore.seasonalRecommendations as recommendation}
 									<SongRecommendationCard {recommendation} />
@@ -328,7 +328,7 @@
 					<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 						{#each recommendationsStore.seasonalTrends as trend}
 							<Card>
-								<h3 class="text-lg font-semibold mb-4">{trend.season} - {new Date(2024, trend.month - 1).toLocaleString('default', { month: 'long' })}</h3>
+								<h3 class="text-lg font-semibold font-title mb-4">{trend.season} - {new Date(2024, trend.month - 1).toLocaleString('default', { month: 'long' })}</h3>
 								
 								{#if trend.popularSongs.length > 0}
 									<div class="space-y-2">

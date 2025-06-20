@@ -45,7 +45,7 @@
 <div class="space-y-6">
 	<!-- Setlist Selection -->
 	<Card>
-		<h3 class="text-lg font-semibold mb-4">Analyze Worship Flow</h3>
+		<h3 class="text-lg font-semibold font-title mb-4">Analyze Worship Flow</h3>
 		<div class="space-y-4">
 			<div>
 				<label class="block text-sm font-medium text-gray-700 mb-2">
@@ -92,9 +92,9 @@
 	{#if !recommendationsStore.loading && recommendationsStore.worshipFlowSuggestions.length > 0}
 		<div class="space-y-4">
 			{#if selectedSetlistId && !showGeneralTips}
-				<h3 class="text-lg font-semibold">Setlist Flow Analysis</h3>
+				<h3 class="text-lg font-semibold font-title">Setlist Flow Analysis</h3>
 			{:else}
-				<h3 class="text-lg font-semibold">General Worship Flow Guidelines</h3>
+				<h3 class="text-lg font-semibold font-title">General Worship Flow Guidelines</h3>
 			{/if}
 
 			{#each recommendationsStore.worshipFlowSuggestions as suggestion, index}
@@ -172,7 +172,7 @@
 	<!-- Worship Flow Best Practices -->
 	{#if showGeneralTips || !selectedSetlistId}
 		<Card>
-			<h3 class="text-lg font-semibold mb-4">Worship Flow Best Practices</h3>
+			<h3 class="text-lg font-semibold font-title mb-4">Worship Flow Best Practices</h3>
 			<div class="space-y-4">
 				<div class="flex items-start gap-3">
 					<ArrowRight class="h-4 w-4 text-blue-600 mt-1" />
@@ -210,7 +210,7 @@
 
 		<!-- Key Transition Tips -->
 		<Card>
-			<h3 class="text-lg font-semibold mb-4">Key Transition Guidelines</h3>
+			<h3 class="text-lg font-semibold font-title mb-4">Key Transition Guidelines</h3>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
 				<div>
 					<h4 class="font-medium mb-2">Easy Transitions</h4>

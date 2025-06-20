@@ -84,7 +84,7 @@
 				<div class="flex flex-shrink-0 items-center justify-between border-b border-gray-200 p-6">
 					{#if title}
 						<div>
-							<h2 id="modal-title" class="text-lg font-semibold text-gray-900">{title}</h2>
+							<h2 id="modal-title" class="text-lg font-semibold font-title text-gray-900">{title}</h2>
 							{#if subtitle}
 								<p class="mt-1 text-sm text-gray-600">{subtitle}</p>
 							{/if}

@@ -269,7 +269,7 @@
 	<!-- Profile Information -->
 	<Card class="p-6">
 		<div class="mb-6">
-			<h2 class="text-lg font-semibold text-gray-900">Profile Information</h2>
+			<h2 class="text-lg font-semibold font-title text-gray-900">Profile Information</h2>
 			<p class="mt-1 text-sm text-gray-600">
 				Update your personal information and account settings.
 			</p>
@@ -383,7 +383,7 @@
 	<!-- Password Change -->
 	<Card class="p-6">
 		<div class="mb-6">
-			<h2 class="text-lg font-semibold text-gray-900">Change Password</h2>
+			<h2 class="text-lg font-semibold font-title text-gray-900">Change Password</h2>
 			<p class="mt-1 text-sm text-gray-600">
 				Update your password to keep your account secure.
 			</p>

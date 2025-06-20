@@ -20,7 +20,7 @@
 		<div class="mb-6 border-b border-gray-200 pb-4">
 			<div class="flex items-center justify-between">
 				<div>
-					<h1 class="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+					<h1 class="text-2xl font-bold font-title text-gray-900">Admin Dashboard</h1>
 					<p class="mt-1 text-sm text-gray-500">
 						Manage users, permissions, and system settings
 					</p>

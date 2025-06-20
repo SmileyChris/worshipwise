@@ -1,8 +1,7 @@
 <script lang="ts">
+	import { page as pageStore } from '$app/stores';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { quickstartStore } from '$lib/stores/quickstart.svelte';
-	import { page as pageStore } from '$app/stores';
-	import Button from '$lib/components/ui/Button.svelte';
 
 	// User menu dropdown state
 	let userMenuOpen = $state(false);
@@ -57,7 +56,7 @@
 		const target = event.target as Element;
 		const userMenu = document.getElementById('user-menu-button');
 		const userMenuDropdown = userMenu?.nextElementSibling;
-		
+
 		if (userMenuOpen && !userMenu?.contains(target) && !userMenuDropdown?.contains(target)) {
 			closeUserMenu();
 		}
@@ -79,8 +78,11 @@
 		<div class="flex h-16 justify-between">
 			<!-- Logo and primary navigation -->
 			<div class="flex">
-				<div class="flex flex-shrink-0 items-center">
-					<a href="/dashboard" class="text-xl font-bold text-blue-600"> WorshipWise </a>
+				<div class="mr-4 flex flex-shrink-0 items-center pt-2">
+					<a href="/dashboard" class="flex items-baseline space-x-2">
+						<img src="/logo.svg" alt="WorshipWise" class="size-5" />
+						<span class="font-title text-xl font-bold" style="color: #163b93;">WorshipWise</span>
+					</a>
 				</div>
 
 				<!-- Navigation links -->
@@ -115,7 +117,7 @@
 				<div class="relative">
 					<button
 						onclick={toggleUserMenu}
-						class="flex items-center rounded-full bg-white p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+						class="flex items-center rounded-full bg-white p-1 text-sm focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
 						id="user-menu-button"
 						aria-expanded={userMenuOpen}
 						aria-haspopup="true"
@@ -130,7 +132,7 @@
 
 					{#if userMenuOpen}
 						<div
-							class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+							class="ring-opacity-5 absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black focus:outline-none"
 							role="menu"
 							aria-orientation="vertical"
 							aria-labelledby="user-menu-button"

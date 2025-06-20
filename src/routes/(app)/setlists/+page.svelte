@@ -241,7 +241,7 @@
 		<!-- Page header -->
 		<div class="md:flex md:items-center md:justify-between">
 			<div class="min-w-0 flex-1">
-				<h2 class="text-2xl font-bold text-gray-900 sm:text-3xl">Setlists</h2>
+				<h2 class="text-2xl font-bold font-title text-gray-900 sm:text-3xl">Setlists</h2>
 				<p class="mt-1 text-sm text-gray-500">Plan and manage your worship service setlists</p>
 			</div>
 
@@ -265,28 +265,28 @@
 		<div class="grid grid-cols-1 gap-6 md:grid-cols-4">
 			<Card>
 				<div class="text-center">
-					<div class="text-2xl font-bold text-gray-900">{stats().total}</div>
+					<div class="text-2xl font-bold font-title text-gray-900">{stats().total}</div>
 					<div class="text-sm text-gray-500">Total Setlists</div>
 				</div>
 			</Card>
 
 			<Card>
 				<div class="text-center">
-					<div class="text-2xl font-bold text-blue-600">{stats().draft}</div>
+					<div class="text-2xl font-bold font-title text-blue-600">{stats().draft}</div>
 					<div class="text-sm text-gray-500">Draft</div>
 				</div>
 			</Card>
 
 			<Card>
 				<div class="text-center">
-					<div class="text-2xl font-bold text-green-600">{stats().planned}</div>
+					<div class="text-2xl font-bold font-title text-green-600">{stats().planned}</div>
 					<div class="text-sm text-gray-500">Planned</div>
 				</div>
 			</Card>
 
 			<Card>
 				<div class="text-center">
-					<div class="text-2xl font-bold text-purple-600">{stats().completed}</div>
+					<div class="text-2xl font-bold font-title text-purple-600">{stats().completed}</div>
 					<div class="text-sm text-gray-500">Completed</div>
 				</div>
 			</Card>
@@ -302,7 +302,7 @@
 			<Card>
 				<div class="py-8 text-center">
 					<div class="mb-4 text-6xl">📋</div>
-					<h3 class="mb-2 text-lg font-medium text-gray-900">Plan Your Worship Services</h3>
+					<h3 class="mb-2 text-lg font-medium font-title text-gray-900">Plan Your Worship Services</h3>
 					<p class="mb-6 text-gray-500">
 						Create setlists, track song usage, and collaborate with your team.
 					</p>

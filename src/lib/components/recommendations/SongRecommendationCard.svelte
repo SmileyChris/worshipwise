@@ -39,7 +39,7 @@
 		<!-- Header -->
 		<div class="flex items-start justify-between">
 			<div class="flex-1">
-				<h4 class="font-semibold text-gray-900">{recommendation.title}</h4>
+				<h4 class="font-semibold font-title text-gray-900">{recommendation.title}</h4>
 				{#if recommendation.artist}
 					<p class="text-sm text-gray-600">by {recommendation.artist}</p>
 				{/if}

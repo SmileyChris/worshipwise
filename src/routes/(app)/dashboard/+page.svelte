@@ -40,7 +40,7 @@
 					<Music class="h-8 w-8 text-blue-600" />
 				</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold text-gray-900">{mockStats.totalSongs}</div>
+					<div class="text-2xl font-bold font-title text-gray-900">{mockStats.totalSongs}</div>
 					<div class="text-sm text-gray-500">Total Songs</div>
 				</div>
 			</div>
@@ -52,7 +52,7 @@
 					<Clock class="h-8 w-8 text-green-600" />
 				</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold text-gray-900">{mockStats.recentSongs}</div>
+					<div class="text-2xl font-bold font-title text-gray-900">{mockStats.recentSongs}</div>
 					<div class="text-sm text-gray-500">Added This Week</div>
 				</div>
 			</div>
@@ -64,7 +64,7 @@
 					<TrendingUp class="h-8 w-8 text-purple-600" />
 				</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold text-gray-900">{mockStats.upcomingSetlists}</div>
+					<div class="text-2xl font-bold font-title text-gray-900">{mockStats.upcomingSetlists}</div>
 					<div class="text-sm text-gray-500">Upcoming Services</div>
 				</div>
 			</div>
@@ -76,7 +76,7 @@
 					<Users class="h-8 w-8 text-orange-600" />
 				</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold text-gray-900">{mockStats.teamMembers}</div>
+					<div class="text-2xl font-bold font-title text-gray-900">{mockStats.teamMembers}</div>
 					<div class="text-sm text-gray-500">Team Members</div>
 				</div>
 			</div>
@@ -88,7 +88,7 @@
 		<!-- Recent songs -->
 		<Card>
 			<div class="mb-4 flex items-center justify-between">
-				<h3 class="text-lg font-medium text-gray-900">Recent Songs</h3>
+				<h3 class="text-lg font-medium font-title text-gray-900">Recent Songs</h3>
 				<a href="/songs" class="text-sm text-blue-600 hover:text-blue-800">View All</a>
 			</div>
 
@@ -128,7 +128,7 @@
 
 		<!-- Quick actions -->
 		<Card>
-			<h3 class="mb-4 text-lg font-medium text-gray-900">Quick Actions</h3>
+			<h3 class="mb-4 text-lg font-medium font-title text-gray-900">Quick Actions</h3>
 			<div class="space-y-3">
 				<a
 					href="/songs"
@@ -162,7 +162,7 @@
 	<!-- Getting started tips -->
 	{#if songs.songs.length < 5}
 		<Card>
-			<h3 class="mb-4 text-lg font-medium text-gray-900">Getting Started Tips</h3>
+			<h3 class="mb-4 text-lg font-medium font-title text-gray-900">Getting Started Tips</h3>
 			<div class="space-y-3 text-sm text-gray-600">
 				<div class="flex items-start">
 					<div

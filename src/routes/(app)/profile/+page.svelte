@@ -22,7 +22,7 @@
 
 <div class="container mx-auto px-4 py-8">
 	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-900">{pageTitle}</h1>
+		<h1 class="text-3xl font-bold font-title text-gray-900">{pageTitle}</h1>
 		<p class="mt-2 text-gray-600">
 			Manage your account settings and preferences.
 		</p>

@@ -165,7 +165,7 @@
 	<!-- Header and controls -->
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 		<div>
-			<h2 class="text-xl font-semibold text-gray-900">User Management</h2>
+			<h2 class="text-xl font-semibold font-title text-gray-900">User Management</h2>
 			<p class="text-sm text-gray-500">
 				{users ? `${users.totalItems} total users` : 'Loading users...'}
 			</p>

@@ -174,7 +174,7 @@
 	<div class="md:flex md:items-center md:justify-between">
 		<div class="min-w-0 flex-1">
 			<h2
-				class="text-2xl leading-7 font-bold text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight"
+				class="text-2xl leading-7 font-bold text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight font-title"
 			>
 				Song Library
 			</h2>
@@ -213,21 +213,21 @@
 	<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
 		<Card>
 			<div class="text-center">
-				<div class="text-2xl font-bold text-gray-900">{stats.totalSongs}</div>
+				<div class="text-2xl font-bold font-title text-gray-900">{stats.totalSongs}</div>
 				<div class="text-sm text-gray-500">Total Songs</div>
 			</div>
 		</Card>
 
 		<Card>
 			<div class="text-center">
-				<div class="text-2xl font-bold text-green-600">{stats.availableSongs}</div>
+				<div class="text-2xl font-bold font-title text-green-600">{stats.availableSongs}</div>
 				<div class="text-sm text-gray-500">Available Songs</div>
 			</div>
 		</Card>
 
 		<Card>
 			<div class="text-center">
-				<div class="text-2xl font-bold text-yellow-600">{stats.recentlyUsed}</div>
+				<div class="text-2xl font-bold font-title text-yellow-600">{stats.recentlyUsed}</div>
 				<div class="text-sm text-gray-500">Recently Used</div>
 			</div>
 		</Card>

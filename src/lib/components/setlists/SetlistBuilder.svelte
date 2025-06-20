@@ -221,7 +221,7 @@
 		<div class="border-b border-gray-200 p-4">
 			<div class="flex items-center justify-between">
 				<div>
-					<h2 class="text-xl font-semibold text-gray-900">
+					<h2 class="text-xl font-semibold font-title text-gray-900">
 						{setlistsStore.currentSetlist.title}
 					</h2>
 					<p class="text-sm text-gray-600">
@@ -243,7 +243,7 @@
 		<div class="flex flex-1 overflow-hidden">
 			<!-- Songs Library -->
 			<div class="w-1/3 border-r border-gray-200 bg-gray-50 p-4">
-				<h3 class="mb-3 text-lg font-medium text-gray-900">Song Library</h3>
+				<h3 class="mb-3 text-lg font-medium font-title text-gray-900">Song Library</h3>
 
 				<!-- Search -->
 				<input
@@ -305,7 +305,7 @@
 
 			<!-- Setlist -->
 			<div class="flex-1 p-4">
-				<h3 class="mb-3 text-lg font-medium text-gray-900">Service Order</h3>
+				<h3 class="mb-3 text-lg font-medium font-title text-gray-900">Service Order</h3>
 
 				<div class="space-y-2">
 					{#each setlistsStore.currentSetlistSongs as song, index (song.id)}

@@ -22,7 +22,7 @@
 	<div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
 		<!-- Hero section -->
 		<div class="text-center">
-			<h1 class="mb-6 text-4xl font-bold text-gray-900 md:text-6xl">
+			<h1 class="mb-6 text-4xl font-bold font-title text-gray-900 md:text-6xl">
 				Welcome to <span class="text-blue-600">WorshipWise</span>
 			</h1>
 			<p class="mx-auto mb-8 max-w-3xl text-xl text-gray-600">
@@ -45,7 +45,7 @@
 			<Card>
 				<div class="text-center">
 					<div class="mb-4 text-4xl">🎵</div>
-					<h3 class="mb-2 text-lg font-semibold text-gray-900">Smart Song Library</h3>
+					<h3 class="mb-2 text-lg font-semibold font-title text-gray-900">Smart Song Library</h3>
 					<p class="text-gray-600">
 						Organize your worship songs with metadata, files, and usage tracking.
 					</p>
@@ -55,7 +55,7 @@
 			<Card>
 				<div class="text-center">
 					<div class="mb-4 text-4xl">📋</div>
-					<h3 class="mb-2 text-lg font-semibold text-gray-900">Setlist Planning</h3>
+					<h3 class="mb-2 text-lg font-semibold font-title text-gray-900">Setlist Planning</h3>
 					<p class="text-gray-600">
 						Create and collaborate on setlists with real-time updates and team sharing.
 					</p>
@@ -65,7 +65,7 @@
 			<Card>
 				<div class="text-center">
 					<div class="mb-4 text-4xl">📊</div>
-					<h3 class="mb-2 text-lg font-semibold text-gray-900">Usage Analytics</h3>
+					<h3 class="mb-2 text-lg font-semibold font-title text-gray-900">Usage Analytics</h3>
 					<p class="text-gray-600">
 						Track song frequency and prevent repetition with intelligent recommendations.
 					</p>
@@ -76,7 +76,7 @@
 		<!-- Call to action -->
 		<div class="mt-20 text-center">
 			<Card class="mx-auto max-w-2xl">
-				<h2 class="mb-4 text-2xl font-bold text-gray-900">
+				<h2 class="mb-4 text-2xl font-bold font-title text-gray-900">
 					Ready to Transform Your Worship Planning?
 				</h2>
 				<p class="mb-6 text-gray-600">

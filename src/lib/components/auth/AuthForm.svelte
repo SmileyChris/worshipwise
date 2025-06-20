@@ -151,7 +151,7 @@
 
 <Card class="mx-auto w-full max-w-md">
 	<div class="mb-6 text-center">
-		<h1 class="text-2xl font-bold text-gray-900">{title}</h1>
+		<h1 class="text-2xl font-bold font-title text-gray-900">{title}</h1>
 		<p class="mt-2 text-sm text-gray-600">
 			{#if isLogin}
 				Welcome back to WorshipWise
