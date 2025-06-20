@@ -160,6 +160,7 @@
 					</label>
 					<Input
 						id="email"
+						name="email"
 						type="email"
 						bind:value={formData.email}
 						placeholder="user@example.com"
@@ -174,6 +175,7 @@
 					</label>
 					<Input
 						id="name"
+						name="name"
 						bind:value={formData.name}
 						placeholder="User's display name"
 						disabled={loading}
@@ -192,6 +194,7 @@
 						</label>
 						<Input
 							id="profileName"
+							name="profileName"
 							bind:value={formData.profileName}
 							placeholder="Full name for display"
 							disabled={loading}
@@ -204,6 +207,7 @@
 						</label>
 						<Select
 							id="role"
+							name="role"
 							bind:value={formData.role}
 							disabled={loading}
 						>
@@ -220,6 +224,7 @@
 					</label>
 					<Input
 						id="churchName"
+						name="churchName"
 						bind:value={formData.churchName}
 						placeholder="Church or organization name"
 						disabled={loading}

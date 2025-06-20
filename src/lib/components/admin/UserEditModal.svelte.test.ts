@@ -11,8 +11,13 @@ vi.mock('$lib/api/admin', () => ({
   getUserActivity: vi.fn()
 }));
 
-// Import the mocked functions
+// Import the mocked functions with proper types
 import { updateUser, updateUserProfile, getUserActivity } from '$lib/api/admin';
+
+// Type the mocked functions
+const mockUpdateUser = updateUser as ReturnType<typeof vi.fn>;
+const mockUpdateUserProfile = updateUserProfile as ReturnType<typeof vi.fn>;
+const mockGetUserActivity = getUserActivity as ReturnType<typeof vi.fn>;
 
 describe('UserEditModal', () => {
   const mockUser: UserWithProfile = {
@@ -22,8 +27,6 @@ describe('UserEditModal', () => {
     created: '2024-01-01T00:00:00Z',
     updated: '2024-01-01T00:00:00Z',
     verified: true,
-    avatar: '',
-    emailVisibility: false,
     profile: {
       id: 'profile1',
       user_id: 'user1',
@@ -50,14 +53,14 @@ describe('UserEditModal', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (getUserActivity as any).mockResolvedValue(mockUserActivity);
-    (updateUser as any).mockResolvedValue({});
-    (updateUserProfile as any).mockResolvedValue({});
+    mockGetUserActivity.mockResolvedValue(mockUserActivity);
+    mockUpdateUser.mockResolvedValue({});
+    mockUpdateUserProfile.mockResolvedValue({});
   });
 
   describe('Rendering', () => {
     it('should render modal when open', () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       expect(screen.getByRole('dialog')).toBeInTheDocument();
       expect(screen.getByText('Edit User')).toBeInTheDocument();
@@ -66,14 +69,14 @@ describe('UserEditModal', () => {
 
     it('should not render modal when closed', () => {
       render(UserEditModal, { 
-        props: { ...mockProps, open: false }
+        ...mockProps, open: false
       });
 
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
     it('should populate form with user data', async () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       await waitFor(() => {
         expect(screen.getByDisplayValue(mockUser.email)).toBeInTheDocument();
@@ -86,7 +89,7 @@ describe('UserEditModal', () => {
     });
 
     it('should display user activity stats', async () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       await waitFor(() => {
         expect(screen.getByText('User Activity')).toBeInTheDocument();
@@ -100,7 +103,7 @@ describe('UserEditModal', () => {
 
   describe('Form Validation and Updates', () => {
     it('should update user email', async () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       const emailInput = screen.getByDisplayValue(mockUser.email);
       const saveButton = screen.getByRole('button', { name: /save changes/i });
@@ -116,7 +119,7 @@ describe('UserEditModal', () => {
     });
 
     it('should update user name', async () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       const nameInput = screen.getByDisplayValue(mockUser.name || '');
       const saveButton = screen.getByRole('button', { name: /save changes/i });
@@ -132,7 +135,7 @@ describe('UserEditModal', () => {
     });
 
     it('should update profile information', async () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       const profileNameInput = screen.getByDisplayValue(mockUser.profile?.name || '');
       const roleSelect = screen.getByRole('combobox');
@@ -151,7 +154,7 @@ describe('UserEditModal', () => {
     });
 
     it('should toggle user active status', async () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       const activeCheckbox = screen.getByRole('checkbox', { name: /active account/i });
       const saveButton = screen.getByRole('button', { name: /save changes/i });
@@ -169,7 +172,7 @@ describe('UserEditModal', () => {
     });
 
     it('should not call update if no changes made', async () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       const saveButton = screen.getByRole('button', { name: /save changes/i });
       await fireEvent.click(saveButton);
@@ -182,7 +185,7 @@ describe('UserEditModal', () => {
     });
 
     it('should update both user and profile when both are changed', async () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       const emailInput = screen.getByDisplayValue(mockUser.email);
       const profileNameInput = screen.getByDisplayValue(mockUser.profile?.name || '');
@@ -206,9 +209,9 @@ describe('UserEditModal', () => {
   describe('Error Handling', () => {
     it('should display error message on update failure', async () => {
       const errorMessage = 'Update failed';
-      updateUser.mockRejectedValue(new Error(errorMessage));
+      mockUpdateUser.mockRejectedValue(new Error(errorMessage));
 
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       const emailInput = screen.getByDisplayValue(mockUser.email);
       const saveButton = screen.getByRole('button', { name: /save changes/i });
@@ -224,7 +227,7 @@ describe('UserEditModal', () => {
     it('should handle user activity loading failure gracefully', async () => {
       (getUserActivity as any).mockRejectedValue(new Error('Failed to load activity'));
 
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       // Should not show activity section if loading fails
       await waitFor(() => {
@@ -234,9 +237,9 @@ describe('UserEditModal', () => {
 
     it('should clear error when modal is closed', async () => {
       const errorMessage = 'Update failed';
-      updateUser.mockRejectedValue(new Error(errorMessage));
+      mockUpdateUser.mockRejectedValue(new Error(errorMessage));
 
-      const { rerender } = render(UserEditModal, { props: mockProps });
+      const { rerender } = render(UserEditModal, mockProps);
 
       const emailInput = screen.getByDisplayValue(mockUser.email);
       const saveButton = screen.getByRole('button', { name: /save changes/i });
@@ -260,11 +263,11 @@ describe('UserEditModal', () => {
   describe('Loading States', () => {
     it('should show loading state during save operation', async () => {
       // Mock a delayed response
-      updateUser.mockImplementation(() => 
+      mockUpdateUser.mockImplementation(() => 
         new Promise(resolve => setTimeout(() => resolve({}), 100))
       );
 
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       const emailInput = screen.getByDisplayValue(mockUser.email);
       const saveButton = screen.getByRole('button', { name: /save changes/i });
@@ -283,11 +286,11 @@ describe('UserEditModal', () => {
     });
 
     it('should disable form inputs during loading', async () => {
-      updateUser.mockImplementation(() => 
+      mockUpdateUser.mockImplementation(() => 
         new Promise(resolve => setTimeout(() => resolve({}), 100))
       );
 
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       const emailInput = screen.getByDisplayValue(mockUser.email);
       const saveButton = screen.getByRole('button', { name: /save changes/i });
@@ -304,7 +307,7 @@ describe('UserEditModal', () => {
 
   describe('Modal Behavior', () => {
     it('should call onclose when cancel button is clicked', async () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       const cancelButton = screen.getByRole('button', { name: 'Cancel' });
       await fireEvent.click(cancelButton);
@@ -313,7 +316,7 @@ describe('UserEditModal', () => {
     });
 
     it('should call onsave after successful update', async () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       const emailInput = screen.getByDisplayValue(mockUser.email);
       const saveButton = screen.getByRole('button', { name: /save changes/i });
@@ -328,14 +331,14 @@ describe('UserEditModal', () => {
 
     it('should reload user activity when modal opens', async () => {
       const { rerender } = render(UserEditModal, { 
-        props: { ...mockProps, open: false }
+        ...mockProps, open: false
       });
 
       // Modal is initially closed, activity should not be loaded
       expect(getUserActivity).not.toHaveBeenCalled();
 
       // Open modal
-      rerender({ props: { ...mockProps, open: true } });
+      rerender({ ...mockProps, open: true });
 
       await waitFor(() => {
         expect(getUserActivity).toHaveBeenCalledWith(mockUser.id);
@@ -345,7 +348,7 @@ describe('UserEditModal', () => {
 
   describe('Role Management', () => {
     it('should have all role options available', () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       const roleSelect = screen.getByRole('combobox');
       const options = roleSelect.querySelectorAll('option');
@@ -356,7 +359,7 @@ describe('UserEditModal', () => {
     });
 
     it('should allow changing user role', async () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       const roleSelect = screen.getByRole('combobox');
       const saveButton = screen.getByRole('button', { name: /save changes/i });
@@ -376,11 +379,11 @@ describe('UserEditModal', () => {
     it('should handle user without profile gracefully', () => {
       const userWithoutProfile: UserWithProfile = {
         ...mockUser,
-        profile: null
+        profile: undefined
       };
 
       render(UserEditModal, { 
-        props: { ...mockProps, user: userWithoutProfile }
+        ...mockProps, user: userWithoutProfile
       });
 
       // Should still render form, but profile fields should be empty
@@ -395,7 +398,7 @@ describe('UserEditModal', () => {
 
   describe('Accessibility', () => {
     it('should have proper form labels', () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       expect(screen.getByLabelText('Email Address')).toBeInTheDocument();
       expect(screen.getByLabelText('Account Name')).toBeInTheDocument();
@@ -406,14 +409,14 @@ describe('UserEditModal', () => {
     });
 
     it('should have proper button roles and labels', () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /save changes/i })).toBeInTheDocument();
     });
 
     it('should have proper modal structure', () => {
-      render(UserEditModal, { props: mockProps });
+      render(UserEditModal, mockProps);
 
       expect(screen.getByRole('dialog')).toBeInTheDocument();
       expect(screen.getByRole('form')).toBeInTheDocument();

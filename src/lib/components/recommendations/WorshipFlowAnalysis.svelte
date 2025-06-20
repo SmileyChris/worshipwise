@@ -125,7 +125,7 @@
 						<div class="flex-1">
 							<div class="flex items-center gap-2 mb-2">
 								{#if typeof suggestion.position === 'number'}
-									<Badge variant="outline">Position {suggestion.position + 1}</Badge>
+									<Badge variant="default">Position {suggestion.position + 1}</Badge>
 								{/if}
 								<h4 class="font-medium text-gray-900">{suggestion.suggestion}</h4>
 							</div>
@@ -137,14 +137,14 @@
 									{#if suggestion.recommendedTempo}
 										<div class="flex items-center gap-1">
 											<span class="text-gray-500">Recommended tempo:</span>
-											<Badge variant="secondary">{suggestion.recommendedTempo}</Badge>
+											<Badge variant="default">{suggestion.recommendedTempo}</Badge>
 										</div>
 									{/if}
 									
 									{#if suggestion.recommendedKey}
 										<div class="flex items-center gap-1">
 											<span class="text-gray-500">Suggested key:</span>
-											<Badge variant="secondary">{suggestion.recommendedKey}</Badge>
+											<Badge variant="default">{suggestion.recommendedKey}</Badge>
 										</div>
 									{/if}
 								</div>

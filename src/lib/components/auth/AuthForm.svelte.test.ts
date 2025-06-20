@@ -404,10 +404,8 @@ describe('AuthForm', () => {
 
       // Switch to register mode
       rerender({
-        props: {
-          mode: 'register',
-          onSubmit: mockOnSubmit
-        }
+        mode: 'register',
+        onSubmit: mockOnSubmit
       });
 
       // Form should be cleared

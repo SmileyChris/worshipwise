@@ -104,7 +104,7 @@ export async function getUsers(
 		const usersWithProfiles: UserWithProfile[] = users.items.map(user => ({
 			...user,
 			profile: profiles.find(p => p.user_id === user.id)
-		}));
+		} as unknown as UserWithProfile));
 
 		return {
 			page: users.page,
@@ -161,7 +161,7 @@ export async function getUsersByRole(
 		const usersWithProfiles: UserWithProfile[] = users.map(user => ({
 			...user,
 			profile: profiles.items.find(p => p.user_id === user.id)
-		}));
+		} as unknown as UserWithProfile));
 
 		return {
 			page: profiles.page,
@@ -182,7 +182,7 @@ export async function getUsersByRole(
 export async function updateUser(userId: string, userData: Partial<User>): Promise<User> {
 	try {
 		const updatedUser = await pb.collection('users').update(userId, userData);
-		return updatedUser as User;
+		return updatedUser as unknown as User;
 	} catch (error) {
 		console.error('Failed to update user:', error);
 		throw error;
@@ -195,7 +195,7 @@ export async function updateUser(userId: string, userData: Partial<User>): Promi
 export async function updateUserProfile(profileId: string, profileData: Partial<Profile>): Promise<Profile> {
 	try {
 		const updatedProfile = await pb.collection('profiles').update(profileId, profileData);
-		return updatedProfile as Profile;
+		return updatedProfile as unknown as Profile;
 	} catch (error) {
 		console.error('Failed to update user profile:', error);
 		throw error;

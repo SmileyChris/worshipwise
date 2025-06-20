@@ -258,19 +258,19 @@ describe('Analytics Utils', () => {
   describe('getDefaultChartOptions', () => {
     it('should return bar chart options by default', () => {
       const options = getDefaultChartOptions();
-      expect(options.scales).toBeDefined();
+      expect((options as any).scales).toBeDefined();
       expect(options.responsive).toBe(true);
     });
 
     it('should return pie chart options', () => {
       const options = getDefaultChartOptions('pie');
-      expect(options.scales).toBeUndefined();
+      expect((options as any).scales).toBeUndefined();
       expect(options.responsive).toBe(true);
     });
 
     it('should return line chart options', () => {
       const options = getDefaultChartOptions('line');
-      expect(options.scales).toBeDefined();
+      expect((options as any).scales).toBeDefined();
     });
   });
 

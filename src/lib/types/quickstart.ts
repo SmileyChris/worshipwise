@@ -28,6 +28,7 @@ export interface SampleSong {
 	key_signature?: string;
 	tempo?: number;
 	genre?: string;
+	category?: string;
 	tags?: string[];
 	lyrics?: string;
 }

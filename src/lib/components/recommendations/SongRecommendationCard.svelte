@@ -46,7 +46,7 @@
 			</div>
 			
 			<div class="flex items-center gap-2 ml-3">
-				<Badge variant="secondary" class="text-xs">
+				<Badge variant="default" class="text-xs">
 					{#if recommendation.type === 'rotation'}
 						<TrendingUp class="h-3 w-3 mr-1" />
 					{:else if recommendation.type === 'seasonal'}
@@ -69,7 +69,7 @@
 		{#if recommendation.keySignature}
 			<div class="flex items-center gap-2">
 				<span class="text-xs text-gray-500">Key:</span>
-				<Badge variant="outline" class="text-xs">{recommendation.keySignature}</Badge>
+				<Badge variant="default" class="text-xs">{recommendation.keySignature}</Badge>
 			</div>
 		{/if}
 

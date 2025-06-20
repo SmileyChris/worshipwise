@@ -233,7 +233,7 @@
 				</div>
 				<div class="flex items-center gap-4">
 					<Badge variant="primary">
-						{servicesStore.currentServiceSongs.length} songs • {formattedDuration()}
+						{servicesStore.currentServiceSongs.length} songs • {formattedDuration}
 					</Badge>
 					<Button variant="ghost" onclick={onClose}>Close</Button>
 				</div>
@@ -265,7 +265,7 @@
 
 				<!-- Songs list -->
 				<div class="space-y-2 overflow-y-auto" style="max-height: calc(100vh - 300px);">
-					{#each filteredSongs() as song}
+					{#each filteredSongs as song}
 						{@const usageStatus = getSongUsageStatus(song)}
 						<div
 							role="button"

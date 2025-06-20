@@ -2,6 +2,7 @@
 	interface Props {
 		label?: string;
 		name: string;
+		id?: string;
 		type?: 'text' | 'email' | 'password' | 'number' | 'tel';
 		value?: string | number;
 		placeholder?: string;
@@ -16,6 +17,7 @@
 	let {
 		label = '',
 		name,
+		id,
 		type = 'text',
 		value = $bindable(),
 		placeholder = '',
@@ -27,7 +29,7 @@
 		'data-testid': testId = ''
 	}: Props = $props();
 
-	let inputId = `input-${name}`;
+	let inputId = id || `input-${name}`;
 	let errorId = `error-${name}`;
 
 	let inputClasses = $derived(

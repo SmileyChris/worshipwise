@@ -7,30 +7,34 @@
 	interface Props {
 		label?: string;
 		name: string;
+		id?: string;
 		value?: string;
-		options: Option[];
+		options?: Option[];
 		placeholder?: string;
 		required?: boolean;
 		disabled?: boolean;
 		error?: string;
 		class?: string;
 		'data-testid'?: string;
+		children?: any;
 	}
 
 	let {
 		label = '',
 		name,
+		id,
 		value = $bindable(),
-		options,
+		options = [],
 		placeholder = 'Select an option',
 		required = false,
 		disabled = false,
 		error = '',
 		class: className = '',
-		'data-testid': testId = ''
+		'data-testid': testId = '',
+		children
 	}: Props = $props();
 
-	let selectId = `select-${name}`;
+	let selectId = id || `select-${name}`;
 	let errorId = `error-${name}`;
 
 	let selectClasses = $derived(
@@ -62,9 +66,13 @@
 		data-testid={testId}
 	>
 		<option value="">{placeholder}</option>
-		{#each options as option}
-			<option value={option.value}>{option.label}</option>
-		{/each}
+		{#if children}
+			{@render children()}
+		{:else}
+			{#each options as option}
+				<option value={option.value}>{option.label}</option>
+			{/each}
+		{/if}
 	</select>
 
 	{#if error}

@@ -157,7 +157,7 @@ export class ServicesAPI {
 	async addSongToService(data: CreateServiceSongData): Promise<ServiceSong> {
 		try {
 			// Get the next position in the service
-			const existingSongs = await this.getServiceSongs(data.setlist_id);
+			const existingSongs = await this.getServiceSongs(data.service_id);
 			const nextPosition = existingSongs.length + 1;
 
 			const serviceSongData = {
@@ -248,7 +248,7 @@ export class ServicesAPI {
 			// Add all songs from the original service
 			for (const song of originalSongs) {
 				await this.addSongToService({
-					setlist_id: newService.id,
+					service_id: newService.id,
 					song_id: song.song_id,
 					order_position: song.order_position,
 					transposed_key: song.transposed_key,

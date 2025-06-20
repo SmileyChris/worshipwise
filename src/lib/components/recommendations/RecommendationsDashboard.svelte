@@ -346,7 +346,7 @@
 									<h4 class="font-medium text-gray-900 mb-2">Suggested Themes</h4>
 									<div class="flex flex-wrap gap-2">
 										{#each trend.suggestedThemes as theme}
-											<Badge variant="secondary">{theme}</Badge>
+											<Badge variant="default">{theme}</Badge>
 										{/each}
 									</div>
 								</div>

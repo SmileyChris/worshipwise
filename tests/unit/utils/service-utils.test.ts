@@ -19,21 +19,33 @@ describe('Service Utils', () => {
   const mockServiceSongs = [
     {
       id: '1',
+      service_id: 'service-1',
+      song_id: 'song-1',
       order_position: 1,
       section_type: 'Opening' as const,
       duration_override: 240,
+      created: '2023-01-01T00:00:00Z',
+      updated: '2023-01-01T00:00:00Z',
       expand: { song_id: { duration_seconds: 180, title: 'Song 1' } }
     },
     {
       id: '2',
+      service_id: 'service-1',
+      song_id: 'song-2',
       order_position: 2,
       section_type: 'Praise & Worship' as const,
+      created: '2023-01-01T00:00:00Z',
+      updated: '2023-01-01T00:00:00Z',
       expand: { song_id: { duration_seconds: 300, title: 'Song 2' } }
     },
     {
       id: '3',
+      service_id: 'service-1',
+      song_id: 'song-3',
       order_position: 3,
       section_type: 'Closing' as const,
+      created: '2023-01-01T00:00:00Z',
+      updated: '2023-01-01T00:00:00Z',
       expand: { song_id: { duration_seconds: 200, title: 'Song 3' } }
     }
   ];
@@ -62,8 +74,12 @@ describe('Service Utils', () => {
       const songsWithoutDuration = [
         {
           id: '1',
+          service_id: 'service-1',
+          song_id: 'song-1',
           order_position: 1,
           section_type: 'Opening' as const,
+          created: '2023-01-01T00:00:00Z',
+          updated: '2023-01-01T00:00:00Z',
           expand: { song_id: { title: 'Song 1' } }
         }
       ];
@@ -304,9 +320,9 @@ describe('Service Utils', () => {
   describe('findOptimalInsertionPosition', () => {
     it('should find position after same section type', () => {
       const songs = [
-        { section_type: 'Opening' },
-        { section_type: 'Opening' },
-        { section_type: 'Praise & Worship' }
+        { id: '1', service_id: 'service-1', song_id: 'song-1', order_position: 1, section_type: 'Opening', created: '2023-01-01T00:00:00Z', updated: '2023-01-01T00:00:00Z' },
+        { id: '2', service_id: 'service-1', song_id: 'song-2', order_position: 2, section_type: 'Opening', created: '2023-01-01T00:00:00Z', updated: '2023-01-01T00:00:00Z' },
+        { id: '3', service_id: 'service-1', song_id: 'song-3', order_position: 3, section_type: 'Praise & Worship', created: '2023-01-01T00:00:00Z', updated: '2023-01-01T00:00:00Z' }
       ];
       
       const position = findOptimalInsertionPosition(songs, 'Opening');
@@ -315,8 +331,8 @@ describe('Service Utils', () => {
 
     it('should find position based on service flow order', () => {
       const songs = [
-        { section_type: 'Opening' },
-        { section_type: 'Closing' }
+        { id: '1', service_id: 'service-1', song_id: 'song-1', order_position: 1, section_type: 'Opening', created: '2023-01-01T00:00:00Z', updated: '2023-01-01T00:00:00Z' },
+        { id: '2', service_id: 'service-1', song_id: 'song-2', order_position: 2, section_type: 'Closing', created: '2023-01-01T00:00:00Z', updated: '2023-01-01T00:00:00Z' }
       ];
       
       const position = findOptimalInsertionPosition(songs, 'Praise & Worship');
@@ -325,7 +341,7 @@ describe('Service Utils', () => {
 
     it('should append at end if no appropriate position found', () => {
       const songs = [
-        { section_type: 'Opening' }
+        { id: '1', service_id: 'service-1', song_id: 'song-1', order_position: 1, section_type: 'Opening', created: '2023-01-01T00:00:00Z', updated: '2023-01-01T00:00:00Z' }
       ];
       
       const position = findOptimalInsertionPosition(songs, 'Special Music');
@@ -367,16 +383,34 @@ describe('Service Utils', () => {
     it('should validate good service flow', () => {
       const goodFlow = [
         { 
+          id: '1',
+          service_id: 'service-1',
+          song_id: 'song-1',
+          order_position: 1,
           section_type: 'Opening',
           duration_override: 300,
+          created: '2023-01-01T00:00:00Z',
+          updated: '2023-01-01T00:00:00Z',
           expand: { song_id: { duration_seconds: 300 } }
         },
         { 
+          id: '2',
+          service_id: 'service-1',
+          song_id: 'song-2',
+          order_position: 2,
           section_type: 'Praise & Worship',
+          created: '2023-01-01T00:00:00Z',
+          updated: '2023-01-01T00:00:00Z',
           expand: { song_id: { duration_seconds: 400 } }
         },
         { 
+          id: '3',
+          service_id: 'service-1',
+          song_id: 'song-3',
+          order_position: 3,
           section_type: 'Closing',
+          created: '2023-01-01T00:00:00Z',
+          updated: '2023-01-01T00:00:00Z',
           expand: { song_id: { duration_seconds: 400 } }
         }
       ];
@@ -388,8 +422,8 @@ describe('Service Utils', () => {
 
     it('should suggest missing sections', () => {
       const missingOpening = [
-        { section_type: 'Praise & Worship' },
-        { section_type: 'Closing' }
+        { id: '1', service_id: 'service-1', song_id: 'song-1', order_position: 1, section_type: 'Praise & Worship', created: '2023-01-01T00:00:00Z', updated: '2023-01-01T00:00:00Z' },
+        { id: '2', service_id: 'service-1', song_id: 'song-2', order_position: 2, section_type: 'Closing', created: '2023-01-01T00:00:00Z', updated: '2023-01-01T00:00:00Z' }
       ];
       
       const result = validateServiceFlow(missingOpening);
@@ -398,8 +432,14 @@ describe('Service Utils', () => {
 
     it('should warn about long services', () => {
       const longSongs = Array(10).fill(null).map((_, i) => ({
+        id: `song-${i}`,
+        service_id: 'service-1',
+        song_id: `song-${i}`,
+        order_position: i + 1,
         section_type: 'Praise & Worship',
-        duration_override: 800 // 13+ minutes each = over 2 hours total
+        duration_override: 800, // 13+ minutes each = over 2 hours total
+        created: '2023-01-01T00:00:00Z',
+        updated: '2023-01-01T00:00:00Z'
       }));
       
       const result = validateServiceFlow(longSongs);

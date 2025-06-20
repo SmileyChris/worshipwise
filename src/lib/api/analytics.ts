@@ -254,14 +254,14 @@ export class AnalyticsAPI {
 				stats.count++;
 
 				// Track duration
-				const duration = setlist.actual_duration || setlist.estimated_duration;
+				const duration = service.actual_duration || service.estimated_duration;
 				if (duration) {
 					stats.totalDuration += duration;
 					stats.durationsCount++;
 				}
 
 				// Track songs
-				const songs = setlist.expand?.setlist_songs_via_setlist_id || [];
+				const songs = service.expand?.service_songs_via_service_id || [];
 				stats.totalSongs += songs.length;
 
 				// Track popular songs for this service type
