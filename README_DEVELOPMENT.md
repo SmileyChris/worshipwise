@@ -50,7 +50,7 @@ just dev
 
 4. **Start Managing Songs**:
    - Add your first song with details and attachments
-   - Create your first setlist
+   - Create your first service
 
 ## 🛠 Development Commands
 
@@ -116,24 +116,24 @@ worshipwise/
 │   ├── lib/
 │   │   ├── components/
 │   │   │   ├── songs/          # Song management components
-│   │   │   ├── setlists/       # Setlist builder components
+│   │   │   ├── services/       # Service builder components
 │   │   │   ├── analytics/      # Reporting components
 │   │   │   ├── ui/             # Shared UI components
 │   │   │   └── auth/           # Authentication components
 │   │   ├── stores/             # Svelte 5 runes-based stores
 │   │   │   ├── auth.svelte.ts       # Authentication state
 │   │   │   ├── songs.svelte.ts      # Song management state
-│   │   │   ├── setlists.svelte.ts   # Setlist state with real-time
+│   │   │   ├── services.svelte.ts   # Service state with real-time
 │   │   │   └── analytics.svelte.ts  # Analytics data
 │   │   ├── api/                # PocketBase integration
 │   │   │   ├── client.ts            # PocketBase client setup
 │   │   │   ├── songs.ts             # Song API operations
-│   │   │   ├── setlists.ts          # Setlist operations
+│   │   │   ├── services.ts          # Service operations
 │   │   │   └── analytics.ts         # Analytics operations
 │   │   ├── types/              # TypeScript definitions
 │   │   │   ├── auth.ts              # User and Profile types
 │   │   │   ├── song.ts              # Song and SongUsage types
-│   │   │   └── setlist.ts           # Setlist types
+│   │   │   └── service.ts           # Service types
 │   │   └── utils/              # Helper functions
 │   ├── routes/                 # SvelteKit pages and layouts
 │   └── app.html               # Application shell
@@ -162,7 +162,7 @@ worshipwise/
 - **Profiles** - Extended user metadata (name, role, church_name, preferences)
 - **Songs** - Song catalog with metadata, keys, and file attachments
 - **Setlists** - Service planning with themes and dates
-- **Setlist Songs** - Junction table for song ordering in setlists
+- **Setlist Songs** - Junction table for song ordering in services
 - **Song Usage** - Analytics tracking for repetition prevention
 
 ### Collection Relationships
@@ -171,16 +171,16 @@ worshipwise/
 Users (auth) ──┐
                ├── Profiles (user metadata)
                ├── Songs (created_by)
-               ├── Setlists (worship_leader)
+               ├── Services (worship_leader)
                └── Song Usage (worship_leader)
 
 Songs ──┐
-         ├── Setlist Songs (song_id)
+         ├── Service Songs (song_id)
          └── Song Usage (song_id)
 
-Setlists ──┐
-           ├── Setlist Songs (setlist_id)
-           └── Song Usage (setlist_id)
+Services ──┐
+           ├── Service Songs (service_id)
+           └── Song Usage (service_id)
 ```
 
 ## 🧪 Testing
@@ -240,7 +240,7 @@ Current status tracking in README.md uses this format:
 
 - **Phase 1**: Foundation Setup (Sprints 1-2)
 - **Phase 2**: Core Song Management (Sprints 3-4)  
-- **Phase 3**: Advanced Setlist Features (Sprints 5-6)
+- **Phase 3**: Advanced Service Features (Sprints 5-6)
 - **Phase 4**: Analytics & Reporting (Sprints 7-8)
 - **Phase 5**: Mobile & PWA (Sprints 9-10)
 - **Phase 6**: Testing & Polish (Sprints 11-12)

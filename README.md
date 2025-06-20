@@ -1,9 +1,9 @@
 # WorshipWise
 
-A modern worship song tracking and setlist management system built for worship teams. WorshipWise helps prevent song repetition, streamlines setlist planning, and provides valuable insights into your church's worship patterns.
+A modern worship song tracking and service management system built for worship teams. WorshipWise helps prevent song repetition, streamlines service planning, and provides valuable insights into your church's worship patterns.
 
 **🎯 Current Status**: Sprint 5 Complete (42% - 5/12 sprints)  
-**🚧 In Progress**: Sprint 6 - Advanced Setlist Features & Analytics
+**🚧 In Progress**: Sprint 6 - Advanced Service Features & Analytics
 
 ## ✨ Features
 
@@ -14,13 +14,13 @@ A modern worship song tracking and setlist management system built for worship t
 - **File Upload System** for chord charts, sheet music, and audio files
 - **Real-Time Collaboration** with WebSocket subscriptions
 - **Song Usage Tracking** to prevent repetition with visual indicators
-- **Basic Setlist Management** for service planning
+- **Basic Service Management** for worship planning
 - **Responsive Design** that works on all devices
 - **Modern UI Component Library** built with Tailwind CSS
 
 ### 🚧 **In Development**
 
-- **Advanced Setlist Builder** with drag-and-drop functionality
+- **Advanced Service Builder** with drag-and-drop functionality
 - **Analytics Dashboard** with usage patterns and insights
 - **Team Collaboration Tools** for worship planning
 
@@ -56,7 +56,7 @@ Want to contribute or run locally? See our [Development Guide](README_DEVELOPMEN
 ### For Worship Leaders
 
 1. **Song Management**: Add your church's song catalog with keys, tempo, and attachments
-2. **Setlist Planning**: Create setlists for services with drag-and-drop ease
+2. **Service Planning**: Create services with drag-and-drop ease
 3. **Usage Tracking**: See when songs were last used to avoid repetition
 4. **Team Collaboration**: Work together with your worship team in real-time
 
@@ -83,7 +83,7 @@ Want to contribute or run locally? See our [Development Guide](README_DEVELOPMEN
 
 ### 🚧 **Current Development**
 
-- **Phase 3**: Advanced Setlist Features & Analytics (In Progress)
+- **Phase 3**: Advanced Service Features & Analytics (In Progress)
 
 ### 🎯 **Upcoming Features**
 

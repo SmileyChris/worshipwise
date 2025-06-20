@@ -63,7 +63,7 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
    - ✅ Create loading states and error handling components
 
 3. **Routing Structure**
-   - ✅ Set up main application routes (/songs, /setlists, /analytics)
+   - ✅ Set up main application routes (/songs, /services, /analytics)
    - ✅ Implement navigation with auth-based menu items
    - ✅ Create landing page and error pages
 
@@ -109,28 +109,28 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 - ✅ File attachment system (chord charts, audio, sheet music)
 - ✅ Responsive song management interface
 
-### Sprint 4: Song Usage Tracking & Setlist Foundation ✅ **COMPLETED**
+### Sprint 4: Song Usage Tracking & Service Foundation ✅ **COMPLETED**
 
-**Goal**: Implement song usage tracking and basic setlist functionality
+**Goal**: Implement song usage tracking and basic service functionality
 
 #### Tasks:
 
 1. **Usage Tracking Schema**
 
    - ✅ Create Song Usage collection with migration
-   - ✅ Create Setlists collection with basic structure
-   - ✅ Create Setlist Songs junction table
+   - ✅ Create Services collection with basic structure
+   - ✅ Create Service Songs junction table
    - ✅ Set up relationships and cascade rules
 
-2. **Basic Setlist Management**
+2. **Basic Service Management**
 
-   - ✅ Setlist CRUD operations
-   - ✅ Drag-and-drop setlist builder interface
-   - ✅ Add/remove songs from setlists
-   - ✅ Mark setlists as "completed" to trigger usage tracking
+   - ✅ Service CRUD operations
+   - ✅ Drag-and-drop service builder interface
+   - ✅ Add/remove songs from services
+   - ✅ Mark services as "completed" to trigger usage tracking
 
 3. **Usage Tracking Implementation**
-   - ✅ Automatic usage logging when setlist is completed
+   - ✅ Automatic usage logging when service is completed
    - ✅ Calculate "last used" dates for songs
    - ✅ Visual indicators (green/yellow/red system) in song cards
    - ✅ Usage statistics and availability checking
@@ -138,7 +138,7 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 #### Deliverables:
 
 - ✅ Song usage collection and tracking
-- ✅ Complete setlist management with builder UI
+- ✅ Complete service management with builder UI
 - ✅ Usage-based visual indicators (green/yellow/red)
 - ✅ Foundation for repetition prevention
 
@@ -213,25 +213,25 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 - [ ] Seasonal and comparative analytics
 - [ ] Actionable worship planning insights
 
-## Phase 4: Enhanced Setlist Features (Sprints 7-8)
+## Phase 4: Enhanced Service Features (Sprints 7-8)
 
-### Sprint 7: Enhanced Setlist Builder
+### Sprint 7: Enhanced Service Builder
 
-**Goal**: Advanced setlist building with templates and team features
+**Goal**: Advanced service building with templates and team features
 
 #### Tasks:
 
-1. **Setlist Templates & Planning**
+1. **Service Templates & Planning**
 
-   - Save setlists as templates
-   - Duplicate existing setlists
+   - Save services as templates
+   - Duplicate existing services
    - Service type categorization
-   - Setlist scheduling and calendar view
+   - Service scheduling and calendar view
 
 2. **Team Collaboration**
 
-   - Team member assignment to setlists
-   - Role-based setlist permissions
+   - Team member assignment to services
+   - Role-based service permissions
    - Comments and feedback system
    - Approval workflows
 
@@ -243,14 +243,14 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 
 #### Deliverables:
 
-- [ ] Setlist templates and duplication
+- [ ] Service templates and duplication
 - [ ] Team collaboration features
 - [ ] Enhanced service planning workflow
 - [ ] AI-powered song suggestions
 
 ### Sprint 8: Real-Time Collaboration
 
-**Goal**: Enable live collaborative setlist editing
+**Goal**: Enable live collaborative service editing
 
 #### Tasks:
 
@@ -373,7 +373,7 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 
 3. **Offline Capabilities**
    - Offline song library access
-   - Cached setlist editing
+   - Cached service editing
    - Sync conflict resolution
    - Offline usage tracking
 
@@ -519,14 +519,14 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 
 ### User Experience Metrics
 
-- [ ] <2 clicks to add song to setlist
+- [ ] <2 clicks to add song to service
 - [ ] <5 seconds to load song library
 - [ ] > 90% user satisfaction in beta testing
 - [ ] Zero data loss incidents
 
 ### Business Metrics
 
-- [ ] 50% time reduction in setlist planning
+- [ ] 50% time reduction in service planning
 - [ ] 80% reduction in song repetition conflicts
 - [ ] 100% user adoption within beta churches
 - [ ] 95% feature usage across core functionality
@@ -554,13 +554,13 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 1. **Sprint 1**: Project Infrastructure ✅
 2. **Sprint 2**: Authentication & Basic UI ✅  
 3. **Sprint 3**: Songs CRUD & Library ✅
-4. **Sprint 4**: Song Usage Tracking & Setlist Foundation ✅
+4. **Sprint 4**: Song Usage Tracking & Service Foundation ✅
 5. **Sprint 5**: Analytics Dashboard ✅
 
 ### **🚧 Current Status**
 
 - **Next Priority**: Sprint 6 - Intelligent Worship Insights
-- **Production Ready Features**: Complete authentication system, comprehensive song management with file uploads, real-time setlist collaboration, full analytics dashboard with Chart.js visualizations
+- **Production Ready Features**: Complete authentication system, comprehensive song management with file uploads, real-time service collaboration, full analytics dashboard with Chart.js visualizations
 - **Advanced Implementation**: 5,000+ lines of production-ready code with TypeScript, real-time WebSocket subscriptions, role-based permissions, responsive design
 
 ### **🎯 Immediate Next Steps (Sprint 6)**

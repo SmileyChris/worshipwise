@@ -8,7 +8,7 @@ WorshipWise is a sophisticated worship song tracking system built with SvelteKit
 
 **Current Project Status (June 2025):**
 - **Maturity Level**: Advanced (42% complete - Sprint 5 finished)
-- **Production Ready Features**: Complete authentication, song management with file uploads, real-time collaborative setlist editing, comprehensive analytics dashboard
+- **Production Ready Features**: Complete authentication, song management with file uploads, real-time collaborative service editing, comprehensive analytics dashboard
 - **Codebase Size**: 5,000+ lines of production-ready TypeScript code
 - **Component Library**: 22+ implemented Svelte components
 - **Advanced Features**: Real-time WebSocket subscriptions, Chart.js analytics, role-based permissions, responsive design
@@ -92,18 +92,18 @@ src/
 ├── lib/
 │   ├── components/
 │   │   ├── songs/          # Song management components
-│   │   ├── setlists/       # Setlist builder components
+│   │   ├── services/       # Service builder components
 │   │   ├── analytics/      # Reporting components
 │   │   └── ui/             # Shared UI components
 │   ├── stores/             # Svelte 5 runes-based stores
 │   │   ├── auth.svelte.ts       # PocketBase auth state
 │   │   ├── songs.svelte.ts      # Song management
-│   │   ├── setlists.svelte.ts   # Setlist state with real-time
+│   │   ├── services.svelte.ts   # Service state with real-time
 │   │   └── analytics.svelte.ts  # Analytics data
 │   ├── api/                # PocketBase client and operations
 │   │   ├── client.ts            # PocketBase initialization
 │   │   ├── songs.ts             # Song CRUD operations
-│   │   ├── setlists.ts          # Setlist operations
+│   │   ├── services.ts          # Service operations
 │   │   └── realtime.ts          # WebSocket subscriptions
 │   └── utils/              # Helper functions
 ├── routes/                 # SvelteKit pages and layouts
@@ -121,12 +121,12 @@ src/
 ### Smart Song Management
 
 - **Repetition Prevention**: Tracks usage and provides visual indicators (green/yellow/red)
-- **Key Transposition**: Songs can be transposed for different setlists
+- **Key Transposition**: Songs can be transposed for different services
 - **File Attachments**: Sheet music, audio files, chord charts
 
 ### Real-Time Collaboration
 
-- WebSocket subscriptions for live setlist editing
+- WebSocket subscriptions for live service editing
 - Optimistic UI updates with rollback on failure
 - Connection recovery handling for offline scenarios
 
