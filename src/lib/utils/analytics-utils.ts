@@ -46,8 +46,8 @@ export interface UsageData {
  */
 export interface AnalyticsOverview {
   totalSongs: number;
-  totalSetlists: number;
-  averageSetlistDuration: number;
+  totalServices: number;
+  averageServiceDuration: number;
   mostUsedSong: { title: string; count: number };
   topServiceType: { type: string; count: number };
   activeWorshipLeaders: number;
@@ -63,11 +63,11 @@ export function aggregateUsageData(
 ): AnalyticsOverview {
   // Calculate basic counts
   const totalSongs = songs.length;
-  const totalSetlists = setlists.length;
+  const totalServices = setlists.length;
   
   // Calculate average setlist duration
   const completedSetlists = setlists.filter(s => s.status === 'completed');
-  const averageSetlistDuration = completedSetlists.length > 0
+  const averageServiceDuration = completedSetlists.length > 0
     ? completedSetlists.reduce((sum, s) => sum + (s.actual_duration || s.estimated_duration || 0), 0) / completedSetlists.length
     : 0;
   
@@ -105,8 +105,8 @@ export function aggregateUsageData(
   
   return {
     totalSongs,
-    totalSetlists,
-    averageSetlistDuration,
+    totalServices,
+    averageServiceDuration,
     mostUsedSong,
     topServiceType,
     activeWorshipLeaders
@@ -233,14 +233,14 @@ export function generateInsights(
   }
   
   // Service type insights
-  if (overview.topServiceType.count > overview.totalSetlists * 0.5) {
+  if (overview.topServiceType.count > overview.totalServices * 0.5) {
     insights.push(`${overview.topServiceType.type} services make up the majority of your setlists`);
   }
   
   // Duration insights
-  if (overview.averageSetlistDuration > 90) {
+  if (overview.averageServiceDuration > 90) {
     insights.push('Your services tend to run longer than average (90+ minutes)');
-  } else if (overview.averageSetlistDuration < 45) {
+  } else if (overview.averageServiceDuration < 45) {
     insights.push('Your services are typically shorter than average (under 45 minutes)');
   }
   

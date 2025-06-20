@@ -2,9 +2,9 @@ import { pb } from './client';
 
 export interface AnalyticsOverview {
 	totalSongs: number;
-	totalSetlists: number;
+	totalServices: number;
 	totalUsages: number;
-	avgSongsPerSetlist: number;
+	avgSongsPerService: number;
 	avgServiceDuration: number;
 	activeWorshipLeaders: number;
 }
@@ -36,14 +36,14 @@ export interface KeyUsageStats {
 export interface UsageTrend {
 	date: string;
 	usageCount: number;
-	setlistCount: number;
+	serviceCount: number;
 	avgDuration: number;
 }
 
 export interface WorshipLeaderStats {
 	leaderId: string;
 	name: string;
-	setlistCount: number;
+	serviceCount: number;
 	avgDuration: number;
 	favoriteKeys: string[];
 	uniqueSongs: number;
@@ -75,11 +75,11 @@ export class AnalyticsAPI {
 			});
 
 			// Calculate derived metrics
-			const totalSetlists = setlistsResult.totalItems;
+			const totalServices = setlistsResult.totalItems;
 			const totalUsages = usageResult.totalItems;
 			const totalSongs = songsResult.totalItems;
 
-			let avgSongsPerSetlist = 0;
+			let avgSongsPerService = 0;
 			let avgServiceDuration = 0;
 			const activeLeaders = new Set();
 
@@ -105,15 +105,15 @@ export class AnalyticsAPI {
 					}
 				});
 
-				avgSongsPerSetlist = totalSongsInSetlists / completedSetlists.length;
+				avgSongsPerService = totalSongsInSetlists / completedSetlists.length;
 				avgServiceDuration = setlistsWithDuration > 0 ? totalDuration / setlistsWithDuration : 0;
 			}
 
 			return {
 				totalSongs,
-				totalSetlists,
+				totalServices,
 				totalUsages,
-				avgSongsPerSetlist: Math.round(avgSongsPerSetlist * 10) / 10,
+				avgSongsPerService: Math.round(avgSongsPerService * 10) / 10,
 				avgServiceDuration: Math.round(avgServiceDuration / 60), // Convert to minutes
 				activeWorshipLeaders: activeLeaders.size
 			};
@@ -376,7 +376,7 @@ export class AnalyticsAPI {
 				string,
 				{
 					usageCount: number;
-					setlistCount: number;
+					serviceCount: number;
 					totalDuration: number;
 					durationsCount: number;
 				}
@@ -390,7 +390,7 @@ export class AnalyticsAPI {
 				if (!trendsMap.has(key)) {
 					trendsMap.set(key, {
 						usageCount: 0,
-						setlistCount: 0,
+						serviceCount: 0,
 						totalDuration: 0,
 						durationsCount: 0
 					});
@@ -407,14 +407,14 @@ export class AnalyticsAPI {
 				if (!trendsMap.has(key)) {
 					trendsMap.set(key, {
 						usageCount: 0,
-						setlistCount: 0,
+						serviceCount: 0,
 						totalDuration: 0,
 						durationsCount: 0
 					});
 				}
 
 				const stats = trendsMap.get(key)!;
-				stats.setlistCount++;
+				stats.serviceCount++;
 
 				const duration = setlist.actual_duration || setlist.estimated_duration;
 				if (duration) {
@@ -428,7 +428,7 @@ export class AnalyticsAPI {
 				.map(([date, stats]) => ({
 					date,
 					usageCount: stats.usageCount,
-					setlistCount: stats.setlistCount,
+					serviceCount: stats.serviceCount,
 					avgDuration:
 						stats.durationsCount > 0
 							? Math.round(stats.totalDuration / stats.durationsCount / 60) // Convert to minutes
@@ -464,7 +464,7 @@ export class AnalyticsAPI {
 				string,
 				{
 					leader: any;
-					setlistCount: number;
+					serviceCount: number;
 					totalDuration: number;
 					durationsCount: number;
 					keys: Map<string, number>;
@@ -481,7 +481,7 @@ export class AnalyticsAPI {
 				if (!leaderMap.has(leaderId)) {
 					leaderMap.set(leaderId, {
 						leader,
-						setlistCount: 0,
+						serviceCount: 0,
 						totalDuration: 0,
 						durationsCount: 0,
 						keys: new Map(),
@@ -490,7 +490,7 @@ export class AnalyticsAPI {
 				}
 
 				const stats = leaderMap.get(leaderId)!;
-				stats.setlistCount++;
+				stats.serviceCount++;
 
 				// Track duration
 				const duration = setlist.actual_duration || setlist.estimated_duration;
@@ -528,7 +528,7 @@ export class AnalyticsAPI {
 					return {
 						leaderId,
 						name: stats.leader.name || stats.leader.email,
-						setlistCount: stats.setlistCount,
+						serviceCount: stats.serviceCount,
 						avgDuration:
 							stats.durationsCount > 0
 								? Math.round(stats.totalDuration / stats.durationsCount / 60) // Convert to minutes
@@ -537,7 +537,7 @@ export class AnalyticsAPI {
 						uniqueSongs: stats.songs.size
 					};
 				})
-				.sort((a, b) => b.setlistCount - a.setlistCount)
+				.sort((a, b) => b.serviceCount - a.serviceCount)
 				.slice(0, limit);
 
 			return results;
@@ -614,7 +614,7 @@ export class AnalyticsAPI {
 					case 'leaders':
 						row = [
 							`"${item.name}"`,
-							item.setlistCount.toString(),
+							item.serviceCount.toString(),
 							item.avgDuration.toString(),
 							item.uniqueSongs.toString(),
 							`"${item.favoriteKeys.join(', ')}"`

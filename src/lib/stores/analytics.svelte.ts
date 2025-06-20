@@ -351,9 +351,9 @@ class AnalyticsStore {
 
 		// Overview insights
 		if (this.overview) {
-			if (this.overview.avgSongsPerSetlist < 4) {
+			if (this.overview.avgSongsPerService < 4) {
 				insights.push('Your setlists are quite short - consider adding more songs for variety');
-			} else if (this.overview.avgSongsPerSetlist > 8) {
+			} else if (this.overview.avgSongsPerService > 8) {
 				insights.push('Your setlists are quite long - ensure you have enough time for all songs');
 			}
 		}

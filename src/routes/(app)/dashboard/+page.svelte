@@ -18,7 +18,7 @@
 	const mockStats = {
 		totalSongs: songs.songs.length,
 		recentSongs: 3,
-		upcomingSetlists: 2,
+		upcomingServices: 2,
 		teamMembers: 5
 	};
 </script>
@@ -64,7 +64,7 @@
 					<TrendingUp class="h-8 w-8 text-purple-600" />
 				</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold font-title text-gray-900">{mockStats.upcomingSetlists}</div>
+					<div class="text-2xl font-bold font-title text-gray-900">{mockStats.upcomingServices}</div>
 					<div class="text-sm text-gray-500">Upcoming Services</div>
 				</div>
 			</div>
@@ -139,11 +139,11 @@
 				</a>
 
 				<a
-					href="/setlists"
+					href="/services"
 					class="flex w-full items-center rounded-md border border-gray-300 px-4 py-3 hover:bg-gray-50"
 				>
 					<Clock class="mr-2 h-4 w-4" />
-					Plan Setlists
+					Plan Services
 				</a>
 
 				{#if !quickstart.isSetupComplete}
@@ -195,7 +195,7 @@
 						<span class="text-xs font-semibold text-blue-600">3</span>
 					</div>
 					<div>
-						<strong>Plan setlists:</strong> Create setlists for services and track which songs you've
+						<strong>Plan services:</strong> Create services for worship and track which songs you've
 						used recently.
 					</div>
 				</div>

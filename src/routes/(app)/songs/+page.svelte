@@ -123,9 +123,9 @@
 		}
 	}
 
-	function handleAddToSetlist(song: Song) {
-		// TODO: Implement add to setlist functionality
-		console.log('Add to setlist:', song.title);
+	function handleAddToService(song: Song) {
+		// TODO: Implement add to service functionality
+		console.log('Add to service:', song.title);
 	}
 
 	async function handleSongFormSubmit(event: CustomEvent) {
@@ -311,7 +311,7 @@
 					<SongCard
 						{song}
 						onEdit={handleEditSong}
-						onAddToSetlist={handleAddToSetlist}
+						onAddToService={handleAddToService}
 					/>
 				{/each}
 			</div>

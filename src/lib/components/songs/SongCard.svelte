@@ -11,7 +11,7 @@
 		showUsageIndicator?: boolean;
 		showActions?: boolean;
 		onEdit?: (song: Song) => void;
-		onAddToSetlist?: (song: Song) => void;
+		onAddToService?: (song: Song) => void;
 		class?: string;
 	}
 
@@ -20,7 +20,7 @@
 		showUsageIndicator = true,
 		showActions = true,
 		onEdit = () => {},
-		onAddToSetlist = () => {},
+		onAddToService = () => {},
 		class: className = ''
 	}: Props = $props();
 
@@ -213,7 +213,7 @@
 				{/if}
 
 				{#if auth.canManageServices}
-					<Button variant="primary" size="sm" onclick={() => onAddToSetlist(song)}>
+					<Button variant="primary" size="sm" onclick={() => onAddToService(song)}>
 						Add to Service
 					</Button>
 				{/if}

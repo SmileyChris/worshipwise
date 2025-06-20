@@ -23,7 +23,7 @@
 		});
 
 		const usageCounts = data.map((trend) => trend.usageCount);
-		const setlistCounts = data.map((trend) => trend.setlistCount);
+		const serviceCounts = data.map((trend) => trend.serviceCount);
 
 		return {
 			type: 'line',
@@ -40,8 +40,8 @@
 						tension: 0.4
 					},
 					{
-						label: 'Setlists',
-						data: setlistCounts,
+						label: 'Services',
+						data: serviceCounts,
 						borderColor: 'rgb(16, 185, 129)',
 						backgroundColor: 'rgba(16, 185, 129, 0.1)',
 						borderWidth: 2,

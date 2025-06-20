@@ -55,9 +55,9 @@
 			<Card>
 				<div class="text-center">
 					<div class="mb-4 text-4xl">📋</div>
-					<h3 class="mb-2 text-lg font-semibold font-title text-gray-900">Setlist Planning</h3>
+					<h3 class="mb-2 text-lg font-semibold font-title text-gray-900">Service Planning</h3>
 					<p class="text-gray-600">
-						Create and collaborate on setlists with real-time updates and team sharing.
+						Create and collaborate on services with real-time updates and team sharing.
 					</p>
 				</div>
 			</Card>

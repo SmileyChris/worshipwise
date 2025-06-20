@@ -169,10 +169,10 @@
 				<div class="mb-4 text-6xl">📊</div>
 				<h3 class="mb-2 text-lg font-medium font-title text-gray-900">No Analytics Data Yet</h3>
 				<p class="mb-6 text-gray-500">
-					Create some setlists and mark them as completed to see analytics data.
+					Create some services and mark them as completed to see analytics data.
 				</p>
-				<Button variant="primary" onclick={() => (window.location.href = '/setlists')}>
-					Create Your First Setlist
+				<Button variant="primary" onclick={() => (window.location.href = '/services')}>
+					Create Your First Service
 				</Button>
 			</div>
 		</Card>
@@ -192,9 +192,9 @@
 				<Card>
 					<div class="p-6 text-center">
 						<div class="text-3xl font-bold font-title text-green-600">
-							{formatNumber(analyticsStore.overview.totalSetlists)}
+							{formatNumber(analyticsStore.overview.totalServices)}
 						</div>
-						<div class="text-sm text-gray-500">Completed Setlists</div>
+						<div class="text-sm text-gray-500">Completed Services</div>
 					</div>
 				</Card>
 
@@ -210,9 +210,9 @@
 				<Card>
 					<div class="p-6 text-center">
 						<div class="text-3xl font-bold font-title text-yellow-600">
-							{analyticsStore.overview.avgSongsPerSetlist}
+							{analyticsStore.overview.avgSongsPerService}
 						</div>
-						<div class="text-sm text-gray-500">Avg Songs per Setlist</div>
+						<div class="text-sm text-gray-500">Avg Songs per Service</div>
 					</div>
 				</Card>
 
@@ -371,7 +371,7 @@
 										{/if}
 									</div>
 									<Badge variant="success">
-										{leader.setlistCount}
+										{leader.serviceCount}
 									</Badge>
 								</div>
 							{/each}
