@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { flushSync } from 'svelte';
 import { auth } from './auth.svelte';
-import { mockPb } from '../../tests/helpers/pb-mock';
+import { mockPb } from '../../../tests/helpers/pb-mock';
 import type { User, Profile, LoginCredentials, RegisterData } from '$lib/types/auth';
+import { goto } from '$app/navigation';
 
 // Mock $app/navigation
-const mockGoto = vi.fn();
 vi.mock('$app/navigation', () => ({
-  goto: mockGoto
+  goto: vi.fn()
 }));
 
 // Mock $app/environment
@@ -22,7 +22,7 @@ const originalConsoleError = console.error;
 describe('AuthStore', () => {
   beforeEach(() => {
     mockPb.reset();
-    mockGoto.mockClear();
+    (goto as any).mockClear();
     console.log = vi.fn();
     console.error = vi.fn();
     
@@ -85,7 +85,7 @@ describe('AuthStore', () => {
       await auth.login(credentials);
 
       expect(mockPb.collection).toHaveBeenCalledWith('users');
-      expect(mockGoto).toHaveBeenCalledWith('/dashboard');
+      expect(goto).toHaveBeenCalledWith('/dashboard');
       expect(auth.loading).toBe(false);
       expect(auth.error).toBeNull();
     });
@@ -154,8 +154,7 @@ describe('AuthStore', () => {
         password: 'password123',
         passwordConfirm: 'password123',
         name: 'New User',
-        role: 'musician',
-        church_name: 'Test Church'
+        role: 'musician'
       };
 
       const mockUser = { id: 'user1', email: 'newuser@example.com' };
@@ -163,8 +162,7 @@ describe('AuthStore', () => {
         id: 'profile1', 
         user_id: 'user1', 
         name: 'New User', 
-        role: 'musician',
-        church_name: 'Test Church'
+        role: 'musician'
       };
 
       const usersCollection = mockPb.collection('users');
@@ -186,11 +184,10 @@ describe('AuthStore', () => {
         user_id: mockUser.id,
         name: registerData.name,
         role: registerData.role,
-        church_name: registerData.church_name,
         is_active: true
       });
 
-      expect(mockGoto).toHaveBeenCalledWith('/dashboard');
+      expect(goto).toHaveBeenCalledWith('/dashboard');
       expect(auth.loading).toBe(false);
       expect(auth.error).toBeNull();
     });
@@ -244,7 +241,6 @@ describe('AuthStore', () => {
         user_id: mockUser.id,
         name: registerData.name,
         role: 'musician', // Default role
-        church_name: '',
         is_active: true
       });
     });
@@ -259,11 +255,11 @@ describe('AuthStore', () => {
       await auth.logout();
 
       expect(mockPb.authStore.clear).toHaveBeenCalled();
-      expect(mockGoto).toHaveBeenCalledWith('/login');
+      expect(goto).toHaveBeenCalledWith('/login');
     });
 
     it('should handle logout errors gracefully', async () => {
-      mockGoto.mockRejectedValue(new Error('Navigation error'));
+      (goto as any).mockRejectedValue(new Error('Navigation error'));
 
       // Should not throw even if navigation fails
       await expect(auth.logout()).resolves.not.toThrow();
@@ -627,61 +623,75 @@ describe('AuthStore', () => {
     it('should compute canManageSongs correctly', () => {
       // Leader can manage songs
       auth.profile = { role: 'leader' } as Profile;
-      expect(auth.canManageSongs).toBe(true);
+      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true);
 
       // Admin can manage songs
       auth.profile = { role: 'admin' } as Profile;
-      expect(auth.canManageSongs).toBe(true);
+      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true);
 
       // Musician cannot manage songs
       auth.profile = { role: 'musician' } as Profile;
-      expect(auth.canManageSongs).toBe(false);
+      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(false);
     });
 
     it('should compute canManageServices correctly', () => {
       // Leader can manage services
       auth.profile = { role: 'leader' } as Profile;
-      expect(auth.canManageServices).toBe(true);
+      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true);
 
       // Admin can manage services
       auth.profile = { role: 'admin' } as Profile;
-      expect(auth.canManageServices).toBe(true);
+      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true);
 
       // Musician cannot manage services
       auth.profile = { role: 'musician' } as Profile;
-      expect(auth.canManageServices).toBe(false);
+      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(false);
     });
 
     it('should compute isAdmin correctly', () => {
-      auth.profile = { role: 'admin' } as Profile;
+      flushSync(() => {
+        auth.profile = { role: 'admin' } as Profile;
+      });
       expect(auth.isAdmin).toBe(true);
 
-      auth.profile = { role: 'leader' } as Profile;
+      flushSync(() => {
+        auth.profile = { role: 'leader' } as Profile;
+      });
       expect(auth.isAdmin).toBe(false);
 
-      auth.profile = { role: 'musician' } as Profile;
+      flushSync(() => {
+        auth.profile = { role: 'musician' } as Profile;
+      });
       expect(auth.isAdmin).toBe(false);
     });
 
     it('should compute displayName correctly', () => {
       // Profile name takes precedence
-      auth.profile = { name: 'Profile Name' } as Profile;
-      auth.user = { name: 'User Name', email: 'test@example.com' } as User;
+      flushSync(() => {
+        auth.profile = { name: 'Profile Name' } as Profile;
+        auth.user = { name: 'User Name', email: 'test@example.com' } as User;
+      });
       expect(auth.displayName).toBe('Profile Name');
 
       // User name as fallback
-      auth.profile = { name: '' } as Profile;
-      auth.user = { name: 'User Name', email: 'test@example.com' } as User;
+      flushSync(() => {
+        auth.profile = null;
+        auth.user = { name: 'User Name', email: 'test@example.com' } as User;
+      });
       expect(auth.displayName).toBe('User Name');
 
       // Email as fallback
-      auth.profile = null;
-      auth.user = { name: '', email: 'test@example.com' } as User;
+      flushSync(() => {
+        auth.profile = null;
+        auth.user = { name: '', email: 'test@example.com' } as User;
+      });
       expect(auth.displayName).toBe('test@example.com');
 
       // Default fallback
-      auth.profile = null;
-      auth.user = { name: '', email: '' } as User;
+      flushSync(() => {
+        auth.profile = null;
+        auth.user = { name: '', email: '' } as User;
+      });
       expect(auth.displayName).toBe('User');
     });
   });

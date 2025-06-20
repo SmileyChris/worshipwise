@@ -8,14 +8,16 @@ import ProfileSettings from '$lib/components/profile/ProfileSettings.svelte';
 import type { User, Profile } from '$lib/types/auth';
 
 // Mock navigation
-const mockGoto = vi.fn();
 vi.mock('$app/navigation', () => ({
-  goto: mockGoto
+  goto: vi.fn()
 }));
 
 vi.mock('$app/environment', () => ({
   browser: true
 }));
+
+// Import mock after declaration
+import { goto } from '$app/navigation';
 
 // Create a test wrapper component that uses the auth store
 const TestAuthWrapper = {
@@ -31,7 +33,7 @@ describe('Authentication Integration Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockPb.reset();
-    mockGoto.mockClear();
+    (goto as any).mockClear();
     
     // Reset auth store
     auth.user = null;
@@ -86,7 +88,7 @@ describe('Authentication Integration Tests', () => {
       );
 
       // Verify navigation to dashboard
-      expect(mockGoto).toHaveBeenCalledWith('/dashboard');
+      expect((goto as any)).toHaveBeenCalledWith('/dashboard');
 
       // Verify auth state is not loading and no error
       expect(auth.loading).toBe(false);
@@ -144,7 +146,7 @@ describe('Authentication Integration Tests', () => {
       });
 
       // Verify navigation to dashboard
-      expect(mockGoto).toHaveBeenCalledWith('/dashboard');
+      expect((goto as any)).toHaveBeenCalledWith('/dashboard');
     });
 
     it('should handle complete logout flow', async () => {
@@ -157,7 +159,7 @@ describe('Authentication Integration Tests', () => {
       await auth.logout();
 
       expect(mockPb.authStore.clear).toHaveBeenCalled();
-      expect(mockGoto).toHaveBeenCalledWith('/login');
+      expect((goto as any)).toHaveBeenCalledWith('/login');
     });
   });
 
@@ -194,7 +196,7 @@ describe('Authentication Integration Tests', () => {
           'test@example.com',
           'password123'
         );
-        expect(mockGoto).toHaveBeenCalledWith('/dashboard');
+        expect((goto as any)).toHaveBeenCalledWith('/dashboard');
       });
     });
 
@@ -235,7 +237,7 @@ describe('Authentication Integration Tests', () => {
       await waitFor(() => {
         expect(usersCollection.create).toHaveBeenCalled();
         expect(profilesCollection.create).toHaveBeenCalled();
-        expect(mockGoto).toHaveBeenCalledWith('/dashboard');
+        expect((goto as any)).toHaveBeenCalledWith('/dashboard');
       });
     });
 

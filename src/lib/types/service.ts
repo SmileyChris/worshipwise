@@ -102,7 +102,7 @@ export interface UpdateServiceSongData {
 export interface ServiceFilterOptions {
 	search?: string;
 	status?: Service['status'];
-	serviceType?: Setlist['service_type'];
+	serviceType?: Service['service_type'];
 	worshipLeader?: string;
 	dateFrom?: string;
 	dateTo?: string;

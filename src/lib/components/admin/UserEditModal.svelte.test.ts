@@ -5,15 +5,14 @@ import UserEditModal from './UserEditModal.svelte';
 import type { UserWithProfile } from '$lib/api/admin';
 
 // Mock the admin API
-const mockUpdateUser = vi.fn();
-const mockUpdateUserProfile = vi.fn();
-const mockGetUserActivity = vi.fn();
-
 vi.mock('$lib/api/admin', () => ({
-  updateUser: mockUpdateUser,
-  updateUserProfile: mockUpdateUserProfile,
-  getUserActivity: mockGetUserActivity
+  updateUser: vi.fn(),
+  updateUserProfile: vi.fn(),
+  getUserActivity: vi.fn()
 }));
+
+// Import the mocked functions
+import { updateUser, updateUserProfile, getUserActivity } from '$lib/api/admin';
 
 describe('UserEditModal', () => {
   const mockUser: UserWithProfile = {
@@ -30,7 +29,6 @@ describe('UserEditModal', () => {
       user_id: 'user1',
       name: 'Test Profile Name',
       role: 'musician',
-      church_name: 'Test Church',
       is_active: true,
       created: '2024-01-01T00:00:00Z',
       updated: '2024-01-01T00:00:00Z'
@@ -52,9 +50,9 @@ describe('UserEditModal', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetUserActivity.mockResolvedValue(mockUserActivity);
-    mockUpdateUser.mockResolvedValue({});
-    mockUpdateUserProfile.mockResolvedValue({});
+    (getUserActivity as any).mockResolvedValue(mockUserActivity);
+    (updateUser as any).mockResolvedValue({});
+    (updateUserProfile as any).mockResolvedValue({});
   });
 
   describe('Rendering', () => {
@@ -81,7 +79,6 @@ describe('UserEditModal', () => {
         expect(screen.getByDisplayValue(mockUser.email)).toBeInTheDocument();
         expect(screen.getByDisplayValue(mockUser.name || '')).toBeInTheDocument();
         expect(screen.getByDisplayValue(mockUser.profile?.name || '')).toBeInTheDocument();
-        expect(screen.getByDisplayValue(mockUser.profile?.church_name || '')).toBeInTheDocument();
       });
 
       const roleSelect = screen.getByRole('combobox');
@@ -97,7 +94,7 @@ describe('UserEditModal', () => {
         expect(screen.getByText('12')).toBeInTheDocument(); // songsAdded
       });
 
-      expect(mockGetUserActivity).toHaveBeenCalledWith(mockUser.id);
+      expect(getUserActivity).toHaveBeenCalledWith(mockUser.id);
     });
   });
 
@@ -112,7 +109,7 @@ describe('UserEditModal', () => {
       await fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(mockUpdateUser).toHaveBeenCalledWith(mockUser.id, {
+        expect(updateUser).toHaveBeenCalledWith(mockUser.id, {
           email: 'newemail@example.com'
         });
       });
@@ -128,7 +125,7 @@ describe('UserEditModal', () => {
       await fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(mockUpdateUser).toHaveBeenCalledWith(mockUser.id, {
+        expect(updateUser).toHaveBeenCalledWith(mockUser.id, {
           name: 'New User Name'
         });
       });
@@ -138,19 +135,16 @@ describe('UserEditModal', () => {
       render(UserEditModal, { props: mockProps });
 
       const profileNameInput = screen.getByDisplayValue(mockUser.profile?.name || '');
-      const churchNameInput = screen.getByDisplayValue(mockUser.profile?.church_name || '');
       const roleSelect = screen.getByRole('combobox');
       const saveButton = screen.getByRole('button', { name: /save changes/i });
 
       await fireEvent.input(profileNameInput, { target: { value: 'New Profile Name' } });
-      await fireEvent.input(churchNameInput, { target: { value: 'New Church' } });
       await fireEvent.change(roleSelect, { target: { value: 'leader' } });
       await fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(mockUpdateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
+        expect(updateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
           name: 'New Profile Name',
-          church_name: 'New Church',
           role: 'leader'
         });
       });
@@ -168,7 +162,7 @@ describe('UserEditModal', () => {
       await fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(mockUpdateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
+        expect(updateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
           is_active: false
         });
       });
@@ -181,8 +175,8 @@ describe('UserEditModal', () => {
       await fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(mockUpdateUser).not.toHaveBeenCalled();
-        expect(mockUpdateUserProfile).not.toHaveBeenCalled();
+        expect(updateUser).not.toHaveBeenCalled();
+        expect(updateUserProfile).not.toHaveBeenCalled();
         expect(mockProps.onsave).toHaveBeenCalled();
       });
     });
@@ -199,10 +193,10 @@ describe('UserEditModal', () => {
       await fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(mockUpdateUser).toHaveBeenCalledWith(mockUser.id, {
+        expect(updateUser).toHaveBeenCalledWith(mockUser.id, {
           email: 'newemail@example.com'
         });
-        expect(mockUpdateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
+        expect(updateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
           name: 'New Profile Name'
         });
       });
@@ -212,7 +206,7 @@ describe('UserEditModal', () => {
   describe('Error Handling', () => {
     it('should display error message on update failure', async () => {
       const errorMessage = 'Update failed';
-      mockUpdateUser.mockRejectedValue(new Error(errorMessage));
+      updateUser.mockRejectedValue(new Error(errorMessage));
 
       render(UserEditModal, { props: mockProps });
 
@@ -228,7 +222,7 @@ describe('UserEditModal', () => {
     });
 
     it('should handle user activity loading failure gracefully', async () => {
-      mockGetUserActivity.mockRejectedValue(new Error('Failed to load activity'));
+      (getUserActivity as any).mockRejectedValue(new Error('Failed to load activity'));
 
       render(UserEditModal, { props: mockProps });
 
@@ -240,7 +234,7 @@ describe('UserEditModal', () => {
 
     it('should clear error when modal is closed', async () => {
       const errorMessage = 'Update failed';
-      mockUpdateUser.mockRejectedValue(new Error(errorMessage));
+      updateUser.mockRejectedValue(new Error(errorMessage));
 
       const { rerender } = render(UserEditModal, { props: mockProps });
 
@@ -266,7 +260,7 @@ describe('UserEditModal', () => {
   describe('Loading States', () => {
     it('should show loading state during save operation', async () => {
       // Mock a delayed response
-      mockUpdateUser.mockImplementation(() => 
+      updateUser.mockImplementation(() => 
         new Promise(resolve => setTimeout(() => resolve({}), 100))
       );
 
@@ -289,7 +283,7 @@ describe('UserEditModal', () => {
     });
 
     it('should disable form inputs during loading', async () => {
-      mockUpdateUser.mockImplementation(() => 
+      updateUser.mockImplementation(() => 
         new Promise(resolve => setTimeout(() => resolve({}), 100))
       );
 
@@ -338,13 +332,13 @@ describe('UserEditModal', () => {
       });
 
       // Modal is initially closed, activity should not be loaded
-      expect(mockGetUserActivity).not.toHaveBeenCalled();
+      expect(getUserActivity).not.toHaveBeenCalled();
 
       // Open modal
       rerender({ props: { ...mockProps, open: true } });
 
       await waitFor(() => {
-        expect(mockGetUserActivity).toHaveBeenCalledWith(mockUser.id);
+        expect(getUserActivity).toHaveBeenCalledWith(mockUser.id);
       });
     });
   });
@@ -371,7 +365,7 @@ describe('UserEditModal', () => {
       await fireEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(mockUpdateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
+        expect(updateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
           role: 'admin'
         });
       });

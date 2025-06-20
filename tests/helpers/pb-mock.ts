@@ -48,6 +48,10 @@ export class MockPocketBase {
       service.delete.mockClear();
       service.subscribe.mockClear();
       service.unsubscribe.mockClear();
+      service.authWithPassword.mockClear();
+      service.authRefresh.mockClear();
+      service.requestPasswordReset.mockClear();
+      service.confirmPasswordReset.mockClear();
     });
     this.authStore.model = null;
     this.authStore.token = '';
@@ -68,6 +72,12 @@ export class MockRecordService {
   getFileUrl = vi.fn().mockReturnValue('http://localhost:8090/file.jpg');
   subscribe = vi.fn().mockResolvedValue(() => {});
   unsubscribe = vi.fn().mockResolvedValue(true);
+  
+  // Auth methods
+  authWithPassword = vi.fn().mockResolvedValue({ record: {}, token: 'mock-token' });
+  authRefresh = vi.fn().mockResolvedValue({ record: {}, token: 'mock-token' });
+  requestPasswordReset = vi.fn().mockResolvedValue({});
+  confirmPasswordReset = vi.fn().mockResolvedValue({});
 
   // Helper methods for setting up mock responses
   mockGetFullList(records: MockRecord[]) {
@@ -109,6 +119,10 @@ export class MockRecordService {
     this.create.mockRejectedValue(error);
     this.update.mockRejectedValue(error);
     this.delete.mockRejectedValue(error);
+    this.authWithPassword.mockRejectedValue(error);
+    this.authRefresh.mockRejectedValue(error);
+    this.requestPasswordReset.mockRejectedValue(error);
+    this.confirmPasswordReset.mockRejectedValue(error);
     return this;
   }
 }

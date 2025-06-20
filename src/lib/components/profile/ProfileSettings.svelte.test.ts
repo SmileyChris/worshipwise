@@ -3,7 +3,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import '@testing-library/jest-dom/vitest';
 import ProfileSettings from './ProfileSettings.svelte';
 import { auth } from '$lib/stores/auth.svelte';
-import { mockPb } from '../../../tests/helpers/pb-mock';
 import type { User, Profile } from '$lib/types/auth';
 
 // Mock the auth store
@@ -20,8 +19,21 @@ vi.mock('$lib/stores/auth.svelte', () => ({
 
 // Mock PocketBase client
 vi.mock('$lib/api/client', () => ({
-  pb: mockPb
+  pb: {
+    collection: vi.fn(),
+    authStore: {
+      model: null,
+      token: '',
+      isValid: false,
+      clear: vi.fn(),
+      save: vi.fn(),
+      onChange: vi.fn()
+    }
+  }
 }));
+
+// Import mock after declaration
+import { pb } from '$lib/api/client';
 
 describe('ProfileSettings', () => {
   const mockUser: User = {
@@ -40,7 +52,6 @@ describe('ProfileSettings', () => {
     user_id: 'user1',
     name: 'Test User',
     role: 'musician',
-    church_name: 'Test Church',
     is_active: true,
     created: '2024-01-01T00:00:00Z',
     updated: '2024-01-01T00:00:00Z'
@@ -48,7 +59,6 @@ describe('ProfileSettings', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockPb.reset();
     
     // Reset auth store mocks
     auth.user = mockUser;
@@ -66,7 +76,6 @@ describe('ProfileSettings', () => {
       expect(screen.getByRole('heading', { name: 'Profile Information' })).toBeInTheDocument();
       expect(screen.getByTestId('profile-name-input')).toHaveValue(mockProfile.name);
       expect(screen.getByTestId('profile-email-input')).toHaveValue(mockUser.email);
-      expect(screen.getByTestId('profile-church-input')).toHaveValue(mockProfile.church_name);
       expect(screen.getByTestId('profile-role-select')).toHaveValue(mockProfile.role);
     });
 
@@ -120,20 +129,17 @@ describe('ProfileSettings', () => {
 
       const nameInput = screen.getByTestId('profile-name-input');
       const emailInput = screen.getByTestId('profile-email-input');
-      const churchInput = screen.getByTestId('profile-church-input');
       const updateButton = screen.getByRole('button', { name: /update profile/i });
 
       // Change form values
       await fireEvent.input(nameInput, { target: { value: 'Updated Name' } });
       await fireEvent.input(emailInput, { target: { value: 'updated@example.com' } });
-      await fireEvent.input(churchInput, { target: { value: 'Updated Church' } });
 
       await fireEvent.click(updateButton);
 
       expect(auth.updateProfileInfo).toHaveBeenCalledWith(
         {
           name: 'Updated Name',
-          church_name: 'Updated Church',
           role: 'musician'
         },
         {
@@ -155,7 +161,6 @@ describe('ProfileSettings', () => {
       expect(auth.updateProfileInfo).toHaveBeenCalledWith(
         {
           name: 'Updated Name',
-          church_name: 'Test Church',
           role: 'musician'
         },
         undefined
@@ -279,9 +284,11 @@ describe('ProfileSettings', () => {
 
     it('should change password successfully', async () => {
       // Mock successful password verification and update
-      const usersCollection = mockPb.collection('users');
-      usersCollection.authWithPassword = vi.fn().mockResolvedValue({ record: mockUser });
-      usersCollection.update = vi.fn().mockResolvedValue(mockUser);
+      const usersCollection = {
+        authWithPassword: vi.fn().mockResolvedValue({ record: mockUser }),
+        update: vi.fn().mockResolvedValue(mockUser)
+      };
+      (pb.collection as any).mockReturnValue(usersCollection);
 
       render(ProfileSettings);
 
@@ -310,9 +317,11 @@ describe('ProfileSettings', () => {
     });
 
     it('should display password change success message', async () => {
-      const usersCollection = mockPb.collection('users');
-      usersCollection.authWithPassword = vi.fn().mockResolvedValue({ record: mockUser });
-      usersCollection.update = vi.fn().mockResolvedValue(mockUser);
+      const usersCollection = {
+        authWithPassword: vi.fn().mockResolvedValue({ record: mockUser }),
+        update: vi.fn().mockResolvedValue(mockUser)
+      };
+      (pb.collection as any).mockReturnValue(usersCollection);
 
       render(ProfileSettings);
 
@@ -337,10 +346,12 @@ describe('ProfileSettings', () => {
     });
 
     it('should handle incorrect current password', async () => {
-      const usersCollection = mockPb.collection('users');
-      usersCollection.authWithPassword = vi.fn().mockRejectedValue({
-        response: { status: 400 }
-      });
+      const usersCollection = {
+        authWithPassword: vi.fn().mockRejectedValue({
+          response: { status: 400 }
+        })
+      };
+      (pb.collection as any).mockReturnValue(usersCollection);
 
       render(ProfileSettings);
 
@@ -360,9 +371,11 @@ describe('ProfileSettings', () => {
     });
 
     it('should handle password change errors', async () => {
-      const usersCollection = mockPb.collection('users');
-      usersCollection.authWithPassword = vi.fn().mockResolvedValue({ record: mockUser });
-      usersCollection.update = vi.fn().mockRejectedValue(new Error('Update failed'));
+      const usersCollection = {
+        authWithPassword: vi.fn().mockResolvedValue({ record: mockUser }),
+        update: vi.fn().mockRejectedValue(new Error('Update failed'))
+      };
+      (pb.collection as any).mockReturnValue(usersCollection);
 
       render(ProfileSettings);
 
@@ -465,7 +478,6 @@ describe('ProfileSettings', () => {
 
       expect(screen.getByLabelText('Full Name')).toBeInTheDocument();
       expect(screen.getByLabelText('Email Address')).toBeInTheDocument();
-      expect(screen.getByLabelText('Church Name')).toBeInTheDocument();
       expect(screen.getByLabelText('Role')).toBeInTheDocument();
       expect(screen.getByLabelText('Current Password')).toBeInTheDocument();
       expect(screen.getByLabelText('New Password')).toBeInTheDocument();
@@ -477,7 +489,6 @@ describe('ProfileSettings', () => {
 
       expect(screen.getByTestId('profile-name-input')).toHaveAttribute('autocomplete', 'name');
       expect(screen.getByTestId('profile-email-input')).toHaveAttribute('autocomplete', 'email');
-      expect(screen.getByTestId('profile-church-input')).toHaveAttribute('autocomplete', 'organization');
       expect(screen.getByTestId('current-password-input')).toHaveAttribute('autocomplete', 'current-password');
       expect(screen.getByTestId('new-password-input')).toHaveAttribute('autocomplete', 'new-password');
       expect(screen.getByTestId('confirm-password-input')).toHaveAttribute('autocomplete', 'new-password');
