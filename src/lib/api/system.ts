@@ -4,85 +4,66 @@ import type { SystemStatus } from '$lib/types/quickstart.js';
 export class SystemAPI {
 	/**
 	 * Check the overall system status for quickstart flow
+	 * Simplified: only check if worship users exist (the real indicator)
 	 */
 	static async getSystemStatus(): Promise<SystemStatus> {
 		const status: SystemStatus = {
-			pocketbaseRunning: false,
-			adminExists: false,
+			pocketbaseRunning: true, // If we got here, PB is running
+			adminExists: true, // If app loads, admin was created via `just dev`
 			usersExist: false,
 			songsExist: false,
-			collectionsExist: false,
+			categoriesExist: false,
+			collectionsExist: true, // If admin exists, collections exist
 			needsSetup: false
 		};
 
 		try {
-			// Check if PocketBase is running
-			await pb.health.check();
-			status.pocketbaseRunning = true;
+			// The only thing that matters: do any worship users exist?
+			status.usersExist = await this.checkWorshipUsersExist();
 
-			// Check if required collections exist by trying to access them
-			try {
-				// Instead of listing collections (which requires admin), try to access the collections directly
-				const requiredCollections = ['users', 'songs'];
-				const collectionChecks = await Promise.allSettled(
-					requiredCollections.map(async (collectionName) => {
-						try {
-							// Try to get a minimal response from each collection
-							await pb.collection(collectionName).getList(1, 1);
-							return true;
-						} catch (error: any) {
-							// Collection exists if we get any response other than 404
-							return error?.status !== 404;
-						}
-					})
-				);
-				
-				status.collectionsExist = collectionChecks.every(
-					(result) => result.status === 'fulfilled' && result.value === true
-				);
-			} catch (error) {
-				console.warn('Could not check collections:', error);
-				status.collectionsExist = false;
-			}
-
-			// Check if any users exist
-			if (status.collectionsExist) {
-				try {
-					const users = await pb.collection('users').getList(1, 1);
-					status.usersExist = users.totalItems > 0;
-				} catch (error) {
-					console.warn('Could not check users:', error);
-					status.usersExist = false;
-				}
-
-				// Check if any songs exist
+			// Check optional content for progress display
+			if (status.usersExist) {
 				try {
 					const songs = await pb.collection('songs').getList(1, 1);
 					status.songsExist = songs.totalItems > 0;
 				} catch (error) {
-					console.warn('Could not check songs:', error);
 					status.songsExist = false;
 				}
-			}
 
-			// Check if admin exists by trying to access admin endpoints
-			try {
-				const adminAccess = await SystemAPI.checkAdminAccess();
-				status.adminExists = adminAccess && status.collectionsExist;
-			} catch (error) {
-				console.warn('Could not check admin access:', error);
-				// Fallback to previous logic
-				status.adminExists = status.collectionsExist && status.usersExist;
+				try {
+					const categories = await pb.collection('categories').getList(1, 1);
+					status.categoriesExist = categories.totalItems > 0;
+				} catch (error) {
+					status.categoriesExist = false;
+				}
 			}
 		} catch (error) {
-			console.warn('PocketBase health check failed:', error);
-			status.pocketbaseRunning = false;
+			console.warn('System status check failed:', error);
+			// If we can't check users, assume fresh install
+			status.usersExist = false;
 		}
 
-		// Determine if setup is needed
-		status.needsSetup = !status.pocketbaseRunning || !status.collectionsExist || !status.usersExist;
+		// Setup is needed ONLY if no worship users exist
+		status.needsSetup = !status.usersExist;
 
 		return status;
+	}
+
+	/**
+	 * Check if any worship users exist using anonymous access
+	 * This is the key indicator of whether this is a fresh install
+	 */
+	static async checkWorshipUsersExist(): Promise<boolean> {
+		try {
+			// Try to get a count of users without authentication
+			// This should work anonymously if collections are set up properly
+			const users = await pb.collection('users').getList(1, 1);
+			return users.totalItems > 0;
+		} catch (error: any) {
+			// If we can't access users anonymously, assume no users exist
+			console.warn('Could not check worship users:', error);
+			return false;
+		}
 	}
 
 	/**
@@ -106,18 +87,20 @@ export class SystemAPI {
 	}
 
 	/**
-	 * Check if we can connect to PocketBase admin
+	 * Check if admin user exists by trying to access admin endpoints
 	 */
 	static async checkAdminAccess(): Promise<boolean> {
 		try {
-			// Try to access the admin interface
-			const response = await fetch(`${pb.baseUrl}/_/`, {
+			// Try to access an admin-only endpoint that requires authentication
+			// This will help us determine if an admin user exists and can authenticate
+			const response = await fetch(`${pb.baseUrl}/api/admins`, {
 				method: 'GET'
 			});
 
-			// If we get 200, admin interface is accessible
-			// If we get 404, admin is not set up yet
-			return response.status === 200;
+			// If we get 200, admin endpoints are accessible (admin exists)
+			// If we get 401/403, admin exists but we're not authenticated (which is expected)
+			// If we get 404, admin system might not be set up
+			return response.status === 200 || response.status === 401 || response.status === 403;
 		} catch (error) {
 			console.warn('Admin access check failed:', error);
 			return false;

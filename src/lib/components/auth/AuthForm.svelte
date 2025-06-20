@@ -17,7 +17,6 @@
 	let password = $state('');
 	let passwordConfirm = $state('');
 	let name = $state('');
-	let churchName = $state('');
 
 	// Validation state
 	let emailError = $state('');
@@ -123,7 +122,6 @@
 			...(isRegister && {
 				passwordConfirm,
 				name,
-				church_name: churchName,
 				role: 'musician' // Default role
 			})
 		};
@@ -136,7 +134,6 @@
 		password = '';
 		passwordConfirm = '';
 		name = '';
-		churchName = '';
 		emailError = '';
 		passwordError = '';
 		passwordConfirmError = '';
@@ -231,14 +228,6 @@
 				data-testid="password-confirm-input"
 			/>
 
-			<Input
-				label="Church Name (Optional)"
-				name="churchName"
-				bind:value={churchName}
-				placeholder="Enter your church name"
-				autocomplete="organization"
-				data-testid="church-input"
-			/>
 		{/if}
 
 		<Button

@@ -12,34 +12,49 @@
 
 	let connectionError = $state(null);
 
-	// Redirect if not authenticated
+	// Check system status on load (regardless of auth state for setup)
 	$effect(() => {
-		if (browser && !auth.isValid) {
-			goto('/login');
-		}
-	});
-
-	// Check system status when authenticated user loads the app
-	$effect(() => {
-		if (browser && auth.isValid) {
+		if (browser) {
 			quickstartStore.checkSystemStatus().catch((error) => {
 				console.error('System status check failed:', error);
 				connectionError = error;
 			});
 		}
 	});
+
+	// Redirect if not authenticated and setup is complete
+	$effect(() => {
+		if (browser && !auth.isValid && !quickstartStore.systemStatus.needsSetup) {
+			goto('/login');
+		}
+	});
 </script>
 
-{#if auth.isValid}
+{#if auth.isValid || quickstartStore.systemStatus.needsSetup}
 	<ErrorBoundary error={connectionError}>
 		<div class="min-h-screen bg-gray-50">
-			<Navigation />
+			{#if auth.isValid}
+				<Navigation />
+			{/if}
 
 			<main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-				<!-- System status and quickstart -->
-				<SystemStatus />
-
-				{@render children()}
+				{#if auth.isValid}
+					<!-- System status and quickstart for authenticated users -->
+					<SystemStatus />
+					{@render children()}
+				{:else if quickstartStore.systemStatus.needsSetup}
+					<!-- Setup mode for unauthenticated users -->
+					<div class="text-center py-12">
+						<h1 class="text-3xl font-bold text-gray-900 mb-4">🎵 Welcome to WorshipWise</h1>
+						<p class="text-lg text-gray-600 mb-8">Your system is ready! Let's create your first worship account.</p>
+						<button 
+							onclick={() => (quickstartStore.showSetupWizard = true)}
+							class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+						>
+							Get Started
+						</button>
+					</div>
+				{/if}
 			</main>
 
 			<!-- Setup wizard modal -->

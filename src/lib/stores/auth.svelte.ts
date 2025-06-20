@@ -98,7 +98,6 @@ class AuthStore {
 				user_id: user.id,
 				name: data.name,
 				role: data.role || 'musician',
-				church_name: data.church_name || '',
 				is_active: true
 			});
 

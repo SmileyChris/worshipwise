@@ -3,6 +3,7 @@ export interface SystemStatus {
 	adminExists: boolean;
 	usersExist: boolean;
 	songsExist: boolean;
+	categoriesExist: boolean;
 	collectionsExist: boolean;
 	needsSetup: boolean;
 }

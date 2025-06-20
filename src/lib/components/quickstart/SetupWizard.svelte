@@ -65,10 +65,6 @@
 		store.skipStep();
 	}
 
-	function handleOpenAdmin() {
-		const adminUrl = 'http://localhost:8090/_/';
-		window.open(adminUrl, '_blank');
-	}
 
 	function handleClose() {
 		store.dismissSetupWizard();
@@ -84,7 +80,7 @@
 >
 	<div class="mb-6">
 		<p class="text-gray-600">
-			Let's set up everything you need to organize songs, build setlists, collaborate with your team, and track usage patterns.
+			Your WorshipWise system is ready! Let's create your worship account and set up your song library.
 		</p>
 	</div>
 
@@ -93,7 +89,7 @@
 			<div class="mb-4 flex items-center justify-between">
 				<span class="text-sm font-medium text-gray-700">Setup Progress</span>
 				<span class="text-sm text-gray-500">
-					{store.completedRequiredSteps.length} of {store.requiredSteps.length} complete
+					{store.completedRequiredSteps.length} of {store.requiredSteps.length} required steps complete
 				</span>
 			</div>
 
@@ -154,47 +150,9 @@
 					Current Step: {store.currentStep.title}
 				</h4>
 
-				{#if store.currentStep.id === 'health-check'}
+				{#if store.currentStep.id === 'user-account'}
 					<p class="mb-3 text-sm text-gray-600">
-						First, we'll verify your WorshipWise server is running. This ensures all features work properly.
-					</p>
-					<Button onclick={handleExecuteStep} disabled={store.isLoading}>
-						{store.isLoading ? 'Checking Connection...' : 'Test Server Connection'}
-					</Button>
-				{:else if store.currentStep.id === 'admin-setup'}
-					<p class="mb-3 text-sm text-gray-600">
-						Create a system administrator account to manage your WorshipWise installation. 
-						This opens the admin interface where you'll set up your login credentials.
-					</p>
-					<div class="flex space-x-2">
-						<Button onclick={handleOpenAdmin} variant="primary">
-							<ExternalLink class="mr-2 h-4 w-4" />
-							Open Admin Setup
-						</Button>
-						<Button onclick={() => store.nextStep()} variant="secondary">
-							Admin Account Created
-						</Button>
-					</div>
-				{:else if store.currentStep.id === 'collections-check'}
-					<p class="mb-3 text-sm text-gray-600">
-						Setting up data storage for your songs, setlists, and user accounts. 
-						This happens automatically when you create the admin account.
-					</p>
-					<Button onclick={handleExecuteStep} disabled={store.isLoading}>
-						{store.isLoading ? 'Initializing...' : 'Initialize Database'}
-					</Button>
-				{:else if store.currentStep.id === 'default-categories'}
-					<p class="mb-3 text-sm text-gray-600">
-						Create your church's song categories: Hymns and Te Reo, Contemporary, Seasonal, 
-						Christmas Songs, Possible New Songs, and Modern (archive list). This helps organize 
-						your worship songs for easy setlist building.
-					</p>
-					<Button onclick={handleExecuteStep} disabled={store.isLoading}>
-						{store.isLoading ? 'Creating Categories...' : 'Create Song Categories'}
-					</Button>
-				{:else if store.currentStep.id === 'user-account'}
-					<p class="mb-3 text-sm text-gray-600">
-						Now create your personal worship leader account to start managing songs and setlists. 
+						Create your first worship leader account to start managing songs and services. 
 						You'll use this account to log in daily.
 					</p>
 					<div class="flex space-x-2">
@@ -203,9 +161,18 @@
 							I Already Have an Account
 						</Button>
 					</div>
+				{:else if store.currentStep.id === 'default-categories'}
+					<p class="mb-3 text-sm text-gray-600">
+						Create your church's song categories: Hymns and Te Reo, Contemporary, Seasonal, 
+						Christmas Songs, Possible New Songs, and Modern (archive list). This helps organize 
+						your worship songs for easy service planning.
+					</p>
+					<Button onclick={handleExecuteStep} disabled={store.isLoading}>
+						{store.isLoading ? 'Creating Categories...' : 'Create Song Categories'}
+					</Button>
 				{:else if store.currentStep.id === 'sample-data'}
 					<p class="mb-3 text-sm text-gray-600">
-						Get started quickly with example songs and setlists. This shows you how WorshipWise works 
+						Get started quickly with example songs and services. This shows you how WorshipWise works 
 						and you can delete the sample content later.
 					</p>
 					{#if store.hasActiveStep}

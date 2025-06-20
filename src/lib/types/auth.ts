@@ -33,7 +33,6 @@ export interface RegisterData {
 	passwordConfirm: string;
 	name: string;
 	role?: 'musician' | 'leader';
-	church_name?: string;
 }
 
 export interface PasswordResetRequest {

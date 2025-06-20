@@ -154,6 +154,14 @@
 						<TrendingUp class="mr-2 h-4 w-4" />
 						Setup Wizard
 					</button>
+				{:else}
+					<!-- Debug: Setup Complete Indicator -->
+					<div class="flex w-full items-center rounded-md bg-green-50 border border-green-200 px-4 py-3">
+						<svg class="mr-2 h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+						</svg>
+						<span class="text-green-800 text-sm">Setup Complete!</span>
+					</div>
 				{/if}
 			</div>
 		</Card>
