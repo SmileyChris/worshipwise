@@ -6,10 +6,11 @@
 
 	interface Props {
 		selectedLabelIds: string[];
+		id?: string;
 		onchange?: (labelIds: string[]) => void;
 	}
 
-	let { selectedLabelIds = $bindable([]), onchange }: Props = $props();
+	let { selectedLabelIds = $bindable([]), id, onchange }: Props = $props();
 
 	let availableLabels: Label[] = $state([]);
 	let filteredLabels: Label[] = $state([]);
@@ -96,6 +97,7 @@
 		<!-- Label Search Input -->
 		<div class="relative">
 			<input
+				{id}
 				type="text"
 				bind:value={searchQuery}
 				onfocus={handleInputFocus}

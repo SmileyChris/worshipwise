@@ -3,7 +3,7 @@
 	import { auth } from '$lib/stores/auth.svelte';
 	import { songsStore } from '$lib/stores/songs.svelte';
 	import { servicesStore } from '$lib/stores/services.svelte';
-	import type { Song, CreateSongData, UpdateSongData } from '$lib/types/song';
+	import type { Song } from '$lib/types/song';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
@@ -422,18 +422,29 @@
 							<!-- Filters row -->
 							<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
 								<div>
-									<label class="mb-1 block text-sm font-medium text-gray-700">Category</label>
-									<CategorySelect bind:value={selectedCategory} placeholder="All categories" />
+									<label for="filter-category" class="mb-1 block text-sm font-medium text-gray-700"
+										>Category</label
+									>
+									<CategorySelect
+										id="filter-category"
+										bind:value={selectedCategory}
+										placeholder="All categories"
+									/>
 								</div>
 
 								<div>
-									<label class="mb-1 block text-sm font-medium text-gray-700">Labels</label>
-									<LabelSelector bind:selectedLabelIds />
+									<label for="filter-labels" class="mb-1 block text-sm font-medium text-gray-700"
+										>Labels</label
+									>
+									<LabelSelector id="filter-labels" bind:selectedLabelIds />
 								</div>
 
 								<div>
-									<label class="mb-1 block text-sm font-medium text-gray-700">Key</label>
+									<label for="filter-key" class="mb-1 block text-sm font-medium text-gray-700"
+										>Key</label
+									>
 									<Select
+										id="filter-key"
 										name="key_filter"
 										bind:value={selectedKey}
 										options={keyOptions}
@@ -442,8 +453,15 @@
 								</div>
 
 								<div>
-									<label class="mb-1 block text-sm font-medium text-gray-700">Sort</label>
-									<Select name="sort" bind:value={selectedSort} options={sortOptions} />
+									<label for="filter-sort" class="mb-1 block text-sm font-medium text-gray-700"
+										>Sort</label
+									>
+									<Select
+										id="filter-sort"
+										name="sort"
+										bind:value={selectedSort}
+										options={sortOptions}
+									/>
 								</div>
 							</div>
 						</div>

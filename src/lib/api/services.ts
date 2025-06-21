@@ -114,9 +114,13 @@ export class ServicesAPI {
 		try {
 			const serviceData = {
 				...data,
-				created_by: pb.authStore.model?.id || '',
-				status: data.status || 'draft'
+				created_by: pb.authStore.model?.id || ''
 			};
+
+			// Only add status if not already provided and not a template
+			if (!data.is_template && !('status' in data)) {
+				serviceData.status = 'draft';
+			}
 
 			const record = await pb.collection(this.collection).create(serviceData);
 			return record as unknown as Service;
@@ -160,11 +164,15 @@ export class ServicesAPI {
 			const existingSongs = await this.getServiceSongs(data.service_id);
 			const nextPosition = existingSongs.length + 1;
 
-			const serviceSongData = {
+			const serviceSongData: any = {
 				...data,
+				setlist_id: data.service_id,
 				order_position: data.order_position || nextPosition,
 				added_by: pb.authStore.model?.id || ''
 			};
+
+			// Remove service_id since we're using setlist_id in the database
+			delete serviceSongData.service_id;
 
 			const record = await pb.collection(this.serviceSongsCollection).create(serviceSongData);
 			return record as unknown as ServiceSong;

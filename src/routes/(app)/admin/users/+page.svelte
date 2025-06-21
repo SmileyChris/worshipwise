@@ -15,7 +15,6 @@
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
-	import Modal from '$lib/components/ui/Modal.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import UserEditModal from '$lib/components/admin/UserEditModal.svelte';
 	import ConfirmDialog from '$lib/components/admin/ConfirmDialog.svelte';

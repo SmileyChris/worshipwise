@@ -5,6 +5,7 @@
 
 	interface Props {
 		value: string;
+		id?: string;
 		required?: boolean;
 		disabled?: boolean;
 		placeholder?: string;
@@ -13,6 +14,7 @@
 
 	let {
 		value = $bindable(),
+		id,
 		required = false,
 		disabled = false,
 		placeholder = 'Select category',
@@ -73,6 +75,7 @@
 	<div class="text-sm text-red-600">{error}</div>
 {:else}
 	<select
+		{id}
 		bind:value
 		onchange={handleChange}
 		{required}

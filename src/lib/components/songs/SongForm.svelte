@@ -336,20 +336,20 @@
 		<!-- Category and Labels -->
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 			<div>
-				<label class="mb-1 block text-sm leading-6 font-medium text-gray-900">
+				<label for="song-category" class="mb-1 block text-sm leading-6 font-medium text-gray-900">
 					Category <span class="text-red-500">*</span>
 				</label>
-				<CategorySelect bind:value={category} required />
+				<CategorySelect id="song-category" bind:value={category} required />
 				{#if categoryError}
 					<p class="mt-1 text-sm text-red-600">{categoryError}</p>
 				{/if}
 			</div>
 
 			<div>
-				<label class="mb-1 block text-sm leading-6 font-medium text-gray-900">
+				<label for="song-labels" class="mb-1 block text-sm leading-6 font-medium text-gray-900">
 					Labels (optional)
 				</label>
-				<LabelSelector bind:selectedLabelIds />
+				<LabelSelector id="song-labels" bind:selectedLabelIds />
 			</div>
 		</div>
 

@@ -2,7 +2,6 @@
 	import { songsStore } from '$lib/stores/songs.svelte';
 	import { quickstartStore } from '$lib/stores/quickstart.svelte';
 	import WelcomeCard from '$lib/components/quickstart/WelcomeCard.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import { Music, Clock, TrendingUp, Users } from 'lucide-svelte';
 

@@ -5,10 +5,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
-	import Select from '$lib/components/ui/Select.svelte';
 	import ServiceBuilder from '$lib/components/services/ServiceBuilder.svelte';
-	import type { CreateServiceData } from '$lib/types/service';
 	import { onMount } from 'svelte';
 
 	let showCreateModal = $state(false);
