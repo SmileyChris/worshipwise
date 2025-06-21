@@ -32,6 +32,7 @@ describe('UserEditModal', () => {
       user_id: 'user1',
       name: 'Test Profile Name',
       role: 'musician',
+      church_name: '',
       is_active: true,
       created: '2024-01-01T00:00:00Z',
       updated: '2024-01-01T00:00:00Z'
@@ -148,8 +149,7 @@ describe('UserEditModal', () => {
       await waitFor(() => {
         expect(updateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
           name: 'New Profile Name',
-          role: 'leader',
-          church_name: ''
+          role: 'leader'
         });
       });
     });
@@ -167,8 +167,7 @@ describe('UserEditModal', () => {
 
       await waitFor(() => {
         expect(updateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
-          is_active: false,
-          church_name: ''
+          is_active: false
         });
       });
     });
@@ -202,8 +201,7 @@ describe('UserEditModal', () => {
           email: 'newemail@example.com'
         });
         expect(updateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
-          name: 'New Profile Name',
-          church_name: ''
+          name: 'New Profile Name'
         });
       });
     });
@@ -374,8 +372,7 @@ describe('UserEditModal', () => {
 
       await waitFor(() => {
         expect(updateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
-          role: 'admin',
-          church_name: ''
+          role: 'admin'
         });
       });
     });
