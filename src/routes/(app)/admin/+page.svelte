@@ -56,8 +56,8 @@
 				<div class="p-6">
 					<div class="flex items-center">
 						<div class="flex-shrink-0">
-							<div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-								<span class="text-blue-600">👥</span>
+							<div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+								<span class="text-primary">👥</span>
 							</div>
 						</div>
 						<div class="ml-4">
@@ -149,14 +149,14 @@
 						</div>
 					</div>
 
-					<div class="bg-blue-50 rounded-lg p-4">
+					<div class="bg-primary/5 rounded-lg p-4">
 						<div class="flex items-center">
 							<div class="flex-shrink-0">
 								<span class="text-2xl">🎵</span>
 							</div>
 							<div class="ml-3">
-								<p class="text-sm font-medium text-blue-900">Musicians</p>
-								<p class="text-2xl font-semibold font-title text-blue-700">{stats.usersByRole.musician}</p>
+								<p class="text-sm font-medium text-primary/90">
+								<p class="text-2xl font-semibold font-title text-primary/80">{stats.usersByRole.musician}</p>
 							</div>
 						</div>
 					</div>

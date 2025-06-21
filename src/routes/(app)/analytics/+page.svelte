@@ -81,7 +81,7 @@
 				<Button
 					variant="ghost"
 					onclick={() => (showInsights = !showInsights)}
-					class="text-blue-600 hover:text-blue-800"
+					class="text-primary hover:text-primary/90"
 				>
 					{showInsights ? 'Hide' : 'Show'} Insights
 				</Button>
@@ -115,7 +115,7 @@
 						id="date-from"
 						type="date"
 						bind:value={dateFrom}
-						class="mt-1 block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+						class="mt-1 block rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
 					/>
 				</div>
 				<div>
@@ -124,7 +124,7 @@
 						id="date-to"
 						type="date"
 						bind:value={dateTo}
-						class="mt-1 block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+						class="mt-1 block rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
 					/>
 				</div>
 				<div class="flex items-end gap-2">
@@ -148,7 +148,7 @@
 				<div class="space-y-2">
 					{#each insights as insight}
 						<div class="flex items-start gap-2">
-							<div class="mt-1 h-1.5 w-1.5 rounded-full bg-blue-600"></div>
+							<div class="mt-1 h-1.5 w-1.5 rounded-full bg-primary"></div>
 							<p class="text-sm text-gray-700">{insight}</p>
 						</div>
 					{/each}
@@ -182,7 +182,7 @@
 			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 				<Card>
 					<div class="p-6 text-center">
-						<div class="text-3xl font-bold font-title text-blue-600">
+						<div class="text-3xl font-bold font-title text-primary">
 							{formatNumber(analyticsStore.overview.totalSongs)}
 						</div>
 						<div class="text-sm text-gray-500">Total Songs</div>
@@ -320,7 +320,7 @@
 							{#each analyticsStore.keyUsageStats.slice(0, 8) as keyData}
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-3">
-										<div class="rounded bg-blue-100 px-2 py-1 text-sm font-medium text-blue-800">
+										<div class="rounded bg-primary/10 px-2 py-1 text-sm font-medium text-primary">
 											{keyData.key}
 										</div>
 										<div class="text-sm text-gray-600">

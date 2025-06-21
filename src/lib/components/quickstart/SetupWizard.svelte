@@ -36,7 +36,7 @@
 			case 'error':
 				return 'text-red-600 bg-red-100';
 			case 'in_progress':
-				return 'text-blue-600 bg-blue-100';
+				return 'text-primary bg-primary/10';
 			default:
 				return 'text-gray-600 bg-gray-100';
 		}
@@ -95,7 +95,7 @@
 
 			<div class="h-2 w-full rounded-full bg-gray-200">
 				<div
-					class="h-2 rounded-full bg-blue-600 transition-all duration-300"
+					class="h-2 rounded-full bg-primary transition-all duration-300"
 					style="width: {(store.completedRequiredSteps.length / store.requiredSteps.length) * 100}%"
 				></div>
 			</div>
@@ -107,7 +107,7 @@
 				{@const StepIcon = getStepIcon(step.status)}
 				<div
 					class="flex items-start space-x-3 rounded-lg border p-3 {index === store.currentStepIndex
-						? 'border-blue-200 bg-blue-50'
+						? 'border-primary/20 bg-primary/5'
 						: 'border-gray-200'}"
 				>
 					<div

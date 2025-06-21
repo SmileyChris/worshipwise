@@ -28,7 +28,7 @@
 	function getStatusColor(status: string) {
 		switch (status) {
 			case 'excellent': return 'text-green-600 bg-green-50 border-green-200';
-			case 'good': return 'text-blue-600 bg-blue-50 border-blue-200';
+			case 'good': return 'text-primary bg-primary/5 border-primary/20';
 			case 'needs_attention': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
 			case 'critical': return 'text-red-600 bg-red-50 border-red-200';
 			default: return 'text-gray-600 bg-gray-50 border-gray-200';
@@ -107,7 +107,7 @@
 			<!-- Key Diversity -->
 			<Card>
 				<div class="flex items-center justify-between mb-3">
-					<Music class="h-6 w-6 text-blue-600" />
+					<Music class="h-6 w-6 text-primary" />
 					<Badge class={getDiversityColor(insights.diversityAnalysis.keyDiversity)}>
 						{insights.diversityAnalysis.keyDiversity}%
 					</Badge>
@@ -142,7 +142,7 @@
 			<!-- Rotation Health Details -->
 			<Card>
 				<div class="flex items-center gap-3 mb-4">
-					<TrendingUp class="h-5 w-5 text-blue-600" />
+					<TrendingUp class="h-5 w-5 text-primary" />
 					<h3 class="text-lg font-semibold font-title">Rotation Health Analysis</h3>
 				</div>
 				
@@ -154,7 +154,7 @@
 								<div 
 									class={`h-2 rounded-full ${
 										insights.rotationHealth.status === 'excellent' ? 'bg-green-500' :
-										insights.rotationHealth.status === 'good' ? 'bg-blue-500' :
+										insights.rotationHealth.status === 'good' ? 'bg-primary' :
 										insights.rotationHealth.status === 'needs_attention' ? 'bg-yellow-500' : 'bg-red-500'
 									}`}
 									style={`width: ${insights.rotationHealth.score}%`}
@@ -180,7 +180,7 @@
 							<h4 class="font-medium text-gray-900 mb-2">Recommendations</h4>
 							<ul class="space-y-1">
 								{#each insights.rotationHealth.recommendations as recommendation}
-									<li class="text-sm text-blue-600">• {recommendation}</li>
+									<li class="text-sm text-primary">• {recommendation}</li>
 								{/each}
 							</ul>
 						</div>
@@ -198,7 +198,7 @@
 				<div class="space-y-4">
 					<div class="space-y-3">
 						{#each [
-							{ label: 'Key Diversity', value: insights.diversityAnalysis.keyDiversity, color: 'bg-blue-500' },
+							{ label: 'Key Diversity', value: insights.diversityAnalysis.keyDiversity, color: 'bg-primary' },
 							{ label: 'Tempo Balance', value: insights.diversityAnalysis.tempoDiversity, color: 'bg-green-500' },
 							{ label: 'Artist Variety', value: insights.diversityAnalysis.artistDiversity, color: 'bg-purple-500' }
 						] as metric}
@@ -247,7 +247,7 @@
 						</div>
 						
 						<div class="bg-gray-50 rounded-lg p-3">
-							<div class="text-2xl font-bold text-blue-600">
+							<div class="text-2xl font-bold text-primary">
 								{insights.congregationEngagement.newSongIntroductionRate}
 							</div>
 							<div class="text-xs text-gray-600">New Songs (6mo)</div>

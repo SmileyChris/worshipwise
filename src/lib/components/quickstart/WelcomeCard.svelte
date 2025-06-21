@@ -35,7 +35,7 @@
 			<!-- Feature highlights -->
 			<div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
 				<div class="rounded-lg bg-gray-50 p-4 text-center">
-					<Music class="mx-auto mb-2 h-8 w-8 text-blue-600" />
+					<Music class="mx-auto mb-2 h-8 w-8 text-primary" />
 					<h4 class="font-title font-medium text-gray-900">Smart Song Library</h4>
 					<p class="text-sm text-gray-600">
 						Organize songs with keys, lyrics, chord charts, and audio files

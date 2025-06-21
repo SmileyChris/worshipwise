@@ -237,7 +237,7 @@
 							type="checkbox"
 							bind:checked={formData.isActive}
 							disabled={loading}
-							class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+							class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
 						/>
 						<span class="ml-2 text-sm text-gray-700">Active account</span>
 					</label>

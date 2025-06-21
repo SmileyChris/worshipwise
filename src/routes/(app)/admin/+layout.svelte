@@ -39,7 +39,7 @@
 				<a
 					href="/admin"
 					class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm {$page.url.pathname === '/admin' 
-						? 'border-blue-500 text-blue-600' 
+						? 'border-primary text-primary' 
 						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
 				>
 					Dashboard
@@ -47,7 +47,7 @@
 				<a
 					href="/admin/users"
 					class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm {$page.url.pathname.startsWith('/admin/users')
-						? 'border-blue-500 text-blue-600' 
+						? 'border-primary text-primary' 
 						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
 				>
 					User Management
@@ -71,7 +71,7 @@
 		<div class="mt-6">
 			<a
 				href="/dashboard"
-				class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+				class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
 			>
 				Return to Dashboard
 			</a>
@@ -80,6 +80,6 @@
 {:else}
 	<!-- Loading -->
 	<div class="flex justify-center py-12">
-		<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+		<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
 	</div>
 {/if}

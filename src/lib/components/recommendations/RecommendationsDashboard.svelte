@@ -58,9 +58,9 @@
 
 	<!-- Summary Insights -->
 	{#if recommendationsStore.getSummaryInsights().length > 0}
-		<Card class="bg-gradient-to-r from-blue-50 to-indigo-50">
+		<Card class="bg-gradient-to-r from-primary/5 to-primary/10">
 			<div class="flex items-start gap-3">
-				<Lightbulb class="h-5 w-5 text-blue-600 mt-0.5" />
+				<Lightbulb class="h-5 w-5 text-primary mt-0.5" />
 				<div>
 					<h3 class="font-semibold font-title text-gray-900 mb-2">Key Insights</h3>
 					<ul class="space-y-1">
@@ -79,7 +79,7 @@
 			<button
 				class={`py-2 px-1 border-b-2 font-medium text-sm ${
 					activeTab === 'overview'
-						? 'border-blue-500 text-blue-600'
+						? 'border-primary text-primary'
 						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
 				}`}
 				onclick={() => activeTab = 'overview'}
@@ -91,7 +91,7 @@
 			<button
 				class={`py-2 px-1 border-b-2 font-medium text-sm ${
 					activeTab === 'songs'
-						? 'border-blue-500 text-blue-600'
+						? 'border-primary text-primary'
 						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
 				}`}
 				onclick={() => activeTab = 'songs'}
@@ -103,7 +103,7 @@
 			<button
 				class={`py-2 px-1 border-b-2 font-medium text-sm ${
 					activeTab === 'flow'
-						? 'border-blue-500 text-blue-600'
+						? 'border-primary text-primary'
 						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
 				}`}
 				onclick={() => activeTab = 'flow'}
@@ -114,7 +114,7 @@
 			<button
 				class={`py-2 px-1 border-b-2 font-medium text-sm ${
 					activeTab === 'balance'
-						? 'border-blue-500 text-blue-600'
+						? 'border-primary text-primary'
 						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
 				}`}
 				onclick={() => activeTab = 'balance'}
@@ -125,7 +125,7 @@
 			<button
 				class={`py-2 px-1 border-b-2 font-medium text-sm ${
 					activeTab === 'trends'
-						? 'border-blue-500 text-blue-600'
+						? 'border-primary text-primary'
 						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
 				}`}
 				onclick={() => activeTab = 'trends'}
@@ -137,7 +137,7 @@
 			<button
 				class={`py-2 px-1 border-b-2 font-medium text-sm ${
 					activeTab === 'insights'
-						? 'border-blue-500 text-blue-600'
+						? 'border-primary text-primary'
 						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
 				}`}
 				onclick={() => activeTab = 'insights'}
@@ -151,7 +151,7 @@
 	<!-- Loading State -->
 	{#if recommendationsStore.loading}
 		<div class="text-center py-12">
-			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
 			<p class="mt-2 text-gray-600">Loading insights...</p>
 		</div>
 	{/if}

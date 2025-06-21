@@ -89,7 +89,7 @@
 		<Card>
 			<div class="mb-4 flex items-center justify-between">
 				<h3 class="text-lg font-medium font-title text-gray-900">Recent Songs</h3>
-				<a href="/songs" class="text-sm text-blue-600 hover:text-blue-800">View All</a>
+				<a href="/songs" class="text-sm text-primary hover:text-primary/90">View All</a>
 			</div>
 
 			{#if songs.songs.length > 0}
@@ -104,7 +104,7 @@
 							</div>
 							{#if song.key_signature}
 								<span
-									class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800"
+									class="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
 								>
 									{song.key_signature}
 								</span>
@@ -118,7 +118,7 @@
 					<p>No songs added yet</p>
 					<a
 						href="/songs"
-						class="mt-2 inline-block rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+						class="mt-2 inline-block rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary/90"
 					>
 						Add Your First Song
 					</a>
@@ -132,7 +132,7 @@
 			<div class="space-y-3">
 				<a
 					href="/songs"
-					class="flex w-full items-center rounded-md bg-blue-600 px-4 py-3 text-white hover:bg-blue-700"
+					class="flex w-full items-center rounded-md bg-primary px-4 py-3 text-white hover:bg-primary/90"
 				>
 					<Music class="mr-2 h-4 w-4" />
 					Manage Songs
@@ -174,9 +174,9 @@
 			<div class="space-y-3 text-sm text-gray-600">
 				<div class="flex items-start">
 					<div
-						class="mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-100"
+						class="mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
 					>
-						<span class="text-xs font-semibold text-blue-600">1</span>
+						<span class="text-xs font-semibold text-primary">1</span>
 					</div>
 					<div>
 						<strong>Add your songs:</strong> Start by adding your church's most commonly used worship
@@ -186,9 +186,9 @@
 
 				<div class="flex items-start">
 					<div
-						class="mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-100"
+						class="mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
 					>
-						<span class="text-xs font-semibold text-blue-600">2</span>
+						<span class="text-xs font-semibold text-primary">2</span>
 					</div>
 					<div>
 						<strong>Upload files:</strong> Attach chord charts, sheet music, and audio files to make
@@ -198,9 +198,9 @@
 
 				<div class="flex items-start">
 					<div
-						class="mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-100"
+						class="mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
 					>
-						<span class="text-xs font-semibold text-blue-600">3</span>
+						<span class="text-xs font-semibold text-primary">3</span>
 					</div>
 					<div>
 						<strong>Plan services:</strong> Create services for worship and track which songs you've

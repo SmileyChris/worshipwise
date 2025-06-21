@@ -272,7 +272,7 @@
 
 			<Card>
 				<div class="text-center">
-					<div class="text-2xl font-bold font-title text-blue-600">{stats.draft}</div>
+					<div class="text-2xl font-bold font-title text-primary">{stats.draft}</div>
 					<div class="text-sm text-gray-500">Draft</div>
 				</div>
 			</Card>
@@ -400,7 +400,7 @@
 					bind:value={createForm.title}
 					placeholder="Sunday Morning Worship"
 					required
-					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
 				/>
 			</div>
 
@@ -413,7 +413,7 @@
 					type="date"
 					bind:value={createForm.service_date}
 					required
-					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
 				/>
 				{#if createForm.service_date}
 					<p class="mt-1 text-xs text-gray-500">
@@ -429,7 +429,7 @@
 				<select
 					id="service_type"
 					bind:value={createForm.service_type}
-					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
 				>
 					{#each serviceTypes as type}
 						<option value={type}>{type}</option>
@@ -444,7 +444,7 @@
 					type="text"
 					bind:value={createForm.theme}
 					placeholder="Grace and Mercy"
-					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
 				/>
 			</div>
 
@@ -454,7 +454,7 @@
 					id="notes"
 					bind:value={createForm.notes}
 					rows="3"
-					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
 					placeholder="Special instructions or notes..."
 				></textarea>
 			</div>

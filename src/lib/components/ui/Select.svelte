@@ -40,7 +40,7 @@
 	let errorId = `error-${name}`;
 
 	let selectClasses = $derived(
-		`block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset transition-colors focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 ${
+		`block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset transition-colors focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 ${
 			error ? 'ring-red-300 focus:ring-red-600' : 'ring-gray-300'
 		} ${disabled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'bg-white'} ${className}`
 	);

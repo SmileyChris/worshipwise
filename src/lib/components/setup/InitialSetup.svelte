@@ -165,7 +165,7 @@
 		<!-- Header -->
 		<div class="text-center mb-8">
 			<div class="flex items-center justify-center gap-3 mb-4">
-				<Church class="h-12 w-12 text-blue-600" />
+				<Church class="h-12 w-12 text-primary" />
 				<h1 class="text-3xl font-bold font-title text-gray-900">WorshipWise</h1>
 			</div>
 			<p class="text-gray-600">Welcome! Let's set up your church's worship management system.</p>
@@ -175,13 +175,13 @@
 		<div class="flex items-center justify-center mb-8">
 			<div class="flex items-center space-x-4">
 				<div class={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-					step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+					step >= 1 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'
 				}`}>
 					1
 				</div>
-				<div class={`w-16 h-1 ${step >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+				<div class={`w-16 h-1 ${step >= 2 ? 'bg-primary' : 'bg-gray-200'}`}></div>
 				<div class={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-					step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+					step >= 2 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'
 				}`}>
 					2
 				</div>
@@ -219,7 +219,7 @@
 							</label>
 							<select 
 								bind:value={setupData.timezone}
-								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
 								required
 							>
 								{#each timezoneOptions as option}

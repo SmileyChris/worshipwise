@@ -77,7 +77,7 @@
 		onchange={handleChange}
 		{required}
 		{disabled}
-		class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+		class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary disabled:bg-gray-50 disabled:text-gray-500"
 	>
 		{#if !required}
 			<option value="">{placeholder}</option>

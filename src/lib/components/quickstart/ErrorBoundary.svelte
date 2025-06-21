@@ -68,41 +68,41 @@
 						<ol class="space-y-2 text-gray-600">
 							<li class="flex items-start">
 								<span
-									class="mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-100"
+									class="mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
 								>
-									<span class="text-xs font-semibold text-blue-600">1</span>
+									<span class="text-xs font-semibold text-primary">1</span>
 								</span>
 								Start PocketBase server:
 								<code class="ml-1 rounded bg-gray-200 px-1 text-xs">./scripts/start-dev.sh</code>
 							</li>
 							<li class="flex items-start">
 								<span
-									class="mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-100"
+									class="mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
 								>
-									<span class="text-xs font-semibold text-blue-600">2</span>
+									<span class="text-xs font-semibold text-primary">2</span>
 								</span>
 								Check if PocketBase is running on
-								<a href="http://localhost:8090" target="_blank" class="text-blue-600 underline">
+								<a href="http://localhost:8090" target="_blank" class="text-primary underline">
 									localhost:8090
 								</a>
 							</li>
 							<li class="flex items-start">
 								<span
-									class="mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-100"
+									class="mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
 								>
-									<span class="text-xs font-semibold text-blue-600">3</span>
+									<span class="text-xs font-semibold text-primary">3</span>
 								</span>
 								If first time setup,
-								<button onclick={handleOpenAdmin} class="text-blue-600 underline">
+								<button onclick={handleOpenAdmin} class="text-primary underline">
 									open admin panel
 								</button>
 								to create admin account
 							</li>
 							<li class="flex items-start">
 								<span
-									class="mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-100"
+									class="mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
 								>
-									<span class="text-xs font-semibold text-blue-600">4</span>
+									<span class="text-xs font-semibold text-primary">4</span>
 								</span>
 								Restart your browser if the issue persists
 							</li>

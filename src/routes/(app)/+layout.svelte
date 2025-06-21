@@ -49,7 +49,7 @@
 						<p class="text-lg text-gray-600 mb-8">Your system is ready! Let's create your first worship account.</p>
 						<button 
 							onclick={() => (quickstartStore.showSetupWizard = true)}
-							class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+							class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90"
 						>
 							Get Started
 						</button>
@@ -65,7 +65,7 @@
 	<!-- Loading or redirecting -->
 	<div class="flex min-h-screen items-center justify-center bg-gray-50">
 		<div class="text-center">
-			<div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+			<div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
 			<p class="mt-2 text-sm text-gray-500">Loading...</p>
 		</div>
 	</div>

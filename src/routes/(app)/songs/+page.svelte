@@ -265,15 +265,15 @@
 
 	<!-- Service Editing Banner -->
 	{#if isEditingService && currentService}
-		<Card class="bg-blue-50 border-blue-200">
+		<Card class="bg-primary/5 border-primary/20">
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-3">
-					<div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+					<div class="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
 					<div>
-						<p class="text-sm font-medium text-blue-900">
+						<p class="text-sm font-medium text-primary/90">
 							Currently editing: <span class="font-semibold">{currentService.title}</span>
 						</p>
-						<p class="text-xs text-blue-700">
+						<p class="text-xs text-primary/80">
 							Click "Add to Service" to add songs to this service
 						</p>
 					</div>
@@ -282,7 +282,7 @@
 					variant="ghost" 
 					size="sm"
 					href="/services/{currentService.id}"
-					class="text-blue-700 hover:text-blue-900"
+					class="text-primary/80 hover:text-primary"
 				>
 					Go to Service
 				</Button>
@@ -343,7 +343,7 @@
 		<!-- Categories View -->
 		{#if categoriesLoading}
 			<div class="py-8 text-center">
-				<div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+				<div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
 				<p class="mt-2 text-sm text-gray-500">Loading categories...</p>
 			</div>
 		{:else if categoriesData && categoriesData.size > 0}
@@ -449,7 +449,7 @@
 			<!-- Songs grid -->
 			{#if loading}
 				<div class="py-8 text-center">
-					<div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+					<div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
 					<p class="mt-2 text-sm text-gray-500">Loading songs...</p>
 				</div>
 			{:else}

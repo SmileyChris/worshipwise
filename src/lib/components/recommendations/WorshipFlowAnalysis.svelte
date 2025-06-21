@@ -83,7 +83,7 @@
 	<!-- Loading State -->
 	{#if recommendationsStore.loading}
 		<div class="text-center py-8">
-			<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+			<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
 			<p class="mt-2 text-sm text-gray-600">Analyzing worship flow...</p>
 		</div>
 	{/if}
@@ -103,7 +103,7 @@
 						? 'border-red-500 bg-red-50' 
 						: getSeverityColor(suggestion) === 'warning'
 						? 'border-yellow-500 bg-yellow-50'
-						: 'border-blue-500 bg-blue-50'
+						: 'border-primary/50 bg-primary/5'
 				}`}>
 					<div class="flex items-start gap-3">
 						<div class={`mt-0.5 ${
@@ -111,7 +111,7 @@
 								? 'text-red-600' 
 								: getSeverityColor(suggestion) === 'warning'
 								? 'text-yellow-600'
-								: 'text-blue-600'
+								: 'text-primary'
 						}`}>
 							{#if getSeverityIcon(suggestion) === AlertTriangle}
 								<AlertTriangle class="h-5 w-5" />
@@ -175,7 +175,7 @@
 			<h3 class="text-lg font-semibold font-title mb-4">Worship Flow Best Practices</h3>
 			<div class="space-y-4">
 				<div class="flex items-start gap-3">
-					<ArrowRight class="h-4 w-4 text-blue-600 mt-1" />
+					<ArrowRight class="h-4 w-4 text-primary mt-1" />
 					<div>
 						<h4 class="font-medium">Opening (Songs 1-2)</h4>
 						<p class="text-sm text-gray-600">Start with familiar, energetic songs to engage the congregation. Consider 120+ BPM.</p>
@@ -183,7 +183,7 @@
 				</div>
 				
 				<div class="flex items-start gap-3">
-					<ArrowRight class="h-4 w-4 text-blue-600 mt-1" />
+					<ArrowRight class="h-4 w-4 text-primary mt-1" />
 					<div>
 						<h4 class="font-medium">Building (Songs 3-4)</h4>
 						<p class="text-sm text-gray-600">Build momentum with songs that transition from celebration to worship. Medium tempo works well.</p>
@@ -191,7 +191,7 @@
 				</div>
 				
 				<div class="flex items-start gap-3">
-					<ArrowRight class="h-4 w-4 text-blue-600 mt-1" />
+					<ArrowRight class="h-4 w-4 text-primary mt-1" />
 					<div>
 						<h4 class="font-medium">Worship (Songs 5-6)</h4>
 						<p class="text-sm text-gray-600">Create space for intimate worship with slower, contemplative songs. 60-90 BPM is ideal.</p>
@@ -199,7 +199,7 @@
 				</div>
 				
 				<div class="flex items-start gap-3">
-					<ArrowRight class="h-4 w-4 text-blue-600 mt-1" />
+					<ArrowRight class="h-4 w-4 text-primary mt-1" />
 					<div>
 						<h4 class="font-medium">Response (Song 7)</h4>
 						<p class="text-sm text-gray-600">End with a song of response or sending. Can be either reflective or celebratory based on service theme.</p>

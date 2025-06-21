@@ -28,12 +28,12 @@
 	}: Props = $props();
 
 	let baseClasses =
-		'inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 rounded-md';
+		'inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 rounded-md';
 
 	let variantClasses = $derived.by(() => {
 		switch (variant) {
 			case 'primary':
-				return 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm';
+				return 'bg-primary text-white hover:bg-primary/90 shadow-sm';
 			case 'secondary':
 				return 'bg-gray-200 text-gray-900 hover:bg-gray-300 shadow-sm';
 			case 'danger':

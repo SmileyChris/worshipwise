@@ -102,7 +102,7 @@
 				onfocus={handleInputFocus}
 				onblur={handleInputBlur}
 				placeholder="Search labels..."
-				class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+				class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
 			/>
 
 			<!-- Dropdown -->

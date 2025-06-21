@@ -410,7 +410,7 @@
 				name="lyrics"
 				bind:value={lyrics}
 				rows="6"
-				class="block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600 focus:ring-inset sm:text-sm sm:leading-6"
+				class="block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:ring-inset sm:text-sm sm:leading-6"
 				placeholder="Enter song lyrics..."
 			></textarea>
 		</div>
@@ -430,7 +430,7 @@
 						name="chord_chart"
 						accept=".pdf,.jpg,.jpeg,.png"
 						onchange={handleChordChartChange}
-						class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
+						class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-primary/20"
 					/>
 				</div>
 
@@ -444,7 +444,7 @@
 						name="audio_file"
 						accept=".mp3,.wav,.m4a"
 						onchange={handleAudioFileChange}
-						class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
+						class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-primary/20"
 					/>
 				</div>
 			</div>
@@ -460,7 +460,7 @@
 					accept=".pdf,.jpg,.jpeg,.png"
 					multiple
 					onchange={handleSheetMusicChange}
-					class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
+					class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-primary/20"
 				/>
 			</div>
 		</div>
@@ -487,7 +487,7 @@
 				name="notes"
 				bind:value={notes}
 				rows="3"
-				class="block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600 focus:ring-inset sm:text-sm sm:leading-6"
+				class="block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:ring-inset sm:text-sm sm:leading-6"
 				placeholder="Additional notes about this song..."
 			></textarea>
 		</div>

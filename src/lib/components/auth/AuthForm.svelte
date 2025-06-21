@@ -244,7 +244,7 @@
 
 	{#if isLogin}
 		<div class="mt-4 text-center">
-			<a href="/reset-password" class="text-sm text-blue-600 hover:text-blue-500">
+			<a href="/reset-password" class="text-sm text-primary hover:text-primary/90">
 				Forgot your password?
 			</a>
 		</div>
@@ -254,10 +254,10 @@
 		<p class="text-sm text-gray-600">
 			{#if isLogin}
 				Don't have an account?
-				<a href="/register" class="font-medium text-blue-600 hover:text-blue-500"> Sign up </a>
+				<a href="/register" class="font-medium text-primary hover:text-primary/90"> Sign up </a>
 			{:else}
 				Already have an account?
-				<a href="/login" class="font-medium text-blue-600 hover:text-blue-500"> Sign in </a>
+				<a href="/login" class="font-medium text-primary hover:text-primary/90"> Sign in </a>
 			{/if}
 		</p>
 	</div>

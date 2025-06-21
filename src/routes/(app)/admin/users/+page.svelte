@@ -228,7 +228,7 @@
 	<Card>
 		{#if loading}
 			<div class="p-8 text-center">
-				<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+				<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
 				<p class="mt-2 text-sm text-gray-500">Loading users...</p>
 			</div>
 		{:else if users && users.items.length > 0}

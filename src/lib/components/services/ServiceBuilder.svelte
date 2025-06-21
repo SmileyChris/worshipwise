@@ -250,13 +250,13 @@
 					type="search"
 					placeholder="Search songs..."
 					bind:value={searchQuery}
-					class="mb-3 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+					class="mb-3 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
 				/>
 
 				<!-- Section selector -->
 				<select
 					bind:value={selectedSection}
-					class="mb-4 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+					class="mb-4 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
 				>
 					{#each sectionTypes as type}
 						<option value={type}>{type}</option>
@@ -320,7 +320,7 @@
 							ondrop={(e) => handleDrop(e, index)}
 							class="group relative rounded-lg border border-gray-200 bg-white p-4 transition-all {dragOverIndex ===
 							index
-								? 'border-blue-400 bg-blue-50'
+								? 'border-primary/40 bg-primary/5'
 								: ''}"
 						>
 							<div class="flex items-start gap-4">
@@ -436,7 +436,7 @@
 						ondrop={(e) => handleDrop(e, servicesStore.currentServiceSongs.length)}
 						class="rounded-lg border-2 border-dashed p-8 text-center transition-colors {dragOverIndex ===
 						servicesStore.currentServiceSongs.length
-							? 'border-blue-400 bg-blue-50'
+							? 'border-primary/40 bg-primary/5'
 							: 'border-gray-300'}"
 					>
 						<p class="text-sm text-gray-500">Drag songs here to add them to the service</p>

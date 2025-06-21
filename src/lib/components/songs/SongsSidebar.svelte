@@ -144,7 +144,7 @@
 						<div class="flex items-start justify-between">
 							<div class="flex-1 min-w-0">
 								<div class="flex items-center gap-2">
-									<span class="flex-shrink-0 w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center text-xs font-medium text-blue-600">
+									<span class="flex-shrink-0 w-5 h-5 bg-primary/10 rounded-full flex items-center justify-center text-xs font-medium text-primary">
 										{index + 1}
 									</span>
 									<div class="min-w-0 flex-1">
@@ -161,7 +161,7 @@
 								
 								{#if song.expand?.personal_usage_count !== undefined}
 									<div class="mt-1 ml-7">
-										<Badge size="sm" class="bg-blue-100 text-blue-800">
+										<Badge size="sm" class="bg-primary/10 text-primary">
 											{formatUsageCount(song.expand.personal_usage_count)}
 										</Badge>
 									</div>

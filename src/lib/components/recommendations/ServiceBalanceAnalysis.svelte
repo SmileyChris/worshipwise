@@ -93,7 +93,7 @@
 	<!-- Loading State -->
 	{#if recommendationsStore.loading}
 		<div class="text-center py-8">
-			<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+			<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
 			<p class="mt-2 text-sm text-gray-600">Analyzing service balance...</p>
 		</div>
 	{/if}
@@ -113,7 +113,7 @@
 					<div class="space-y-4">
 						{#each [
 							{ key: 'fast', label: 'Fast', value: analysis.currentBalance.fast, icon: Zap, color: 'text-orange-600' },
-							{ key: 'medium', label: 'Medium', value: analysis.currentBalance.medium, icon: Clock, color: 'text-blue-600' },
+							{ key: 'medium', label: 'Medium', value: analysis.currentBalance.medium, icon: Clock, color: 'text-primary' },
 							{ key: 'slow', label: 'Slow', value: analysis.currentBalance.slow, icon: Heart, color: 'text-purple-600' }
 						] as tempo}
 							<div class="flex items-center justify-between">
@@ -134,7 +134,7 @@
 								<div 
 									class={`h-2 rounded-full ${
 										tempo.key === 'fast' ? 'bg-orange-600' :
-										tempo.key === 'medium' ? 'bg-blue-600' : 'bg-purple-600'
+										tempo.key === 'medium' ? 'bg-primary' : 'bg-purple-600'
 									}`}
 									style={`width: ${getBalancePercentage(tempo.value, total)}%`}
 								></div>
@@ -156,7 +156,7 @@
 					<div class="space-y-4">
 						{#each [
 							{ key: 'fast', label: 'Fast', value: analysis.idealBalance.fast, icon: Zap, color: 'text-orange-600', percent: 30 },
-							{ key: 'medium', label: 'Medium', value: analysis.idealBalance.medium, icon: Clock, color: 'text-blue-600', percent: 40 },
+							{ key: 'medium', label: 'Medium', value: analysis.idealBalance.medium, icon: Clock, color: 'text-primary', percent: 40 },
 							{ key: 'slow', label: 'Slow', value: analysis.idealBalance.slow, icon: Heart, color: 'text-purple-600', percent: 30 }
 						] as tempo}
 							<div class="flex items-center justify-between">
@@ -175,7 +175,7 @@
 								<div 
 									class={`h-2 rounded-full ${
 										tempo.key === 'fast' ? 'bg-orange-600' :
-										tempo.key === 'medium' ? 'bg-blue-600' : 'bg-purple-600'
+										tempo.key === 'medium' ? 'bg-primary' : 'bg-purple-600'
 									}`}
 									style={`width: ${tempo.percent}%`}
 								></div>
@@ -235,7 +235,7 @@
 					
 					<div>
 						<div class="flex items-center gap-2 mb-2">
-							<Clock class="h-4 w-4 text-blue-600" />
+							<Clock class="h-4 w-4 text-primary" />
 							<h4 class="font-medium">Medium Songs (40%)</h4>
 						</div>
 						<p class="text-sm text-gray-600">

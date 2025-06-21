@@ -95,7 +95,7 @@
 							class="inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors {isCurrentPage(
 								item.href
 							)
-								? 'border-b-2 border-blue-500 text-gray-900'
+								? 'border-b-2 border-primary text-gray-900'
 								: 'text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
 						>
 							<span class="mr-2">{item.icon}</span>
@@ -125,8 +125,8 @@
 						aria-haspopup="true"
 					>
 						<span class="sr-only">Open user menu</span>
-						<div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
-							<span class="text-sm font-medium text-blue-600">
+						<div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+							<span class="text-sm font-medium text-primary">
 								{auth.displayName.charAt(0).toUpperCase()}
 							</span>
 						</div>
@@ -178,7 +178,7 @@
 					class="block py-2 pr-4 pl-3 text-base font-medium transition-colors {isCurrentPage(
 						item.href
 					)
-						? 'border-r-4 border-blue-500 bg-blue-50 text-blue-700'
+						? 'border-r-4 border-primary bg-primary/5 text-primary/90'
 						: 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'}"
 				>
 					<span class="mr-2">{item.icon}</span>
@@ -191,8 +191,8 @@
 		<div class="border-t border-gray-200 pt-4 pb-3">
 			<div class="flex items-center px-4">
 				<div class="flex-shrink-0">
-					<div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
-						<span class="text-sm font-medium text-blue-600">
+					<div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+						<span class="text-sm font-medium text-primary">
 							{auth.displayName.charAt(0).toUpperCase()}
 						</span>
 					</div>
