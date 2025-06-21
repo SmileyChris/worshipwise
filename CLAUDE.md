@@ -53,6 +53,7 @@ npm run build                 # Build for production
 npm run preview              # Preview production build
 
 # Code Quality
+just check                   # Run all checks (svelte-check, prettier, eslint)
 npm run check                # Type checking with svelte-check
 npm run check:watch          # Type checking in watch mode
 npm run format               # Format code with Prettier

@@ -23,6 +23,5 @@ test:
 # Code quality
 check:
     npm run check
-
-lint:
-    npm run lint
+    npx prettier --check .
+    npx eslint .
