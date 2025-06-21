@@ -1,42 +1,42 @@
 [
-  {
-    "id": "user_1",
-    "created": "2024-01-01T00:00:00Z",
-    "updated": "2024-01-01T00:00:00Z",
-    "username": "johnlead",
-    "email": "john@example.com",
-    "name": "John Leader",
-    "role": "leader",
-    "verified": true
-  },
-  {
-    "id": "user_2",
-    "created": "2024-01-01T00:00:00Z",
-    "updated": "2024-01-01T00:00:00Z",
-    "username": "sarahmusic",
-    "email": "sarah@example.com",
-    "name": "Sarah Musician",
-    "role": "musician",
-    "verified": true
-  },
-  {
-    "id": "user_3",
-    "created": "2024-01-01T00:00:00Z",
-    "updated": "2024-01-01T00:00:00Z",
-    "username": "mikeworship",
-    "email": "mike@example.com",
-    "name": "Mike Worship",
-    "role": "leader",
-    "verified": true
-  },
-  {
-    "id": "user_admin",
-    "created": "2024-01-01T00:00:00Z",
-    "updated": "2024-01-01T00:00:00Z",
-    "username": "admin",
-    "email": "admin@example.com",
-    "name": "Admin User",
-    "role": "admin",
-    "verified": true
-  }
+	{
+		"id": "user_1",
+		"created": "2024-01-01T00:00:00Z",
+		"updated": "2024-01-01T00:00:00Z",
+		"username": "johnlead",
+		"email": "john@example.com",
+		"name": "John Leader",
+		"role": "leader",
+		"verified": true
+	},
+	{
+		"id": "user_2",
+		"created": "2024-01-01T00:00:00Z",
+		"updated": "2024-01-01T00:00:00Z",
+		"username": "sarahmusic",
+		"email": "sarah@example.com",
+		"name": "Sarah Musician",
+		"role": "musician",
+		"verified": true
+	},
+	{
+		"id": "user_3",
+		"created": "2024-01-01T00:00:00Z",
+		"updated": "2024-01-01T00:00:00Z",
+		"username": "mikeworship",
+		"email": "mike@example.com",
+		"name": "Mike Worship",
+		"role": "leader",
+		"verified": true
+	},
+	{
+		"id": "user_admin",
+		"created": "2024-01-01T00:00:00Z",
+		"updated": "2024-01-01T00:00:00Z",
+		"username": "admin",
+		"email": "admin@example.com",
+		"name": "Admin User",
+		"role": "admin",
+		"verified": true
+	}
 ]

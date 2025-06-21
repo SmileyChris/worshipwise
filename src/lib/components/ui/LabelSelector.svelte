@@ -37,14 +37,13 @@
 
 	$effect(() => {
 		const query = searchQuery.toLowerCase();
-		filteredLabels = availableLabels.filter(label => 
-			label.name.toLowerCase().includes(query) && 
-			!selectedLabelIds.includes(label.id)
+		filteredLabels = availableLabels.filter(
+			(label) => label.name.toLowerCase().includes(query) && !selectedLabelIds.includes(label.id)
 		);
 	});
 
 	function updateSelectedLabels() {
-		selectedLabels = availableLabels.filter(label => selectedLabelIds.includes(label.id));
+		selectedLabels = availableLabels.filter((label) => selectedLabelIds.includes(label.id));
 	}
 
 	function addLabel(label: Label) {
@@ -58,7 +57,7 @@
 	}
 
 	function removeLabel(labelId: string) {
-		const newIds = selectedLabelIds.filter(id => id !== labelId);
+		const newIds = selectedLabelIds.filter((id) => id !== labelId);
 		selectedLabelIds = newIds;
 		if (onchange) {
 			onchange(newIds);
@@ -80,14 +79,14 @@
 <div class="relative">
 	{#if loading}
 		<div class="animate-pulse">
-			<div class="h-10 bg-gray-200 rounded-md"></div>
+			<div class="h-10 rounded-md bg-gray-200"></div>
 		</div>
 	{:else if error}
-		<div class="text-red-600 text-sm">{error}</div>
+		<div class="text-sm text-red-600">{error}</div>
 	{:else}
 		<!-- Selected Labels -->
 		{#if selectedLabels.length > 0}
-			<div class="flex flex-wrap gap-1 mb-2">
+			<div class="mb-2 flex flex-wrap gap-1">
 				{#each selectedLabels as label}
 					<LabelBadge {label} removable onRemove={removeLabel} />
 				{/each}
@@ -102,21 +101,23 @@
 				onfocus={handleInputFocus}
 				onblur={handleInputBlur}
 				placeholder="Search labels..."
-				class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+				class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
 			/>
 
 			<!-- Dropdown -->
 			{#if showDropdown && filteredLabels.length > 0}
-				<div class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
+				<div
+					class="ring-opacity-5 absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black focus:outline-none"
+				>
 					{#each filteredLabels as label}
 						<button
 							type="button"
 							onclick={() => addLabel(label)}
-							class="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2"
+							class="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-gray-100"
 						>
 							<LabelBadge {label} size="sm" />
 							{#if label.description}
-								<span class="text-gray-500 text-sm">{label.description}</span>
+								<span class="text-sm text-gray-500">{label.description}</span>
 							{/if}
 						</button>
 					{/each}

@@ -148,7 +148,7 @@
 
 <Card class="mx-auto w-full max-w-md">
 	<div class="mb-6 text-center">
-		<h1 class="text-2xl font-bold font-title text-gray-900">{title}</h1>
+		<h1 class="font-title text-2xl font-bold text-gray-900">{title}</h1>
 		<p class="mt-2 text-sm text-gray-600">
 			{#if isLogin}
 				Welcome back to WorshipWise
@@ -227,7 +227,6 @@
 				autocomplete="new-password"
 				data-testid="password-confirm-input"
 			/>
-
 		{/if}
 
 		<Button
@@ -244,7 +243,7 @@
 
 	{#if isLogin}
 		<div class="mt-4 text-center">
-			<a href="/reset-password" class="text-sm text-primary hover:text-primary/90">
+			<a href="/reset-password" class="text-primary hover:text-primary/90 text-sm">
 				Forgot your password?
 			</a>
 		</div>
@@ -254,10 +253,10 @@
 		<p class="text-sm text-gray-600">
 			{#if isLogin}
 				Don't have an account?
-				<a href="/register" class="font-medium text-primary hover:text-primary/90"> Sign up </a>
+				<a href="/register" class="text-primary hover:text-primary/90 font-medium"> Sign up </a>
 			{:else}
 				Already have an account?
-				<a href="/login" class="font-medium text-primary hover:text-primary/90"> Sign in </a>
+				<a href="/login" class="text-primary hover:text-primary/90 font-medium"> Sign in </a>
 			{/if}
 		</p>
 	</div>

@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 WorshipWise is a sophisticated worship song tracking system built with SvelteKit 5 + PocketBase. It uses a single-server deployment architecture where PocketBase serves both the backend API and the static frontend.
 
 **Current Project Status (June 2025):**
+
 - **Maturity Level**: Advanced (42% complete - Sprint 5 finished)
 - **Production Ready Features**: Complete authentication, song management with file uploads, real-time collaborative service editing, comprehensive analytics dashboard
 - **Codebase Size**: 5,000+ lines of production-ready TypeScript code
@@ -25,7 +26,7 @@ WorshipWise is a sophisticated worship song tracking system built with SvelteKit
 
 **Reference Documentation:**
 
-*Note: Plan documents have been reorganized to reflect the project's advanced maturity state*
+_Note: Plan documents have been reorganized to reflect the project's advanced maturity state_
 
 - **Current development status**: `plan/DEVELOPMENT_ROADMAP.md` (42% complete, Sprint 5 finished)
 - **Active implementation guides** (currently in use):

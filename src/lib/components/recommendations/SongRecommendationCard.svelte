@@ -9,21 +9,31 @@
 
 	function getTypeIcon(type: string) {
 		switch (type) {
-			case 'rotation': return TrendingUp;
-			case 'seasonal': return Calendar;
-			case 'popularity': return Star;
-			default: return Music;
+			case 'rotation':
+				return TrendingUp;
+			case 'seasonal':
+				return Calendar;
+			case 'popularity':
+				return Star;
+			default:
+				return Music;
 		}
 	}
 
 	function getTypeColor(type: string) {
 		switch (type) {
-			case 'rotation': return 'blue';
-			case 'seasonal': return 'green';
-			case 'popularity': return 'yellow';
-			case 'flow': return 'purple';
-			case 'key_compatibility': return 'indigo';
-			default: return 'gray';
+			case 'rotation':
+				return 'blue';
+			case 'seasonal':
+				return 'green';
+			case 'popularity':
+				return 'yellow';
+			case 'flow':
+				return 'purple';
+			case 'key_compatibility':
+				return 'indigo';
+			default:
+				return 'gray';
 		}
 	}
 
@@ -34,31 +44,31 @@
 	}
 </script>
 
-<Card class="hover:shadow-md transition-shadow">
+<Card class="transition-shadow hover:shadow-md">
 	<div class="space-y-3">
 		<!-- Header -->
 		<div class="flex items-start justify-between">
 			<div class="flex-1">
-				<h4 class="font-semibold font-title text-gray-900">{recommendation.title}</h4>
+				<h4 class="font-title font-semibold text-gray-900">{recommendation.title}</h4>
 				{#if recommendation.artist}
 					<p class="text-sm text-gray-600">by {recommendation.artist}</p>
 				{/if}
 			</div>
-			
-			<div class="flex items-center gap-2 ml-3">
+
+			<div class="ml-3 flex items-center gap-2">
 				<Badge variant="default" class="text-xs">
 					{#if recommendation.type === 'rotation'}
-						<TrendingUp class="h-3 w-3 mr-1" />
+						<TrendingUp class="mr-1 h-3 w-3" />
 					{:else if recommendation.type === 'seasonal'}
-						<Calendar class="h-3 w-3 mr-1" />
+						<Calendar class="mr-1 h-3 w-3" />
 					{:else if recommendation.type === 'popularity'}
-						<Star class="h-3 w-3 mr-1" />
+						<Star class="mr-1 h-3 w-3" />
 					{:else}
-						<Music class="h-3 w-3 mr-1" />
+						<Music class="mr-1 h-3 w-3" />
 					{/if}
 					{recommendation.type}
 				</Badge>
-				
+
 				<span class={`text-sm font-medium ${getScoreColor(recommendation.score)}`}>
 					{Math.round(recommendation.score * 100)}%
 				</span>
@@ -74,25 +84,25 @@
 		{/if}
 
 		<!-- Reason -->
-		<p class="text-sm text-gray-600 bg-gray-50 rounded-md p-2">
+		<p class="rounded-md bg-gray-50 p-2 text-sm text-gray-600">
 			{recommendation.reason}
 		</p>
 
 		<!-- Metadata -->
 		{#if recommendation.metadata}
-			<div class="text-xs text-gray-500 space-y-1">
+			<div class="space-y-1 text-xs text-gray-500">
 				{#if recommendation.metadata.daysSinceLastUse}
 					<div>Last used {recommendation.metadata.daysSinceLastUse} days ago</div>
 				{/if}
-				
+
 				{#if recommendation.metadata.totalUsages}
 					<div>Used {recommendation.metadata.totalUsages} times total</div>
 				{/if}
-				
+
 				{#if recommendation.metadata.isNew}
-					<div class="text-green-600 font-medium">🆕 New song</div>
+					<div class="font-medium text-green-600">🆕 New song</div>
 				{/if}
-				
+
 				{#if recommendation.metadata.season}
 					<div>Perfect for {recommendation.metadata.season} season</div>
 				{/if}
@@ -100,13 +110,9 @@
 		{/if}
 
 		<!-- Actions -->
-		<div class="flex gap-2 pt-2 border-t">
-			<Button size="sm" variant="secondary" class="text-xs">
-				View Song
-			</Button>
-			<Button size="sm" variant="primary" class="text-xs">
-				Add to Service
-			</Button>
+		<div class="flex gap-2 border-t pt-2">
+			<Button size="sm" variant="secondary" class="text-xs">View Song</Button>
+			<Button size="sm" variant="primary" class="text-xs">Add to Service</Button>
 		</div>
 	</div>
 </Card>

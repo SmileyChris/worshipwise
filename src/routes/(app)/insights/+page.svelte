@@ -4,7 +4,10 @@
 
 <svelte:head>
 	<title>Worship Insights - WorshipWise</title>
-	<meta name="description" content="Smart recommendations and insights for better worship planning" />
+	<meta
+		name="description"
+		content="Smart recommendations and insights for better worship planning"
+	/>
 </svelte:head>
 
 <RecommendationsDashboard />

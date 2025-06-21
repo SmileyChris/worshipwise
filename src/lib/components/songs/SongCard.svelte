@@ -87,11 +87,8 @@
 	<div class="flex items-start justify-between">
 		<div class="min-w-0 flex-1">
 			<!-- Song title and artist -->
-			<h3 class="truncate text-lg font-semibold font-title">
-				<a 
-					href="/songs/{song.id}" 
-					class="text-gray-900 hover:text-primary transition-colors"
-				>
+			<h3 class="font-title truncate text-lg font-semibold">
+				<a href="/songs/{song.id}" class="hover:text-primary text-gray-900 transition-colors">
 					{song.title}
 				</a>
 			</h3>
@@ -234,13 +231,13 @@
 
 				{#if auth.canManageServices}
 					{#if isEditingService}
-						<Button 
-							variant={isInCurrentService ? "secondary" : "primary"} 
-							size="sm" 
+						<Button
+							variant={isInCurrentService ? 'secondary' : 'primary'}
+							size="sm"
 							onclick={() => onAddToService(song)}
 							disabled={isInCurrentService}
 						>
-							{isInCurrentService ? "In Service" : "Add to Service"}
+							{isInCurrentService ? 'In Service' : 'Add to Service'}
 						</Button>
 					{:else}
 						<Button variant="secondary" size="sm" onclick={() => onAddToService(song)}>

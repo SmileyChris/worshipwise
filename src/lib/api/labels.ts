@@ -63,11 +63,7 @@ export class LabelsAPI {
 	/**
 	 * Create a new label
 	 */
-	async createLabel(data: {
-		name: string;
-		description?: string;
-		color?: string;
-	}): Promise<Label> {
+	async createLabel(data: { name: string; description?: string; color?: string }): Promise<Label> {
 		try {
 			const record = await pb.collection(this.collection).create({
 				...data,

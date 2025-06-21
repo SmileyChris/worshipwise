@@ -72,7 +72,7 @@ vi.mock('pocketbase', () => {
 				onChange: vi.fn(),
 				clear: vi.fn()
 			};
-			
+
 			collection = vi.fn((name: string) => ({
 				getFullList: vi.fn(),
 				getOne: vi.fn(),
@@ -81,7 +81,7 @@ vi.mock('pocketbase', () => {
 				delete: vi.fn(),
 				subscribe: vi.fn(() => vi.fn())
 			}));
-			
+
 			autoCancellation = vi.fn();
 		}
 	};
@@ -112,7 +112,7 @@ beforeEach(() => {
 // Global test utilities
 globalThis.testHelpers = {
 	flushSync,
-	waitForUpdates: () => new Promise(resolve => requestAnimationFrame(resolve))
+	waitForUpdates: () => new Promise((resolve) => requestAnimationFrame(resolve))
 };
 ```
 
@@ -271,7 +271,7 @@ describe('SongStore', () => {
 		// Simulate real-time update
 		const mockUpdate = { action: 'create', record: { id: '4', title: 'New Song' } };
 		const subscribeCallback = mockPb.collection('songs').subscribe.mock.calls[0][1];
-		
+
 		flushSync(() => {
 			subscribeCallback(mockUpdate);
 		});
@@ -330,7 +330,7 @@ describe('SongCard', () => {
 		$effect.root(() => {
 			const component = mount(SongCard, {
 				target: document.body,
-				props: { 
+				props: {
 					song: mockSong,
 					showActions: true,
 					onEdit: vi.fn()
@@ -383,16 +383,18 @@ describe('SongCard', () => {
 			});
 
 			// Initially shows green indicator
-			expect(document.querySelector('[data-testid="usage-indicator"]')?.classList)
-				.toContain('bg-green-500');
+			expect(document.querySelector('[data-testid="usage-indicator"]')?.classList).toContain(
+				'bg-green-500'
+			);
 
 			// Update to show yellow indicator
 			flushSync(() => {
 				component.$set({ lastUsedDays: 20 });
 			});
 
-			expect(document.querySelector('[data-testid="usage-indicator"]')?.classList)
-				.toContain('bg-yellow-500');
+			expect(document.querySelector('[data-testid="usage-indicator"]')?.classList).toContain(
+				'bg-yellow-500'
+			);
 
 			cleanup = () => unmount(component);
 		});
@@ -627,7 +629,8 @@ import { test, expect } from '@playwright/test';
 test.describe('Service Management', () => {
 	test('creates and manages service', async ({ page }) => {
 		// Mock APIs
-		await page.route('**/api/collections/setlists/records', async (route) => {  // Database collection name
+		await page.route('**/api/collections/setlists/records', async (route) => {
+			// Database collection name
 			if (route.request().method() === 'POST') {
 				await route.fulfill({
 					status: 200,
@@ -732,23 +735,23 @@ export function testComponent(
 ) {
 	let component: any;
 	let cleanup: () => void;
-	
+
 	$effect.root(async () => {
 		component = mount(Component, {
 			target: document.body,
 			props
 		});
-		
+
 		await testFn(component);
-		
+
 		cleanup = () => unmount(component);
 	});
-	
+
 	cleanup!();
 }
 
 export function waitForUpdates() {
-	return new Promise(resolve => requestAnimationFrame(resolve));
+	return new Promise((resolve) => requestAnimationFrame(resolve));
 }
 
 export function triggerEvent(element: HTMLElement, eventName: string, detail?: any) {
@@ -761,29 +764,25 @@ export function triggerEvent(element: HTMLElement, eventName: string, detail?: a
 
 ```typescript
 // src/lib/test-utils/performance.ts
-export async function measureRenderTime(
-	Component: any,
-	props: any,
-	iterations = 100
-) {
+export async function measureRenderTime(Component: any, props: any, iterations = 100) {
 	const times: number[] = [];
-	
+
 	for (let i = 0; i < iterations; i++) {
 		const start = performance.now();
-		
+
 		const component = mount(Component, {
 			target: document.body,
 			props
 		});
-		
+
 		await waitForUpdates();
-		
+
 		const end = performance.now();
 		times.push(end - start);
-		
+
 		unmount(component);
 	}
-	
+
 	return {
 		average: times.reduce((a, b) => a + b) / times.length,
 		min: Math.min(...times),
@@ -845,21 +844,21 @@ import { flushSync } from 'svelte';
 
 export class MockRealtimeClient {
 	private listeners = new Map<string, Set<Function>>();
-	
+
 	subscribe(channel: string, callback: Function) {
 		if (!this.listeners.has(channel)) {
 			this.listeners.set(channel, new Set());
 		}
 		this.listeners.get(channel)!.add(callback);
-		
+
 		return () => {
 			this.listeners.get(channel)?.delete(callback);
 		};
 	}
-	
+
 	emit(channel: string, data: any) {
 		flushSync(() => {
-			this.listeners.get(channel)?.forEach(cb => cb(data));
+			this.listeners.get(channel)?.forEach((cb) => cb(data));
 		});
 	}
 }

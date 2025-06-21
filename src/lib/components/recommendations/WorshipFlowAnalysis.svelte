@@ -13,7 +13,7 @@
 	onMount(async () => {
 		// Load services for selection
 		await servicesStore.loadServices();
-		
+
 		// Load general flow suggestions
 		if (!selectedServiceId) {
 			await recommendationsStore.loadWorshipFlowSuggestions();
@@ -28,14 +28,20 @@
 	}
 
 	function getSeverityColor(suggestion: any) {
-		if (suggestion.reason.includes('Large tempo change') || suggestion.reason.includes('difficult')) {
+		if (
+			suggestion.reason.includes('Large tempo change') ||
+			suggestion.reason.includes('difficult')
+		) {
 			return 'danger';
 		}
 		return 'warning';
 	}
 
 	function getSeverityIcon(suggestion: any) {
-		if (suggestion.reason.includes('Large tempo change') || suggestion.reason.includes('difficult')) {
+		if (
+			suggestion.reason.includes('Large tempo change') ||
+			suggestion.reason.includes('difficult')
+		) {
 			return AlertTriangle;
 		}
 		return CheckCircle;
@@ -45,14 +51,15 @@
 <div class="space-y-6">
 	<!-- Setlist Selection -->
 	<Card>
-		<h3 class="text-lg font-semibold font-title mb-4">Analyze Worship Flow</h3>
+		<h3 class="font-title mb-4 text-lg font-semibold">Analyze Worship Flow</h3>
 		<div class="space-y-4">
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-2">
+				<label for="service-select" class="mb-2 block text-sm font-medium text-gray-700">
 					Select a service to analyze (optional)
 				</label>
 				<div class="flex gap-3">
-					<select 
+					<select
+						id="service-select"
 						bind:value={selectedServiceId}
 						class="flex-1 rounded-md border-gray-300"
 					>
@@ -63,16 +70,17 @@
 							</option>
 						{/each}
 					</select>
-					<Button onclick={analyzeService} disabled={!selectedServiceId}>
-						Analyze Flow
-					</Button>
+					<Button onclick={analyzeService} disabled={!selectedServiceId}>Analyze Flow</Button>
 				</div>
 			</div>
-			
+
 			{#if !selectedServiceId}
-				<Button 
-					variant="secondary" 
-					onclick={() => { showGeneralTips = true; recommendationsStore.loadWorshipFlowSuggestions(); }}
+				<Button
+					variant="secondary"
+					onclick={() => {
+						showGeneralTips = true;
+						recommendationsStore.loadWorshipFlowSuggestions();
+					}}
 				>
 					Show General Flow Tips
 				</Button>
@@ -82,8 +90,8 @@
 
 	<!-- Loading State -->
 	{#if recommendationsStore.loading}
-		<div class="text-center py-8">
-			<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+		<div class="py-8 text-center">
+			<div class="border-primary mx-auto h-6 w-6 animate-spin rounded-full border-b-2"></div>
 			<p class="mt-2 text-sm text-gray-600">Analyzing worship flow...</p>
 		</div>
 	{/if}
@@ -92,27 +100,31 @@
 	{#if !recommendationsStore.loading && recommendationsStore.worshipFlowSuggestions.length > 0}
 		<div class="space-y-4">
 			{#if selectedServiceId && !showGeneralTips}
-				<h3 class="text-lg font-semibold font-title">Setlist Flow Analysis</h3>
+				<h3 class="font-title text-lg font-semibold">Setlist Flow Analysis</h3>
 			{:else}
-				<h3 class="text-lg font-semibold font-title">General Worship Flow Guidelines</h3>
+				<h3 class="font-title text-lg font-semibold">General Worship Flow Guidelines</h3>
 			{/if}
 
 			{#each recommendationsStore.worshipFlowSuggestions as suggestion, index}
-				<Card class={`border-l-4 ${
-					getSeverityColor(suggestion) === 'danger' 
-						? 'border-red-500 bg-red-50' 
-						: getSeverityColor(suggestion) === 'warning'
-						? 'border-yellow-500 bg-yellow-50'
-						: 'border-primary/50 bg-primary/5'
-				}`}>
+				<Card
+					class={`border-l-4 ${
+						getSeverityColor(suggestion) === 'danger'
+							? 'border-red-500 bg-red-50'
+							: getSeverityColor(suggestion) === 'warning'
+								? 'border-yellow-500 bg-yellow-50'
+								: 'border-primary/50 bg-primary/5'
+					}`}
+				>
 					<div class="flex items-start gap-3">
-						<div class={`mt-0.5 ${
-							getSeverityColor(suggestion) === 'danger' 
-								? 'text-red-600' 
-								: getSeverityColor(suggestion) === 'warning'
-								? 'text-yellow-600'
-								: 'text-primary'
-						}`}>
+						<div
+							class={`mt-0.5 ${
+								getSeverityColor(suggestion) === 'danger'
+									? 'text-red-600'
+									: getSeverityColor(suggestion) === 'warning'
+										? 'text-yellow-600'
+										: 'text-primary'
+							}`}
+						>
 							{#if getSeverityIcon(suggestion) === AlertTriangle}
 								<AlertTriangle class="h-5 w-5" />
 							{:else if getSeverityIcon(suggestion) === CheckCircle}
@@ -121,17 +133,17 @@
 								<Music class="h-5 w-5" />
 							{/if}
 						</div>
-						
+
 						<div class="flex-1">
-							<div class="flex items-center gap-2 mb-2">
+							<div class="mb-2 flex items-center gap-2">
 								{#if typeof suggestion.position === 'number'}
 									<Badge variant="default">Position {suggestion.position + 1}</Badge>
 								{/if}
 								<h4 class="font-medium text-gray-900">{suggestion.suggestion}</h4>
 							</div>
-							
-							<p class="text-sm text-gray-600 mb-3">{suggestion.reason}</p>
-							
+
+							<p class="mb-3 text-sm text-gray-600">{suggestion.reason}</p>
+
 							{#if suggestion.recommendedTempo || suggestion.recommendedKey}
 								<div class="flex gap-3 text-xs">
 									{#if suggestion.recommendedTempo}
@@ -140,7 +152,7 @@
 											<Badge variant="default">{suggestion.recommendedTempo}</Badge>
 										</div>
 									{/if}
-									
+
 									{#if suggestion.recommendedKey}
 										<div class="flex items-center gap-1">
 											<span class="text-gray-500">Suggested key:</span>
@@ -163,7 +175,9 @@
 				<CheckCircle class="h-5 w-5 text-green-600" />
 				<div>
 					<h4 class="font-medium text-green-900">Great Flow!</h4>
-					<p class="text-sm text-green-700">This service has good worship flow with no major issues detected.</p>
+					<p class="text-sm text-green-700">
+						This service has good worship flow with no major issues detected.
+					</p>
 				</div>
 			</div>
 		</Card>
@@ -172,37 +186,48 @@
 	<!-- Worship Flow Best Practices -->
 	{#if showGeneralTips || !selectedServiceId}
 		<Card>
-			<h3 class="text-lg font-semibold font-title mb-4">Worship Flow Best Practices</h3>
+			<h3 class="font-title mb-4 text-lg font-semibold">Worship Flow Best Practices</h3>
 			<div class="space-y-4">
 				<div class="flex items-start gap-3">
-					<ArrowRight class="h-4 w-4 text-primary mt-1" />
+					<ArrowRight class="text-primary mt-1 h-4 w-4" />
 					<div>
 						<h4 class="font-medium">Opening (Songs 1-2)</h4>
-						<p class="text-sm text-gray-600">Start with familiar, energetic songs to engage the congregation. Consider 120+ BPM.</p>
+						<p class="text-sm text-gray-600">
+							Start with familiar, energetic songs to engage the congregation. Consider 120+ BPM.
+						</p>
 					</div>
 				</div>
-				
+
 				<div class="flex items-start gap-3">
-					<ArrowRight class="h-4 w-4 text-primary mt-1" />
+					<ArrowRight class="text-primary mt-1 h-4 w-4" />
 					<div>
 						<h4 class="font-medium">Building (Songs 3-4)</h4>
-						<p class="text-sm text-gray-600">Build momentum with songs that transition from celebration to worship. Medium tempo works well.</p>
+						<p class="text-sm text-gray-600">
+							Build momentum with songs that transition from celebration to worship. Medium tempo
+							works well.
+						</p>
 					</div>
 				</div>
-				
+
 				<div class="flex items-start gap-3">
-					<ArrowRight class="h-4 w-4 text-primary mt-1" />
+					<ArrowRight class="text-primary mt-1 h-4 w-4" />
 					<div>
 						<h4 class="font-medium">Worship (Songs 5-6)</h4>
-						<p class="text-sm text-gray-600">Create space for intimate worship with slower, contemplative songs. 60-90 BPM is ideal.</p>
+						<p class="text-sm text-gray-600">
+							Create space for intimate worship with slower, contemplative songs. 60-90 BPM is
+							ideal.
+						</p>
 					</div>
 				</div>
-				
+
 				<div class="flex items-start gap-3">
-					<ArrowRight class="h-4 w-4 text-primary mt-1" />
+					<ArrowRight class="text-primary mt-1 h-4 w-4" />
 					<div>
 						<h4 class="font-medium">Response (Song 7)</h4>
-						<p class="text-sm text-gray-600">End with a song of response or sending. Can be either reflective or celebratory based on service theme.</p>
+						<p class="text-sm text-gray-600">
+							End with a song of response or sending. Can be either reflective or celebratory based
+							on service theme.
+						</p>
 					</div>
 				</div>
 			</div>
@@ -210,10 +235,10 @@
 
 		<!-- Key Transition Tips -->
 		<Card>
-			<h3 class="text-lg font-semibold font-title mb-4">Key Transition Guidelines</h3>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+			<h3 class="font-title mb-4 text-lg font-semibold">Key Transition Guidelines</h3>
+			<div class="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
 				<div>
-					<h4 class="font-medium mb-2">Easy Transitions</h4>
+					<h4 class="mb-2 font-medium">Easy Transitions</h4>
 					<ul class="space-y-1 text-gray-600">
 						<li>• Same key</li>
 						<li>• Adjacent keys (G → D, C → F)</li>
@@ -221,9 +246,9 @@
 						<li>• Perfect 5th up or down</li>
 					</ul>
 				</div>
-				
+
 				<div>
-					<h4 class="font-medium mb-2">Difficult Transitions</h4>
+					<h4 class="mb-2 font-medium">Difficult Transitions</h4>
 					<ul class="space-y-1 text-gray-600">
 						<li>• Distant keys (C → F#)</li>
 						<li>• Non-circle of fifths</li>

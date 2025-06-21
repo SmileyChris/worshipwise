@@ -5,7 +5,7 @@ import type { PageLoad } from './$types';
 export const load: PageLoad = async ({ params }) => {
 	try {
 		const song = await songsApi.getSong(params.id);
-		
+
 		if (!song) {
 			throw error(404, 'Song not found');
 		}

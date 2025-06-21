@@ -3,9 +3,11 @@
 @plugin '@tailwindcss/typography';
 
 @theme {
-  --font-title: "Sofia Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  
-  --color-primary: #163b93;
-  --color-secondary: #fab431;
-  --color-accent: #fab431;
+	--font-title:
+		'Sofia Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+		'Segoe UI Symbol', 'Noto Color Emoji';
+
+	--color-primary: #163b93;
+	--color-secondary: #fab431;
+	--color-accent: #fab431;
 }

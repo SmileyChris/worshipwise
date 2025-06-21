@@ -72,14 +72,14 @@ The Song Usage collection is populated when a worship leader marks a service as 
 export async function completeService(serviceId: string) {
 	// Note: Database collection is still named 'setlists' for compatibility
 	const service = await pb.collection('setlists').getOne(serviceId, {
-		expand: 'setlist_songs_via_setlist.song'  // Database relation names
+		expand: 'setlist_songs_via_setlist.song' // Database relation names
 	});
 
 	// Create usage records for each song
 	const usagePromises = service.expand.setlist_songs_via_setlist.map((item) =>
 		pb.collection('song_usage').create({
 			song: item.song,
-			setlist: serviceId,  // Database field name (refers to service)
+			setlist: serviceId, // Database field name (refers to service)
 			usage_date: service.service_date,
 			worship_leader: service.worship_leader
 		})
@@ -469,7 +469,7 @@ class ServicesStore {
 	import { flip } from 'svelte/animate';
 	import { dndzone } from 'svelte-dnd-action';
 
-	let { service = $bindable() } = $props();  // Note: May use legacy field names internally
+	let { service = $bindable() } = $props(); // Note: May use legacy field names internally
 
 	function handleSort(e) {
 		setlist.songs = e.detail.items;
@@ -740,7 +740,8 @@ PocketBase subscriptions enable **live multi-user editing**:
 ```javascript
 // Real-time service updates
 pb.collection('setlist_songs').subscribe('*', (e) => {
-	if (e.record.setlist === currentServiceId) {  // Database field name
+	if (e.record.setlist === currentServiceId) {
+		// Database field name
 		refreshServiceView();
 		showToast(`${e.record.expand.user.name} updated the service`);
 	}

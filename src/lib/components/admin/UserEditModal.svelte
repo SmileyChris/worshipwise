@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { updateUser, updateUserProfile, getUserActivity, type UserWithProfile } from '$lib/api/admin';
+	import {
+		updateUser,
+		updateUserProfile,
+		getUserActivity,
+		type UserWithProfile
+	} from '$lib/api/admin';
 	import type { User, Profile } from '$lib/types/auth';
 	import type { ChurchRole } from '$lib/types/church';
 	import Modal from '$lib/components/ui/Modal.svelte';
@@ -32,7 +37,11 @@
 
 	let loading = $state(false);
 	let error = $state<string | null>(null);
-	let userActivity = $state<{ lastLogin?: string; servicesCreated: number; songsAdded: number } | null>(null);
+	let userActivity = $state<{
+		lastLogin?: string;
+		servicesCreated: number;
+		songsAdded: number;
+	} | null>(null);
 
 	// Initialize form data when user changes
 	$effect(() => {
@@ -48,7 +57,7 @@
 
 	async function loadUserActivity() {
 		if (!user) return;
-		
+
 		try {
 			userActivity = await getUserActivity(user.id);
 		} catch (err) {
@@ -78,8 +87,10 @@
 				const profileUpdates: Partial<Profile> = {};
 				if (formData.profileName !== user.profile.name) profileUpdates.name = formData.profileName;
 				if (formData.role !== user.profile.role) profileUpdates.role = formData.role;
-				if (formData.churchName !== user.profile.church_name) profileUpdates.church_name = formData.churchName;
-				if (formData.isActive !== (user.profile.is_active !== false)) profileUpdates.is_active = formData.isActive;
+				if (formData.churchName !== user.profile.church_name)
+					profileUpdates.church_name = formData.churchName;
+				if (formData.isActive !== (user.profile.is_active !== false))
+					profileUpdates.is_active = formData.isActive;
 
 				if (Object.keys(profileUpdates).length > 0) {
 					await updateUserProfile(user.profile.id, profileUpdates);
@@ -118,7 +129,7 @@
 	<div class="space-y-6">
 		<!-- Header -->
 		<div>
-			<h3 class="text-lg font-semibold font-title text-gray-900">Edit User</h3>
+			<h3 class="font-title text-lg font-semibold text-gray-900">Edit User</h3>
 			<p class="text-sm text-gray-500">Update user information and profile details</p>
 		</div>
 
@@ -126,7 +137,7 @@
 		{#if userActivity}
 			<Card>
 				<div class="p-4">
-					<h4 class="text-sm font-medium text-gray-900 mb-3">User Activity</h4>
+					<h4 class="mb-3 text-sm font-medium text-gray-900">User Activity</h4>
 					<div class="grid grid-cols-2 gap-4 text-sm">
 						<div>
 							<span class="text-gray-500">Services Created:</span>
@@ -143,9 +154,9 @@
 
 		<!-- Error message -->
 		{#if error}
-			<div class="bg-red-50 border border-red-200 rounded-md p-3">
+			<div class="rounded-md border border-red-200 bg-red-50 p-3">
 				<div class="flex">
-					<span class="text-red-400 mr-2">⚠️</span>
+					<span class="mr-2 text-red-400">⚠️</span>
 					<span class="text-sm text-red-700">{error}</span>
 				</div>
 			</div>
@@ -156,7 +167,7 @@
 			<!-- User Account Info -->
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				<div>
-					<label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+					<label for="email" class="mb-1 block text-sm font-medium text-gray-700">
 						Email Address
 					</label>
 					<Input
@@ -171,7 +182,7 @@
 				</div>
 
 				<div>
-					<label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+					<label for="name" class="mb-1 block text-sm font-medium text-gray-700">
 						Account Name
 					</label>
 					<Input
@@ -186,11 +197,11 @@
 
 			<!-- Profile Info -->
 			<div class="border-t pt-4">
-				<h4 class="text-sm font-medium text-gray-900 mb-3">Profile Information</h4>
-				
+				<h4 class="mb-3 text-sm font-medium text-gray-900">Profile Information</h4>
+
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div>
-						<label for="profileName" class="block text-sm font-medium text-gray-700 mb-1">
+						<label for="profileName" class="mb-1 block text-sm font-medium text-gray-700">
 							Display Name
 						</label>
 						<Input
@@ -203,15 +214,8 @@
 					</div>
 
 					<div>
-						<label for="role" class="block text-sm font-medium text-gray-700 mb-1">
-							Role
-						</label>
-						<Select
-							id="role"
-							name="role"
-							bind:value={formData.role}
-							disabled={loading}
-						>
+						<label for="role" class="mb-1 block text-sm font-medium text-gray-700"> Role </label>
+						<Select id="role" name="role" bind:value={formData.role} disabled={loading}>
 							<option value="musician">Musician</option>
 							<option value="leader">Leader</option>
 							<option value="admin">Administrator</option>
@@ -220,7 +224,7 @@
 				</div>
 
 				<div class="mt-4">
-					<label for="churchName" class="block text-sm font-medium text-gray-700 mb-1">
+					<label for="churchName" class="mb-1 block text-sm font-medium text-gray-700">
 						Church Name
 					</label>
 					<Input
@@ -238,7 +242,7 @@
 							type="checkbox"
 							bind:checked={formData.isActive}
 							disabled={loading}
-							class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+							class="text-primary focus:ring-primary h-4 w-4 rounded border-gray-300"
 						/>
 						<span class="ml-2 text-sm text-gray-700">Active account</span>
 					</label>
@@ -249,19 +253,11 @@
 			</div>
 
 			<!-- Actions -->
-			<div class="flex justify-end space-x-3 pt-4 border-t">
-				<Button 
-					type="button" 
-					onclick={handleCancel} 
-					variant="outline"
-					disabled={loading}
-				>
+			<div class="flex justify-end space-x-3 border-t pt-4">
+				<Button type="button" onclick={handleCancel} variant="outline" disabled={loading}>
 					Cancel
 				</Button>
-				<Button 
-					type="submit" 
-					disabled={loading}
-				>
+				<Button type="submit" disabled={loading}>
 					{loading ? 'Saving...' : 'Save Changes'}
 				</Button>
 			</div>

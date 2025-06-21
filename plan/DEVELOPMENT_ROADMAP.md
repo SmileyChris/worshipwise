@@ -426,12 +426,14 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 #### Tasks:
 
 1. **Advanced Export System**
+
    - PDF report generation with charts and branding
    - Advanced CSV formats with multiple data views
    - Automated/scheduled reports
    - Custom report templates
 
 2. **Report Customization**
+
    - Configurable report layouts
    - Church branding integration
    - Date range and filter options
@@ -552,7 +554,7 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 ### **✅ Completed (42% - 5/12 Sprints)**
 
 1. **Sprint 1**: Project Infrastructure ✅
-2. **Sprint 2**: Authentication & Basic UI ✅  
+2. **Sprint 2**: Authentication & Basic UI ✅
 3. **Sprint 3**: Songs CRUD & Library ✅
 4. **Sprint 4**: Song Usage Tracking & Service Foundation ✅
 5. **Sprint 5**: Analytics Dashboard ✅

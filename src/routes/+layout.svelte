@@ -10,7 +10,14 @@
 	let { children } = $props();
 
 	// Public routes that don't require authentication
-	const publicRoutes = ['/login', '/register', '/', '/reset-password', '/reset-password/confirm', '/setup'];
+	const publicRoutes = [
+		'/login',
+		'/register',
+		'/',
+		'/reset-password',
+		'/reset-password/confirm',
+		'/setup'
+	];
 
 	let isReady = $state(false);
 	let currentPath = $state('');
@@ -91,7 +98,7 @@
 	<!-- Loading state -->
 	<div class="flex min-h-screen items-center justify-center bg-gray-50">
 		<div class="text-center">
-			<div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+			<div class="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
 			<p class="mt-2 text-sm text-gray-500">Loading...</p>
 		</div>
 	</div>

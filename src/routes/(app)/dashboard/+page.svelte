@@ -40,7 +40,7 @@
 					<Music class="h-8 w-8 text-blue-600" />
 				</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold font-title text-gray-900">{mockStats.totalSongs}</div>
+					<div class="font-title text-2xl font-bold text-gray-900">{mockStats.totalSongs}</div>
 					<div class="text-sm text-gray-500">Total Songs</div>
 				</div>
 			</div>
@@ -52,7 +52,7 @@
 					<Clock class="h-8 w-8 text-green-600" />
 				</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold font-title text-gray-900">{mockStats.recentSongs}</div>
+					<div class="font-title text-2xl font-bold text-gray-900">{mockStats.recentSongs}</div>
 					<div class="text-sm text-gray-500">Added This Week</div>
 				</div>
 			</div>
@@ -64,7 +64,9 @@
 					<TrendingUp class="h-8 w-8 text-purple-600" />
 				</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold font-title text-gray-900">{mockStats.upcomingServices}</div>
+					<div class="font-title text-2xl font-bold text-gray-900">
+						{mockStats.upcomingServices}
+					</div>
 					<div class="text-sm text-gray-500">Upcoming Services</div>
 				</div>
 			</div>
@@ -76,7 +78,7 @@
 					<Users class="h-8 w-8 text-orange-600" />
 				</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold font-title text-gray-900">{mockStats.teamMembers}</div>
+					<div class="font-title text-2xl font-bold text-gray-900">{mockStats.teamMembers}</div>
 					<div class="text-sm text-gray-500">Team Members</div>
 				</div>
 			</div>
@@ -88,8 +90,8 @@
 		<!-- Recent songs -->
 		<Card>
 			<div class="mb-4 flex items-center justify-between">
-				<h3 class="text-lg font-medium font-title text-gray-900">Recent Songs</h3>
-				<a href="/songs" class="text-sm text-primary hover:text-primary/90">View All</a>
+				<h3 class="font-title text-lg font-medium text-gray-900">Recent Songs</h3>
+				<a href="/songs" class="text-primary hover:text-primary/90 text-sm">View All</a>
 			</div>
 
 			{#if songs.songs.length > 0}
@@ -104,7 +106,7 @@
 							</div>
 							{#if song.key_signature}
 								<span
-									class="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
+									class="bg-primary/10 text-primary inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
 								>
 									{song.key_signature}
 								</span>
@@ -118,7 +120,7 @@
 					<p>No songs added yet</p>
 					<a
 						href="/songs"
-						class="mt-2 inline-block rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary/90"
+						class="bg-primary hover:bg-primary/90 mt-2 inline-block rounded-md px-4 py-2 text-sm text-white"
 					>
 						Add Your First Song
 					</a>
@@ -128,11 +130,11 @@
 
 		<!-- Quick actions -->
 		<Card>
-			<h3 class="mb-4 text-lg font-medium font-title text-gray-900">Quick Actions</h3>
+			<h3 class="font-title mb-4 text-lg font-medium text-gray-900">Quick Actions</h3>
 			<div class="space-y-3">
 				<a
 					href="/songs"
-					class="flex w-full items-center rounded-md bg-primary px-4 py-3 text-white hover:bg-primary/90"
+					class="bg-primary hover:bg-primary/90 flex w-full items-center rounded-md px-4 py-3 text-white"
 				>
 					<Music class="mr-2 h-4 w-4" />
 					Manage Songs
@@ -156,11 +158,23 @@
 					</button>
 				{:else}
 					<!-- Debug: Setup Complete Indicator -->
-					<div class="flex w-full items-center rounded-md bg-green-50 border border-green-200 px-4 py-3">
-						<svg class="mr-2 h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+					<div
+						class="flex w-full items-center rounded-md border border-green-200 bg-green-50 px-4 py-3"
+					>
+						<svg
+							class="mr-2 h-4 w-4 text-green-600"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M5 13l4 4L19 7"
+							></path>
 						</svg>
-						<span class="text-green-800 text-sm">Setup Complete!</span>
+						<span class="text-sm text-green-800">Setup Complete!</span>
 					</div>
 				{/if}
 			</div>
@@ -170,13 +184,13 @@
 	<!-- Getting started tips -->
 	{#if songs.songs.length < 5}
 		<Card>
-			<h3 class="mb-4 text-lg font-medium font-title text-gray-900">Getting Started Tips</h3>
+			<h3 class="font-title mb-4 text-lg font-medium text-gray-900">Getting Started Tips</h3>
 			<div class="space-y-3 text-sm text-gray-600">
 				<div class="flex items-start">
 					<div
-						class="mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
+						class="bg-primary/10 mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full"
 					>
-						<span class="text-xs font-semibold text-primary">1</span>
+						<span class="text-primary text-xs font-semibold">1</span>
 					</div>
 					<div>
 						<strong>Add your songs:</strong> Start by adding your church's most commonly used worship
@@ -186,9 +200,9 @@
 
 				<div class="flex items-start">
 					<div
-						class="mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
+						class="bg-primary/10 mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full"
 					>
-						<span class="text-xs font-semibold text-primary">2</span>
+						<span class="text-primary text-xs font-semibold">2</span>
 					</div>
 					<div>
 						<strong>Upload files:</strong> Attach chord charts, sheet music, and audio files to make
@@ -198,9 +212,9 @@
 
 				<div class="flex items-start">
 					<div
-						class="mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
+						class="bg-primary/10 mt-0.5 mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full"
 					>
-						<span class="text-xs font-semibold text-primary">3</span>
+						<span class="text-primary text-xs font-semibold">3</span>
 					</div>
 					<div>
 						<strong>Plan services:</strong> Create services for worship and track which songs you've

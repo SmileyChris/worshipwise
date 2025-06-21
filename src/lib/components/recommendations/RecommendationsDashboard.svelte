@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { recommendationsStore } from '$lib/stores/recommendations.svelte';
-	import { authStore } from '$lib/stores/auth.svelte';
+	import { auth } from '$lib/stores/auth.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -11,13 +11,15 @@
 	import WorshipInsightsDashboard from './WorshipInsightsDashboard.svelte';
 	import { Lightbulb, TrendingUp, Music, Calendar, BarChart3, Brain } from 'lucide-svelte';
 
-	let activeTab = $state<'overview' | 'songs' | 'flow' | 'balance' | 'trends' | 'insights'>('overview');
+	let activeTab = $state<'overview' | 'songs' | 'flow' | 'balance' | 'trends' | 'insights'>(
+		'overview'
+	);
 
 	onMount(async () => {
 		// Load initial recommendations
 		await recommendationsStore.loadSongRecommendations();
 		await recommendationsStore.loadSeasonalTrends();
-		
+
 		// Load comparative analysis for current month
 		const now = new Date();
 		const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -30,8 +32,8 @@
 	}
 
 	async function personalizeRecommendations() {
-		if (authStore.user?.id) {
-			await recommendationsStore.getPersonalizedRecommendations(authStore.user.id);
+		if (auth.user?.id) {
+			await recommendationsStore.getPersonalizedRecommendations(auth.user.id);
 		}
 	}
 </script>
@@ -40,17 +42,17 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-3xl font-bold font-title text-gray-900">Worship Insights</h1>
+			<h1 class="font-title text-3xl font-bold text-gray-900">Worship Insights</h1>
 			<p class="text-gray-600">Smart recommendations and analytics for better worship planning</p>
 		</div>
-		
+
 		<div class="flex gap-2">
 			<Button variant="secondary" onclick={personalizeRecommendations}>
-				<TrendingUp class="h-4 w-4 mr-2" />
+				<TrendingUp class="mr-2 h-4 w-4" />
 				Personalize
 			</Button>
 			<Button onclick={refreshRecommendations}>
-				<Lightbulb class="h-4 w-4 mr-2" />
+				<Lightbulb class="mr-2 h-4 w-4" />
 				Refresh Insights
 			</Button>
 		</div>
@@ -58,11 +60,11 @@
 
 	<!-- Summary Insights -->
 	{#if recommendationsStore.getSummaryInsights().length > 0}
-		<Card class="bg-gradient-to-r from-primary/5 to-primary/10">
+		<Card class="from-primary/5 to-primary/10 bg-gradient-to-r">
 			<div class="flex items-start gap-3">
-				<Lightbulb class="h-5 w-5 text-primary mt-0.5" />
+				<Lightbulb class="text-primary mt-0.5 h-5 w-5" />
 				<div>
-					<h3 class="font-semibold font-title text-gray-900 mb-2">Key Insights</h3>
+					<h3 class="font-title mb-2 font-semibold text-gray-900">Key Insights</h3>
 					<ul class="space-y-1">
 						{#each recommendationsStore.getSummaryInsights() as insight}
 							<li class="text-sm text-gray-700">• {insight}</li>
@@ -77,72 +79,72 @@
 	<div class="border-b border-gray-200">
 		<nav class="-mb-px flex space-x-8">
 			<button
-				class={`py-2 px-1 border-b-2 font-medium text-sm ${
+				class={`border-b-2 px-1 py-2 text-sm font-medium ${
 					activeTab === 'overview'
 						? 'border-primary text-primary'
-						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+						: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
 				}`}
-				onclick={() => activeTab = 'overview'}
+				onclick={() => (activeTab = 'overview')}
 			>
-				<BarChart3 class="h-4 w-4 mr-2 inline" />
+				<BarChart3 class="mr-2 inline h-4 w-4" />
 				Overview
 			</button>
-			
+
 			<button
-				class={`py-2 px-1 border-b-2 font-medium text-sm ${
+				class={`border-b-2 px-1 py-2 text-sm font-medium ${
 					activeTab === 'songs'
 						? 'border-primary text-primary'
-						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+						: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
 				}`}
-				onclick={() => activeTab = 'songs'}
+				onclick={() => (activeTab = 'songs')}
 			>
-				<Music class="h-4 w-4 mr-2 inline" />
+				<Music class="mr-2 inline h-4 w-4" />
 				Song Recommendations ({recommendationsStore.songRecommendations.length})
 			</button>
-			
+
 			<button
-				class={`py-2 px-1 border-b-2 font-medium text-sm ${
+				class={`border-b-2 px-1 py-2 text-sm font-medium ${
 					activeTab === 'flow'
 						? 'border-primary text-primary'
-						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+						: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
 				}`}
-				onclick={() => activeTab = 'flow'}
+				onclick={() => (activeTab = 'flow')}
 			>
 				Worship Flow
 			</button>
-			
+
 			<button
-				class={`py-2 px-1 border-b-2 font-medium text-sm ${
+				class={`border-b-2 px-1 py-2 text-sm font-medium ${
 					activeTab === 'balance'
 						? 'border-primary text-primary'
-						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+						: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
 				}`}
-				onclick={() => activeTab = 'balance'}
+				onclick={() => (activeTab = 'balance')}
 			>
 				Service Balance
 			</button>
-			
+
 			<button
-				class={`py-2 px-1 border-b-2 font-medium text-sm ${
+				class={`border-b-2 px-1 py-2 text-sm font-medium ${
 					activeTab === 'trends'
 						? 'border-primary text-primary'
-						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+						: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
 				}`}
-				onclick={() => activeTab = 'trends'}
+				onclick={() => (activeTab = 'trends')}
 			>
-				<Calendar class="h-4 w-4 mr-2 inline" />
+				<Calendar class="mr-2 inline h-4 w-4" />
 				Seasonal Trends
 			</button>
-			
+
 			<button
-				class={`py-2 px-1 border-b-2 font-medium text-sm ${
+				class={`border-b-2 px-1 py-2 text-sm font-medium ${
 					activeTab === 'insights'
 						? 'border-primary text-primary'
-						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+						: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
 				}`}
-				onclick={() => activeTab = 'insights'}
+				onclick={() => (activeTab = 'insights')}
 			>
-				<Brain class="h-4 w-4 mr-2 inline" />
+				<Brain class="mr-2 inline h-4 w-4" />
 				AI Insights
 			</button>
 		</nav>
@@ -150,46 +152,49 @@
 
 	<!-- Loading State -->
 	{#if recommendationsStore.loading}
-		<div class="text-center py-12">
-			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+		<div class="py-12 text-center">
+			<div class="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
 			<p class="mt-2 text-gray-600">Loading insights...</p>
 		</div>
 	{/if}
 
 	<!-- Error State -->
 	{#if recommendationsStore.error}
-		<Card class="bg-red-50 border-red-200">
+		<Card class="border-red-200 bg-red-50">
 			<p class="text-red-800">Error: {recommendationsStore.error}</p>
 		</Card>
 	{/if}
 
 	<!-- Tab Content -->
 	{#if !recommendationsStore.loading && !recommendationsStore.error}
-		
 		{#if activeTab === 'overview'}
-			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 				<!-- Quick Stats -->
 				<Card>
-					<h3 class="text-lg font-semibold font-title mb-4">Quick Stats</h3>
+					<h3 class="font-title mb-4 text-lg font-semibold">Quick Stats</h3>
 					<div class="space-y-3">
 						<div class="flex justify-between">
 							<span class="text-gray-600">Total Recommendations</span>
 							<Badge>{recommendationsStore.songRecommendations.length}</Badge>
 						</div>
-						
+
 						<div class="flex justify-between">
 							<span class="text-gray-600">Rotation Candidates</span>
-							<Badge>{recommendationsStore.rotationRecommendations.length}</Badge>
+							<Badge>{recommendationsStore.rotationRecommendations().length}</Badge>
 						</div>
-						
+
 						<div class="flex justify-between">
 							<span class="text-gray-600">Seasonal Songs</span>
-							<Badge>{recommendationsStore.seasonalRecommendations.length}</Badge>
+							<Badge>{recommendationsStore.seasonalRecommendations().length}</Badge>
 						</div>
-						
+
 						<div class="flex justify-between">
 							<span class="text-gray-600">Flow Issues</span>
-							<Badge variant={recommendationsStore.highPriorityFlowSuggestions.length > 0 ? 'danger' : 'success'}>
+							<Badge
+								variant={recommendationsStore.highPriorityFlowSuggestions.length > 0
+									? 'danger'
+									: 'success'}
+							>
 								{recommendationsStore.highPriorityFlowSuggestions.length}
 							</Badge>
 						</div>
@@ -199,27 +204,35 @@
 				<!-- Comparative Analysis -->
 				{#if recommendationsStore.comparativePeriod}
 					<Card>
-						<h3 class="text-lg font-semibold font-title mb-4">This Month vs Last Month</h3>
+						<h3 class="font-title mb-4 text-lg font-semibold">This Month vs Last Month</h3>
 						<div class="space-y-3">
-							<div class="flex justify-between items-center">
+							<div class="flex items-center justify-between">
 								<span class="text-gray-600">Song Usage</span>
 								<div class="flex items-center gap-2">
-									<Badge variant={recommendationsStore.comparativePeriod.changes.usageChange >= 0 ? 'success' : 'warning'}>
+									<Badge
+										variant={recommendationsStore.comparativePeriod.changes.usageChange >= 0
+											? 'success'
+											: 'warning'}
+									>
 										{recommendationsStore.comparativePeriod.changes.usageChange >= 0 ? '+' : ''}
 										{recommendationsStore.comparativePeriod.changes.usageChange.toFixed(1)}%
 									</Badge>
 								</div>
 							</div>
-							
-							<div class="flex justify-between items-center">
+
+							<div class="flex items-center justify-between">
 								<span class="text-gray-600">Song Variety</span>
-								<Badge variant={recommendationsStore.comparativePeriod.changes.diversityChange >= 0 ? 'success' : 'warning'}>
+								<Badge
+									variant={recommendationsStore.comparativePeriod.changes.diversityChange >= 0
+										? 'success'
+										: 'warning'}
+								>
 									{recommendationsStore.comparativePeriod.changes.diversityChange >= 0 ? '+' : ''}
 									{recommendationsStore.comparativePeriod.changes.diversityChange.toFixed(1)}%
 								</Badge>
 							</div>
-							
-							<div class="flex justify-between items-center">
+
+							<div class="flex items-center justify-between">
 								<span class="text-gray-600">Service Length</span>
 								<Badge>
 									{recommendationsStore.comparativePeriod.changes.lengthChange >= 0 ? '+' : ''}
@@ -229,8 +242,8 @@
 						</div>
 
 						{#if recommendationsStore.comparativePeriod.insights.length > 0}
-							<div class="mt-4 pt-4 border-t">
-								<h4 class="font-medium text-gray-900 mb-2">Insights</h4>
+							<div class="mt-4 border-t pt-4">
+								<h4 class="mb-2 font-medium text-gray-900">Insights</h4>
 								<ul class="space-y-1">
 									{#each recommendationsStore.comparativePeriod.insights as insight}
 										<li class="text-sm text-gray-600">• {insight}</li>
@@ -243,9 +256,9 @@
 
 				<!-- Top Rotation Recommendations -->
 				<Card class="lg:col-span-2">
-					<h3 class="text-lg font-semibold font-title mb-4">Quick Rotation Suggestions</h3>
+					<h3 class="font-title mb-4 text-lg font-semibold">Quick Rotation Suggestions</h3>
 					{#if recommendationsStore.getQuickRotationSuggestions(3).length > 0}
-						<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 							{#each recommendationsStore.getQuickRotationSuggestions(3) as recommendation}
 								<SongRecommendationCard {recommendation} />
 							{/each}
@@ -261,13 +274,14 @@
 			<div class="space-y-6">
 				<!-- Filters -->
 				<Card>
-					<h3 class="text-lg font-semibold font-title mb-4">Recommendation Filters</h3>
-					<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<h3 class="font-title mb-4 text-lg font-semibold">Recommendation Filters</h3>
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2">
+							<label for="exclude-recent-days" class="mb-2 block text-sm font-medium text-gray-700">
 								Exclude Recent (days)
 							</label>
-							<select 
+							<select
+								id="exclude-recent-days"
 								bind:value={recommendationsStore.recommendationFilters.excludeRecentDays}
 								onchange={refreshRecommendations}
 								class="w-full rounded-md border-gray-300"
@@ -279,12 +293,13 @@
 								<option value={56}>8 weeks</option>
 							</select>
 						</div>
-						
+
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2">
+							<label for="limit-results" class="mb-2 block text-sm font-medium text-gray-700">
 								Limit Results
 							</label>
-							<select 
+							<select
+								id="limit-results"
 								bind:value={recommendationsStore.recommendationFilters.limit}
 								onchange={refreshRecommendations}
 								class="w-full rounded-md border-gray-300"
@@ -301,11 +316,11 @@
 				<!-- Recommendations by Type -->
 				<div class="space-y-6">
 					<!-- Rotation Recommendations -->
-					{#if recommendationsStore.rotationRecommendations.length > 0}
+					{#if recommendationsStore.rotationRecommendations().length > 0}
 						<Card>
-							<h3 class="text-lg font-semibold font-title mb-4">Rotation Recommendations</h3>
-							<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-								{#each recommendationsStore.rotationRecommendations as recommendation}
+							<h3 class="font-title mb-4 text-lg font-semibold">Rotation Recommendations</h3>
+							<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+								{#each recommendationsStore.rotationRecommendations() as recommendation}
 									<SongRecommendationCard {recommendation} />
 								{/each}
 							</div>
@@ -313,11 +328,11 @@
 					{/if}
 
 					<!-- Seasonal Recommendations -->
-					{#if recommendationsStore.seasonalRecommendations.length > 0}
+					{#if recommendationsStore.seasonalRecommendations().length > 0}
 						<Card>
-							<h3 class="text-lg font-semibold font-title mb-4">Seasonal Recommendations</h3>
-							<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-								{#each recommendationsStore.seasonalRecommendations as recommendation}
+							<h3 class="font-title mb-4 text-lg font-semibold">Seasonal Recommendations</h3>
+							<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+								{#each recommendationsStore.seasonalRecommendations() as recommendation}
 									<SongRecommendationCard {recommendation} />
 								{/each}
 							</div>
@@ -338,25 +353,29 @@
 		{#if activeTab === 'trends'}
 			<div class="space-y-6">
 				{#if recommendationsStore.seasonalTrends.length > 0}
-					<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 						{#each recommendationsStore.seasonalTrends as trend}
 							<Card>
-								<h3 class="text-lg font-semibold font-title mb-4">{trend.season} - {new Date(2024, trend.month - 1).toLocaleString('default', { month: 'long' })}</h3>
-								
+								<h3 class="font-title mb-4 text-lg font-semibold">
+									{trend.season} - {new Date(2024, trend.month - 1).toLocaleString('default', {
+										month: 'long'
+									})}
+								</h3>
+
 								{#if trend.popularSongs.length > 0}
 									<div class="space-y-2">
 										<h4 class="font-medium text-gray-900">Popular Songs</h4>
 										{#each trend.popularSongs.slice(0, 5) as song}
-											<div class="flex justify-between items-center">
+											<div class="flex items-center justify-between">
 												<span class="text-sm">{song.title}</span>
 												<Badge>{song.usageCount} uses</Badge>
 											</div>
 										{/each}
 									</div>
 								{/if}
-								
+
 								<div class="mt-4">
-									<h4 class="font-medium text-gray-900 mb-2">Suggested Themes</h4>
+									<h4 class="mb-2 font-medium text-gray-900">Suggested Themes</h4>
 									<div class="flex flex-wrap gap-2">
 										{#each trend.suggestedThemes as theme}
 											<Badge variant="default">{theme}</Badge>

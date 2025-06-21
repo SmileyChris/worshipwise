@@ -12,7 +12,7 @@ class AuthStore {
 	isValid = $state<boolean>(false);
 	loading = $state<boolean>(false);
 	error = $state<string | null>(null);
-	
+
 	// Church context state
 	currentChurch = $state<Church | null>(null);
 	availableChurches = $state<Church[]>([]);
@@ -179,7 +179,11 @@ class AuthStore {
 	/**
 	 * Confirm password reset with token
 	 */
-	async confirmPasswordReset(token: string, password: string, passwordConfirm: string): Promise<void> {
+	async confirmPasswordReset(
+		token: string,
+		password: string,
+		passwordConfirm: string
+	): Promise<void> {
 		this.loading = true;
 		this.error = null;
 
@@ -359,13 +363,13 @@ class AuthStore {
 			});
 
 			// Extract unique churches from profiles
-			const churchIds = [...new Set(userProfiles.items.map(p => p.church_id).filter(Boolean))];
-			
+			const churchIds = [...new Set(userProfiles.items.map((p) => p.church_id).filter(Boolean))];
+
 			if (churchIds.length > 0) {
 				const churches = await pb.collection('churches').getList(1, 50, {
-					filter: churchIds.map(id => `id = "${id}"`).join(' || ')
+					filter: churchIds.map((id) => `id = "${id}"`).join(' || ')
 				});
-				
+
 				this.availableChurches = churches.items as unknown as Church[];
 			} else {
 				this.availableChurches = [];
@@ -373,7 +377,7 @@ class AuthStore {
 
 			// Set current church from profile or first available
 			if (this.profile?.church_id) {
-				const currentChurch = this.availableChurches.find(c => c.id === this.profile!.church_id);
+				const currentChurch = this.availableChurches.find((c) => c.id === this.profile!.church_id);
 				if (currentChurch) {
 					this.currentChurch = currentChurch;
 				}
@@ -398,7 +402,7 @@ class AuthStore {
 	 * Switch to a different church context
 	 */
 	async switchChurch(churchId: string): Promise<void> {
-		const targetChurch = this.availableChurches.find(c => c.id === churchId);
+		const targetChurch = this.availableChurches.find((c) => c.id === churchId);
 		if (!targetChurch || !this.profile) return;
 
 		this.churchLoading = true;
@@ -406,7 +410,7 @@ class AuthStore {
 			// Update user's profile with new church context
 			await this.updateProfileInfo({ church_id: churchId });
 			this.currentChurch = targetChurch;
-			
+
 			console.log('Switched to church:', targetChurch.name);
 		} catch (error) {
 			console.error('Failed to switch church:', error);
@@ -430,14 +434,16 @@ class AuthStore {
 			});
 
 			if (adminProfiles.items.length === 1 && adminProfiles.items[0].user_id === this.user.id) {
-				throw new Error('Cannot leave church - you are the only administrator. Transfer admin role to another user or delete the church.');
+				throw new Error(
+					'Cannot leave church - you are the only administrator. Transfer admin role to another user or delete the church.'
+				);
 			}
 
 			// Remove user from church by deleting their profile for this church
-			const userProfile = await pb.collection('profiles').getFirstListItem(
-				`user_id = "${this.user.id}" && church_id = "${churchId}"`
-			);
-			
+			const userProfile = await pb
+				.collection('profiles')
+				.getFirstListItem(`user_id = "${this.user.id}" && church_id = "${churchId}"`);
+
 			await pb.collection('profiles').delete(userProfile.id);
 
 			// Reload churches and switch context if necessary

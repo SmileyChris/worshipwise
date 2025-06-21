@@ -139,49 +139,49 @@ chmod +x pocketbase
 
 ```javascript
 [
-  {
-    "name": "Hymns and Te Reo",
-    "description": "Traditional hymns and Te Reo Māori songs",
-    "color": "#8B4513",
-    "sort_order": 1,
-    "is_active": true
-  },
-  {
-    "name": "Contemporary",
-    "description": "Contemporary worship songs",
-    "color": "#4169E1",
-    "sort_order": 2,
-    "is_active": true
-  },
-  {
-    "name": "Seasonal (youth suggestions)",
-    "description": "Seasonal songs, often suggested by youth",
-    "color": "#32CD32",
-    "sort_order": 3,
-    "is_active": true
-  },
-  {
-    "name": "Christmas Songs",
-    "description": "Christmas and holiday worship songs",
-    "color": "#DC143C",
-    "sort_order": 4,
-    "is_active": true
-  },
-  {
-    "name": "Possible New Songs",
-    "description": "Songs being considered for regular use",
-    "color": "#FFD700",
-    "sort_order": 5,
-    "is_active": true
-  },
-  {
-    "name": "Modern (archive list)",
-    "description": "Modern songs from the archive",
-    "color": "#9932CC",
-    "sort_order": 6,
-    "is_active": true
-  }
-]
+	{
+		name: 'Hymns and Te Reo',
+		description: 'Traditional hymns and Te Reo Māori songs',
+		color: '#8B4513',
+		sort_order: 1,
+		is_active: true
+	},
+	{
+		name: 'Contemporary',
+		description: 'Contemporary worship songs',
+		color: '#4169E1',
+		sort_order: 2,
+		is_active: true
+	},
+	{
+		name: 'Seasonal (youth suggestions)',
+		description: 'Seasonal songs, often suggested by youth',
+		color: '#32CD32',
+		sort_order: 3,
+		is_active: true
+	},
+	{
+		name: 'Christmas Songs',
+		description: 'Christmas and holiday worship songs',
+		color: '#DC143C',
+		sort_order: 4,
+		is_active: true
+	},
+	{
+		name: 'Possible New Songs',
+		description: 'Songs being considered for regular use',
+		color: '#FFD700',
+		sort_order: 5,
+		is_active: true
+	},
+	{
+		name: 'Modern (archive list)',
+		description: 'Modern songs from the archive',
+		color: '#9932CC',
+		sort_order: 6,
+		is_active: true
+	}
+];
 ```
 
 ### 3. Labels Collection
@@ -362,7 +362,7 @@ chmod +x pocketbase
 
 ### 3. Services Collection
 
-**Collection Name**: `setlists` *(legacy database name for compatibility)*  
+**Collection Name**: `setlists` _(legacy database name for compatibility)_  
 **Type**: Base Collection  
 **Purpose**: Manages worship services and service planning
 
@@ -450,7 +450,7 @@ chmod +x pocketbase
 
 ### 4. Service Songs Collection (Junction Table)
 
-**Collection Name**: `setlist_songs` *(legacy database name for compatibility)*  
+**Collection Name**: `setlist_songs` _(legacy database name for compatibility)_  
 **Type**: Base Collection  
 **Purpose**: Junction table linking songs to services with ordering and customization
 
@@ -500,7 +500,7 @@ chmod +x pocketbase
 
 #### API Rules:
 
-*Note: `setlist` in rules refers to the service record (database field name)*
+_Note: `setlist` in rules refers to the service record (database field name)_
 
 ```javascript
 {
@@ -625,7 +625,7 @@ songs (1) ─────┬─── (many) setlist_songs
 setlists (1) ──┬─── (many) setlist_songs  # Services → Service Songs
                └─── (many) song_usage   # Services → Usage Records
 
-setlist_songs ─┬─── (1) setlist  # Service Songs → Parent Service  
+setlist_songs ─┬─── (1) setlist  # Service Songs → Parent Service
                └─── (1) song     # Service Songs → Song
 
 song_usage ────┬─── (1) song     # Usage → Song

@@ -44,12 +44,14 @@
 					{@render children()}
 				{:else if quickstartStore.systemStatus.needsSetup}
 					<!-- Setup mode for unauthenticated users -->
-					<div class="text-center py-12">
-						<h1 class="text-3xl font-bold text-gray-900 mb-4">🎵 Welcome to WorshipWise</h1>
-						<p class="text-lg text-gray-600 mb-8">Your system is ready! Let's create your first worship account.</p>
-						<button 
+					<div class="py-12 text-center">
+						<h1 class="mb-4 text-3xl font-bold text-gray-900">🎵 Welcome to WorshipWise</h1>
+						<p class="mb-8 text-lg text-gray-600">
+							Your system is ready! Let's create your first worship account.
+						</p>
+						<button
 							onclick={() => (quickstartStore.showSetupWizard = true)}
-							class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90"
+							class="bg-primary hover:bg-primary/90 inline-flex items-center rounded-md border border-transparent px-6 py-3 text-base font-medium text-white"
 						>
 							Get Started
 						</button>
@@ -65,7 +67,7 @@
 	<!-- Loading or redirecting -->
 	<div class="flex min-h-screen items-center justify-center bg-gray-50">
 		<div class="text-center">
-			<div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+			<div class="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
 			<p class="mt-2 text-sm text-gray-500">Loading...</p>
 		</div>
 	</div>

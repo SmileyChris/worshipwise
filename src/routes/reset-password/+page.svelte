@@ -76,7 +76,7 @@
 	<div class="w-full max-w-md space-y-8">
 		<Card class="mx-auto w-full max-w-md">
 			<div class="mb-6 text-center">
-				<h1 class="text-2xl font-bold font-title text-gray-900">Reset Password</h1>
+				<h1 class="font-title text-2xl font-bold text-gray-900">Reset Password</h1>
 				<p class="mt-2 text-sm text-gray-600">
 					{#if success}
 						Check your email for reset instructions
@@ -104,8 +104,8 @@
 								<h3 class="text-sm font-medium text-green-800">Email sent successfully!</h3>
 								<div class="mt-2 text-sm text-green-700">
 									<p>
-										We've sent a password reset link to <strong>{email}</strong>. Please check
-										your email and follow the instructions to reset your password.
+										We've sent a password reset link to <strong>{email}</strong>. Please check your
+										email and follow the instructions to reset your password.
 									</p>
 								</div>
 							</div>
@@ -114,7 +114,7 @@
 
 					<div class="text-sm text-gray-600">
 						<p>Didn't receive the email?</p>
-						<ul class="mt-2 list-disc list-inside space-y-1">
+						<ul class="mt-2 list-inside list-disc space-y-1">
 							<li>Check your spam/junk folder</li>
 							<li>Make sure the email address is correct</li>
 							<li>Wait a few minutes and try again</li>
@@ -122,9 +122,7 @@
 					</div>
 
 					<div class="flex space-x-3">
-						<Button variant="ghost" onclick={handleTryAgain} class="flex-1">
-							Try Again
-						</Button>
+						<Button variant="ghost" onclick={handleTryAgain} class="flex-1">Try Again</Button>
 						<Button variant="primary" onclick={handleBackToLogin} class="flex-1">
 							Back to Login
 						</Button>
@@ -179,7 +177,7 @@
 				<div class="mt-6 text-center">
 					<p class="text-sm text-gray-600">
 						Remember your password?
-						<a href="/login" class="font-medium text-primary hover:text-primary/90">
+						<a href="/login" class="text-primary hover:text-primary/90 font-medium">
 							Back to Sign In
 						</a>
 					</p>

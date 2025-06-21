@@ -48,19 +48,19 @@ export async function getAdminStats(): Promise<AdminStats> {
 
 		// Calculate statistics
 		const totalUsers = usersCount.totalItems;
-		const activeUsers = profiles.filter(p => p.is_active !== false).length;
-		const inactiveUsers = profiles.filter(p => p.is_active === false).length;
+		const activeUsers = profiles.filter((p) => p.is_active !== false).length;
+		const inactiveUsers = profiles.filter((p) => p.is_active === false).length;
 
 		const usersByRole = {
-			admin: profiles.filter(p => p.role === 'admin').length,
-			leader: profiles.filter(p => p.role === 'leader').length,
-			musician: profiles.filter(p => p.role === 'musician').length
+			admin: profiles.filter((p) => p.role === 'admin').length,
+			leader: profiles.filter((p) => p.role === 'leader').length,
+			musician: profiles.filter((p) => p.role === 'musician').length
 		};
 
 		// Users created in last 30 days
 		const thirtyDaysAgo = new Date();
 		thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-		const recentlyCreated = profiles.filter(p => new Date(p.created) > thirtyDaysAgo).length;
+		const recentlyCreated = profiles.filter((p) => new Date(p.created) > thirtyDaysAgo).length;
 
 		return {
 			totalUsers,
@@ -93,18 +93,22 @@ export async function getUsers(
 		});
 
 		// Get profiles for all users in this page
-		const userIds = users.items.map(user => user.id);
-		const profiles = userIds.length > 0 
-			? await pb.collection('profiles').getFullList({
-				filter: userIds.map(id => `user_id = "${id}"`).join(' || ')
-			})
-			: [];
+		const userIds = users.items.map((user) => user.id);
+		const profiles =
+			userIds.length > 0
+				? await pb.collection('profiles').getFullList({
+						filter: userIds.map((id) => `user_id = "${id}"`).join(' || ')
+					})
+				: [];
 
 		// Combine users with their profiles
-		const usersWithProfiles: UserWithProfile[] = users.items.map(user => ({
-			...user,
-			profile: profiles.find(p => p.user_id === user.id)
-		} as unknown as UserWithProfile));
+		const usersWithProfiles: UserWithProfile[] = users.items.map(
+			(user) =>
+				({
+					...user,
+					profile: profiles.find((p) => p.user_id === user.id)
+				}) as unknown as UserWithProfile
+		);
 
 		return {
 			page: users.page,
@@ -127,9 +131,8 @@ export async function searchUsers(
 	page: number = 1,
 	perPage: number = 20
 ): Promise<UserListResponse> {
-	const filter = query.trim() ? 
-		`email ~ "${query}" || name ~ "${query}"` : '';
-	
+	const filter = query.trim() ? `email ~ "${query}" || name ~ "${query}"` : '';
+
 	return getUsers(page, perPage, filter);
 }
 
@@ -149,19 +152,23 @@ export async function getUsersByRole(
 		});
 
 		// Get users for these profiles
-		const userIds = profiles.items.map(p => p.user_id);
-		const users = userIds.length > 0 
-			? await pb.collection('users').getFullList({
-				filter: userIds.map(id => `id = "${id}"`).join(' || '),
-				fields: 'id,email,name,verified,created,updated'
-			})
-			: [];
+		const userIds = profiles.items.map((p) => p.user_id);
+		const users =
+			userIds.length > 0
+				? await pb.collection('users').getFullList({
+						filter: userIds.map((id) => `id = "${id}"`).join(' || '),
+						fields: 'id,email,name,verified,created,updated'
+					})
+				: [];
 
 		// Combine users with profiles
-		const usersWithProfiles: UserWithProfile[] = users.map(user => ({
-			...user,
-			profile: profiles.items.find(p => p.user_id === user.id)
-		} as unknown as UserWithProfile));
+		const usersWithProfiles: UserWithProfile[] = users.map(
+			(user) =>
+				({
+					...user,
+					profile: profiles.items.find((p) => p.user_id === user.id)
+				}) as unknown as UserWithProfile
+		);
 
 		return {
 			page: profiles.page,
@@ -192,7 +199,10 @@ export async function updateUser(userId: string, userData: Partial<User>): Promi
 /**
  * Update user profile information
  */
-export async function updateUserProfile(profileId: string, profileData: Partial<Profile>): Promise<Profile> {
+export async function updateUserProfile(
+	profileId: string,
+	profileData: Partial<Profile>
+): Promise<Profile> {
 	try {
 		const updatedProfile = await pb.collection('profiles').update(profileId, profileData);
 		return updatedProfile as unknown as Profile;
@@ -271,7 +281,10 @@ export async function deleteUser(userId: string): Promise<void> {
 /**
  * Change user role
  */
-export async function changeUserRole(userId: string, newRole: 'musician' | 'leader' | 'admin'): Promise<void> {
+export async function changeUserRole(
+	userId: string,
+	newRole: 'musician' | 'leader' | 'admin'
+): Promise<void> {
 	try {
 		// Get user's profile
 		const profiles = await pb.collection('profiles').getList(1, 1, {
@@ -303,7 +316,7 @@ export async function getUserActivity(userId: string): Promise<{
 	try {
 		// Note: PocketBase doesn't track last login by default
 		// You would need to implement this in your auth flow
-		
+
 		// Get services created by this user
 		const setlists = await pb.collection('setlists').getList(1, 1, {
 			filter: `created_by = "${userId}"`,

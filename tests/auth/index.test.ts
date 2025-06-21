@@ -1,12 +1,12 @@
 /**
  * Auth Tests Suite
- * 
+ *
  * This file imports and runs all authentication-related tests to ensure
  * comprehensive coverage of the authentication system.
- * 
+ *
  * Test Categories:
  * - Unit Tests: AuthStore functionality
- * - Component Tests: Auth-related UI components  
+ * - Component Tests: Auth-related UI components
  * - Integration Tests: End-to-end auth flows
  */
 
@@ -14,128 +14,129 @@ import { describe, it, expect } from 'vitest';
 
 // Import all auth test suites
 import '../../src/lib/stores/auth.test';
-import '../../src/lib/components/auth/AuthForm.svelte.test';
-import '../../src/lib/components/profile/ProfileSettings.svelte.test';
-import '../../src/lib/components/admin/UserEditModal.svelte.test';
+// Note: Svelte component tests are run separately in the client environment
+// import '../../src/lib/components/auth/AuthForm.svelte.test';
+// import '../../src/lib/components/profile/ProfileSettings.svelte.test';
+// import '../../src/lib/components/admin/UserEditModal.svelte.test';
 import '../integration/auth.test';
 
 describe('Authentication Test Suite', () => {
-  it('should have comprehensive auth test coverage', () => {
-    // This test serves as a documentation of our auth test coverage
-    const testCategories = [
-      'AuthStore unit tests',
-      'AuthForm component tests',
-      'ProfileSettings component tests', 
-      'UserEditModal component tests',
-      'Authentication integration tests'
-    ];
+	it('should have comprehensive auth test coverage', () => {
+		// This test serves as a documentation of our auth test coverage
+		const testCategories = [
+			'AuthStore unit tests',
+			'AuthForm component tests',
+			'ProfileSettings component tests',
+			'UserEditModal component tests',
+			'Authentication integration tests'
+		];
 
-    // Verify we have all expected test categories
-    expect(testCategories.length).toBe(5);
-    
-    // Each category should test specific functionality
-    expect(testCategories).toContain('AuthStore unit tests');
-    expect(testCategories).toContain('AuthForm component tests');
-    expect(testCategories).toContain('ProfileSettings component tests');
-    expect(testCategories).toContain('UserEditModal component tests');
-    expect(testCategories).toContain('Authentication integration tests');
-  });
+		// Verify we have all expected test categories
+		expect(testCategories.length).toBe(5);
 
-  it('should test all core auth functions', () => {
-    const coreAuthFunctions = [
-      'login',
-      'register', 
-      'logout',
-      'updateProfile',
-      'updateProfileInfo',
-      'requestPasswordReset',
-      'confirmPasswordReset',
-      'refreshAuth',
-      'loadProfile',
-      'hasRole',
-      'hasAnyRole',
-      'getErrorMessage',
-      'clearError'
-    ];
+		// Each category should test specific functionality
+		expect(testCategories).toContain('AuthStore unit tests');
+		expect(testCategories).toContain('AuthForm component tests');
+		expect(testCategories).toContain('ProfileSettings component tests');
+		expect(testCategories).toContain('UserEditModal component tests');
+		expect(testCategories).toContain('Authentication integration tests');
+	});
 
-    // Verify we have tests for all core functions
-    expect(coreAuthFunctions.length).toBeGreaterThanOrEqual(12);
-    
-    // These functions are critical for the authentication system
-    const criticalFunctions = ['login', 'register', 'logout', 'updateProfile'];
-    criticalFunctions.forEach(func => {
-      expect(coreAuthFunctions).toContain(func);
-    });
-  });
+	it('should test all core auth functions', () => {
+		const coreAuthFunctions = [
+			'login',
+			'register',
+			'logout',
+			'updateProfile',
+			'updateProfileInfo',
+			'requestPasswordReset',
+			'confirmPasswordReset',
+			'refreshAuth',
+			'loadProfile',
+			'hasRole',
+			'hasAnyRole',
+			'getErrorMessage',
+			'clearError'
+		];
 
-  it('should test all auth component scenarios', () => {
-    const componentScenarios = [
-      'login form validation',
-      'register form validation',
-      'password confirmation matching',
-      'error display',
-      'loading states',
-      'form submission',
-      'profile updates',
-      'password changes',
-      'role management',
-      'admin user editing'
-    ];
+		// Verify we have tests for all core functions
+		expect(coreAuthFunctions.length).toBeGreaterThanOrEqual(12);
 
-    expect(componentScenarios.length).toBeGreaterThanOrEqual(10);
-  });
+		// These functions are critical for the authentication system
+		const criticalFunctions = ['login', 'register', 'logout', 'updateProfile'];
+		criticalFunctions.forEach((func) => {
+			expect(coreAuthFunctions).toContain(func);
+		});
+	});
 
-  it('should test all integration scenarios', () => {
-    const integrationScenarios = [
-      'complete login flow',
-      'complete registration flow', 
-      'complete logout flow',
-      'auth form integration',
-      'profile settings integration',
-      'protected route simulation',
-      'error recovery',
-      'auth state persistence'
-    ];
+	it('should test all auth component scenarios', () => {
+		const componentScenarios = [
+			'login form validation',
+			'register form validation',
+			'password confirmation matching',
+			'error display',
+			'loading states',
+			'form submission',
+			'profile updates',
+			'password changes',
+			'role management',
+			'admin user editing'
+		];
 
-    expect(integrationScenarios.length).toBeGreaterThanOrEqual(8);
-  });
+		expect(componentScenarios.length).toBeGreaterThanOrEqual(10);
+	});
 
-  it('should test error handling scenarios', () => {
-    const errorScenarios = [
-      'network errors',
-      'validation errors',
-      'authentication failures',
-      'token expiration',
-      'missing profile handling',
-      'profile loading errors',
-      'password change failures',
-      'reset token failures'
-    ];
+	it('should test all integration scenarios', () => {
+		const integrationScenarios = [
+			'complete login flow',
+			'complete registration flow',
+			'complete logout flow',
+			'auth form integration',
+			'profile settings integration',
+			'protected route simulation',
+			'error recovery',
+			'auth state persistence'
+		];
 
-    expect(errorScenarios.length).toBeGreaterThanOrEqual(8);
-  });
+		expect(integrationScenarios.length).toBeGreaterThanOrEqual(8);
+	});
 
-  it('should test role-based permissions', () => {
-    const roles = ['member', 'musician', 'leader', 'admin', 'pastor'];
-    const permissions = ['canManageSongs', 'canManageServices', 'isAdmin'];
+	it('should test error handling scenarios', () => {
+		const errorScenarios = [
+			'network errors',
+			'validation errors',
+			'authentication failures',
+			'token expiration',
+			'missing profile handling',
+			'profile loading errors',
+			'password change failures',
+			'reset token failures'
+		];
 
-    expect(roles.length).toBe(5);
-    expect(permissions.length).toBe(3);
+		expect(errorScenarios.length).toBeGreaterThanOrEqual(8);
+	});
 
-    // Verify role hierarchy is tested
-    // Members/Musicians < Leaders < Admins < Pastors in terms of permissions
-  });
+	it('should test role-based permissions', () => {
+		const roles = ['member', 'musician', 'leader', 'admin', 'pastor'];
+		const permissions = ['canManageSongs', 'canManageServices', 'isAdmin'];
 
-  it('should test accessibility requirements', () => {
-    const accessibilityFeatures = [
-      'form labels',
-      'autocomplete attributes',
-      'button roles',
-      'error announcements',
-      'keyboard navigation',
-      'screen reader support'
-    ];
+		expect(roles.length).toBe(5);
+		expect(permissions.length).toBe(3);
 
-    expect(accessibilityFeatures.length).toBeGreaterThanOrEqual(6);
-  });
+		// Verify role hierarchy is tested
+		// Members/Musicians < Leaders < Admins < Pastors in terms of permissions
+	});
+
+	it('should test accessibility requirements', () => {
+		const accessibilityFeatures = [
+			'form labels',
+			'autocomplete attributes',
+			'button roles',
+			'error announcements',
+			'keyboard navigation',
+			'screen reader support'
+		];
+
+		expect(accessibilityFeatures.length).toBeGreaterThanOrEqual(6);
+	});
 });

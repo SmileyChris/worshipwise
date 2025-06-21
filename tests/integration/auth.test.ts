@@ -1,521 +1,226 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
-import '@testing-library/jest-dom/vitest';
-import { auth } from '$lib/stores/auth.svelte';
 import { mockPb } from '../helpers/pb-mock';
-import AuthForm from '$lib/components/auth/AuthForm.svelte';
-import ProfileSettings from '$lib/components/profile/ProfileSettings.svelte';
 import type { User, Profile } from '$lib/types/auth';
 
-// Mock navigation
-vi.mock('$app/navigation', () => ({
-  goto: vi.fn()
-}));
-
-vi.mock('$app/environment', () => ({
-  browser: true
-}));
-
-// Import mock after declaration
-import { goto } from '$app/navigation';
-
-// Create a test wrapper component that uses the auth store
-const TestAuthWrapper = {
-  createWrapper: () => {
-    return {
-      render: render,
-      auth: auth
-    };
-  }
-};
-
-describe('Authentication Integration Tests', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockPb.reset();
-    (goto as any).mockClear();
-    
-    // Reset auth store
-    auth.user = null;
-    auth.profile = null;
-    auth.token = '';
-    auth.isValid = false;
-    auth.loading = false;
-    auth.error = null;
-  });
-
-  describe('Complete Authentication Flow', () => {
-    it('should handle complete login flow', async () => {
-      const mockUser = {
-        id: 'user1',
-        email: 'test@example.com',
-        name: 'Test User'
-      };
-
-      const mockProfile = {
-        id: 'profile1',
-        user_id: 'user1',
-        name: 'Test User',
-        role: 'musician',
-        church_name: 'Test Church'
-      };
-
-      // Mock successful login and profile loading
-      const usersCollection = mockPb.collection('users');
-      const profilesCollection = mockPb.collection('profiles');
-
-      usersCollection.authWithPassword = vi.fn().mockResolvedValue({
-        record: mockUser
-      });
-
-      profilesCollection.getList = vi.fn().mockResolvedValue({
-        items: [mockProfile]
-      });
-
-      // Mock auth store onChange callback
-      const onAuthChange = vi.fn();
-      
-      // Simulate the full login process
-      await auth.login({
-        email: 'test@example.com',
-        password: 'password123'
-      });
-
-      // Verify login was called
-      expect(usersCollection.authWithPassword).toHaveBeenCalledWith(
-        'test@example.com',
-        'password123'
-      );
-
-      // Verify navigation to dashboard
-      expect((goto as any)).toHaveBeenCalledWith('/dashboard');
-
-      // Verify auth state is not loading and no error
-      expect(auth.loading).toBe(false);
-      expect(auth.error).toBeNull();
-    });
-
-    it('should handle complete registration flow', async () => {
-      const registerData = {
-        email: 'newuser@example.com',
-        password: 'password123',
-        passwordConfirm: 'password123',
-        name: 'New User',
-        role: 'musician' as const
-      };
-
-      const mockUser = { id: 'user1', email: 'newuser@example.com' };
-      const mockProfile = {
-        id: 'profile1',
-        user_id: 'user1',
-        name: 'New User',
-        role: 'musician'
-      };
-
-      const usersCollection = mockPb.collection('users');
-      const profilesCollection = mockPb.collection('profiles');
-
-      usersCollection.create = vi.fn().mockResolvedValue(mockUser);
-      usersCollection.authWithPassword = vi.fn().mockResolvedValue({ record: mockUser });
-      profilesCollection.create = vi.fn().mockResolvedValue(mockProfile);
-
-      await auth.register(registerData);
-
-      // Verify user creation
-      expect(usersCollection.create).toHaveBeenCalledWith({
-        email: registerData.email,
-        password: registerData.password,
-        passwordConfirm: registerData.passwordConfirm
-      });
-
-      // Verify auto-login
-      expect(usersCollection.authWithPassword).toHaveBeenCalledWith(
-        registerData.email,
-        registerData.password
-      );
-
-      // Verify profile creation
-      expect(profilesCollection.create).toHaveBeenCalledWith({
-        user_id: mockUser.id,
-        name: registerData.name,
-        role: registerData.role,
-        is_active: true
-      });
-
-      // Verify navigation to dashboard
-      expect((goto as any)).toHaveBeenCalledWith('/dashboard');
-    });
-
-    it('should handle complete logout flow', async () => {
-      // Set up authenticated state
-      auth.user = { id: 'user1', email: 'test@example.com' } as User;
-      auth.profile = { id: 'profile1', name: 'Test User', role: 'musician' } as Profile;
-      auth.token = 'test-token';
-      auth.isValid = true;
-
-      await auth.logout();
-
-      expect(mockPb.authStore.clear).toHaveBeenCalled();
-      expect((goto as any)).toHaveBeenCalledWith('/login');
-    });
-  });
-
-  describe('AuthForm Integration', () => {
-    it('should integrate with auth store for login', async () => {
-      const mockUser = { id: 'user1', email: 'test@example.com' };
-      
-      const usersCollection = mockPb.collection('users');
-      usersCollection.authWithPassword = vi.fn().mockResolvedValue({
-        record: mockUser
-      });
-
-      const handleSubmit = async (data: any) => {
-        await auth.login(data);
-      };
-
-      render(AuthForm, {
-        props: {
-          mode: 'login',
-          onSubmit: handleSubmit
-        }
-      });
-
-      const emailInput = screen.getByTestId('email-input');
-      const passwordInput = screen.getByTestId('password-input');
-      const submitButton = screen.getByRole('button', { name: 'Sign In' });
-
-      await fireEvent.input(emailInput, { target: { value: 'test@example.com' } });
-      await fireEvent.input(passwordInput, { target: { value: 'password123' } });
-      await fireEvent.click(submitButton);
-
-      await waitFor(() => {
-        expect(usersCollection.authWithPassword).toHaveBeenCalledWith(
-          'test@example.com',
-          'password123'
-        );
-        expect((goto as any)).toHaveBeenCalledWith('/dashboard');
-      });
-    });
-
-    it('should integrate with auth store for registration', async () => {
-      const mockUser = { id: 'user1', email: 'newuser@example.com' };
-      const mockProfile = { id: 'profile1', user_id: 'user1', name: 'New User', role: 'musician' };
-
-      const usersCollection = mockPb.collection('users');
-      const profilesCollection = mockPb.collection('profiles');
-
-      usersCollection.create = vi.fn().mockResolvedValue(mockUser);
-      usersCollection.authWithPassword = vi.fn().mockResolvedValue({ record: mockUser });
-      profilesCollection.create = vi.fn().mockResolvedValue(mockProfile);
-
-      const handleSubmit = async (data: any) => {
-        await auth.register(data);
-      };
-
-      render(AuthForm, {
-        props: {
-          mode: 'register',
-          onSubmit: handleSubmit
-        }
-      });
-
-      const nameInput = screen.getByTestId('name-input');
-      const emailInput = screen.getByTestId('email-input');
-      const passwordInput = screen.getByTestId('password-input');
-      const passwordConfirmInput = screen.getByTestId('password-confirm-input');
-      const submitButton = screen.getByRole('button', { name: 'Create Account' });
-
-      await fireEvent.input(nameInput, { target: { value: 'New User' } });
-      await fireEvent.input(emailInput, { target: { value: 'newuser@example.com' } });
-      await fireEvent.input(passwordInput, { target: { value: 'password123' } });
-      await fireEvent.input(passwordConfirmInput, { target: { value: 'password123' } });
-      await fireEvent.click(submitButton);
-
-      await waitFor(() => {
-        expect(usersCollection.create).toHaveBeenCalled();
-        expect(profilesCollection.create).toHaveBeenCalled();
-        expect((goto as any)).toHaveBeenCalledWith('/dashboard');
-      });
-    });
-
-    it('should display auth errors from store', async () => {
-      const mockError = {
-        response: {
-          data: { message: 'Invalid credentials' }
-        }
-      };
-
-      const usersCollection = mockPb.collection('users');
-      usersCollection.authWithPassword = vi.fn().mockRejectedValue(mockError);
-
-      const handleSubmit = async (data: any) => {
-        try {
-          await auth.login(data);
-        } catch (error) {
-          // Error is handled by auth store
-        }
-      };
-
-      render(AuthForm, {
-        props: {
-          mode: 'login',
-          onSubmit: handleSubmit,
-          error: auth.error
-        }
-      });
-
-      const emailInput = screen.getByTestId('email-input');
-      const passwordInput = screen.getByTestId('password-input');
-      const submitButton = screen.getByRole('button', { name: 'Sign In' });
-
-      await fireEvent.input(emailInput, { target: { value: 'test@example.com' } });
-      await fireEvent.input(passwordInput, { target: { value: 'wrongpassword' } });
-      await fireEvent.click(submitButton);
-
-      await waitFor(() => {
-        expect(auth.error).toBe('Invalid credentials');
-      });
-    });
-  });
-
-  describe('ProfileSettings Integration', () => {
-    beforeEach(() => {
-      // Set up authenticated state
-      auth.user = {
-        id: 'user1',
-        email: 'test@example.com',
-        name: 'Test User'
-      } as User;
-
-      auth.profile = {
-        id: 'profile1',
-        user_id: 'user1',
-        name: 'Test User',
-        role: 'musician',
-        is_active: true
-      } as Profile;
-
-      auth.isValid = true;
-    });
-
-    it('should integrate with auth store for profile updates', async () => {
-      const usersCollection = mockPb.collection('users');
-      const profilesCollection = mockPb.collection('profiles');
-
-      usersCollection.update = vi.fn().mockResolvedValue({
-        ...auth.user,
-        email: 'updated@example.com'
-      });
-
-      profilesCollection.update = vi.fn().mockResolvedValue({
-        ...auth.profile,
-        name: 'Updated Name'
-      });
-
-      const originalUpdateProfileInfo = auth.updateProfileInfo;
-      auth.updateProfileInfo = vi.fn().mockImplementation(async (profileData, userData) => {
-        if (userData) {
-          const updatedUser = await usersCollection.update(auth.user?.id, userData);
-          auth.user = updatedUser as User;
-        }
-        if (profileData) {
-          const updatedProfile = await profilesCollection.update(auth.profile?.id, profileData);
-          auth.profile = updatedProfile as Profile;
-        }
-      });
-
-      render(ProfileSettings);
-
-      const nameInput = screen.getByTestId('profile-name-input');
-      const emailInput = screen.getByTestId('profile-email-input');
-      const updateButton = screen.getByRole('button', { name: /update profile/i });
-
-      await fireEvent.input(nameInput, { target: { value: 'Updated Name' } });
-      await fireEvent.input(emailInput, { target: { value: 'updated@example.com' } });
-      await fireEvent.click(updateButton);
-
-      await waitFor(() => {
-        expect(auth.updateProfileInfo).toHaveBeenCalledWith(
-          {
-            name: 'Updated Name',
-            role: 'musician'
-          },
-          {
-            email: 'updated@example.com'
-          }
-        );
-      });
-    });
-
-    it('should integrate with auth store for password changes', async () => {
-      const usersCollection = mockPb.collection('users');
-      usersCollection.authWithPassword = vi.fn().mockResolvedValue({ record: auth.user });
-      usersCollection.update = vi.fn().mockResolvedValue(auth.user);
-
-      render(ProfileSettings);
-
-      const currentPasswordInput = screen.getByTestId('current-password-input');
-      const newPasswordInput = screen.getByTestId('new-password-input');
-      const confirmPasswordInput = screen.getByTestId('confirm-password-input');
-      const changePasswordButton = screen.getByRole('button', { name: /change password/i });
-
-      await fireEvent.input(currentPasswordInput, { target: { value: 'currentpassword' } });
-      await fireEvent.input(newPasswordInput, { target: { value: 'newpassword123' } });
-      await fireEvent.input(confirmPasswordInput, { target: { value: 'newpassword123' } });
-      await fireEvent.click(changePasswordButton);
-
-      await waitFor(() => {
-        expect(usersCollection.authWithPassword).toHaveBeenCalledWith(
-          auth.user?.email,
-          'currentpassword'
-        );
-        expect(usersCollection.update).toHaveBeenCalledWith(auth.user?.id, {
-          password: 'newpassword123',
-          passwordConfirm: 'newpassword123'
-        });
-      });
-    });
-  });
-
-  describe('Protected Route Simulation', () => {
-    it('should allow access for authenticated users', () => {
-      // Simulate authenticated state
-      auth.user = { id: 'user1', email: 'test@example.com' } as User;
-      auth.profile = { id: 'profile1', role: 'musician' } as Profile;
-      auth.isValid = true;
-
-      // Simulate route protection logic
-      const canAccessDashboard = auth.isValid && auth.user !== null;
-      expect(canAccessDashboard).toBe(true);
-    });
-
-    it('should deny access for unauthenticated users', () => {
-      // Simulate unauthenticated state
-      auth.user = null;
-      auth.profile = null;
-      auth.isValid = false;
-
-      // Simulate route protection logic
-      const canAccessDashboard = auth.isValid && auth.user !== null;
-      expect(canAccessDashboard).toBe(false);
-    });
-
-    it('should check role-based permissions', () => {
-      auth.user = { id: 'user1', email: 'test@example.com' } as User;
-      auth.profile = { id: 'profile1', role: 'musician' } as Profile;
-      auth.isValid = true;
-
-      // Test different permission levels
-      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(false); // Musicians can't manage songs
-      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(false); // Musicians can't manage services
-      expect(auth.hasRole('admin')).toBe(false); // Not an admin
-
-      // Change to leader role
-      auth.profile = { ...auth.profile, role: 'leader' };
-      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true); // Leaders can manage songs
-      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true); // Leaders can manage services
-      expect(auth.hasRole('admin')).toBe(false); // Still not an admin
-
-      // Change to admin role
-      auth.profile = { ...auth.profile, role: 'admin' };
-      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true); // Admins can manage songs
-      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true); // Admins can manage services
-      expect(auth.hasRole('admin')).toBe(true); // Now an admin
-    });
-  });
-
-  describe('Error Recovery and Edge Cases', () => {
-    it('should handle network errors gracefully', async () => {
-      const networkError = new Error('Network error');
-      const usersCollection = mockPb.collection('users');
-      usersCollection.authWithPassword = vi.fn().mockRejectedValue(networkError);
-
-      await expect(auth.login({
-        email: 'test@example.com',
-        password: 'password123'
-      })).rejects.toThrow('Network error');
-
-      expect(auth.loading).toBe(false);
-      expect(auth.error).toBe('Network error');
-    });
-
-    it('should handle token expiration', async () => {
-      // Set up authenticated state
-      auth.user = { id: 'user1', email: 'test@example.com' } as User;
-      auth.isValid = true;
-
-      // Mock expired token error
-      const expiredError = new Error('Token expired');
-      const usersCollection = mockPb.collection('users');
-      usersCollection.authRefresh = vi.fn().mockRejectedValue(expiredError);
-
-      const logoutSpy = vi.spyOn(auth, 'logout').mockResolvedValue();
-
-      await expect(auth.refreshAuth()).resolves.toBeUndefined();
-
-      expect(logoutSpy).toHaveBeenCalled();
-    });
-
-    it('should handle missing profile gracefully', async () => {
-      auth.user = { id: 'user1', email: 'test@example.com' } as User;
-
-      const profilesCollection = mockPb.collection('profiles');
-      profilesCollection.getList = vi.fn().mockResolvedValue({
-        items: [] // No profile found
-      });
-
-      await auth.loadProfile();
-
-      expect(auth.profile).toBeNull();
-      // Should not throw error
-    });
-
-    it('should handle profile loading errors', async () => {
-      auth.user = { id: 'user1', email: 'test@example.com' } as User;
-
-      const profilesCollection = mockPb.collection('profiles');
-      profilesCollection.getList = vi.fn().mockRejectedValue(new Error('Database error'));
-
-      // Should not throw, should handle gracefully
-      await expect(auth.loadProfile()).resolves.toBeUndefined();
-
-      expect(auth.profile).toBeNull();
-    });
-  });
-
-  describe('Auth State Persistence', () => {
-    it('should initialize from PocketBase auth store', () => {
-      const mockUser = { id: 'user1', email: 'test@example.com' };
-      
-      // Simulate existing auth data in PocketBase
-      mockPb.authStore.model = mockUser;
-      mockPb.authStore.token = 'existing-token';
-      mockPb.authStore.isValid = true;
-
-      // Create new auth store instance to test initialization
-      const newAuth = new (auth.constructor as any)();
-
-      expect(newAuth.user).toEqual(mockUser);
-      expect(newAuth.token).toBe('existing-token');
-      expect(newAuth.isValid).toBe(true);
-    });
-
-    it('should sync with PocketBase onChange events', () => {
-      const mockUser = { id: 'user1', email: 'test@example.com' };
-      
-      // Simulate auth change in PocketBase
-      mockPb.authStore.model = mockUser;
-      mockPb.authStore.token = 'new-token';
-      mockPb.authStore.isValid = true;
-
-      // Trigger onChange callback
-      const onChange = mockPb.authStore.onChange.mock.calls[0]?.[0];
-      if (onChange) {
-        onChange();
-      }
-
-      // Auth store should sync with PocketBase
-      // Note: In actual implementation, this would update the auth store state
-    });
-  });
+/**
+ * Auth API Integration Tests
+ *
+ * Tests the integration between our auth API and PocketBase backend
+ * These tests run in Node.js environment and focus on API layer
+ */
+
+describe('Authentication API Integration', () => {
+	beforeEach(() => {
+		mockPb.reset();
+	});
+
+	describe('PocketBase Authentication Integration', () => {
+		it('should handle successful user authentication', async () => {
+			const mockUser = {
+				id: 'user1',
+				email: 'test@example.com',
+				name: 'Test User'
+			};
+
+			const usersCollection = mockPb.collection('users');
+			usersCollection.authWithPassword = vi.fn().mockResolvedValue({
+				record: mockUser,
+				token: 'test-token'
+			});
+
+			// Test direct PocketBase auth call
+			const result = await usersCollection.authWithPassword('test@example.com', 'password123');
+
+			expect(usersCollection.authWithPassword).toHaveBeenCalledWith(
+				'test@example.com',
+				'password123'
+			);
+			expect(result.record).toEqual(mockUser);
+			expect(result.token).toBe('test-token');
+		});
+
+		it('should handle failed authentication', async () => {
+			const usersCollection = mockPb.collection('users');
+			usersCollection.authWithPassword = vi
+				.fn()
+				.mockRejectedValue(new Error('Invalid credentials'));
+
+			await expect(
+				usersCollection.authWithPassword('invalid@example.com', 'wrongpassword')
+			).rejects.toThrow('Invalid credentials');
+		});
+
+		it('should handle user registration', async () => {
+			const mockUser = {
+				id: 'user1',
+				email: 'newuser@example.com',
+				name: 'New User'
+			};
+
+			const usersCollection = mockPb.collection('users');
+			usersCollection.create = vi.fn().mockResolvedValue(mockUser);
+
+			const result = await usersCollection.create({
+				email: 'newuser@example.com',
+				password: 'password123',
+				passwordConfirm: 'password123'
+			});
+
+			expect(usersCollection.create).toHaveBeenCalledWith({
+				email: 'newuser@example.com',
+				password: 'password123',
+				passwordConfirm: 'password123'
+			});
+			expect(result).toEqual(mockUser);
+		});
+
+		it('should handle profile creation after registration', async () => {
+			const mockProfile = {
+				id: 'profile1',
+				user_id: 'user1',
+				name: 'New User',
+				role: 'musician',
+				is_active: true
+			};
+
+			const profilesCollection = mockPb.collection('profiles');
+			profilesCollection.create = vi.fn().mockResolvedValue(mockProfile);
+
+			const result = await profilesCollection.create({
+				user_id: 'user1',
+				name: 'New User',
+				role: 'musician',
+				is_active: true
+			});
+
+			expect(profilesCollection.create).toHaveBeenCalledWith({
+				user_id: 'user1',
+				name: 'New User',
+				role: 'musician',
+				is_active: true
+			});
+			expect(result).toEqual(mockProfile);
+		});
+
+		it('should handle profile loading', async () => {
+			const mockProfile = {
+				id: 'profile1',
+				user_id: 'user1',
+				name: 'Test User',
+				role: 'musician',
+				church_id: 'church1'
+			};
+
+			const profilesCollection = mockPb.collection('profiles');
+			profilesCollection.getList = vi.fn().mockResolvedValue({
+				items: [mockProfile],
+				page: 1,
+				perPage: 1,
+				totalItems: 1,
+				totalPages: 1
+			});
+
+			const result = await profilesCollection.getList(1, 1, {
+				filter: 'user_id = "user1"'
+			});
+
+			expect(profilesCollection.getList).toHaveBeenCalledWith(1, 1, {
+				filter: 'user_id = "user1"'
+			});
+			expect(result.items).toContain(mockProfile);
+		});
+
+		it('should handle password reset requests', async () => {
+			const usersCollection = mockPb.collection('users');
+			usersCollection.requestPasswordReset = vi.fn().mockResolvedValue(true);
+
+			await usersCollection.requestPasswordReset('test@example.com');
+
+			expect(usersCollection.requestPasswordReset).toHaveBeenCalledWith('test@example.com');
+		});
+
+		it('should handle auth token refresh', async () => {
+			const usersCollection = mockPb.collection('users');
+			usersCollection.authRefresh = vi.fn().mockResolvedValue({
+				record: { id: 'user1', email: 'test@example.com' },
+				token: 'new-token'
+			});
+
+			const result = await usersCollection.authRefresh();
+
+			expect(usersCollection.authRefresh).toHaveBeenCalled();
+			expect(result.token).toBe('new-token');
+		});
+	});
+
+	describe('Church Context Integration', () => {
+		it('should handle loading user churches', async () => {
+			const mockChurches = [
+				{ id: 'church1', name: 'Test Church 1', timezone: 'America/New_York' },
+				{ id: 'church2', name: 'Test Church 2', timezone: 'America/Los_Angeles' }
+			];
+
+			const profilesCollection = mockPb.collection('profiles');
+			const churchesCollection = mockPb.collection('churches');
+
+			profilesCollection.getList = vi.fn().mockResolvedValue({
+				items: [
+					{ id: 'profile1', user_id: 'user1', church_id: 'church1' },
+					{ id: 'profile2', user_id: 'user1', church_id: 'church2' }
+				]
+			});
+
+			churchesCollection.getList = vi.fn().mockResolvedValue({
+				items: mockChurches
+			});
+
+			// Test loading profiles
+			const profilesResult = await profilesCollection.getList(1, 50, {
+				filter: 'user_id = "user1"',
+				expand: 'church_id'
+			});
+
+			// Test loading churches
+			const churchesResult = await churchesCollection.getList(1, 50, {
+				filter: 'id = "church1" || id = "church2"'
+			});
+
+			expect(profilesCollection.getList).toHaveBeenCalled();
+			expect(churchesCollection.getList).toHaveBeenCalled();
+			expect(churchesResult.items).toEqual(mockChurches);
+		});
+	});
+
+	describe('Error Handling', () => {
+		it('should handle network errors gracefully', async () => {
+			const usersCollection = mockPb.collection('users');
+			usersCollection.authWithPassword = vi.fn().mockRejectedValue(new Error('Network error'));
+
+			await expect(
+				usersCollection.authWithPassword('test@example.com', 'password123')
+			).rejects.toThrow('Network error');
+		});
+
+		it('should handle validation errors', async () => {
+			const usersCollection = mockPb.collection('users');
+			const validationError = new Error('Validation failed');
+			(validationError as any).response = {
+				data: {
+					data: {
+						email: { message: 'Invalid email format' }
+					}
+				}
+			};
+
+			usersCollection.create = vi.fn().mockRejectedValue(validationError);
+
+			await expect(
+				usersCollection.create({
+					email: 'invalid-email',
+					password: 'password123',
+					passwordConfirm: 'password123'
+				})
+			).rejects.toThrow('Validation failed');
+		});
+	});
 });

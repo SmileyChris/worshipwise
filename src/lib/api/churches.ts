@@ -1,13 +1,13 @@
 import { pb } from './client';
-import type { 
-	Church, 
-	ChurchMembership, 
+import type {
+	Church,
+	ChurchMembership,
 	CreateChurchData,
 	UpdateChurchData,
 	InviteUserData,
 	InitialChurchSetup
 } from '$lib/types/church';
-import { 
+import {
 	getDefaultPermissions,
 	getDefaultChurchSettings,
 	getTimezoneAwareDefaults,
@@ -51,7 +51,7 @@ export class ChurchesAPI {
 				.replace(/\s+/g, '-')
 				.replace(/-+/g, '-')
 				.trim();
-			
+
 			let slug = baseSlug;
 			let counter = 1;
 			while (!(await this.isSlugAvailable(slug))) {
@@ -61,11 +61,11 @@ export class ChurchesAPI {
 
 			// Detect hemisphere from timezone
 			const hemisphere = detectHemisphereFromTimezone(setupData.timezone);
-			
+
 			// Create church with timezone-aware defaults
 			const defaultSettings = getDefaultChurchSettings();
 			const timezoneDefaults = getTimezoneAwareDefaults(setupData.timezone);
-			
+
 			const church = await pb.collection('churches').create({
 				name: setupData.churchName,
 				slug: slug,
@@ -124,9 +124,7 @@ export class ChurchesAPI {
 			expand: 'church_id'
 		});
 
-		return memberships
-			.map(m => m.expand?.church_id)
-			.filter(Boolean) as Church[];
+		return memberships.map((m) => m.expand?.church_id).filter(Boolean) as Church[];
 	}
 
 	/**
@@ -159,10 +157,17 @@ export class ChurchesAPI {
 			user_id: pb.authStore.model?.id,
 			role: 'owner',
 			permissions: [
-				'songs:create', 'songs:edit', 'songs:delete',
-				'services:create', 'services:edit', 'services:delete',
-				'users:invite', 'users:manage', 'users:remove',
-				'church:settings', 'church:billing'
+				'songs:create',
+				'songs:edit',
+				'songs:delete',
+				'services:create',
+				'services:edit',
+				'services:delete',
+				'users:invite',
+				'users:manage',
+				'users:remove',
+				'church:settings',
+				'church:billing'
 			],
 			status: 'active',
 			joined_date: new Date().toISOString(),
@@ -218,10 +223,11 @@ export class ChurchesAPI {
 	 * Accept church invitation
 	 */
 	static async acceptInvitation(token: string): Promise<Church> {
-		const invitation = await pb.collection('church_invitations').getFirstListItem(
-			`token = "${token}" && is_active = true && expires_at > @now`,
-			{ expand: 'church_id' }
-		);
+		const invitation = await pb
+			.collection('church_invitations')
+			.getFirstListItem(`token = "${token}" && is_active = true && expires_at > @now`, {
+				expand: 'church_id'
+			});
 
 		// Create membership
 		await pb.collection('church_memberships').create({
@@ -259,7 +265,10 @@ export class ChurchesAPI {
 	/**
 	 * Update member role/permissions
 	 */
-	static async updateMember(membershipId: string, data: Partial<ChurchMembership>): Promise<ChurchMembership> {
+	static async updateMember(
+		membershipId: string,
+		data: Partial<ChurchMembership>
+	): Promise<ChurchMembership> {
 		return await pb.collection('church_memberships').update(membershipId, data);
 	}
 
@@ -279,10 +288,8 @@ export class ChurchesAPI {
 	 */
 	static async isSlugAvailable(slug: string, excludeId?: string): Promise<boolean> {
 		try {
-			const filter = excludeId 
-				? `slug = "${slug}" && id != "${excludeId}"` 
-				: `slug = "${slug}"`;
-			
+			const filter = excludeId ? `slug = "${slug}" && id != "${excludeId}"` : `slug = "${slug}"`;
+
 			const existing = await pb.collection('churches').getFirstListItem(filter);
 			return !existing;
 		} catch (error) {

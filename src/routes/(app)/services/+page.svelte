@@ -52,47 +52,45 @@
 		// Use local date to avoid timezone issues
 		const today = new Date();
 		today.setHours(0, 0, 0, 0); // Start of day
-		
+
 		const services = servicesStore.services;
-		
+
 		// Get existing service dates (convert to date strings for comparison)
-		const existingDates = new Set(
-			services.map(s => s.service_date).filter(Boolean)
-		);
-		
+		const existingDates = new Set(services.map((s) => s.service_date).filter(Boolean));
+
 		// Start from next Sunday (or today if it's Sunday)
 		let nextSunday = new Date(today);
 		const todayDayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-		
+
 		// Calculate days until next Sunday
 		const daysUntilSunday = todayDayOfWeek === 0 ? 0 : 7 - todayDayOfWeek;
 		nextSunday.setDate(today.getDate() + daysUntilSunday);
-		
+
 		// Keep checking Sundays until we find one without a service
 		let attempts = 0;
 		const maxAttempts = 52; // Don't check more than a year ahead
-		
+
 		while (attempts < maxAttempts) {
 			// Format as YYYY-MM-DD for comparison
 			const year = nextSunday.getFullYear();
 			const month = String(nextSunday.getMonth() + 1).padStart(2, '0');
 			const day = String(nextSunday.getDate()).padStart(2, '0');
 			const dateString = `${year}-${month}-${day}`;
-			
+
 			if (!existingDates.has(dateString)) {
 				return dateString;
 			}
-			
+
 			// Move to next Sunday
 			nextSunday.setDate(nextSunday.getDate() + 7);
 			attempts++;
 		}
-		
+
 		// Fallback to next Sunday if all are taken (unlikely)
 		const fallbackSunday = new Date(today);
 		const fallbackDaysUntilSunday = todayDayOfWeek === 0 ? 7 : 7 - todayDayOfWeek;
 		fallbackSunday.setDate(today.getDate() + fallbackDaysUntilSunday);
-		
+
 		const year = fallbackSunday.getFullYear();
 		const month = String(fallbackSunday.getMonth() + 1).padStart(2, '0');
 		const day = String(fallbackSunday.getDate()).padStart(2, '0');
@@ -108,7 +106,8 @@
 
 	// Update default date when services change
 	$effect(() => {
-		if (servicesStore.services.length >= 0) { // Trigger when services are loaded
+		if (servicesStore.services.length >= 0) {
+			// Trigger when services are loaded
 			updateDefaultServiceDate();
 		}
 	});
@@ -196,17 +195,17 @@
 	// Get friendly date description for form
 	function getDateDescription(dateString: string): string {
 		if (!dateString) return '';
-		
+
 		const date = new Date(dateString);
 		const today = new Date();
 		const diffTime = date.getTime() - today.getTime();
 		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-		
+
 		if (diffDays === 0) return '(Today)';
 		if (diffDays === 1) return '(Tomorrow)';
 		if (diffDays > 0 && diffDays <= 7) return `(In ${diffDays} days)`;
 		if (diffDays > 7 && diffDays <= 14) return '(Next week)';
-		
+
 		return '';
 	}
 
@@ -241,15 +240,13 @@
 		<!-- Page header -->
 		<div class="md:flex md:items-center md:justify-between">
 			<div class="min-w-0 flex-1">
-				<h2 class="text-2xl font-bold font-title text-gray-900 sm:text-3xl">Services</h2>
+				<h2 class="font-title text-2xl font-bold text-gray-900 sm:text-3xl">Services</h2>
 				<p class="mt-1 text-sm text-gray-500">Plan and manage your worship services</p>
 			</div>
 
 			{#if auth.canManageServices}
 				<div class="mt-4 flex md:mt-0 md:ml-4">
-					<Button variant="primary" onclick={openCreateModal}>
-						Create New Service
-					</Button>
+					<Button variant="primary" onclick={openCreateModal}>Create New Service</Button>
 				</div>
 			{/if}
 		</div>
@@ -265,28 +262,28 @@
 		<div class="grid grid-cols-1 gap-6 md:grid-cols-4">
 			<Card>
 				<div class="text-center">
-					<div class="text-2xl font-bold font-title text-gray-900">{stats.total}</div>
+					<div class="font-title text-2xl font-bold text-gray-900">{stats.total}</div>
 					<div class="text-sm text-gray-500">Total Services</div>
 				</div>
 			</Card>
 
 			<Card>
 				<div class="text-center">
-					<div class="text-2xl font-bold font-title text-primary">{stats.draft}</div>
+					<div class="font-title text-primary text-2xl font-bold">{stats.draft}</div>
 					<div class="text-sm text-gray-500">Draft</div>
 				</div>
 			</Card>
 
 			<Card>
 				<div class="text-center">
-					<div class="text-2xl font-bold font-title text-green-600">{stats.planned}</div>
+					<div class="font-title text-2xl font-bold text-green-600">{stats.planned}</div>
 					<div class="text-sm text-gray-500">Planned</div>
 				</div>
 			</Card>
 
 			<Card>
 				<div class="text-center">
-					<div class="text-2xl font-bold font-title text-purple-600">{stats.completed}</div>
+					<div class="font-title text-2xl font-bold text-purple-600">{stats.completed}</div>
 					<div class="text-sm text-gray-500">Completed</div>
 				</div>
 			</Card>
@@ -302,14 +299,14 @@
 			<Card>
 				<div class="py-8 text-center">
 					<div class="mb-4 text-6xl">📋</div>
-					<h3 class="mb-2 text-lg font-medium font-title text-gray-900">Plan Your Worship Services</h3>
+					<h3 class="font-title mb-2 text-lg font-medium text-gray-900">
+						Plan Your Worship Services
+					</h3>
 					<p class="mb-6 text-gray-500">
 						Create services, track song usage, and collaborate with your team.
 					</p>
 					{#if auth.canManageServices}
-						<Button variant="primary" onclick={openCreateModal}>
-							Create Your First Service
-						</Button>
+						<Button variant="primary" onclick={openCreateModal}>Create Your First Service</Button>
 					{:else}
 						<p class="text-sm text-gray-400">
 							View services assigned to you by your worship leader.
@@ -400,7 +397,7 @@
 					bind:value={createForm.title}
 					placeholder="Sunday Morning Worship"
 					required
-					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+					class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
 				/>
 			</div>
 
@@ -413,12 +410,10 @@
 					type="date"
 					bind:value={createForm.service_date}
 					required
-					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+					class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
 				/>
 				{#if createForm.service_date}
-					<p class="mt-1 text-xs text-gray-500">
-						Next available Sunday selected automatically
-					</p>
+					<p class="mt-1 text-xs text-gray-500">Next available Sunday selected automatically</p>
 				{/if}
 			</div>
 
@@ -429,7 +424,7 @@
 				<select
 					id="service_type"
 					bind:value={createForm.service_type}
-					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+					class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
 				>
 					{#each serviceTypes as type}
 						<option value={type}>{type}</option>
@@ -444,7 +439,7 @@
 					type="text"
 					bind:value={createForm.theme}
 					placeholder="Grace and Mercy"
-					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+					class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
 				/>
 			</div>
 
@@ -454,7 +449,7 @@
 					id="notes"
 					bind:value={createForm.notes}
 					rows="3"
-					class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+					class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
 					placeholder="Special instructions or notes..."
 				></textarea>
 			</div>

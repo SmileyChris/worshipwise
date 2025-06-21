@@ -377,7 +377,7 @@ export class SongsAPI {
 				sort: '-used_date',
 				expand: 'setlist_id,worship_leader'
 			});
-			
+
 			return usageRecords;
 		} catch (error) {
 			console.error('Failed to fetch song usage history:', error);
@@ -398,7 +398,7 @@ export class SongsAPI {
 
 			// Count uses per song
 			const usageCounts = new Map<string, number>();
-			usageStats.forEach(usage => {
+			usageStats.forEach((usage) => {
 				const count = usageCounts.get(usage.song_id) || 0;
 				usageCounts.set(usage.song_id, count + 1);
 			});
@@ -421,11 +421,11 @@ export class SongsAPI {
 			});
 
 			// Attach usage counts and sort by popularity
-			const songsWithCounts = songs.map(song => ({
+			const songsWithCounts = songs.map((song) => ({
 				...song,
 				expand: {
 					...song.expand,
-					usage_count: popularSongIds.find(p => p.songId === song.id)?.count || 0
+					usage_count: popularSongIds.find((p) => p.songId === song.id)?.count || 0
 				}
 			}));
 
@@ -455,7 +455,7 @@ export class SongsAPI {
 
 			// Count uses per song for this user
 			const usageCounts = new Map<string, number>();
-			personalUsage.forEach(usage => {
+			personalUsage.forEach((usage) => {
 				const count = usageCounts.get(usage.song_id) || 0;
 				usageCounts.set(usage.song_id, count + 1);
 			});
@@ -474,11 +474,11 @@ export class SongsAPI {
 			});
 
 			// Attach personal usage counts and sort by personal popularity
-			const songsWithCounts = songs.map(song => ({
+			const songsWithCounts = songs.map((song) => ({
 				...song,
 				expand: {
 					...song.expand,
-					personal_usage_count: popularSongIds.find(p => p.songId === song.id)?.count || 0
+					personal_usage_count: popularSongIds.find((p) => p.songId === song.id)?.count || 0
 				}
 			}));
 

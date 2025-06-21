@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { 
-		getUsers, 
-		searchUsers, 
+	import {
+		getUsers,
+		searchUsers,
 		getUsersByRole,
 		deactivateUser,
 		reactivateUser,
 		deleteUser,
 		changeUserRole,
 		type UserWithProfile,
-		type UserListResponse 
+		type UserListResponse
 	} from '$lib/api/admin';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
@@ -24,7 +24,7 @@
 	let users = $state<UserListResponse | null>(null);
 	let loading = $state(true);
 	let error = $state<string | null>(null);
-	
+
 	// Search and filters
 	let searchQuery = $state('');
 	let roleFilter = $state('');
@@ -67,7 +67,7 @@
 		if (searchTimeout) {
 			clearTimeout(searchTimeout);
 		}
-		
+
 		searchTimeout = setTimeout(() => {
 			currentPage = 1;
 			loadUsers();
@@ -90,13 +90,13 @@
 		try {
 			actionLoading = true;
 			const isActive = user.profile?.is_active !== false;
-			
+
 			if (isActive) {
 				await deactivateUser(user.id);
 			} else {
 				await reactivateUser(user.id);
 			}
-			
+
 			// Reload users to get updated data
 			await loadUsers();
 		} catch (err: any) {
@@ -122,7 +122,7 @@
 
 	async function handleDeleteUser() {
 		if (!deletingUser) return;
-		
+
 		try {
 			actionLoading = true;
 			await deleteUser(deletingUser.id);
@@ -142,10 +142,14 @@
 
 	function getRoleBadgeColor(role: string): 'red' | 'yellow' | 'blue' | 'gray' {
 		switch (role) {
-			case 'admin': return 'red';
-			case 'leader': return 'yellow';
-			case 'musician': return 'blue';
-			default: return 'gray';
+			case 'admin':
+				return 'red';
+			case 'leader':
+				return 'yellow';
+			case 'musician':
+				return 'blue';
+			default:
+				return 'gray';
 		}
 	}
 
@@ -163,9 +167,9 @@
 
 <div class="space-y-6">
 	<!-- Header and controls -->
-	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+	<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 		<div>
-			<h2 class="text-xl font-semibold font-title text-gray-900">User Management</h2>
+			<h2 class="font-title text-xl font-semibold text-gray-900">User Management</h2>
 			<p class="text-sm text-gray-500">
 				{users ? `${users.totalItems} total users` : 'Loading users...'}
 			</p>
@@ -177,19 +181,11 @@
 		<div class="p-4">
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 				<div>
-					<Input
-						bind:value={searchQuery}
-						placeholder="Search by email or name..."
-						class="w-full"
-					/>
+					<Input bind:value={searchQuery} placeholder="Search by email or name..." class="w-full" />
 				</div>
-				
+
 				<div>
-					<Select
-						bind:value={roleFilter}
-						onchange={handleRoleFilter}
-						class="w-full"
-					>
+					<Select bind:value={roleFilter} onchange={handleRoleFilter} class="w-full">
 						<option value="">All Roles</option>
 						<option value="admin">Administrators</option>
 						<option value="leader">Leaders</option>
@@ -198,9 +194,7 @@
 				</div>
 
 				<div class="flex gap-2">
-					<Button onclick={clearFilters} variant="outline" size="sm">
-						Clear Filters
-					</Button>
+					<Button onclick={clearFilters} variant="outline" size="sm">Clear Filters</Button>
 					<Button onclick={loadUsers} variant="outline" size="sm" disabled={loading}>
 						{loading ? 'Loading...' : 'Refresh'}
 					</Button>
@@ -216,7 +210,7 @@
 				<div class="flex items-center text-red-600">
 					<span class="mr-2">⚠️</span>
 					<span>{error}</span>
-					<Button onclick={() => error = null} variant="outline" size="sm" class="ml-auto">
+					<Button onclick={() => (error = null)} variant="outline" size="sm" class="ml-auto">
 						Dismiss
 					</Button>
 				</div>
@@ -228,7 +222,7 @@
 	<Card>
 		{#if loading}
 			<div class="p-8 text-center">
-				<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+				<div class="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
 				<p class="mt-2 text-sm text-gray-500">Loading users...</p>
 			</div>
 		{:else if users && users.items.length > 0}
@@ -236,30 +230,42 @@
 				<table class="min-w-full divide-y divide-gray-200">
 					<thead class="bg-gray-50">
 						<tr>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+							>
 								User
 							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+							>
 								Role
 							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+							>
 								Status
 							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+							>
 								Created
 							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+							>
 								Actions
 							</th>
 						</tr>
 					</thead>
-					<tbody class="bg-white divide-y divide-gray-200">
+					<tbody class="divide-y divide-gray-200 bg-white">
 						{#each users.items as user}
 							<tr class="hover:bg-gray-50">
 								<td class="px-6 py-4 whitespace-nowrap">
 									<div class="flex items-center">
-										<div class="flex-shrink-0 h-10 w-10">
-											<div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+										<div class="h-10 w-10 flex-shrink-0">
+											<div
+												class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100"
+											>
 												<span class="text-sm font-medium text-blue-600">
 													{(user.profile?.name || user.name || user.email).charAt(0).toUpperCase()}
 												</span>
@@ -299,20 +305,20 @@
 										{/if}
 									</div>
 								</td>
-								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+								<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
 									{formatDate(user.created)}
 								</td>
-								<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+								<td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
 									<div class="flex items-center space-x-2">
 										<Button
-											onclick={() => editingUser = user}
+											onclick={() => (editingUser = user)}
 											variant="outline"
 											size="sm"
 											disabled={actionLoading}
 										>
 											Edit
 										</Button>
-										
+
 										<!-- Role change dropdown -->
 										{#if user.profile}
 											<Select
@@ -335,9 +341,9 @@
 										>
 											{user.profile?.is_active !== false ? 'Deactivate' : 'Activate'}
 										</Button>
-										
+
 										<Button
-											onclick={() => deletingUser = user}
+											onclick={() => (deletingUser = user)}
 											variant="danger"
 											size="sm"
 											disabled={actionLoading}
@@ -354,10 +360,15 @@
 
 			<!-- Pagination -->
 			{#if users.totalPages > 1}
-				<div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-					<div class="flex-1 flex justify-between sm:hidden">
+				<div
+					class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
+				>
+					<div class="flex flex-1 justify-between sm:hidden">
 						<Button
-							onclick={() => { currentPage = Math.max(1, currentPage - 1); loadUsers(); }}
+							onclick={() => {
+								currentPage = Math.max(1, currentPage - 1);
+								loadUsers();
+							}}
 							disabled={currentPage <= 1 || loading}
 							variant="outline"
 							size="sm"
@@ -365,7 +376,10 @@
 							Previous
 						</Button>
 						<Button
-							onclick={() => { currentPage = Math.min(users?.totalPages || 1, currentPage + 1); loadUsers(); }}
+							onclick={() => {
+								currentPage = Math.min(users?.totalPages || 1, currentPage + 1);
+								loadUsers();
+							}}
 							disabled={currentPage >= (users?.totalPages || 1) || loading}
 							variant="outline"
 							size="sm"
@@ -373,7 +387,7 @@
 							Next
 						</Button>
 					</div>
-					<div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+					<div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
 						<div>
 							<p class="text-sm text-gray-700">
 								Showing page <span class="font-medium">{currentPage}</span> of{' '}
@@ -382,9 +396,15 @@
 							</p>
 						</div>
 						<div>
-							<nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+							<nav
+								class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm"
+								aria-label="Pagination"
+							>
 								<Button
-									onclick={() => { currentPage = Math.max(1, currentPage - 1); loadUsers(); }}
+									onclick={() => {
+										currentPage = Math.max(1, currentPage - 1);
+										loadUsers();
+									}}
 									disabled={currentPage <= 1 || loading}
 									variant="outline"
 									size="sm"
@@ -392,7 +412,10 @@
 									Previous
 								</Button>
 								<Button
-									onclick={() => { currentPage = Math.min(users?.totalPages || 1, currentPage + 1); loadUsers(); }}
+									onclick={() => {
+										currentPage = Math.min(users?.totalPages || 1, currentPage + 1);
+										loadUsers();
+									}}
 									disabled={currentPage >= (users?.totalPages || 1) || loading}
 									variant="outline"
 									size="sm"
@@ -406,10 +429,12 @@
 			{/if}
 		{:else}
 			<div class="p-8 text-center">
-				<div class="text-gray-400 text-4xl mb-4">👥</div>
-				<h3 class="text-lg font-medium text-gray-900 mb-2">No users found</h3>
+				<div class="mb-4 text-4xl text-gray-400">👥</div>
+				<h3 class="mb-2 text-lg font-medium text-gray-900">No users found</h3>
 				<p class="text-sm text-gray-500">
-					{searchQuery || roleFilter ? 'Try adjusting your search or filters.' : 'No users have been created yet.'}
+					{searchQuery || roleFilter
+						? 'Try adjusting your search or filters.'
+						: 'No users have been created yet.'}
 				</p>
 			</div>
 		{/if}
@@ -418,11 +443,14 @@
 
 <!-- Edit User Modal -->
 {#if editingUser}
-	<UserEditModal 
+	<UserEditModal
 		user={editingUser}
 		open={!!editingUser}
-		onclose={() => editingUser = null}
-		onsave={() => { editingUser = null; loadUsers(); }}
+		onclose={() => (editingUser = null)}
+		onsave={() => {
+			editingUser = null;
+			loadUsers();
+		}}
 	/>
 {/if}
 
@@ -431,10 +459,11 @@
 	<ConfirmDialog
 		open={!!deletingUser}
 		title="Delete User"
-		message="Are you sure you want to delete {deletingUser.profile?.name || deletingUser.email}? This action cannot be undone and will permanently remove all user data."
+		message="Are you sure you want to delete {deletingUser.profile?.name ||
+			deletingUser.email}? This action cannot be undone and will permanently remove all user data."
 		confirmLabel="Delete User"
 		onconfirm={handleDeleteUser}
-		oncancel={() => deletingUser = null}
+		oncancel={() => (deletingUser = null)}
 		loading={actionLoading}
 		danger={true}
 	/>

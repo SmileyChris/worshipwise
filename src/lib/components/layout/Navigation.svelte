@@ -96,7 +96,7 @@
 							class="inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors {isCurrentPage(
 								item.href
 							)
-								? 'border-b-2 border-primary text-gray-900'
+								? 'border-primary border-b-2 text-gray-900'
 								: 'text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
 						>
 							<span class="mr-2">{item.icon}</span>
@@ -129,8 +129,8 @@
 						aria-haspopup="true"
 					>
 						<span class="sr-only">Open user menu</span>
-						<div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-							<span class="text-sm font-medium text-primary">
+						<div class="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
+							<span class="text-primary text-sm font-medium">
 								{auth.displayName.charAt(0).toUpperCase()}
 							</span>
 						</div>
@@ -182,7 +182,7 @@
 					class="block py-2 pr-4 pl-3 text-base font-medium transition-colors {isCurrentPage(
 						item.href
 					)
-						? 'border-r-4 border-primary bg-primary/5 text-primary/90'
+						? 'border-primary bg-primary/5 text-primary/90 border-r-4'
 						: 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'}"
 				>
 					<span class="mr-2">{item.icon}</span>
@@ -195,8 +195,8 @@
 		<div class="border-t border-gray-200 pt-4 pb-3">
 			<div class="flex items-center px-4">
 				<div class="flex-shrink-0">
-					<div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-						<span class="text-sm font-medium text-primary">
+					<div class="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
+						<span class="text-primary text-sm font-medium">
 							{auth.displayName.charAt(0).toUpperCase()}
 						</span>
 					</div>
@@ -205,7 +205,7 @@
 					<div class="text-base font-medium text-gray-800">{auth.displayName}</div>
 					<div class="text-sm text-gray-500 capitalize">{auth.profile?.role}</div>
 					{#if auth.currentChurch}
-						<div class="text-xs text-gray-400 mt-1">{auth.currentChurch.name}</div>
+						<div class="mt-1 text-xs text-gray-400">{auth.currentChurch.name}</div>
 					{/if}
 				</div>
 			</div>
@@ -213,12 +213,14 @@
 			<!-- Church switcher for mobile -->
 			{#if auth.hasMultipleChurches}
 				<div class="mt-3 px-4">
-					<div class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Switch Church</div>
+					<div class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase">
+						Switch Church
+					</div>
 					{#each auth.availableChurches as church}
 						{#if church.id !== auth.currentChurch?.id}
 							<button
 								onclick={() => auth.switchChurch(church.id)}
-								class="block w-full text-left px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded"
+								class="block w-full rounded px-2 py-1 text-left text-sm text-gray-600 hover:bg-gray-100"
 							>
 								{church.name}
 							</button>

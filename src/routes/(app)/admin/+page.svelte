@@ -33,20 +33,18 @@
 			{#each Array(4) as _}
 				<Card>
 					<div class="animate-pulse">
-						<div class="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-						<div class="h-8 bg-gray-200 rounded w-3/4"></div>
+						<div class="mb-2 h-4 w-1/2 rounded bg-gray-200"></div>
+						<div class="h-8 w-3/4 rounded bg-gray-200"></div>
 					</div>
 				</Card>
 			{/each}
 		</div>
 	{:else if error}
 		<Card>
-			<div class="text-center py-6">
-				<div class="text-red-600 mb-2">⚠️</div>
-				<p class="text-sm text-gray-500 mb-4">{error}</p>
-				<Button onclick={loadStats} variant="outline" size="sm">
-					Retry
-				</Button>
+			<div class="py-6 text-center">
+				<div class="mb-2 text-red-600">⚠️</div>
+				<p class="mb-4 text-sm text-gray-500">{error}</p>
+				<Button onclick={loadStats} variant="outline" size="sm">Retry</Button>
 			</div>
 		</Card>
 	{:else if stats}
@@ -56,13 +54,13 @@
 				<div class="p-6">
 					<div class="flex items-center">
 						<div class="flex-shrink-0">
-							<div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+							<div class="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
 								<span class="text-primary">👥</span>
 							</div>
 						</div>
 						<div class="ml-4">
 							<p class="text-sm font-medium text-gray-500">Total Users</p>
-							<p class="text-2xl font-semibold font-title text-gray-900">{stats.totalUsers}</p>
+							<p class="font-title text-2xl font-semibold text-gray-900">{stats.totalUsers}</p>
 						</div>
 					</div>
 				</div>
@@ -73,13 +71,13 @@
 				<div class="p-6">
 					<div class="flex items-center">
 						<div class="flex-shrink-0">
-							<div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+							<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
 								<span class="text-green-600">✅</span>
 							</div>
 						</div>
 						<div class="ml-4">
 							<p class="text-sm font-medium text-gray-500">Active Users</p>
-							<p class="text-2xl font-semibold font-title text-gray-900">{stats.activeUsers}</p>
+							<p class="font-title text-2xl font-semibold text-gray-900">{stats.activeUsers}</p>
 						</div>
 					</div>
 				</div>
@@ -90,13 +88,13 @@
 				<div class="p-6">
 					<div class="flex items-center">
 						<div class="flex-shrink-0">
-							<div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+							<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
 								<span class="text-gray-600">⏸️</span>
 							</div>
 						</div>
 						<div class="ml-4">
 							<p class="text-sm font-medium text-gray-500">Inactive Users</p>
-							<p class="text-2xl font-semibold font-title text-gray-900">{stats.inactiveUsers}</p>
+							<p class="font-title text-2xl font-semibold text-gray-900">{stats.inactiveUsers}</p>
 						</div>
 					</div>
 				</div>
@@ -107,13 +105,13 @@
 				<div class="p-6">
 					<div class="flex items-center">
 						<div class="flex-shrink-0">
-							<div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+							<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
 								<span class="text-purple-600">🆕</span>
 							</div>
 						</div>
 						<div class="ml-4">
 							<p class="text-sm font-medium text-gray-500">New (30 days)</p>
-							<p class="text-2xl font-semibold font-title text-gray-900">{stats.recentlyCreated}</p>
+							<p class="font-title text-2xl font-semibold text-gray-900">{stats.recentlyCreated}</p>
 						</div>
 					</div>
 				</div>
@@ -123,28 +121,32 @@
 		<!-- Role Distribution -->
 		<Card>
 			<div class="p-6">
-				<h3 class="text-lg font-medium font-title text-gray-900 mb-4">User Roles</h3>
+				<h3 class="font-title mb-4 text-lg font-medium text-gray-900">User Roles</h3>
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-					<div class="bg-red-50 rounded-lg p-4">
+					<div class="rounded-lg bg-red-50 p-4">
 						<div class="flex items-center">
 							<div class="flex-shrink-0">
 								<span class="text-2xl">⚙️</span>
 							</div>
 							<div class="ml-3">
 								<p class="text-sm font-medium text-red-900">Administrators</p>
-								<p class="text-2xl font-semibold font-title text-red-700">{stats.usersByRole.admin}</p>
+								<p class="font-title text-2xl font-semibold text-red-700">
+									{stats.usersByRole.admin}
+								</p>
 							</div>
 						</div>
 					</div>
 
-					<div class="bg-yellow-50 rounded-lg p-4">
+					<div class="rounded-lg bg-yellow-50 p-4">
 						<div class="flex items-center">
 							<div class="flex-shrink-0">
 								<span class="text-2xl">👨‍💼</span>
 							</div>
 							<div class="ml-3">
 								<p class="text-sm font-medium text-yellow-900">Leaders</p>
-								<p class="text-2xl font-semibold font-title text-yellow-700">{stats.usersByRole.leader}</p>
+								<p class="font-title text-2xl font-semibold text-yellow-700">
+									{stats.usersByRole.leader}
+								</p>
 							</div>
 						</div>
 					</div>
@@ -155,8 +157,10 @@
 								<span class="text-2xl">🎵</span>
 							</div>
 							<div class="ml-3">
-								<p class="text-sm font-medium text-primary/90">
-								<p class="text-2xl font-semibold font-title text-primary/80">{stats.usersByRole.musician}</p>
+								<p class="text-primary/90 text-sm font-medium"></p>
+								<p class="font-title text-primary/80 text-2xl font-semibold">
+									{stats.usersByRole.musician}
+								</p>
 							</div>
 						</div>
 					</div>
@@ -167,31 +171,19 @@
 		<!-- Quick Actions -->
 		<Card>
 			<div class="p-6">
-				<h3 class="text-lg font-medium font-title text-gray-900 mb-4">Quick Actions</h3>
+				<h3 class="font-title mb-4 text-lg font-medium text-gray-900">Quick Actions</h3>
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-					<Button 
-						href="/admin/users" 
-						variant="outline" 
-						class="justify-start"
-					>
+					<Button href="/admin/users" variant="outline" class="justify-start">
 						<span class="mr-2">👥</span>
 						Manage Users
 					</Button>
-					
-					<Button 
-						onclick={() => loadStats()} 
-						variant="outline"
-						class="justify-start"
-					>
+
+					<Button onclick={() => loadStats()} variant="outline" class="justify-start">
 						<span class="mr-2">🔄</span>
 						Refresh Stats
 					</Button>
-					
-					<Button 
-						href="/analytics" 
-						variant="outline"
-						class="justify-start"
-					>
+
+					<Button href="/analytics" variant="outline" class="justify-start">
 						<span class="mr-2">📊</span>
 						View Analytics
 					</Button>

@@ -25,17 +25,24 @@
 
 <span
 	class="inline-flex items-center rounded-full border {sizeClasses[size]} {removable ? 'pr-1' : ''}"
-	style="background-color: {label.color ? label.color + '20' : '#F3F4F6'}; border-color: {label.color || '#D1D5DB'}; color: {label.color || '#374151'};"
+	style="background-color: {label.color
+		? label.color + '20'
+		: '#F3F4F6'}; border-color: {label.color || '#D1D5DB'}; color: {label.color || '#374151'};"
 >
 	{label.name}
 	{#if removable}
 		<button
 			onclick={handleRemove}
-			class="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-current hover:bg-black hover:bg-opacity-20"
+			class="hover:bg-opacity-20 ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-current hover:bg-black"
 			aria-label="Remove {label.name}"
 		>
 			<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M6 18L18 6M6 6l12 12"
+				/>
 			</svg>
 		</button>
 	{/if}

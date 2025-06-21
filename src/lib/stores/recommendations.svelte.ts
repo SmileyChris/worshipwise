@@ -32,26 +32,23 @@ class RecommendationsStore {
 	});
 
 	// Derived state
-	rotationRecommendations = $derived(() => 
-		this.songRecommendations.filter(r => r.type === 'rotation')
+	rotationRecommendations = $derived(() =>
+		this.songRecommendations.filter((r) => r.type === 'rotation')
 	);
 
-	seasonalRecommendations = $derived(() => 
-		this.songRecommendations.filter(r => r.type === 'seasonal')
+	seasonalRecommendations = $derived(() =>
+		this.songRecommendations.filter((r) => r.type === 'seasonal')
 	);
 
-	flowRecommendations = $derived(() => 
-		this.songRecommendations.filter(r => r.type === 'flow')
+	flowRecommendations = $derived(() => this.songRecommendations.filter((r) => r.type === 'flow'));
+
+	keyCompatibilityRecommendations = $derived(() =>
+		this.songRecommendations.filter((r) => r.type === 'key_compatibility')
 	);
 
-	keyCompatibilityRecommendations = $derived(() => 
-		this.songRecommendations.filter(r => r.type === 'key_compatibility')
-	);
-
-	highPriorityFlowSuggestions = $derived(() => 
-		this.worshipFlowSuggestions.filter(s => 
-			s.reason.includes('Large tempo change') || 
-			s.reason.includes('difficult')
+	highPriorityFlowSuggestions = $derived(() =>
+		this.worshipFlowSuggestions.filter(
+			(s) => s.reason.includes('Large tempo change') || s.reason.includes('difficult')
 		)
 	);
 
@@ -200,7 +197,7 @@ class RecommendationsStore {
 	 * Get current season recommendations
 	 */
 	getCurrentSeasonRecommendations(): SongRecommendation[] {
-		return this.seasonalRecommendations().filter(r => r.score > 0.7);
+		return this.seasonalRecommendations().filter((r) => r.score > 0.7);
 	}
 
 	/**
@@ -218,14 +215,14 @@ class RecommendationsStore {
 		const insights: string[] = [];
 
 		// Rotation insights
-		const overdueSongs = this.rotationRecommendations().filter(r => 
-			r.metadata?.daysSinceLastUse > 60
+		const overdueSongs = this.rotationRecommendations().filter(
+			(r) => r.metadata?.daysSinceLastUse > 60
 		);
 		if (overdueSongs.length > 0) {
 			insights.push(`${overdueSongs.length} songs haven't been used in over 2 months`);
 		}
 
-		const newSongs = this.rotationRecommendations().filter(r => r.metadata?.isNew);
+		const newSongs = this.rotationRecommendations().filter((r) => r.metadata?.isNew);
 		if (newSongs.length > 0) {
 			insights.push(`${newSongs.length} new songs ready to be introduced`);
 		}

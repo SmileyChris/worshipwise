@@ -14,14 +14,14 @@
 		danger?: boolean;
 	}
 
-	let { 
-		open, 
-		title, 
-		message, 
+	let {
+		open,
+		title,
+		message,
 		confirmLabel = 'Confirm',
 		cancelLabel = 'Cancel',
-		onconfirm, 
-		oncancel, 
+		onconfirm,
+		oncancel,
 		loading = false,
 		danger = false
 	}: Props = $props();
@@ -40,7 +40,11 @@
 		<!-- Icon and title -->
 		<div class="flex items-center">
 			<div class="flex-shrink-0">
-				<div class="w-10 h-10 rounded-full {danger ? 'bg-red-100' : 'bg-yellow-100'} flex items-center justify-center">
+				<div
+					class="h-10 w-10 rounded-full {danger
+						? 'bg-red-100'
+						: 'bg-yellow-100'} flex items-center justify-center"
+				>
 					<span class="text-xl {danger ? 'text-red-600' : 'text-yellow-600'}">
 						{danger ? '⚠️' : '❓'}
 					</span>
@@ -58,18 +62,10 @@
 
 		<!-- Actions -->
 		<div class="flex justify-end space-x-3 pt-4">
-			<Button 
-				onclick={handleCancel} 
-				variant="outline"
-				disabled={loading}
-			>
+			<Button onclick={handleCancel} variant="outline" disabled={loading}>
 				{cancelLabel}
 			</Button>
-			<Button 
-				onclick={handleConfirm}
-				variant={danger ? 'danger' : 'primary'}
-				disabled={loading}
-			>
+			<Button onclick={handleConfirm} variant={danger ? 'danger' : 'primary'} disabled={loading}>
 				{loading ? 'Processing...' : confirmLabel}
 			</Button>
 		</div>

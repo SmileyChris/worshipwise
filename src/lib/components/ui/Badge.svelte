@@ -7,7 +7,13 @@
 		children?: import('svelte').Snippet;
 	}
 
-	let { variant = 'default', color, size = 'sm', class: className = '', children }: Props = $props();
+	let {
+		variant = 'default',
+		color,
+		size = 'sm',
+		class: className = '',
+		children
+	}: Props = $props();
 
 	let baseClasses = 'inline-flex items-center font-medium rounded-full';
 

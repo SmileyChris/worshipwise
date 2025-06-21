@@ -5,110 +5,110 @@ import { songsApi } from '$lib/api/songs';
 
 // Mock the client module
 vi.mock('$lib/api/client', () => ({
-  pb: mockPb
+	pb: mockPb
 }));
 
 describe('Songs API', () => {
-  beforeEach(() => {
-    mockPb.reset();
-  });
+	beforeEach(() => {
+		mockPb.reset();
+	});
 
-  describe('getSongs', () => {
-    it('should return list of songs', async () => {
-      const mockSongs = [
-        createMockSong({ id: 'song_1', title: 'Amazing Grace' }),
-        createMockSong({ id: 'song_2', title: 'How Great Thou Art' })
-      ];
+	describe('getSongs', () => {
+		it('should return list of songs', async () => {
+			const mockSongs = [
+				createMockSong({ id: 'song_1', title: 'Amazing Grace' }),
+				createMockSong({ id: 'song_2', title: 'How Great Thou Art' })
+			];
 
-      mockPb.collection('songs').mockGetFullList(mockSongs);
+			mockPb.collection('songs').mockGetFullList(mockSongs);
 
-      const result = await songsApi.getSongs();
+			const result = await songsApi.getSongs();
 
-      expect(result).toEqual(mockSongs);
-      expect(mockPb.collection('songs').getFullList).toHaveBeenCalled();
-    });
+			expect(result).toEqual(mockSongs);
+			expect(mockPb.collection('songs').getFullList).toHaveBeenCalled();
+		});
 
-    it('should apply search filter when provided', async () => {
-      const mockSongs = [createMockSong({ title: 'Amazing Grace' })];
-      mockPb.collection('songs').mockGetFullList(mockSongs);
+		it('should apply search filter when provided', async () => {
+			const mockSongs = [createMockSong({ title: 'Amazing Grace' })];
+			mockPb.collection('songs').mockGetFullList(mockSongs);
 
-      await songsApi.getSongs({ search: 'Amazing' });
+			await songsApi.getSongs({ search: 'Amazing' });
 
-      expect(mockPb.collection('songs').getFullList).toHaveBeenCalled();
-    });
-  });
+			expect(mockPb.collection('songs').getFullList).toHaveBeenCalled();
+		});
+	});
 
-  describe('getSong', () => {
-    it('should return a specific song', async () => {
-      const mockSong = createMockSong({ id: 'song_1', title: 'Amazing Grace' });
-      mockPb.collection('songs').mockGetOne(mockSong);
+	describe('getSong', () => {
+		it('should return a specific song', async () => {
+			const mockSong = createMockSong({ id: 'song_1', title: 'Amazing Grace' });
+			mockPb.collection('songs').mockGetOne(mockSong);
 
-      const result = await songsApi.getSong('song_1');
+			const result = await songsApi.getSong('song_1');
 
-      expect(result).toEqual(mockSong);
-      expect(mockPb.collection('songs').getOne).toHaveBeenCalledWith('song_1', expect.any(Object));
-    });
+			expect(result).toEqual(mockSong);
+			expect(mockPb.collection('songs').getOne).toHaveBeenCalledWith('song_1', expect.any(Object));
+		});
 
-    it('should throw error if song not found', async () => {
-      mockPb.collection('songs').getOne.mockRejectedValue(new Error('Not found'));
+		it('should throw error if song not found', async () => {
+			mockPb.collection('songs').getOne.mockRejectedValue(new Error('Not found'));
 
-      await expect(songsApi.getSong('invalid_id')).rejects.toThrow('Not found');
-    });
-  });
+			await expect(songsApi.getSong('invalid_id')).rejects.toThrow('Not found');
+		});
+	});
 
-  describe('createSong', () => {
-    it('should create a new song', async () => {
-      const songData = {
-        title: 'New Song',
-        artist: 'Test Artist',
-        key_signature: 'G',
-        tempo: 120,
-        genre: 'Contemporary'
-      };
+	describe('createSong', () => {
+		it('should create a new song', async () => {
+			const songData = {
+				title: 'New Song',
+				artist: 'Test Artist',
+				key_signature: 'G',
+				tempo: 120,
+				genre: 'Contemporary'
+			};
 
-      const mockCreatedSong = createMockSong({ ...songData, id: 'song_new' });
-      mockPb.collection('songs').mockCreate(mockCreatedSong);
+			const mockCreatedSong = createMockSong({ ...songData, id: 'song_new' });
+			mockPb.collection('songs').mockCreate(mockCreatedSong);
 
-      const result = await songsApi.createSong(songData);
+			const result = await songsApi.createSong(songData);
 
-      expect(result).toEqual(mockCreatedSong);
-      expect(mockPb.collection('songs').create).toHaveBeenCalled();
-    });
-  });
+			expect(result).toEqual(mockCreatedSong);
+			expect(mockPb.collection('songs').create).toHaveBeenCalled();
+		});
+	});
 
-  describe('updateSong', () => {
-    it('should update an existing song', async () => {
-      const updateData = { title: 'Updated Title' };
-      const mockUpdatedSong = createMockSong({ ...updateData, id: 'song_1' });
-      
-      mockPb.collection('songs').mockUpdate(mockUpdatedSong);
+	describe('updateSong', () => {
+		it('should update an existing song', async () => {
+			const updateData = { title: 'Updated Title' };
+			const mockUpdatedSong = createMockSong({ ...updateData, id: 'song_1' });
 
-      const result = await songsApi.updateSong('song_1', updateData);
+			mockPb.collection('songs').mockUpdate(mockUpdatedSong);
 
-      expect(result).toEqual(mockUpdatedSong);
-      expect(mockPb.collection('songs').update).toHaveBeenCalledWith('song_1', updateData);
-    });
-  });
+			const result = await songsApi.updateSong('song_1', updateData);
 
-  describe('deleteSong', () => {
-    it('should soft delete a song', async () => {
-      mockPb.collection('songs').mockUpdate({});
+			expect(result).toEqual(mockUpdatedSong);
+			expect(mockPb.collection('songs').update).toHaveBeenCalledWith('song_1', updateData);
+		});
+	});
 
-      await songsApi.deleteSong('song_1');
+	describe('deleteSong', () => {
+		it('should soft delete a song', async () => {
+			mockPb.collection('songs').mockUpdate({});
 
-      expect(mockPb.collection('songs').update).toHaveBeenCalled();
-    });
-  });
+			await songsApi.deleteSong('song_1');
 
-  describe('searchSongs', () => {
-    it('should search songs by query', async () => {
-      const mockSongs = [createMockSong({ title: 'Amazing Grace' })];
-      mockPb.collection('songs').mockGetFullList(mockSongs);
+			expect(mockPb.collection('songs').update).toHaveBeenCalled();
+		});
+	});
 
-      const result = await songsApi.searchSongs('Amazing');
+	describe('searchSongs', () => {
+		it('should search songs by query', async () => {
+			const mockSongs = [createMockSong({ title: 'Amazing Grace' })];
+			mockPb.collection('songs').mockGetFullList(mockSongs);
 
-      expect(result).toEqual(mockSongs);
-      expect(mockPb.collection('songs').getFullList).toHaveBeenCalled();
-    });
-  });
+			const result = await songsApi.searchSongs('Amazing');
+
+			expect(result).toEqual(mockSongs);
+			expect(mockPb.collection('songs').getFullList).toHaveBeenCalled();
+		});
+	});
 });

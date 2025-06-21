@@ -31,7 +31,7 @@
 		const params = new URLSearchParams(window.location.search);
 		token = params.get('token') || '';
 		email = params.get('email') || '';
-		
+
 		// Validate token presence
 		if (!token) {
 			tokenError = 'Invalid or missing reset token. Please request a new password reset.';
@@ -68,12 +68,7 @@
 
 	// Form validation
 	let isValid = $derived(
-		token && 
-		password && 
-		passwordConfirm && 
-		!passwordError && 
-		!passwordConfirmError && 
-		!tokenError
+		token && password && passwordConfirm && !passwordError && !passwordConfirmError && !tokenError
 	);
 
 	async function handleSubmit(event: Event) {
@@ -117,7 +112,7 @@
 	<div class="w-full max-w-md space-y-8">
 		<Card class="mx-auto w-full max-w-md">
 			<div class="mb-6 text-center">
-				<h1 class="text-2xl font-bold font-title text-gray-900">Set New Password</h1>
+				<h1 class="font-title text-2xl font-bold text-gray-900">Set New Password</h1>
 				<p class="mt-2 text-sm text-gray-600">
 					{#if success}
 						Your password has been successfully reset
@@ -151,7 +146,8 @@
 								<h3 class="text-sm font-medium text-green-800">Password reset successful!</h3>
 								<div class="mt-2 text-sm text-green-700">
 									<p>
-										Your password has been successfully updated. You can now sign in with your new password.
+										Your password has been successfully updated. You can now sign in with your new
+										password.
 									</p>
 								</div>
 							</div>
@@ -189,9 +185,7 @@
 						<Button variant="ghost" onclick={handleRequestNewReset} class="flex-1">
 							Request New Reset
 						</Button>
-						<Button variant="primary" onclick={handleSignIn} class="flex-1">
-							Back to Login
-						</Button>
+						<Button variant="primary" onclick={handleSignIn} class="flex-1">Back to Login</Button>
 					</div>
 				</div>
 			{:else}
@@ -255,7 +249,7 @@
 				<div class="mt-6 text-center">
 					<p class="text-sm text-gray-600">
 						Remember your password?
-						<a href="/login" class="font-medium text-primary hover:text-primary/90">
+						<a href="/login" class="text-primary hover:text-primary/90 font-medium">
 							Back to Sign In
 						</a>
 					</p>

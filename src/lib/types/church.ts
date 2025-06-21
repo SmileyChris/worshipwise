@@ -152,16 +152,16 @@ export const PERMISSIONS = {
 	SONGS_EDIT: 'songs:edit',
 	SONGS_DELETE: 'songs:delete',
 	SONGS_VIEW: 'songs:view',
-	
+
 	SERVICES_CREATE: 'services:create',
 	SERVICES_EDIT: 'services:edit',
 	SERVICES_DELETE: 'services:delete',
 	SERVICES_VIEW: 'services:view',
-	
+
 	USERS_INVITE: 'users:invite',
 	USERS_MANAGE: 'users:manage',
 	USERS_REMOVE: 'users:remove',
-	
+
 	CHURCH_SETTINGS: 'church:settings',
 	CHURCH_BILLING: 'church:billing'
 } as const;
@@ -211,10 +211,7 @@ export function getDefaultPermissions(role: ChurchRole): string[] {
 				PERMISSIONS.USERS_INVITE
 			];
 		case 'musician':
-			return [
-				PERMISSIONS.SONGS_VIEW,
-				PERMISSIONS.SERVICES_VIEW
-			];
+			return [PERMISSIONS.SONGS_VIEW, PERMISSIONS.SERVICES_VIEW];
 		case 'member':
 		default:
 			return [PERMISSIONS.SONGS_VIEW, PERMISSIONS.SERVICES_VIEW];
@@ -258,14 +255,14 @@ export function detectHemisphereFromTimezone(timezone: string): 'northern' | 'so
 		// Australia & Oceania
 		'Australia/',
 		'Pacific/Auckland',
-		'Pacific/Wellington', 
+		'Pacific/Wellington',
 		'Pacific/Fiji',
 		'Pacific/Tahiti',
 		'Pacific/Samoa',
 		'Pacific/Tonga',
 		'Pacific/Vanuatu',
 		'Pacific/New_Caledonia',
-		
+
 		// Africa (Southern)
 		'Africa/Johannesburg',
 		'Africa/Cape_Town',
@@ -274,7 +271,7 @@ export function detectHemisphereFromTimezone(timezone: string): 'northern' | 'so
 		'Africa/Gaborone',
 		'Africa/Maseru',
 		'Africa/Mbabane',
-		
+
 		// South America
 		'America/Sao_Paulo',
 		'America/Argentina/',
@@ -284,18 +281,18 @@ export function detectHemisphereFromTimezone(timezone: string): 'northern' | 'so
 		'America/La_Paz',
 		'America/Lima',
 		'America/Bogota', // Northern SA but often considered southern hemisphere for seasons
-		
+
 		// Islands
 		'Indian/Mauritius',
 		'Indian/Reunion',
 		'Indian/Madagascar',
 		'Atlantic/South_Georgia',
-		
+
 		// Antarctica
 		'Antarctica/'
 	];
-	
-	return southernTimezones.some(tz => timezone.startsWith(tz)) ? 'southern' : 'northern';
+
+	return southernTimezones.some((tz) => timezone.startsWith(tz)) ? 'southern' : 'northern';
 }
 
 /**
@@ -303,10 +300,10 @@ export function detectHemisphereFromTimezone(timezone: string): 'northern' | 'so
  */
 export function getTimezoneAwareDefaults(timezone: string): Partial<ChurchSettings> {
 	const hemisphere = detectHemisphereFromTimezone(timezone);
-	
+
 	// Adjust default service types based on location
 	let default_service_types = ['Sunday Morning', 'Sunday Evening'];
-	
+
 	// Add region-specific defaults
 	if (timezone.startsWith('America/')) {
 		default_service_types.push('Wednesday Night');
@@ -315,7 +312,7 @@ export function getTimezoneAwareDefaults(timezone: string): Partial<ChurchSettin
 	} else if (timezone.startsWith('Europe/')) {
 		default_service_types.push('Sunday Evening', 'Midweek');
 	}
-	
+
 	return {
 		default_service_types
 	};

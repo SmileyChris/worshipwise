@@ -68,18 +68,18 @@
 						<ol class="space-y-2 text-gray-600">
 							<li class="flex items-start">
 								<span
-									class="mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
+									class="bg-primary/10 mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
 								>
-									<span class="text-xs font-semibold text-primary">1</span>
+									<span class="text-primary text-xs font-semibold">1</span>
 								</span>
 								Start PocketBase server:
 								<code class="ml-1 rounded bg-gray-200 px-1 text-xs">./scripts/start-dev.sh</code>
 							</li>
 							<li class="flex items-start">
 								<span
-									class="mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
+									class="bg-primary/10 mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
 								>
-									<span class="text-xs font-semibold text-primary">2</span>
+									<span class="text-primary text-xs font-semibold">2</span>
 								</span>
 								Check if PocketBase is running on
 								<a href="http://localhost:8090" target="_blank" class="text-primary underline">
@@ -88,9 +88,9 @@
 							</li>
 							<li class="flex items-start">
 								<span
-									class="mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
+									class="bg-primary/10 mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
 								>
-									<span class="text-xs font-semibold text-primary">3</span>
+									<span class="text-primary text-xs font-semibold">3</span>
 								</span>
 								If first time setup,
 								<button onclick={handleOpenAdmin} class="text-primary underline">
@@ -100,9 +100,9 @@
 							</li>
 							<li class="flex items-start">
 								<span
-									class="mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10"
+									class="bg-primary/10 mt-0.5 mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
 								>
-									<span class="text-xs font-semibold text-primary">4</span>
+									<span class="text-primary text-xs font-semibold">4</span>
 								</span>
 								Restart your browser if the issue persists
 							</li>

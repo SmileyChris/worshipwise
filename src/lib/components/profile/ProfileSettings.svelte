@@ -1,13 +1,13 @@
 <script lang="ts">
 	// Type imports
 	import type { User, Profile } from '$lib/types/auth';
-	
+
 	// Component imports
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
-	
+
 	// Store import
 	import { auth } from '$lib/stores/auth.svelte';
 	import { pb } from '$lib/api/client';
@@ -55,9 +55,9 @@
 		if (auth.isAdmin) {
 			return roleOptions; // Admin can choose any role
 		} else if (auth.hasRole('leader')) {
-			return roleOptions.filter(opt => opt.value !== 'admin'); // Leaders can't become admin
+			return roleOptions.filter((opt) => opt.value !== 'admin'); // Leaders can't become admin
 		} else {
-			return roleOptions.filter(opt => opt.value === 'musician'); // Musicians can only be musicians
+			return roleOptions.filter((opt) => opt.value === 'musician'); // Musicians can only be musicians
 		}
 	});
 
@@ -138,24 +138,28 @@
 	});
 
 	$effect(() => {
-		confirmPasswordError = confirmPassword ? validateConfirmPassword(newPassword, confirmPassword) : '';
+		confirmPasswordError = confirmPassword
+			? validateConfirmPassword(newPassword, confirmPassword)
+			: '';
 	});
 
 	// Profile form validation
-	let isProfileValid = $derived(
-		email && name && !emailError && !nameError
-	);
+	let isProfileValid = $derived(email && name && !emailError && !nameError);
 
 	// Password form validation
 	let isPasswordValid = $derived(
-		currentPassword && newPassword && confirmPassword && 
-		!currentPasswordError && !newPasswordError && !confirmPasswordError
+		currentPassword &&
+			newPassword &&
+			confirmPassword &&
+			!currentPasswordError &&
+			!newPasswordError &&
+			!confirmPasswordError
 	);
 
 	// Handle profile update
 	async function handleProfileUpdate(event: Event) {
 		event.preventDefault();
-		
+
 		// Clear previous messages
 		clearErrors();
 		clearSuccessMessages();
@@ -269,7 +273,7 @@
 	<!-- Profile Information -->
 	<Card class="p-6">
 		<div class="mb-6">
-			<h2 class="text-lg font-semibold font-title text-gray-900">Profile Information</h2>
+			<h2 class="font-title text-lg font-semibold text-gray-900">Profile Information</h2>
 			<p class="mt-1 text-sm text-gray-600">
 				Update your personal information and account settings.
 			</p>
@@ -360,12 +364,7 @@
 			</div>
 
 			<div class="flex justify-end gap-3">
-				<Button
-					type="button"
-					variant="secondary"
-					onclick={resetForm}
-					disabled={isUpdatingProfile}
-				>
+				<Button type="button" variant="secondary" onclick={resetForm} disabled={isUpdatingProfile}>
 					Reset
 				</Button>
 				<Button
@@ -383,10 +382,8 @@
 	<!-- Password Change -->
 	<Card class="p-6">
 		<div class="mb-6">
-			<h2 class="text-lg font-semibold font-title text-gray-900">Change Password</h2>
-			<p class="mt-1 text-sm text-gray-600">
-				Update your password to keep your account secure.
-			</p>
+			<h2 class="font-title text-lg font-semibold text-gray-900">Change Password</h2>
+			<p class="mt-1 text-sm text-gray-600">Update your password to keep your account secure.</p>
 		</div>
 
 		<form onsubmit={handlePasswordChange} class="space-y-4">

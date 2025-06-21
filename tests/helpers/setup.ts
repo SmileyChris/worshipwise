@@ -5,30 +5,30 @@ import './component-helpers'; // Load component helpers globally
 
 // Mock SvelteKit modules as recommended in testing guide
 vi.mock('$app/environment', () => ({
-  browser: true,
-  dev: true
+	browser: true,
+	dev: true
 }));
 
 vi.mock('$app/navigation', () => ({
-  goto: vi.fn(),
-  invalidate: vi.fn()
+	goto: vi.fn(),
+	invalidate: vi.fn()
 }));
 
 vi.mock('$app/stores', () => ({
-  page: {
-    subscribe: vi.fn(() => () => {})
-  }
+	page: {
+		subscribe: vi.fn(() => () => {})
+	}
 }));
 
 // Global test setup
 beforeEach(() => {
-  setupTestEnvironment();
-  mockPb.reset();
-  vi.clearAllMocks();
-  // Mock console.error to prevent error logs during tests
-  vi.spyOn(console, 'error').mockImplementation(() => {});
+	setupTestEnvironment();
+	mockPb.reset();
+	vi.clearAllMocks();
+	// Mock console.error to prevent error logs during tests
+	vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 afterEach(() => {
-  cleanupTestEnvironment();
+	cleanupTestEnvironment();
 });

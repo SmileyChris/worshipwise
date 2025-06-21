@@ -18,7 +18,13 @@
 		ondelete?: (song: Song) => void;
 	}
 
-	let { song = null, loading = false, error = null, oncancel = () => {}, ondelete = () => {} }: Props = $props();
+	let {
+		song = null,
+		loading = false,
+		error = null,
+		oncancel = () => {},
+		ondelete = () => {}
+	}: Props = $props();
 
 	const dispatch = createEventDispatcher<{
 		submit: CreateSongData | { id: string; data: UpdateSongData };
@@ -112,9 +118,16 @@
 
 	// Computed values
 	let isEditing = $derived(!!song);
-	let isValid = $derived(title.trim().length > 0 && category.trim().length > 0 && !titleError && !categoryError && !tempoError && !durationError);
+	let isValid = $derived(
+		title.trim().length > 0 &&
+			category.trim().length > 0 &&
+			!titleError &&
+			!categoryError &&
+			!tempoError &&
+			!durationError
+	);
 	let canDelete = $derived(isEditing && auth.isAdmin);
-	
+
 	// Delete confirmation state
 	let showDeleteConfirm = $state(false);
 
@@ -251,11 +264,11 @@
 		oncancel();
 		dispatch('cancel');
 	}
-	
+
 	function handleDeleteClick() {
 		showDeleteConfirm = true;
 	}
-	
+
 	function handleDeleteConfirm() {
 		if (song) {
 			showDeleteConfirm = false;
@@ -263,7 +276,7 @@
 			dispatch('delete', song);
 		}
 	}
-	
+
 	function handleDeleteCancel() {
 		showDeleteConfirm = false;
 	}
@@ -271,7 +284,7 @@
 
 <Card class="mx-auto max-w-2xl">
 	<div class="mb-6">
-		<h2 class="text-xl font-bold font-title text-gray-900">
+		<h2 class="font-title text-xl font-bold text-gray-900">
 			{isEditing ? 'Edit Song' : 'Add New Song'}
 		</h2>
 		<p class="text-sm text-gray-600">
@@ -410,7 +423,7 @@
 				name="lyrics"
 				bind:value={lyrics}
 				rows="6"
-				class="block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:ring-inset sm:text-sm sm:leading-6"
+				class="focus:ring-primary block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
 				placeholder="Enter song lyrics..."
 			></textarea>
 		</div>
@@ -430,7 +443,7 @@
 						name="chord_chart"
 						accept=".pdf,.jpg,.jpeg,.png"
 						onchange={handleChordChartChange}
-						class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-primary/20"
+						class="file:bg-primary/10 file:text-primary hover:file:bg-primary/20 block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:px-4 file:py-2 file:text-sm file:font-medium"
 					/>
 				</div>
 
@@ -444,7 +457,7 @@
 						name="audio_file"
 						accept=".mp3,.wav,.m4a"
 						onchange={handleAudioFileChange}
-						class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-primary/20"
+						class="file:bg-primary/10 file:text-primary hover:file:bg-primary/20 block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:px-4 file:py-2 file:text-sm file:font-medium"
 					/>
 				</div>
 			</div>
@@ -460,7 +473,7 @@
 					accept=".pdf,.jpg,.jpeg,.png"
 					multiple
 					onchange={handleSheetMusicChange}
-					class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-primary/20"
+					class="file:bg-primary/10 file:text-primary hover:file:bg-primary/20 block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:px-4 file:py-2 file:text-sm file:font-medium"
 				/>
 			</div>
 		</div>
@@ -487,7 +500,7 @@
 				name="notes"
 				bind:value={notes}
 				rows="3"
-				class="block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-primary focus:ring-inset sm:text-sm sm:leading-6"
+				class="focus:ring-primary block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
 				placeholder="Additional notes about this song..."
 			></textarea>
 		</div>
@@ -499,7 +512,7 @@
 					Delete Song
 				</Button>
 			{/if}
-			
+
 			<div class="flex gap-3">
 				<Button type="button" variant="secondary" onclick={handleCancel} disabled={loading}>
 					Cancel
@@ -520,12 +533,7 @@
 </Card>
 
 <!-- Delete Confirmation Modal -->
-<Modal
-	open={showDeleteConfirm}
-	title="Delete Song"
-	size="sm"
-	onclose={handleDeleteCancel}
->
+<Modal open={showDeleteConfirm} title="Delete Song" size="sm" onclose={handleDeleteCancel}>
 	{#if song}
 		<div class="text-center">
 			<div class="mb-4 text-6xl text-red-600">⚠️</div>
@@ -539,9 +547,7 @@
 	{/if}
 
 	{#snippet footer()}
-		<Button variant="secondary" onclick={handleDeleteCancel} disabled={loading}>
-			Cancel
-		</Button>
+		<Button variant="secondary" onclick={handleDeleteCancel} disabled={loading}>Cancel</Button>
 
 		<Button variant="danger" onclick={handleDeleteConfirm} {loading} disabled={loading}>
 			{loading ? 'Deleting...' : 'Delete Song'}

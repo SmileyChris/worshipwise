@@ -57,7 +57,7 @@
 		// Try to detect user's timezone
 		try {
 			const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-			const matchingOption = timezoneOptions.find(opt => opt.value === userTimezone);
+			const matchingOption = timezoneOptions.find((opt) => opt.value === userTimezone);
 			if (matchingOption) {
 				setupData.timezone = userTimezone;
 			} else {
@@ -128,10 +128,10 @@
 		try {
 			const result = await ChurchesAPI.initialSetup(setupData);
 			console.log('Setup successful:', result);
-			
+
 			// Mark setup as completed in the store
 			setupStore.markSetupCompleted();
-			
+
 			// Redirect to dashboard
 			await goto('/dashboard');
 		} catch (err: any) {
@@ -143,46 +143,54 @@
 	}
 
 	function getSelectedTimezoneLabel(): string {
-		const option = timezoneOptions.find(opt => opt.value === setupData.timezone);
+		const option = timezoneOptions.find((opt) => opt.value === setupData.timezone);
 		return option?.label || setupData.timezone;
 	}
 
 	// Check for hemisphere indicator
-	$: isNorthernHemisphere = !setupData.timezone.startsWith('Australia/') && 
-		!setupData.timezone.startsWith('Pacific/Auckland') && 
-		!setupData.timezone.startsWith('Pacific/Wellington') &&
-		!setupData.timezone.startsWith('Africa/Johannesburg') &&
-		!setupData.timezone.startsWith('America/Sao_Paulo') &&
-		!setupData.timezone.startsWith('America/Argentina');
+	const isNorthernHemisphere = $derived(
+		!setupData.timezone.startsWith('Australia/') &&
+			!setupData.timezone.startsWith('Pacific/Auckland') &&
+			!setupData.timezone.startsWith('Pacific/Wellington') &&
+			!setupData.timezone.startsWith('Africa/Johannesburg') &&
+			!setupData.timezone.startsWith('America/Sao_Paulo') &&
+			!setupData.timezone.startsWith('America/Argentina')
+	);
 </script>
 
 <svelte:head>
 	<title>Welcome to WorshipWise - Initial Setup</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+<div
+	class="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4"
+>
 	<div class="w-full max-w-lg">
 		<!-- Header -->
-		<div class="text-center mb-8">
-			<div class="flex items-center justify-center gap-3 mb-4">
-				<Church class="h-12 w-12 text-primary" />
-				<h1 class="text-3xl font-bold font-title text-gray-900">WorshipWise</h1>
+		<div class="mb-8 text-center">
+			<div class="mb-4 flex items-center justify-center gap-3">
+				<Church class="text-primary h-12 w-12" />
+				<h1 class="font-title text-3xl font-bold text-gray-900">WorshipWise</h1>
 			</div>
 			<p class="text-gray-600">Welcome! Let's set up your church's worship management system.</p>
 		</div>
 
 		<!-- Progress indicator -->
-		<div class="flex items-center justify-center mb-8">
+		<div class="mb-8 flex items-center justify-center">
 			<div class="flex items-center space-x-4">
-				<div class={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-					step >= 1 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'
-				}`}>
+				<div
+					class={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
+						step >= 1 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'
+					}`}
+				>
 					1
 				</div>
-				<div class={`w-16 h-1 ${step >= 2 ? 'bg-primary' : 'bg-gray-200'}`}></div>
-				<div class={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-					step >= 2 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'
-				}`}>
+				<div class={`h-1 w-16 ${step >= 2 ? 'bg-primary' : 'bg-gray-200'}`}></div>
+				<div
+					class={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
+						step >= 2 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'
+					}`}
+				>
 					2
 				</div>
 			</div>
@@ -190,7 +198,7 @@
 
 		<Card class="p-8">
 			{#if error}
-				<div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md">
+				<div class="mb-6 rounded-md border border-red-200 bg-red-50 p-4 text-red-700">
 					{error}
 				</div>
 			{/if}
@@ -198,9 +206,9 @@
 			{#if step === 1}
 				<!-- Step 1: Church Information -->
 				<div class="space-y-6">
-					<div class="text-center mb-6">
-						<h2 class="text-xl font-semibold font-title text-gray-900">Church Information</h2>
-						<p class="text-sm text-gray-600 mt-1">Tell us about your church</p>
+					<div class="mb-6 text-center">
+						<h2 class="font-title text-xl font-semibold text-gray-900">Church Information</h2>
+						<p class="mt-1 text-sm text-gray-600">Tell us about your church</p>
 					</div>
 
 					<div class="space-y-4">
@@ -213,13 +221,13 @@
 						/>
 
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2">
-								<Clock class="inline h-4 w-4 mr-1" />
+							<label class="mb-2 block text-sm font-medium text-gray-700">
+								<Clock class="mr-1 inline h-4 w-4" />
 								Timezone *
 							</label>
-							<select 
+							<select
 								bind:value={setupData.timezone}
-								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+								class="focus:ring-primary w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:outline-none"
 								required
 							>
 								{#each timezoneOptions as option}
@@ -228,24 +236,15 @@
 							</select>
 							{#if setupData.timezone}
 								<p class="mt-1 text-xs text-gray-500">
-									🌍 {isNorthernHemisphere ? 'Northern' : 'Southern'} Hemisphere
-									• Seasonal themes will be adjusted accordingly
+									🌍 {isNorthernHemisphere ? 'Northern' : 'Southern'} Hemisphere • Seasonal themes will
+									be adjusted accordingly
 								</p>
 							{/if}
 						</div>
 
 						<div class="grid grid-cols-2 gap-4">
-							<Input
-								label="City"
-								icon={MapPin}
-								bind:value={setupData.city}
-								placeholder="City"
-							/>
-							<Input
-								label="State/Province"
-								bind:value={setupData.state}
-								placeholder="State"
-							/>
+							<Input label="City" icon={MapPin} bind:value={setupData.city} placeholder="City" />
+							<Input label="State/Province" bind:value={setupData.state} placeholder="State" />
 						</div>
 
 						<Input
@@ -263,18 +262,15 @@
 					</div>
 
 					<div class="flex justify-end">
-						<Button onclick={nextStep}>
-							Next Step
-						</Button>
+						<Button onclick={nextStep}>Next Step</Button>
 					</div>
 				</div>
-
 			{:else if step === 2}
 				<!-- Step 2: Admin Account -->
 				<div class="space-y-6">
-					<div class="text-center mb-6">
-						<h2 class="text-xl font-semibold font-title text-gray-900">Admin Account</h2>
-						<p class="text-sm text-gray-600 mt-1">Create your administrator account</p>
+					<div class="mb-6 text-center">
+						<h2 class="font-title text-xl font-semibold text-gray-900">Admin Account</h2>
+						<p class="mt-1 text-sm text-gray-600">Create your administrator account</p>
 					</div>
 
 					<div class="space-y-4">
@@ -315,9 +311,9 @@
 					</div>
 
 					<!-- Summary -->
-					<div class="bg-gray-50 rounded-lg p-4">
-						<h3 class="font-medium text-gray-900 mb-2">Setup Summary</h3>
-						<div class="text-sm text-gray-600 space-y-1">
+					<div class="rounded-lg bg-gray-50 p-4">
+						<h3 class="mb-2 font-medium text-gray-900">Setup Summary</h3>
+						<div class="space-y-1 text-sm text-gray-600">
 							<p><strong>Church:</strong> {setupData.churchName}</p>
 							<p><strong>Location:</strong> {setupData.city || 'Not specified'}</p>
 							<p><strong>Timezone:</strong> {getSelectedTimezoneLabel()}</p>
@@ -326,9 +322,7 @@
 					</div>
 
 					<div class="flex justify-between">
-						<Button variant="secondary" onclick={prevStep}>
-							Back
-						</Button>
+						<Button variant="secondary" onclick={prevStep}>Back</Button>
 						<Button onclick={handleSetup} {loading} disabled={loading}>
 							{loading ? 'Setting up...' : 'Complete Setup'}
 						</Button>
@@ -337,7 +331,7 @@
 			{/if}
 		</Card>
 
-		<div class="text-center mt-6 text-sm text-gray-500">
+		<div class="mt-6 text-center text-sm text-gray-500">
 			<p>Setting up WorshipWise for the first time</p>
 		</div>
 	</div>

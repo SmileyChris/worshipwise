@@ -57,11 +57,11 @@ export class ChurchMigration {
 	 */
 	private static async createDefaultChurch(users: any[]): Promise<Church> {
 		// Find the best candidate for church owner (admin first, then any user)
-		const adminUser = users.find(u => u.role === 'admin') || users[0];
-		
+		const adminUser = users.find((u) => u.role === 'admin') || users[0];
+
 		// Determine church name from user data
 		const churchName = this.determineChurchName(users);
-		
+
 		const churchData = {
 			name: churchName,
 			slug: this.generateSlug(churchName),
@@ -84,10 +84,10 @@ export class ChurchMigration {
 	 * Create church memberships for all existing users
 	 */
 	private static async createMembershipsForUsers(users: any[], churchId: string): Promise<void> {
-		const membershipPromises = users.map(user => {
+		const membershipPromises = users.map((user) => {
 			// Map old user roles to church roles
 			const role = this.mapUserRoleToChurchRole(user.role);
-			
+
 			const membershipData = {
 				church_id: churchId,
 				user_id: user.id,
@@ -139,8 +139,8 @@ export class ChurchMigration {
 		defaultVisibility: string | null
 	): Promise<void> {
 		const records = await pb.collection(collectionName).getFullList();
-		
-		const updatePromises = records.map(record => {
+
+		const updatePromises = records.map((record) => {
 			const updateData: any = {
 				church_id: churchId
 			};
@@ -161,7 +161,7 @@ export class ChurchMigration {
 	 * Update users with current_church_id
 	 */
 	private static async updateUsersWithCurrentChurch(users: any[], churchId: string): Promise<void> {
-		const updatePromises = users.map(user =>
+		const updatePromises = users.map((user) =>
 			pb.collection('users').update(user.id, {
 				current_church_id: churchId
 			})
@@ -189,7 +189,7 @@ export class ChurchMigration {
 	private static determineChurchName(users: any[]): string {
 		// Try to find a consistent church name from users
 		const churchNames = users
-			.map(u => u.church_name)
+			.map((u) => u.church_name)
 			.filter(Boolean)
 			.filter((name, index, arr) => arr.indexOf(name) === index); // unique
 
@@ -198,7 +198,7 @@ export class ChurchMigration {
 		}
 
 		// If multiple or no church names, use a generic name
-		const adminUser = users.find(u => u.role === 'admin');
+		const adminUser = users.find((u) => u.role === 'admin');
 		if (adminUser?.church_name) {
 			return adminUser.church_name;
 		}
@@ -268,15 +268,14 @@ export class ChurchMigration {
 
 			// Check that existing data has church_id
 			const songs = await pb.collection('songs').getList(1, 5);
-			if (songs.items.some(song => !song.church_id)) {
+			if (songs.items.some((song) => !song.church_id)) {
 				issues.push('Some songs missing church_id');
 			}
 
 			const services = await pb.collection('setlists').getList(1, 5);
-			if (services.items.some(service => !service.church_id)) {
+			if (services.items.some((service) => !service.church_id)) {
 				issues.push('Some services missing church_id');
 			}
-
 		} catch (error: any) {
 			issues.push(`Validation error: ${error.message}`);
 		}

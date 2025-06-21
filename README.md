@@ -91,7 +91,7 @@ Want to contribute or run locally? See our [Development Guide](README_DEVELOPMEN
 - **Phase 5**: Advanced Analytics & Reporting
 - **Phase 6**: Integrations & Polish
 
-*Detailed development roadmap available for contributors in [DEVELOPMENT_ROADMAP.md](plan/DEVELOPMENT_ROADMAP.md)*
+_Detailed development roadmap available for contributors in [DEVELOPMENT_ROADMAP.md](plan/DEVELOPMENT_ROADMAP.md)_
 
 ## 🤝 Contributing
 
@@ -124,11 +124,13 @@ WorshipWise is designed with security in mind:
 ## 📚 Documentation
 
 ### For Users
+
 - **User Guide**: Coming soon with the first release
 - **Feature Overview**: This README file
 - **Support**: Contact information below
 
 ### For Developers
+
 - **Development Setup**: [README_DEVELOPMENT.md](README_DEVELOPMENT.md)
 - **Project Roadmap**: [plan/DEVELOPMENT_ROADMAP.md](plan/DEVELOPMENT_ROADMAP.md)
 - **Technical Guides**: Available in the `plan/` directory
@@ -136,13 +138,17 @@ WorshipWise is designed with security in mind:
 ## 🆘 Support
 
 ### For Users
+
 Once released, support will be available through:
+
 - User documentation and tutorials
 - Community forums and discussions
 - Direct support channels
 
 ### For Developers
+
 For development questions or contributions:
+
 1. Check the [Development Guide](README_DEVELOPMENT.md)
 2. Review existing issues and discussions
 3. Create a new issue with detailed information

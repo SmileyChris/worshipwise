@@ -20,13 +20,13 @@
 		<div class="mb-6 border-b border-gray-200 pb-4">
 			<div class="flex items-center justify-between">
 				<div>
-					<h1 class="text-2xl font-bold font-title text-gray-900">Admin Dashboard</h1>
-					<p class="mt-1 text-sm text-gray-500">
-						Manage users, permissions, and system settings
-					</p>
+					<h1 class="font-title text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+					<p class="mt-1 text-sm text-gray-500">Manage users, permissions, and system settings</p>
 				</div>
 				<div class="flex items-center space-x-2">
-					<span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+					<span
+						class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800"
+					>
 						Admin Access
 					</span>
 				</div>
@@ -38,17 +38,20 @@
 			<nav class="flex space-x-8" aria-label="Admin navigation">
 				<a
 					href="/admin"
-					class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm {$page.url.pathname === '/admin' 
-						? 'border-primary text-primary' 
-						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
+					class="border-b-2 px-1 py-2 text-sm font-medium whitespace-nowrap {$page.url.pathname ===
+					'/admin'
+						? 'border-primary text-primary'
+						: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
 				>
 					Dashboard
 				</a>
 				<a
 					href="/admin/users"
-					class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm {$page.url.pathname.startsWith('/admin/users')
-						? 'border-primary text-primary' 
-						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
+					class="border-b-2 px-1 py-2 text-sm font-medium whitespace-nowrap {$page.url.pathname.startsWith(
+						'/admin/users'
+					)
+						? 'border-primary text-primary'
+						: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
 				>
 					User Management
 				</a>
@@ -60,8 +63,8 @@
 	</div>
 {:else if auth.isValid}
 	<!-- Not admin - show access denied -->
-	<div class="text-center py-12">
-		<div class="mx-auto h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+	<div class="py-12 text-center">
+		<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
 			<span class="text-red-600">⚠️</span>
 		</div>
 		<h2 class="mt-4 text-lg font-medium text-gray-900">Access Denied</h2>
@@ -71,7 +74,7 @@
 		<div class="mt-6">
 			<a
 				href="/dashboard"
-				class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+				class="bg-primary hover:bg-primary/90 focus:ring-primary inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
 			>
 				Return to Dashboard
 			</a>
@@ -80,6 +83,6 @@
 {:else}
 	<!-- Loading -->
 	<div class="flex justify-center py-12">
-		<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+		<div class="border-primary h-8 w-8 animate-spin rounded-full border-b-2"></div>
 	</div>
 {/if}
