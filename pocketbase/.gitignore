@@ -1,8 +1,9 @@
 # PocketBase data directory (contains database and uploaded files)
 pb_data/
 
-# PocketBase migrations directory (auto-generated)
-pb_migrations/
+# PocketBase migrations directory - ignore auto-generated files but track our migrations
+pb_migrations/*.snapshot.json
+pb_migrations/.*
 
 # PocketBase executable (downloaded by install script)
 pocketbase

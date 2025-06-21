@@ -65,6 +65,10 @@ npm run test:unit:ui         # Run unit tests with UI
 npm run test                 # Run both unit and E2E tests
 npm run test:e2e             # Run Playwright E2E tests
 npm run test:coverage        # Generate coverage report
+
+# PocketBase (must be run from pocketbase/ directory)
+cd pocketbase && ./pocketbase serve --dev    # Start PocketBase in development mode
+cd pocketbase && ./pocketbase migrate        # Run database migrations
 ```
 
 ## Architecture
@@ -219,6 +223,9 @@ Follow the standardized component structure and patterns in `plan/COMPONENT_GUID
 
 ### PocketBase Configuration
 
+- **Important**: PocketBase must be executed from the `pocketbase/` directory
+- Migrations are located in `pocketbase/pb_migrations/` (relative to PocketBase working directory)
+- Database files are stored in `pocketbase/pb_data/`
 - Use static adapter in `svelte.config.js`
 - SPA mode with `fallback: 'index.html'` for client-side routing
 - PocketBase rules handle API security and rate limiting
