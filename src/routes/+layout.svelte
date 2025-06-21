@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { auth } from '$lib/stores/auth.svelte';
+	import { setupStore } from '$lib/stores/setup.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
@@ -9,7 +10,7 @@
 	let { children } = $props();
 
 	// Public routes that don't require authentication
-	const publicRoutes = ['/login', '/register', '/', '/reset-password', '/reset-password/confirm'];
+	const publicRoutes = ['/login', '/register', '/', '/reset-password', '/reset-password/confirm', '/setup'];
 
 	let isReady = $state(false);
 	let currentPath = $state('');
@@ -23,17 +24,38 @@
 		}
 	});
 
-	// Handle authentication check
+	// Handle setup and authentication check
 	$effect(() => {
 		if (browser) {
 			const isPublicRoute = publicRoutes.includes(currentPath);
 
-			if (auth.isValid || isPublicRoute) {
-				isReady = true;
-			} else if (currentPath && !isPublicRoute) {
-				// Redirect to login for protected routes
-				goto('/login');
+			// Check setup requirements first
+			if (setupStore.setupRequired === null && !isPublicRoute && currentPath !== '/setup') {
+				// Need to check setup status
+				setupStore.checkSetupRequired().then((setupRequired) => {
+					if (setupRequired) {
+						goto('/setup');
+					} else if (!auth.isValid && !isPublicRoute) {
+						goto('/login');
+					} else {
+						isReady = true;
+					}
+				});
+			} else if (setupStore.setupRequired === true && currentPath !== '/setup') {
+				// Setup is required, redirect to setup
+				goto('/setup');
+			} else if (setupStore.setupRequired === false) {
+				// Setup not required, handle normal auth flow
+				if (auth.isValid || isPublicRoute) {
+					isReady = true;
+				} else if (currentPath && !isPublicRoute) {
+					// Redirect to login for protected routes
+					goto('/login');
+				} else {
+					isReady = true;
+				}
 			} else {
+				// Public route or setup page
 				isReady = true;
 			}
 		} else {

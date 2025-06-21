@@ -90,17 +90,17 @@ class RecommendationsApi {
 			const cutoffDate = new Date();
 			cutoffDate.setDate(cutoffDate.getDate() - excludeRecentDays);
 
-			let recentUsageFilter = `usage_date >= "${cutoffDate.toISOString()}"`;
+			let recentUsageFilter = `used_date >= "${cutoffDate.toISOString()}"`;
 			if (worshipLeaderId) {
-				recentUsageFilter += ` && worship_leader = "${worshipLeaderId}"`;
+				recentUsageFilter += ` && setlist_id.worship_leader = "${worshipLeaderId}"`;
 			}
 
 			const recentUsage = await pb.collection('song_usage').getFullList({
 				filter: recentUsageFilter,
-				fields: 'song'
+				fields: 'song_id'
 			});
 
-			const recentSongIds = [...new Set(recentUsage.map(u => u.song))];
+			const recentSongIds = [...new Set(recentUsage.map(u => u.song_id))];
 
 			// Get all songs excluding recently used ones
 			let songFilter = 'is_active = true';
@@ -110,32 +110,54 @@ class RecommendationsApi {
 
 			const availableSongs = await pb.collection('songs').getFullList({
 				filter: songFilter,
-				expand: 'song_usage_via_song'
+				expand: 'song_usage_via_song_id'
+			});
+
+			// Get historical usage data for scoring
+			const allUsage = await pb.collection('song_usage').getFullList({
+				expand: 'song_id,setlist_id',
+				sort: '-used_date'
 			});
 
 			// Calculate recommendations with different scoring
 			const recommendations: SongRecommendation[] = [];
 
 			for (const song of availableSongs) {
-				const usages = song.expand?.song_usage_via_song || [];
+				const songUsages = allUsage.filter(u => u.song_id === song.id);
 				
 				// Rotation-based recommendation
-				if (usages.length > 0) {
-					const lastUsed = new Date(usages[0].usage_date);
+				if (songUsages.length > 0) {
+					const lastUsed = new Date(songUsages[0].used_date);
 					const daysSince = Math.floor((Date.now() - lastUsed.getTime()) / (1000 * 60 * 60 * 24));
 					
 					if (daysSince >= excludeRecentDays) {
-						const rotationScore = Math.min(daysSince / 90, 1) * (usages.length / 10); // Favor songs used before but not too frequently
+						// Enhanced scoring: consider frequency, recency, and congregation familiarity
+						const frequencyScore = Math.min(songUsages.length / 20, 1); // Max score at 20 uses
+						const recencyScore = Math.min(daysSince / 90, 1); // Max score at 90 days
+						const rotationScore = (frequencyScore * 0.6) + (recencyScore * 0.4);
+						
+						let reason = `Last used ${daysSince} days ago`;
+						if (songUsages.length >= 10) {
+							reason += '. Well-known by congregation';
+						} else if (songUsages.length >= 5) {
+							reason += '. Moderately familiar to congregation';
+						} else {
+							reason += '. Still building familiarity';
+						}
 						
 						recommendations.push({
 							songId: song.id,
 							title: song.title,
 							artist: song.artist,
 							keySignature: song.key_signature,
-							reason: `Last used ${daysSince} days ago. Good rotation candidate.`,
-							score: rotationScore * 0.8,
+							reason,
+							score: rotationScore * 0.85,
 							type: 'rotation',
-							metadata: { daysSince, totalUsages: usages.length }
+							metadata: { 
+								daysSince, 
+								totalUsages: songUsages.length,
+								familiarityLevel: songUsages.length >= 10 ? 'high' : songUsages.length >= 5 ? 'medium' : 'low'
+							}
 						});
 					}
 				} else {
@@ -145,31 +167,65 @@ class RecommendationsApi {
 						title: song.title,
 						artist: song.artist,
 						keySignature: song.key_signature,
-						reason: 'New song that hasn\'t been used yet. Consider introducing to congregation.',
+						reason: 'New song ready to be introduced. Consider starting slowly to build familiarity.',
 						score: 0.6,
 						type: 'rotation',
-						metadata: { isNew: true }
+						metadata: { isNew: true, familiarityLevel: 'new' }
 					});
 				}
 
 				// Seasonal recommendations
-				const seasonalScore = this.calculateSeasonalScore(song);
+				const seasonalScore = await this.calculateSeasonalScore(song);
 				if (seasonalScore > 0) {
+					const seasonalContext = await this.getChurchSeasonalContext();
 					recommendations.push({
 						songId: song.id,
 						title: song.title,
 						artist: song.artist,
 						keySignature: song.key_signature,
-						reason: this.getSeasonalReason(),
+						reason: await this.getSeasonalReason(seasonalContext),
 						score: seasonalScore,
 						type: 'seasonal',
-						metadata: { season: this.getCurrentSeason() }
+						metadata: { 
+							season: this.getCurrentSeason(),
+							hemisphere: seasonalContext.hemisphere,
+							timezone: seasonalContext.timezone
+						}
+					});
+				}
+
+				// Popularity-based recommendations (trending songs)
+				const recentUsageCount = songUsages.filter(u => {
+					const usageDate = new Date(u.used_date);
+					const threeMonthsAgo = new Date();
+					threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+					return usageDate >= threeMonthsAgo;
+				}).length;
+
+				if (recentUsageCount >= 3 && daysSince >= excludeRecentDays) {
+					recommendations.push({
+						songId: song.id,
+						title: song.title,
+						artist: song.artist,
+						keySignature: song.key_signature,
+						reason: `Trending song - used ${recentUsageCount} times in last 3 months. Congregation favorite.`,
+						score: Math.min(recentUsageCount / 6, 1) * 0.75,
+						type: 'popularity',
+						metadata: { recentUsageCount, trending: true }
 					});
 				}
 			}
 
-			// Sort by score and return top results
-			return recommendations
+			// Deduplicate and sort by score
+			const uniqueRecommendations = recommendations.reduce((acc, rec) => {
+				const existing = acc.find(r => r.songId === rec.songId);
+				if (!existing || existing.score < rec.score) {
+					return [...acc.filter(r => r.songId !== rec.songId), rec];
+				}
+				return acc;
+			}, [] as SongRecommendation[]);
+
+			return uniqueRecommendations
 				.sort((a, b) => b.score - a.score)
 				.slice(0, limit);
 
@@ -459,42 +515,517 @@ class RecommendationsApi {
 		}
 	}
 
-	// Helper methods
-	private calculateSeasonalScore(song: any): number {
+	/**
+	 * Get AI-powered worship insights based on comprehensive analytics
+	 */
+	async getWorshipInsights(): Promise<{
+		rotationHealth: {
+			score: number;
+			status: 'excellent' | 'good' | 'needs_attention' | 'critical';
+			insights: string[];
+			recommendations: string[];
+		};
+		diversityAnalysis: {
+			keyDiversity: number;
+			tempoDiversity: number;
+			artistDiversity: number;
+			recommendations: string[];
+		};
+		congregationEngagement: {
+			familiarSongs: number;
+			newSongIntroductionRate: number;
+			optimalRotationCandidates: number;
+			insights: string[];
+		};
+		seasonalReadiness: {
+			currentSeasonAlignment: number;
+			upcomingSeasonPreparation: number;
+			seasonalSuggestions: string[];
+		};
+	}> {
+		try {
+			// Get comprehensive usage data
+			const [allUsage, allSongs, recentServices] = await Promise.all([
+				pb.collection('song_usage').getFullList({
+					expand: 'song_id,setlist_id',
+					sort: '-used_date'
+				}),
+				pb.collection('songs').getFullList({
+					filter: 'is_active = true'
+				}),
+				pb.collection('setlists').getFullList({
+					filter: 'status = "completed"',
+					sort: '-service_date',
+					limit: 20,
+					expand: 'setlist_songs_via_setlist_id.song_id'
+				})
+			]);
+
+			// Analyze rotation health
+			const rotationHealth = this.analyzeRotationHealth(allUsage, allSongs);
+			
+			// Analyze diversity
+			const diversityAnalysis = this.analyzeDiversity(allUsage, allSongs);
+			
+			// Analyze congregation engagement
+			const congregationEngagement = this.analyzeCongregationEngagement(allUsage, allSongs);
+			
+			// Analyze seasonal readiness
+			const seasonalReadiness = this.analyzeSeasonalReadiness(allUsage, allSongs);
+
+			return {
+				rotationHealth,
+				diversityAnalysis,
+				congregationEngagement,
+				seasonalReadiness
+			};
+
+		} catch (error) {
+			console.error('Failed to get worship insights:', error);
+			throw error;
+		}
+	}
+
+	private analyzeRotationHealth(allUsage: any[], allSongs: any[]) {
 		const now = new Date();
-		const month = now.getMonth() + 1;
+		const twoMonthsAgo = new Date(now.getTime() - (60 * 24 * 60 * 60 * 1000));
+		const fourMonthsAgo = new Date(now.getTime() - (120 * 24 * 60 * 60 * 1000));
+
+		// Categorize songs by last usage
+		const neverUsed = allSongs.filter(song => 
+			!allUsage.some(usage => usage.song_id === song.id)
+		);
 		
-		// Simple seasonal scoring based on song tags or title keywords
+		const recentlyUsed = allSongs.filter(song => {
+			const lastUsage = allUsage.find(usage => usage.song_id === song.id);
+			return lastUsage && new Date(lastUsage.used_date) >= twoMonthsAgo;
+		});
+
+		const overdue = allSongs.filter(song => {
+			const lastUsage = allUsage.find(usage => usage.song_id === song.id);
+			return lastUsage && new Date(lastUsage.used_date) < fourMonthsAgo;
+		});
+
+		const total = allSongs.length;
+		const overduePercentage = (overdue.length / total) * 100;
+		const neverUsedPercentage = (neverUsed.length / total) * 100;
+		
+		let score = 100;
+		let status: 'excellent' | 'good' | 'needs_attention' | 'critical' = 'excellent';
+		const insights: string[] = [];
+		const recommendations: string[] = [];
+
+		// Scoring and status determination
+		if (overduePercentage > 40) {
+			score -= 40;
+			status = 'critical';
+			insights.push(`${overduePercentage.toFixed(1)}% of songs haven't been used in 4+ months`);
+			recommendations.push('Urgently review song library and retire unused songs or create rotation plan');
+		} else if (overduePercentage > 25) {
+			score -= 25;
+			status = 'needs_attention';
+			insights.push(`${overduePercentage.toFixed(1)}% of songs are overdue for rotation`);
+			recommendations.push('Create systematic rotation schedule for neglected songs');
+		} else if (overduePercentage > 15) {
+			score -= 15;
+			status = 'good';
+			insights.push('Most songs are in healthy rotation');
+		}
+
+		if (neverUsedPercentage > 20) {
+			score -= 20;
+			insights.push(`${neverUsedPercentage.toFixed(1)}% of songs have never been used`);
+			recommendations.push('Consider gradual introduction of new songs or archive unused ones');
+		}
+
+		return { score, status, insights, recommendations };
+	}
+
+	private analyzeDiversity(allUsage: any[], allSongs: any[]) {
+		// Key diversity analysis
+		const keysUsed = new Set(allUsage.map(usage => 
+			usage.expand?.song_id?.key_signature
+		).filter(Boolean));
+		
+		const totalPossibleKeys = 12; // Major/minor for each chromatic note
+		const keyDiversity = (keysUsed.size / totalPossibleKeys) * 100;
+
+		// Tempo diversity (categorize by tempo ranges)
+		const tempos = allUsage.map(usage => usage.expand?.song_id?.tempo).filter(Boolean);
+		const fastCount = tempos.filter(t => t >= 120).length;
+		const mediumCount = tempos.filter(t => t >= 80 && t < 120).length;
+		const slowCount = tempos.filter(t => t < 80).length;
+		const total = tempos.length;
+		
+		const idealDistribution = { fast: 0.3, medium: 0.4, slow: 0.3 };
+		const actualDistribution = {
+			fast: fastCount / total,
+			medium: mediumCount / total,
+			slow: slowCount / total
+		};
+		
+		const tempoDiversity = 100 - Math.abs(
+			(actualDistribution.fast - idealDistribution.fast) * 100 +
+			(actualDistribution.medium - idealDistribution.medium) * 100 +
+			(actualDistribution.slow - idealDistribution.slow) * 100
+		);
+
+		// Artist diversity
+		const artistsUsed = new Set(allUsage.map(usage => 
+			usage.expand?.song_id?.artist
+		).filter(Boolean));
+		
+		const totalArtists = new Set(allSongs.map(song => song.artist).filter(Boolean)).size;
+		const artistDiversity = totalArtists > 0 ? (artistsUsed.size / totalArtists) * 100 : 0;
+
+		const recommendations: string[] = [];
+		if (keyDiversity < 50) recommendations.push('Expand key variety for better musical flow');
+		if (tempoDiversity < 70) recommendations.push('Balance fast, medium, and slow tempo songs');
+		if (artistDiversity < 60) recommendations.push('Include songs from more diverse artists/writers');
+
+		return {
+			keyDiversity: Math.round(keyDiversity),
+			tempoDiversity: Math.round(tempoDiversity),
+			artistDiversity: Math.round(artistDiversity),
+			recommendations
+		};
+	}
+
+	private analyzeCongregationEngagement(allUsage: any[], allSongs: any[]) {
+		// Analyze familiarity levels
+		const songUsageCounts = new Map<string, number>();
+		allUsage.forEach(usage => {
+			const songId = usage.song_id;
+			songUsageCounts.set(songId, (songUsageCounts.get(songId) || 0) + 1);
+		});
+
+		const familiarSongs = Array.from(songUsageCounts.values()).filter(count => count >= 5).length;
+		const totalSongs = allSongs.length;
+
+		// Calculate new song introduction rate (last 6 months)
+		const sixMonthsAgo = new Date();
+		sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+		
+		const recentNewSongs = allUsage.filter(usage => {
+			const usageDate = new Date(usage.used_date);
+			const songUsageCount = songUsageCounts.get(usage.song_id) || 0;
+			return usageDate >= sixMonthsAgo && songUsageCount <= 2;
+		});
+		
+		const newSongIntroductionRate = recentNewSongs.length;
+
+		// Find optimal rotation candidates (songs used 3-8 times, not recently)
+		const oneMonthAgo = new Date();
+		oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+		
+		const optimalRotationCandidates = allSongs.filter(song => {
+			const usageCount = songUsageCounts.get(song.id) || 0;
+			const lastUsage = allUsage.find(usage => usage.song_id === song.id);
+			const lastUsageDate = lastUsage ? new Date(lastUsage.used_date) : null;
+			
+			return usageCount >= 3 && usageCount <= 8 && 
+				   (!lastUsageDate || lastUsageDate < oneMonthAgo);
+		}).length;
+
+		const insights: string[] = [];
+		if (familiarSongs / totalSongs < 0.3) {
+			insights.push('Consider focusing on building familiarity with core songs');
+		}
+		if (newSongIntroductionRate > 12) {
+			insights.push('High new song introduction rate - ensure congregation can keep up');
+		} else if (newSongIntroductionRate < 3) {
+			insights.push('Low new song introduction - consider adding fresh content');
+		}
+
+		return {
+			familiarSongs,
+			newSongIntroductionRate,
+			optimalRotationCandidates,
+			insights
+		};
+	}
+
+	private async analyzeSeasonalReadiness(allUsage: any[], allSongs: any[]) {
+		const seasonalContext = await this.getChurchSeasonalContext();
+		const currentMonth = seasonalContext.currentMonth;
+		const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+
+		// Current season alignment using timezone-aware context
+		const currentSeasonKeywords = this.getSeasonalKeywords(currentMonth, seasonalContext.hemisphere);
+		const currentSeasonSongs = allSongs.filter(song => {
+			const title = song.title?.toLowerCase() || '';
+			const tags = song.tags || [];
+			return currentSeasonKeywords.some(keyword => 
+				title.includes(keyword) || 
+				tags.some((tag: string) => tag.toLowerCase().includes(keyword))
+			);
+		});
+		const currentSeasonAlignment = (currentSeasonSongs.length / allSongs.length) * 100;
+
+		// Upcoming season preparation
+		const upcomingSeasonKeywords = this.getSeasonalKeywords(nextMonth, seasonalContext.hemisphere);
+		const upcomingSeasonSongs = allSongs.filter(song => {
+			const title = song.title?.toLowerCase() || '';
+			const tags = song.tags || [];
+			return upcomingSeasonKeywords.some(keyword => 
+				title.includes(keyword) || 
+				tags.some((tag: string) => tag.toLowerCase().includes(keyword))
+			);
+		});
+		const upcomingSeasonPreparation = (upcomingSeasonSongs.length / allSongs.length) * 100;
+
+		const seasonalSuggestions: string[] = [];
+		const currentSeasonName = this.getSeasonName(currentMonth, seasonalContext.hemisphere);
+		const upcomingSeasonName = this.getSeasonName(nextMonth, seasonalContext.hemisphere);
+		
+		if (currentSeasonAlignment < 10) {
+			seasonalSuggestions.push(`Add more ${currentSeasonName} themed songs`);
+		}
+		if (upcomingSeasonPreparation < 5) {
+			seasonalSuggestions.push(`Prepare songs for upcoming ${upcomingSeasonName} season`);
+		}
+
+		// Add hemisphere-specific suggestions
+		if (seasonalContext.hemisphere === 'southern') {
+			seasonalSuggestions.push('Consider seasonal themes appropriate for Southern Hemisphere');
+		}
+
+		return {
+			currentSeasonAlignment: Math.round(currentSeasonAlignment),
+			upcomingSeasonPreparation: Math.round(upcomingSeasonPreparation),
+			seasonalSuggestions,
+			context: {
+				hemisphere: seasonalContext.hemisphere,
+				timezone: seasonalContext.timezone,
+				currentSeason: currentSeasonName,
+				upcomingSeason: upcomingSeasonName
+			}
+		};
+	}
+
+	private getSeasonalKeywords(month: number, hemisphere: 'northern' | 'southern' = 'northern'): string[] {
+		// Adjust month for southern hemisphere (seasons are opposite)
+		const adjustedMonth = hemisphere === 'southern' ? 
+			(month + 6) % 12 || 12 : month;
+			
+		// Religious seasons remain the same regardless of hemisphere
+		if (month === 12 || month === 1) return ['christmas', 'advent', 'joy', 'peace', 'hope', 'light', 'nativity'];
+		if (month === 3 || month === 4) return ['easter', 'resurrection', 'risen', 'victory', 'new life', 'palm sunday', 'good friday'];
+		
+		// Seasonal themes adjust based on hemisphere
+		if (adjustedMonth >= 6 && adjustedMonth <= 8) {
+			// Summer in northern hemisphere, winter in southern
+			const seasonKeywords = hemisphere === 'northern' ? 
+				['joy', 'celebration', 'summer', 'family', 'vacation', 'outdoors'] :
+				['warmth', 'light', 'shelter', 'community', 'comfort'];
+			return [...seasonKeywords, 'fellowship', 'gathering'];
+		}
+		
+		if (adjustedMonth >= 9 && adjustedMonth <= 11) {
+			// Fall/Autumn themes
+			const fallKeywords = hemisphere === 'northern' ?
+				['harvest', 'thanksgiving', 'gratitude', 'fall', 'autumn', 'abundance'] :
+				['spring', 'new growth', 'renewal', 'fresh start', 'blooming'];
+			return [...fallKeywords, 'blessing', 'provision'];
+		}
+		
+		if (adjustedMonth >= 12 || adjustedMonth <= 2) {
+			// Winter themes (excluding Christmas month)
+			const winterKeywords = hemisphere === 'northern' ?
+				['winter', 'peace', 'reflection', 'rest', 'stillness'] :
+				['summer', 'growth', 'abundance', 'celebration'];
+			return [...winterKeywords, 'prayer', 'meditation'];
+		}
+		
+		// Spring themes
+		const springKeywords = hemisphere === 'northern' ?
+			['spring', 'new life', 'growth', 'renewal', 'fresh start'] :
+			['autumn', 'harvest', 'gratitude', 'reflection'];
+		return [...springKeywords, 'hope', 'restoration'];
+	}
+
+	private getSeasonName(month: number, hemisphere: 'northern' | 'southern' = 'northern'): string {
+		// Religious seasons remain the same
+		if (month === 12 || month === 1) return 'Christmas/Advent';
+		if (month === 3 || month === 4) return 'Easter/Lent';
+		
+		// Adjust for hemisphere
+		const adjustedMonth = hemisphere === 'southern' ? 
+			(month + 6) % 12 || 12 : month;
+			
+		if (adjustedMonth >= 6 && adjustedMonth <= 8) {
+			return hemisphere === 'northern' ? 'Summer' : 'Winter';
+		}
+		if (adjustedMonth >= 9 && adjustedMonth <= 11) {
+			return hemisphere === 'northern' ? 'Fall/Thanksgiving' : 'Spring';
+		}
+		if (adjustedMonth >= 12 || adjustedMonth <= 2) {
+			return hemisphere === 'northern' ? 'Winter' : 'Summer';
+		}
+		return hemisphere === 'northern' ? 'Spring' : 'Fall';
+	}
+
+	/**
+	 * Detect hemisphere and timezone from user/organization settings
+	 */
+	private async getChurchSeasonalContext(): Promise<{
+		hemisphere: 'northern' | 'southern';
+		timezone: string;
+		currentMonth: number;
+	}> {
+		try {
+			// Try to get current user's church settings
+			const user = pb.authStore.model;
+			if (user?.current_church_id) {
+				const church = await pb.collection('churches').getOne(user.current_church_id, {
+					fields: 'timezone,hemisphere,country'
+				});
+
+				if (church) {
+					return {
+						hemisphere: church.hemisphere || this.detectHemisphereFromTimezone(church.timezone),
+						timezone: church.timezone || 'UTC',
+						currentMonth: this.getCurrentMonthInTimezone(church.timezone || 'UTC')
+					};
+				}
+			}
+
+			// Fallback: try to detect from browser if available
+			const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+			const hemisphere = this.detectHemisphereFromTimezone(userTimezone);
+			
+			return {
+				hemisphere,
+				timezone: userTimezone,
+				currentMonth: this.getCurrentMonthInTimezone(userTimezone)
+			};
+		} catch (error) {
+			// Final fallback to UTC/Northern hemisphere
+			console.warn('Could not determine church context, using defaults:', error);
+			return {
+				hemisphere: 'northern',
+				timezone: 'UTC',
+				currentMonth: new Date().getUTCMonth() + 1
+			};
+		}
+	}
+
+	private detectHemisphereFromCountry(country?: string): 'northern' | 'southern' {
+		if (!country) return 'northern';
+		
+		const southernCountries = [
+			'australia', 'new zealand', 'south africa', 'argentina', 'brazil', 'chile',
+			'uruguay', 'paraguay', 'bolivia', 'peru', 'ecuador', 'zimbabwe', 'botswana',
+			'namibia', 'zambia', 'malawi', 'madagascar', 'mauritius', 'indonesia', 'east timor'
+		];
+		
+		return southernCountries.some(sc => 
+			country.toLowerCase().includes(sc)
+		) ? 'southern' : 'northern';
+	}
+
+	private detectHemisphereFromTimezone(timezone: string): 'northern' | 'southern' {
+		const southernTimezones = [
+			'Australia/', 'Pacific/Auckland', 'Pacific/Fiji', 'Africa/Johannesburg',
+			'America/Sao_Paulo', 'America/Argentina/', 'America/Santiago',
+			'Indian/Mauritius', 'Antarctica/'
+		];
+		
+		return southernTimezones.some(tz => timezone.startsWith(tz)) ? 'southern' : 'northern';
+	}
+
+	private getCurrentMonthInTimezone(timezone: string): number {
+		try {
+			const now = new Date();
+			const formatter = new Intl.DateTimeFormat('en-US', {
+				timeZone: timezone,
+				month: 'numeric'
+			});
+			return parseInt(formatter.format(now));
+		} catch (error) {
+			console.warn('Invalid timezone, using UTC:', timezone);
+			return new Date().getUTCMonth() + 1;
+		}
+	}
+
+	// Helper methods
+	private async calculateSeasonalScore(song: any): Promise<number> {
+		const seasonalContext = await this.getChurchSeasonalContext();
+		const month = seasonalContext.currentMonth;
+		
+		// Seasonal scoring based on song tags or title keywords
 		const title = song.title?.toLowerCase() || '';
 		const tags = song.tags || [];
 		
 		let score = 0;
 		
-		// Christmas season (December, January)
-		if (month === 12 || month === 1) {
-			if (title.includes('christmas') || title.includes('joy') || title.includes('peace') ||
-				tags.some((tag: string) => ['christmas', 'holiday', 'joy', 'peace'].includes(tag.toLowerCase()))) {
-				score = 0.9;
-			}
-		}
+		// Get current season keywords based on hemisphere
+		const seasonalKeywords = this.getSeasonalKeywords(month, seasonalContext.hemisphere);
 		
-		// Easter season (March, April)
-		if (month === 3 || month === 4) {
-			if (title.includes('resurrection') || title.includes('easter') || title.includes('risen') ||
-				tags.some((tag: string) => ['easter', 'resurrection', 'victory'].includes(tag.toLowerCase()))) {
-				score = 0.9;
+		// Check if song matches current seasonal themes
+		const titleMatches = seasonalKeywords.some(keyword => title.includes(keyword));
+		const tagMatches = tags.some((tag: string) => 
+			seasonalKeywords.some(keyword => tag.toLowerCase().includes(keyword))
+		);
+		
+		if (titleMatches || tagMatches) {
+			// Higher score for exact keyword matches
+			if (titleMatches && tagMatches) {
+				score = 0.95;
+			} else if (titleMatches || tagMatches) {
+				score = 0.8;
+			}
+			
+			// Boost score for religious seasons (same regardless of hemisphere)
+			if ((month === 12 || month === 1) && 
+				(title.includes('christmas') || title.includes('advent'))) {
+				score = Math.max(score, 0.95);
+			}
+			
+			if ((month === 3 || month === 4) && 
+				(title.includes('easter') || title.includes('resurrection'))) {
+				score = Math.max(score, 0.95);
 			}
 		}
 		
 		return score;
 	}
 
-	private getSeasonalReason(): string {
-		const month = new Date().getMonth() + 1;
-		if (month === 12 || month === 1) return 'Perfect for Christmas season';
-		if (month === 3 || month === 4) return 'Great for Easter celebration';
-		if (month >= 6 && month <= 8) return 'Ideal for summer worship';
-		return 'Fits current season theme';
+	// Synchronous version for backward compatibility
+	private calculateSeasonalScoreSync(song: any, hemisphere: 'northern' | 'southern' = 'northern'): number {
+		const now = new Date();
+		const month = now.getMonth() + 1;
+		
+		const title = song.title?.toLowerCase() || '';
+		const tags = song.tags || [];
+		
+		const seasonalKeywords = this.getSeasonalKeywords(month, hemisphere);
+		
+		const titleMatches = seasonalKeywords.some(keyword => title.includes(keyword));
+		const tagMatches = tags.some((tag: string) => 
+			seasonalKeywords.some(keyword => tag.toLowerCase().includes(keyword))
+		);
+		
+		if (titleMatches || tagMatches) {
+			if (titleMatches && tagMatches) return 0.95;
+			return 0.8;
+		}
+		
+		return 0;
+	}
+
+	private async getSeasonalReason(context?: any): string {
+		const seasonalContext = context || await this.getChurchSeasonalContext();
+		const month = seasonalContext.currentMonth;
+		const hemisphere = seasonalContext.hemisphere;
+		
+		// Religious seasons are the same regardless of hemisphere
+		if (month === 12 || month === 1) return 'Perfect for Christmas/Advent season';
+		if (month === 3 || month === 4) return 'Great for Easter/Lent celebration';
+		
+		// Seasonal themes adjust for hemisphere
+		const seasonName = this.getSeasonName(month, hemisphere);
+		return `Ideal for ${seasonName} worship themes`;
 	}
 
 	private getCurrentSeason(): string {

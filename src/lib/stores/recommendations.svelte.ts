@@ -18,6 +18,7 @@ class RecommendationsStore {
 	serviceBalanceAnalysis = $state<ServiceBalanceAnalysis | null>(null);
 	seasonalTrends = $state<SeasonalTrend[]>([]);
 	comparativePeriod = $state<ComparativePeriod | null>(null);
+	worshipInsights = $state<any | null>(null);
 
 	// Filter preferences
 	recommendationFilters = $state<{
@@ -144,6 +145,23 @@ class RecommendationsStore {
 		} catch (error) {
 			this.error = error instanceof Error ? error.message : 'Failed to load comparative analysis';
 			console.error('Failed to load comparative analysis:', error);
+		} finally {
+			this.loading = false;
+		}
+	}
+
+	/**
+	 * Load comprehensive worship insights
+	 */
+	async loadWorshipInsights() {
+		this.loading = true;
+		this.error = null;
+
+		try {
+			this.worshipInsights = await recommendationsApi.getWorshipInsights();
+		} catch (error) {
+			this.error = error instanceof Error ? error.message : 'Failed to load worship insights';
+			console.error('Failed to load worship insights:', error);
 		} finally {
 			this.loading = false;
 		}

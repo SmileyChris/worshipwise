@@ -8,9 +8,10 @@
 	import SongRecommendationCard from './SongRecommendationCard.svelte';
 	import WorshipFlowAnalysis from './WorshipFlowAnalysis.svelte';
 	import ServiceBalanceAnalysis from './ServiceBalanceAnalysis.svelte';
-	import { Lightbulb, TrendingUp, Music, Calendar, BarChart3 } from 'lucide-svelte';
+	import WorshipInsightsDashboard from './WorshipInsightsDashboard.svelte';
+	import { Lightbulb, TrendingUp, Music, Calendar, BarChart3, Brain } from 'lucide-svelte';
 
-	let activeTab = $state<'overview' | 'songs' | 'flow' | 'balance' | 'trends'>('overview');
+	let activeTab = $state<'overview' | 'songs' | 'flow' | 'balance' | 'trends' | 'insights'>('overview');
 
 	onMount(async () => {
 		// Load initial recommendations
@@ -131,6 +132,18 @@
 			>
 				<Calendar class="h-4 w-4 mr-2 inline" />
 				Seasonal Trends
+			</button>
+			
+			<button
+				class={`py-2 px-1 border-b-2 font-medium text-sm ${
+					activeTab === 'insights'
+						? 'border-blue-500 text-blue-600'
+						: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+				}`}
+				onclick={() => activeTab = 'insights'}
+			>
+				<Brain class="h-4 w-4 mr-2 inline" />
+				AI Insights
 			</button>
 		</nav>
 	</div>
@@ -359,6 +372,10 @@
 					</Card>
 				{/if}
 			</div>
+		{/if}
+
+		{#if activeTab === 'insights'}
+			<WorshipInsightsDashboard />
 		{/if}
 	{/if}
 </div>

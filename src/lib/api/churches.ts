@@ -4,10 +4,117 @@ import type {
 	ChurchMembership, 
 	CreateChurchData,
 	UpdateChurchData,
-	InviteUserData 
+	InviteUserData,
+	InitialChurchSetup
+} from '$lib/types/church';
+import { 
+	getDefaultPermissions,
+	getDefaultChurchSettings,
+	getTimezoneAwareDefaults,
+	detectHemisphereFromTimezone
 } from '$lib/types/church';
 
 export class ChurchesAPI {
+	/**
+	 * Check if any churches exist in the system
+	 */
+	static async hasChurches(): Promise<boolean> {
+		try {
+			const churches = await pb.collection('churches').getList(1, 1);
+			return churches.totalItems > 0;
+		} catch (error) {
+			return false;
+		}
+	}
+
+	/**
+	 * Initial setup: Create first church and admin user
+	 */
+	static async initialSetup(setupData: InitialChurchSetup): Promise<{
+		church: Church;
+		user: any;
+	}> {
+		try {
+			// Create the admin user first
+			const user = await pb.collection('users').create({
+				email: setupData.adminEmail,
+				password: setupData.password,
+				passwordConfirm: setupData.confirmPassword,
+				name: setupData.adminName,
+				emailVisibility: true
+			});
+
+			// Generate unique slug from church name
+			const baseSlug = setupData.churchName
+				.toLowerCase()
+				.replace(/[^a-z0-9\s-]/g, '')
+				.replace(/\s+/g, '-')
+				.replace(/-+/g, '-')
+				.trim();
+			
+			let slug = baseSlug;
+			let counter = 1;
+			while (!(await this.isSlugAvailable(slug))) {
+				slug = `${baseSlug}-${counter}`;
+				counter++;
+			}
+
+			// Detect hemisphere from timezone
+			const hemisphere = detectHemisphereFromTimezone(setupData.timezone);
+			
+			// Create church with timezone-aware defaults
+			const defaultSettings = getDefaultChurchSettings();
+			const timezoneDefaults = getTimezoneAwareDefaults(setupData.timezone);
+			
+			const church = await pb.collection('churches').create({
+				name: setupData.churchName,
+				slug: slug,
+				address: setupData.address,
+				city: setupData.city,
+				state: setupData.state,
+				country: setupData.country,
+				timezone: setupData.timezone,
+				hemisphere: hemisphere,
+				subscription_type: 'free',
+				subscription_status: 'active',
+				max_users: 25, // More generous for initial setup
+				max_songs: 500,
+				max_storage_mb: 1024,
+				owner_user_id: user.id,
+				billing_email: setupData.adminEmail,
+				settings: {
+					...defaultSettings,
+					...timezoneDefaults
+				},
+				is_active: true
+			});
+
+			// Create pastor membership for the admin user
+			await pb.collection('church_memberships').create({
+				church_id: church.id,
+				user_id: user.id,
+				role: 'pastor',
+				permissions: getDefaultPermissions('pastor'),
+				status: 'active',
+				joined_date: new Date().toISOString(),
+				is_active: true
+			});
+
+			// Update user with current church
+			await pb.collection('users').update(user.id, {
+				current_church_id: church.id
+			});
+
+			// Authenticate the user
+			await pb.collection('users').authWithPassword(setupData.adminEmail, setupData.password);
+
+			return { church, user };
+		} catch (error) {
+			console.error('Initial setup failed:', error);
+			throw error;
+		}
+	}
+
 	/**
 	 * Get current user's churches
 	 */

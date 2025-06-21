@@ -5,6 +5,12 @@ export interface Church {
 	name: string;
 	slug: string;
 	description?: string;
+	address?: string;
+	city?: string;
+	state?: string;
+	country?: string;
+	timezone: string;
+	hemisphere: 'northern' | 'southern';
 	subscription_type: 'free' | 'basic' | 'premium';
 	subscription_status: 'active' | 'trial' | 'suspended' | 'cancelled';
 	max_users: number;
@@ -26,11 +32,12 @@ export interface Church {
 
 export interface ChurchSettings {
 	default_service_types: string[];
-	time_zone: string;
 	week_start: 'sunday' | 'monday';
 	repetition_window_days: number;
 	allow_member_song_creation: boolean;
 	auto_approve_members: boolean;
+	default_key_signatures: string[];
+	preferred_ccli_license?: string;
 }
 
 export interface ChurchMembership {
@@ -56,12 +63,13 @@ export interface ChurchMembership {
 	};
 }
 
-export type ChurchRole = 'member' | 'leader' | 'admin' | 'owner';
+export type ChurchRole = 'member' | 'musician' | 'leader' | 'admin' | 'pastor';
 
 export interface NotificationPreferences {
 	email_service_reminders: boolean;
 	email_new_songs: boolean;
 	email_member_activity: boolean;
+	email_weekly_digest: boolean;
 }
 
 export interface ChurchInvitation {
@@ -90,6 +98,11 @@ export interface CreateChurchData {
 	name: string;
 	slug: string;
 	description?: string;
+	address?: string;
+	city?: string;
+	state?: string;
+	country?: string;
+	timezone?: string;
 	settings?: Partial<ChurchSettings>;
 }
 
@@ -97,8 +110,26 @@ export interface UpdateChurchData {
 	name?: string;
 	slug?: string;
 	description?: string;
+	address?: string;
+	city?: string;
+	state?: string;
+	country?: string;
+	timezone?: string;
 	settings?: Partial<ChurchSettings>;
 	billing_email?: string;
+}
+
+export interface InitialChurchSetup {
+	churchName: string;
+	adminName: string;
+	adminEmail: string;
+	password: string;
+	confirmPassword: string;
+	timezone: string;
+	country?: string;
+	address?: string;
+	city?: string;
+	state?: string;
 }
 
 export interface InviteUserData {
@@ -138,8 +169,7 @@ export const PERMISSIONS = {
 // Helper functions
 export function getDefaultPermissions(role: ChurchRole): string[] {
 	switch (role) {
-		case 'owner':
-		case 'admin':
+		case 'pastor':
 			return [
 				PERMISSIONS.SONGS_CREATE,
 				PERMISSIONS.SONGS_EDIT,
@@ -155,6 +185,20 @@ export function getDefaultPermissions(role: ChurchRole): string[] {
 				PERMISSIONS.CHURCH_SETTINGS,
 				PERMISSIONS.CHURCH_BILLING
 			];
+		case 'admin':
+			return [
+				PERMISSIONS.SONGS_CREATE,
+				PERMISSIONS.SONGS_EDIT,
+				PERMISSIONS.SONGS_DELETE,
+				PERMISSIONS.SONGS_VIEW,
+				PERMISSIONS.SERVICES_CREATE,
+				PERMISSIONS.SERVICES_EDIT,
+				PERMISSIONS.SERVICES_DELETE,
+				PERMISSIONS.SERVICES_VIEW,
+				PERMISSIONS.USERS_INVITE,
+				PERMISSIONS.USERS_MANAGE,
+				PERMISSIONS.CHURCH_SETTINGS
+			];
 		case 'leader':
 			return [
 				PERMISSIONS.SONGS_CREATE,
@@ -163,6 +207,12 @@ export function getDefaultPermissions(role: ChurchRole): string[] {
 				PERMISSIONS.SERVICES_CREATE,
 				PERMISSIONS.SERVICES_EDIT,
 				PERMISSIONS.SERVICES_DELETE,
+				PERMISSIONS.SERVICES_VIEW,
+				PERMISSIONS.USERS_INVITE
+			];
+		case 'musician':
+			return [
+				PERMISSIONS.SONGS_VIEW,
 				PERMISSIONS.SERVICES_VIEW
 			];
 		case 'member':
@@ -173,12 +223,14 @@ export function getDefaultPermissions(role: ChurchRole): string[] {
 
 export function getRoleDisplayName(role: ChurchRole): string {
 	switch (role) {
-		case 'owner':
-			return 'Church Owner';
+		case 'pastor':
+			return 'Pastor/Senior Leader';
 		case 'admin':
 			return 'Administrator';
 		case 'leader':
 			return 'Worship Leader';
+		case 'musician':
+			return 'Musician';
 		case 'member':
 			return 'Member';
 		default:
@@ -189,10 +241,82 @@ export function getRoleDisplayName(role: ChurchRole): string {
 export function getDefaultChurchSettings(): ChurchSettings {
 	return {
 		default_service_types: ['Sunday Morning', 'Sunday Evening', 'Wednesday'],
-		time_zone: 'Pacific/Auckland',
 		week_start: 'sunday',
 		repetition_window_days: 30,
 		allow_member_song_creation: true,
-		auto_approve_members: false
+		auto_approve_members: false,
+		default_key_signatures: ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+		preferred_ccli_license: undefined
+	};
+}
+
+/**
+ * Detect hemisphere from timezone string
+ */
+export function detectHemisphereFromTimezone(timezone: string): 'northern' | 'southern' {
+	const southernTimezones = [
+		// Australia & Oceania
+		'Australia/',
+		'Pacific/Auckland',
+		'Pacific/Wellington', 
+		'Pacific/Fiji',
+		'Pacific/Tahiti',
+		'Pacific/Samoa',
+		'Pacific/Tonga',
+		'Pacific/Vanuatu',
+		'Pacific/New_Caledonia',
+		
+		// Africa (Southern)
+		'Africa/Johannesburg',
+		'Africa/Cape_Town',
+		'Africa/Windhoek',
+		'Africa/Maputo',
+		'Africa/Gaborone',
+		'Africa/Maseru',
+		'Africa/Mbabane',
+		
+		// South America
+		'America/Sao_Paulo',
+		'America/Argentina/',
+		'America/Santiago',
+		'America/Montevideo',
+		'America/Asuncion',
+		'America/La_Paz',
+		'America/Lima',
+		'America/Bogota', // Northern SA but often considered southern hemisphere for seasons
+		
+		// Islands
+		'Indian/Mauritius',
+		'Indian/Reunion',
+		'Indian/Madagascar',
+		'Atlantic/South_Georgia',
+		
+		// Antarctica
+		'Antarctica/'
+	];
+	
+	return southernTimezones.some(tz => timezone.startsWith(tz)) ? 'southern' : 'northern';
+}
+
+/**
+ * Get timezone-appropriate default settings
+ */
+export function getTimezoneAwareDefaults(timezone: string): Partial<ChurchSettings> {
+	const hemisphere = detectHemisphereFromTimezone(timezone);
+	
+	// Adjust default service types based on location
+	let default_service_types = ['Sunday Morning', 'Sunday Evening'];
+	
+	// Add region-specific defaults
+	if (timezone.startsWith('America/')) {
+		default_service_types.push('Wednesday Night');
+	} else if (timezone.startsWith('Australia/') || timezone.startsWith('Pacific/')) {
+		default_service_types.push('Wednesday');
+	} else if (timezone.startsWith('Europe/')) {
+		default_service_types.push('Sunday Evening', 'Midweek');
+	}
+	
+	return {
+		default_service_types
 	};
 }
