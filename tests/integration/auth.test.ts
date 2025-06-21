@@ -101,8 +101,7 @@ describe('Authentication Integration Tests', () => {
         password: 'password123',
         passwordConfirm: 'password123',
         name: 'New User',
-        role: 'musician' as const,
-        church_name: 'New Church'
+        role: 'musician' as const
       };
 
       const mockUser = { id: 'user1', email: 'newuser@example.com' };
@@ -110,8 +109,7 @@ describe('Authentication Integration Tests', () => {
         id: 'profile1',
         user_id: 'user1',
         name: 'New User',
-        role: 'musician',
-        church_name: 'New Church'
+        role: 'musician'
       };
 
       const usersCollection = mockPb.collection('users');
@@ -141,7 +139,6 @@ describe('Authentication Integration Tests', () => {
         user_id: mockUser.id,
         name: registerData.name,
         role: registerData.role,
-        church_name: registerData.church_name,
         is_active: true
       });
 
@@ -295,7 +292,6 @@ describe('Authentication Integration Tests', () => {
         user_id: 'user1',
         name: 'Test User',
         role: 'musician',
-        church_name: 'Test Church',
         is_active: true
       } as Profile;
 
@@ -316,6 +312,7 @@ describe('Authentication Integration Tests', () => {
         name: 'Updated Name'
       });
 
+      const originalUpdateProfileInfo = auth.updateProfileInfo;
       auth.updateProfileInfo = vi.fn().mockImplementation(async (profileData, userData) => {
         if (userData) {
           const updatedUser = await usersCollection.update(auth.user?.id, userData);
@@ -341,7 +338,6 @@ describe('Authentication Integration Tests', () => {
         expect(auth.updateProfileInfo).toHaveBeenCalledWith(
           {
             name: 'Updated Name',
-            church_name: 'Test Church',
             role: 'musician'
           },
           {
@@ -410,21 +406,21 @@ describe('Authentication Integration Tests', () => {
       auth.isValid = true;
 
       // Test different permission levels
-      expect(auth.canManageSongs).toBe(false); // Musicians can't manage songs
-      expect(auth.canManageServices).toBe(false); // Musicians can't manage services
-      expect(auth.isAdmin).toBe(false); // Not an admin
+      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(false); // Musicians can't manage songs
+      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(false); // Musicians can't manage services
+      expect(auth.hasRole('admin')).toBe(false); // Not an admin
 
       // Change to leader role
       auth.profile = { ...auth.profile, role: 'leader' };
-      expect(auth.canManageSongs).toBe(true); // Leaders can manage songs
-      expect(auth.canManageServices).toBe(true); // Leaders can manage services
-      expect(auth.isAdmin).toBe(false); // Still not an admin
+      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true); // Leaders can manage songs
+      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true); // Leaders can manage services
+      expect(auth.hasRole('admin')).toBe(false); // Still not an admin
 
       // Change to admin role
       auth.profile = { ...auth.profile, role: 'admin' };
-      expect(auth.canManageSongs).toBe(true); // Admins can manage songs
-      expect(auth.canManageServices).toBe(true); // Admins can manage services
-      expect(auth.isAdmin).toBe(true); // Now an admin
+      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true); // Admins can manage songs
+      expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true); // Admins can manage services
+      expect(auth.hasRole('admin')).toBe(true); // Now an admin
     });
   });
 

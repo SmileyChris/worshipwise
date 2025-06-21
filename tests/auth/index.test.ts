@@ -116,14 +116,14 @@ describe('Authentication Test Suite', () => {
   });
 
   it('should test role-based permissions', () => {
-    const roles = ['musician', 'leader', 'admin'];
+    const roles = ['member', 'musician', 'leader', 'admin', 'pastor'];
     const permissions = ['canManageSongs', 'canManageServices', 'isAdmin'];
 
-    expect(roles.length).toBe(3);
+    expect(roles.length).toBe(5);
     expect(permissions.length).toBe(3);
 
     // Verify role hierarchy is tested
-    // Musicians < Leaders < Admins in terms of permissions
+    // Members/Musicians < Leaders < Admins < Pastors in terms of permissions
   });
 
   it('should test accessibility requirements', () => {
