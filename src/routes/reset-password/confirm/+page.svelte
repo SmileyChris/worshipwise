@@ -21,8 +21,6 @@
 	// Form state
 	let password = $state('');
 	let passwordConfirm = $state('');
-	let passwordError = $state('');
-	let passwordConfirmError = $state('');
 	let success = $state(false);
 	let tokenError = $state('');
 
@@ -55,16 +53,11 @@
 		return '';
 	}
 
-	// Real-time validation
-	$effect(() => {
-		passwordError = password ? validatePassword(password) : '';
-	});
-
-	$effect(() => {
-		passwordConfirmError = passwordConfirm
-			? validatePasswordConfirm(password, passwordConfirm)
-			: '';
-	});
+	// Real-time validation using derived
+	let passwordError = $derived(password ? validatePassword(password) : '');
+	let passwordConfirmError = $derived(
+		passwordConfirm ? validatePasswordConfirm(password, passwordConfirm) : ''
+	);
 
 	// Form validation
 	let isValid = $derived(

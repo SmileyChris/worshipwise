@@ -90,7 +90,7 @@
 
 				<!-- Navigation links -->
 				<div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-					{#each navigationItems as item}
+					{#each navigationItems as item (item.href)}
 						<a
 							href={item.href}
 							class="inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors {isCurrentPage(
@@ -176,7 +176,7 @@
 	<!-- Mobile navigation menu (simplified) -->
 	<div class="sm:hidden">
 		<div class="space-y-1 pt-2 pb-3">
-			{#each navigationItems as item}
+			{#each navigationItems as item (item.href)}
 				<a
 					href={item.href}
 					class="block py-2 pr-4 pl-3 text-base font-medium transition-colors {isCurrentPage(
@@ -216,7 +216,7 @@
 					<div class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase">
 						Switch Church
 					</div>
-					{#each auth.availableChurches as church}
+					{#each auth.availableChurches as church (church.id)}
 						{#if church.id !== auth.currentChurch?.id}
 							<button
 								onclick={() => auth.switchChurch(church.id)}

@@ -85,7 +85,7 @@
 		{#if !required}
 			<option value="">{placeholder}</option>
 		{/if}
-		{#each categories as category}
+		{#each categories as category (category.id)}
 			<option value={category.id}>{category.name}</option>
 		{/each}
 	</select>

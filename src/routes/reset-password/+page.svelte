@@ -15,7 +15,6 @@
 
 	// Form state
 	let email = $state('');
-	let emailError = $state('');
 	let success = $state(false);
 
 	// Validation function
@@ -27,10 +26,8 @@
 		return '';
 	}
 
-	// Real-time validation
-	$effect(() => {
-		emailError = email ? validateEmail(email) : '';
-	});
+	// Real-time validation using derived
+	let emailError = $derived(email ? validateEmail(email) : '');
 
 	// Form validation
 	let isValid = $derived(email && !emailError);

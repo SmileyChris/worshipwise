@@ -192,7 +192,7 @@
 						<div>
 							<h4 class="mb-2 font-medium text-gray-900">Key Insights</h4>
 							<ul class="space-y-1">
-								{#each insights.rotationHealth.insights as insight}
+								{#each insights.rotationHealth.insights as insight, index (index)}
 									<li class="text-sm text-gray-600">• {insight}</li>
 								{/each}
 							</ul>
@@ -203,7 +203,7 @@
 						<div>
 							<h4 class="mb-2 font-medium text-gray-900">Recommendations</h4>
 							<ul class="space-y-1">
-								{#each insights.rotationHealth.recommendations as recommendation}
+								{#each insights.rotationHealth.recommendations as recommendation, index (index)}
 									<li class="text-primary text-sm">• {recommendation}</li>
 								{/each}
 							</ul>
@@ -221,7 +221,7 @@
 
 				<div class="space-y-4">
 					<div class="space-y-3">
-						{#each [{ label: 'Key Diversity', value: insights.diversityAnalysis.keyDiversity, color: 'bg-primary' }, { label: 'Tempo Balance', value: insights.diversityAnalysis.tempoDiversity, color: 'bg-green-500' }, { label: 'Artist Variety', value: insights.diversityAnalysis.artistDiversity, color: 'bg-purple-500' }] as metric}
+						{#each [{ label: 'Key Diversity', value: insights.diversityAnalysis.keyDiversity, color: 'bg-primary' }, { label: 'Tempo Balance', value: insights.diversityAnalysis.tempoDiversity, color: 'bg-green-500' }, { label: 'Artist Variety', value: insights.diversityAnalysis.artistDiversity, color: 'bg-purple-500' }] as metric (metric.label)}
 							<div>
 								<div class="mb-1 flex items-center justify-between">
 									<span class="text-sm text-gray-600">{metric.label}</span>
@@ -241,7 +241,7 @@
 						<div class="border-t pt-3">
 							<h4 class="mb-2 font-medium text-gray-900">Improvement Areas</h4>
 							<ul class="space-y-1">
-								{#each insights.diversityAnalysis.recommendations as recommendation}
+								{#each insights.diversityAnalysis.recommendations as recommendation, index (index)}
 									<li class="text-sm text-green-600">• {recommendation}</li>
 								{/each}
 							</ul>
@@ -285,7 +285,7 @@
 						<div>
 							<h4 class="mb-2 font-medium text-gray-900">Engagement Insights</h4>
 							<ul class="space-y-1">
-								{#each insights.congregationEngagement.insights as insight}
+								{#each insights.congregationEngagement.insights as insight, index (index)}
 									<li class="text-sm text-purple-600">• {insight}</li>
 								{/each}
 							</ul>
@@ -350,7 +350,7 @@
 						<div>
 							<h4 class="mb-2 font-medium text-gray-900">Seasonal Actions</h4>
 							<ul class="space-y-1">
-								{#each insights.seasonalReadiness.seasonalSuggestions as suggestion}
+								{#each insights.seasonalReadiness.seasonalSuggestions as suggestion, index (index)}
 									<li class="text-sm text-orange-600">• {suggestion}</li>
 								{/each}
 							</ul>
@@ -388,7 +388,7 @@
 							<div>
 								<h4 class="mb-2 font-medium text-red-800">🚨 High Priority</h4>
 								<ul class="space-y-1">
-									{#each insights.rotationHealth.recommendations as rec}
+									{#each insights.rotationHealth.recommendations as rec, index (index)}
 										<li class="text-sm text-red-700">• {rec}</li>
 									{/each}
 								</ul>
@@ -399,10 +399,10 @@
 						<div>
 							<h4 class="mb-2 font-medium text-yellow-800">⚡ Medium Priority</h4>
 							<ul class="space-y-1">
-								{#each insights.diversityAnalysis.recommendations.slice(0, 2) as rec}
+								{#each insights.diversityAnalysis.recommendations.slice(0, 2) as rec, index (index)}
 									<li class="text-sm text-yellow-700">• {rec}</li>
 								{/each}
-								{#each insights.seasonalReadiness.seasonalSuggestions.slice(0, 1) as rec}
+								{#each insights.seasonalReadiness.seasonalSuggestions.slice(0, 1) as rec, index (index)}
 									<li class="text-sm text-yellow-700">• {rec}</li>
 								{/each}
 							</ul>

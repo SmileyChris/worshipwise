@@ -18,12 +18,6 @@
 	let passwordConfirm = $state('');
 	let name = $state('');
 
-	// Validation state
-	let emailError = $state('');
-	let passwordError = $state('');
-	let passwordConfirmError = $state('');
-	let nameError = $state('');
-
 	// Computed properties
 	let isLogin = $derived(mode === 'login');
 	let isRegister = $derived(mode === 'register');
@@ -60,24 +54,13 @@
 		return '';
 	}
 
-	// Real-time validation
-	$effect(() => {
-		emailError = email ? validateEmail(email) : '';
-	});
-
-	$effect(() => {
-		passwordError = password ? validatePassword(password) : '';
-	});
-
-	$effect(() => {
-		passwordConfirmError = passwordConfirm
-			? validatePasswordConfirm(password, passwordConfirm)
-			: '';
-	});
-
-	$effect(() => {
-		nameError = name ? validateName(name) : '';
-	});
+	// Validation state - computed from reactive inputs
+	let emailError = $derived(email ? validateEmail(email) : '');
+	let passwordError = $derived(password ? validatePassword(password) : '');
+	let passwordConfirmError = $derived(
+		passwordConfirm ? validatePasswordConfirm(password, passwordConfirm) : ''
+	);
+	let nameError = $derived(name ? validateName(name) : '');
 
 	// Form validation
 	let isValid = $derived.by(() => {

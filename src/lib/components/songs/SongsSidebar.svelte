@@ -83,7 +83,7 @@
 			<h3 class="font-title mb-4 text-lg font-semibold text-gray-900">Popular Songs</h3>
 			{#if popularSongs.length > 0}
 				<div class="space-y-3">
-					{#each popularSongs as song, index}
+					{#each popularSongs as song, index (song.id)}
 						<div class="flex items-start justify-between">
 							<div class="min-w-0 flex-1">
 								<div class="flex items-center gap-2">
@@ -140,7 +140,7 @@
 			<Card>
 				<h3 class="font-title mb-4 text-lg font-semibold text-gray-900">Your Favorites</h3>
 				<div class="space-y-3">
-					{#each personalPopularSongs as song, index}
+					{#each personalPopularSongs as song, index (song.id)}
 						<div class="flex items-start justify-between">
 							<div class="min-w-0 flex-1">
 								<div class="flex items-center gap-2">

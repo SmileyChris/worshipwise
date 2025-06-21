@@ -139,7 +139,7 @@
 
 				<!-- Church list -->
 				<div class="py-1">
-					{#each auth.availableChurches as church}
+					{#each auth.availableChurches as church (church.id)}
 						<div class="group relative">
 							<!-- Main church button -->
 							<button

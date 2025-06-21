@@ -103,7 +103,7 @@
 				{/if}
 
 				{#if song.expand?.labels && song.expand.labels.length > 0}
-					{#each song.expand.labels as label}
+					{#each song.expand.labels as label (label.id)}
 						<LabelBadge {label} size="sm" />
 					{/each}
 				{/if}
@@ -145,7 +145,7 @@
 			<!-- Tags -->
 			{#if song.tags && song.tags.length > 0}
 				<div class="mt-2 flex flex-wrap gap-1">
-					{#each song.tags as tag}
+					{#each song.tags as tag (tag)}
 						<Badge variant="default" size="sm">
 							{tag}
 						</Badge>

@@ -8,13 +8,8 @@
 
 	const store = quickstartStore;
 
-	// Modal state management
-	let modalOpen = $state(false);
-
-	// Sync with parent prop
-	$effect(() => {
-		modalOpen = open;
-	});
+	// Modal state management - derived from prop
+	let modalOpen = $derived(open);
 
 	function getStepIcon(status: string) {
 		switch (status) {
@@ -103,7 +98,7 @@
 
 	<!-- Steps list -->
 	<div class="mb-8 space-y-4">
-		{#each store.setupSteps as step, index}
+		{#each store.setupSteps as step, index (index)}
 			{@const StepIcon = getStepIcon(step.status)}
 			<div
 				class="flex items-start space-x-3 rounded-lg border p-3 {index === store.currentStepIndex

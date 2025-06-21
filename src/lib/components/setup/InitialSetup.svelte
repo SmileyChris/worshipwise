@@ -230,7 +230,7 @@
 								class="focus:ring-primary w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:outline-none"
 								required
 							>
-								{#each timezoneOptions as option}
+								{#each timezoneOptions as option (option.value)}
 									<option value={option.value}>{option.label}</option>
 								{/each}
 							</select>

@@ -157,7 +157,7 @@
 	<!-- Churches List -->
 	{#if !loading && auth.availableChurches.length > 0}
 		<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-			{#each auth.availableChurches as church}
+			{#each auth.availableChurches as church (church.id)}
 				{@const details = churchDetails[church.id]}
 				{@const isCurrentChurch = church.id === auth.currentChurch?.id}
 

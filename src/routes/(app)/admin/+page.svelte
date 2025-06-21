@@ -30,7 +30,7 @@
 	<!-- Overview Stats -->
 	{#if loading}
 		<div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-			{#each Array(4) as _}
+			{#each Array(4) as _, index (index)}
 				<Card>
 					<div class="animate-pulse">
 						<div class="mb-2 h-4 w-1/2 rounded bg-gray-200"></div>

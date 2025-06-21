@@ -88,7 +88,7 @@
 		<!-- Selected Labels -->
 		{#if selectedLabels.length > 0}
 			<div class="mb-2 flex flex-wrap gap-1">
-				{#each selectedLabels as label}
+				{#each selectedLabels as label (label.id)}
 					<LabelBadge {label} removable onRemove={removeLabel} />
 				{/each}
 			</div>
@@ -111,7 +111,7 @@
 				<div
 					class="ring-opacity-5 absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black focus:outline-none"
 				>
-					{#each filteredLabels as label}
+					{#each filteredLabels as label (label.id)}
 						<button
 							type="button"
 							onclick={() => addLabel(label)}

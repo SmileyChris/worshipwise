@@ -73,7 +73,7 @@
 						class="flex-1 rounded-md border-gray-300"
 					>
 						<option value="">-- Choose a service --</option>
-						{#each servicesStore.services as service}
+						{#each servicesStore.services as service (service.id)}
 							<option value={service.id}>
 								{service.title || `Service ${new Date(service.service_date).toLocaleDateString()}`}
 								{#if service.theme}
@@ -120,7 +120,7 @@
 				<Card>
 					<h3 class="font-title mb-4 text-lg font-semibold">Current Balance</h3>
 					<div class="space-y-4">
-						{#each [{ key: 'fast', label: 'Fast', value: analysis.currentBalance.fast, icon: Zap, color: 'text-orange-600' }, { key: 'medium', label: 'Medium', value: analysis.currentBalance.medium, icon: Clock, color: 'text-primary' }, { key: 'slow', label: 'Slow', value: analysis.currentBalance.slow, icon: Heart, color: 'text-purple-600' }] as tempo}
+						{#each [{ key: 'fast', label: 'Fast', value: analysis.currentBalance.fast, icon: Zap, color: 'text-orange-600' }, { key: 'medium', label: 'Medium', value: analysis.currentBalance.medium, icon: Clock, color: 'text-primary' }, { key: 'slow', label: 'Slow', value: analysis.currentBalance.slow, icon: Heart, color: 'text-purple-600' }] as tempo (tempo.key)}
 							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-2">
 									{#if tempo.icon === Zap}
@@ -177,7 +177,7 @@
 				<Card>
 					<h3 class="font-title mb-4 text-lg font-semibold">Recommended Balance</h3>
 					<div class="space-y-4">
-						{#each [{ key: 'fast', label: 'Fast', value: analysis.idealBalance.fast, icon: Zap, color: 'text-orange-600', percent: 30 }, { key: 'medium', label: 'Medium', value: analysis.idealBalance.medium, icon: Clock, color: 'text-primary', percent: 40 }, { key: 'slow', label: 'Slow', value: analysis.idealBalance.slow, icon: Heart, color: 'text-purple-600', percent: 30 }] as tempo}
+						{#each [{ key: 'fast', label: 'Fast', value: analysis.idealBalance.fast, icon: Zap, color: 'text-orange-600', percent: 30 }, { key: 'medium', label: 'Medium', value: analysis.idealBalance.medium, icon: Clock, color: 'text-primary', percent: 40 }, { key: 'slow', label: 'Slow', value: analysis.idealBalance.slow, icon: Heart, color: 'text-purple-600', percent: 30 }] as tempo (tempo.key)}
 							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-2">
 									{#if tempo.icon === Zap}
@@ -232,7 +232,7 @@
 								Balance Recommendations
 							</h3>
 							<ul class="space-y-2">
-								{#each analysis.recommendations as recommendation}
+								{#each analysis.recommendations as recommendation, index (index)}
 									<li class="text-sm text-yellow-800">• {recommendation}</li>
 								{/each}
 							</ul>

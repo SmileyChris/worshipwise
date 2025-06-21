@@ -302,7 +302,7 @@ export function getTimezoneAwareDefaults(timezone: string): Partial<ChurchSettin
 	const hemisphere = detectHemisphereFromTimezone(timezone);
 
 	// Adjust default service types based on location
-	let default_service_types = ['Sunday Morning', 'Sunday Evening'];
+	const default_service_types = ['Sunday Morning', 'Sunday Evening'];
 
 	// Add region-specific defaults
 	if (timezone.startsWith('America/')) {

@@ -258,14 +258,14 @@
 					bind:value={selectedSection}
 					class="focus:border-primary focus:ring-primary mb-4 block w-full rounded-md border-gray-300 shadow-sm"
 				>
-					{#each sectionTypes as type}
+					{#each sectionTypes as type (type)}
 						<option value={type}>{type}</option>
 					{/each}
 				</select>
 
 				<!-- Songs list -->
 				<div class="space-y-2 overflow-y-auto" style="max-height: calc(100vh - 300px);">
-					{#each filteredSongs as song}
+					{#each filteredSongs as song (song.id)}
 						{@const usageStatus = getSongUsageStatus(song)}
 						<div
 							role="button"
@@ -365,7 +365,7 @@
 													class="h-7 rounded border-gray-300 py-0 text-sm"
 												>
 													<option value="">Original</option>
-													{#each ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as key}
+													{#each ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as key (key)}
 														<option value={key}>{key}</option>
 													{/each}
 												</select>

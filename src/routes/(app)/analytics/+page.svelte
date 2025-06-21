@@ -146,7 +146,7 @@
 			<div class="p-4">
 				<h3 class="font-title mb-3 text-lg font-medium text-gray-900">📊 Key Insights</h3>
 				<div class="space-y-2">
-					{#each insights as insight}
+					{#each insights as insight, index (index)}
 						<div class="flex items-start gap-2">
 							<div class="bg-primary mt-1 h-1.5 w-1.5 rounded-full"></div>
 							<p class="text-sm text-gray-700">{insight}</p>
@@ -254,7 +254,7 @@
 							</Button>
 						</div>
 						<div class="space-y-3">
-							{#each analyticsStore.songUsageStats.slice(0, 10) as song}
+							{#each analyticsStore.songUsageStats.slice(0, 10) as song, index (index)}
 								<div class="flex items-center justify-between">
 									<div class="min-w-0 flex-1">
 										<p class="truncate font-medium text-gray-900">{song.title}</p>
@@ -293,7 +293,7 @@
 							</Button>
 						</div>
 						<div class="space-y-3">
-							{#each analyticsStore.serviceTypeStats as serviceType}
+							{#each analyticsStore.serviceTypeStats as serviceType (serviceType.serviceType)}
 								<div class="flex items-center justify-between">
 									<div>
 										<p class="font-medium text-gray-900">{serviceType.serviceType}</p>
@@ -317,7 +317,7 @@
 					<div class="p-6">
 						<h3 class="font-title mb-4 text-lg font-medium text-gray-900">Popular Keys</h3>
 						<div class="space-y-3">
-							{#each analyticsStore.keyUsageStats.slice(0, 8) as keyData}
+							{#each analyticsStore.keyUsageStats.slice(0, 8) as keyData (keyData.key)}
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-3">
 										<div class="bg-primary/10 text-primary rounded px-2 py-1 text-sm font-medium">
@@ -353,7 +353,7 @@
 							</Button>
 						</div>
 						<div class="space-y-3">
-							{#each analyticsStore.worshipLeaderStats as leader}
+							{#each analyticsStore.worshipLeaderStats as leader, index (index)}
 								<div class="flex items-center justify-between">
 									<div>
 										<p class="font-medium text-gray-900">{leader.name}</p>
@@ -362,7 +362,7 @@
 										</p>
 										{#if leader.favoriteKeys.length > 0}
 											<div class="mt-1 flex gap-1">
-												{#each leader.favoriteKeys as key}
+												{#each leader.favoriteKeys as key (key)}
 													<span class="rounded bg-gray-100 px-1 py-0.5 text-xs text-gray-600">
 														{key}
 													</span>

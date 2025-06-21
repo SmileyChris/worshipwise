@@ -314,7 +314,7 @@
 		{:else}
 			<!-- Services grid -->
 			<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-				{#each servicesStore.services as service}
+				{#each servicesStore.services as service (service.id)}
 					<Card class="transition-shadow hover:shadow-lg">
 						<div class="p-6">
 							<div class="flex items-start justify-between">
@@ -423,7 +423,7 @@
 					bind:value={createForm.service_type}
 					class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
 				>
-					{#each serviceTypes as type}
+					{#each serviceTypes as type (type)}
 						<option value={type}>{type}</option>
 					{/each}
 				</select>

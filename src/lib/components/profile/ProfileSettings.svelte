@@ -36,13 +36,6 @@
 	let profileSuccess = $state<string | null>(null);
 	let passwordSuccess = $state<string | null>(null);
 
-	// Validation state
-	let emailError = $state('');
-	let nameError = $state('');
-	let currentPasswordError = $state('');
-	let newPasswordError = $state('');
-	let confirmPasswordError = $state('');
-
 	// Role options
 	const roleOptions = [
 		{ value: 'musician', label: 'Musician' },
@@ -75,11 +68,7 @@
 	function clearErrors() {
 		profileError = null;
 		passwordError = null;
-		emailError = '';
-		nameError = '';
-		currentPasswordError = '';
-		newPasswordError = '';
-		confirmPasswordError = '';
+		// Validation errors are now derived, so they don't need manual clearing
 	}
 
 	// Clear success messages
@@ -120,28 +109,16 @@
 		return '';
 	}
 
-	// Real-time validation
-	$effect(() => {
-		emailError = email ? validateEmail(email) : '';
-	});
-
-	$effect(() => {
-		nameError = name ? validateName(name) : '';
-	});
-
-	$effect(() => {
-		currentPasswordError = currentPassword ? validateCurrentPassword(currentPassword) : '';
-	});
-
-	$effect(() => {
-		newPasswordError = newPassword ? validateNewPassword(newPassword) : '';
-	});
-
-	$effect(() => {
-		confirmPasswordError = confirmPassword
-			? validateConfirmPassword(newPassword, confirmPassword)
-			: '';
-	});
+	// Validation state - computed from reactive inputs
+	let emailError = $derived(email ? validateEmail(email) : '');
+	let nameError = $derived(name ? validateName(name) : '');
+	let currentPasswordError = $derived(
+		currentPassword ? validateCurrentPassword(currentPassword) : ''
+	);
+	let newPasswordError = $derived(newPassword ? validateNewPassword(newPassword) : '');
+	let confirmPasswordError = $derived(
+		confirmPassword ? validateConfirmPassword(newPassword, confirmPassword) : ''
+	);
 
 	// Profile form validation
 	let isProfileValid = $derived(email && name && !emailError && !nameError);
@@ -167,9 +144,6 @@
 		// Final validation
 		const finalEmailError = validateEmail(email);
 		const finalNameError = validateName(name);
-
-		emailError = finalEmailError;
-		nameError = finalNameError;
 
 		if (finalEmailError || finalNameError) {
 			return;
@@ -217,10 +191,6 @@
 		const finalCurrentPasswordError = validateCurrentPassword(currentPassword);
 		const finalNewPasswordError = validateNewPassword(newPassword);
 		const finalConfirmPasswordError = validateConfirmPassword(newPassword, confirmPassword);
-
-		currentPasswordError = finalCurrentPasswordError;
-		newPasswordError = finalNewPasswordError;
-		confirmPasswordError = finalConfirmPasswordError;
 
 		if (finalCurrentPasswordError || finalNewPasswordError || finalConfirmPasswordError) {
 			return;

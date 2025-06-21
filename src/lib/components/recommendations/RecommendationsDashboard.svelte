@@ -66,7 +66,7 @@
 				<div>
 					<h3 class="font-title mb-2 font-semibold text-gray-900">Key Insights</h3>
 					<ul class="space-y-1">
-						{#each recommendationsStore.getSummaryInsights() as insight}
+						{#each recommendationsStore.getSummaryInsights() as insight, index (index)}
 							<li class="text-sm text-gray-700">• {insight}</li>
 						{/each}
 					</ul>
@@ -245,7 +245,7 @@
 							<div class="mt-4 border-t pt-4">
 								<h4 class="mb-2 font-medium text-gray-900">Insights</h4>
 								<ul class="space-y-1">
-									{#each recommendationsStore.comparativePeriod.insights as insight}
+									{#each recommendationsStore.comparativePeriod.insights as insight, index (index)}
 										<li class="text-sm text-gray-600">• {insight}</li>
 									{/each}
 								</ul>
@@ -259,7 +259,7 @@
 					<h3 class="font-title mb-4 text-lg font-semibold">Quick Rotation Suggestions</h3>
 					{#if recommendationsStore.getQuickRotationSuggestions(3).length > 0}
 						<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-							{#each recommendationsStore.getQuickRotationSuggestions(3) as recommendation}
+							{#each recommendationsStore.getQuickRotationSuggestions(3) as recommendation (recommendation.songId)}
 								<SongRecommendationCard {recommendation} />
 							{/each}
 						</div>
@@ -320,7 +320,7 @@
 						<Card>
 							<h3 class="font-title mb-4 text-lg font-semibold">Rotation Recommendations</h3>
 							<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-								{#each recommendationsStore.rotationRecommendations() as recommendation}
+								{#each recommendationsStore.rotationRecommendations() as recommendation (recommendation.songId)}
 									<SongRecommendationCard {recommendation} />
 								{/each}
 							</div>
@@ -332,7 +332,7 @@
 						<Card>
 							<h3 class="font-title mb-4 text-lg font-semibold">Seasonal Recommendations</h3>
 							<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-								{#each recommendationsStore.seasonalRecommendations() as recommendation}
+								{#each recommendationsStore.seasonalRecommendations() as recommendation (recommendation.songId)}
 									<SongRecommendationCard {recommendation} />
 								{/each}
 							</div>
@@ -354,7 +354,7 @@
 			<div class="space-y-6">
 				{#if recommendationsStore.seasonalTrends.length > 0}
 					<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-						{#each recommendationsStore.seasonalTrends as trend}
+						{#each recommendationsStore.seasonalTrends as trend (trend.season)}
 							<Card>
 								<h3 class="font-title mb-4 text-lg font-semibold">
 									{trend.season} - {new Date(2024, trend.month - 1).toLocaleString('default', {
@@ -365,7 +365,7 @@
 								{#if trend.popularSongs.length > 0}
 									<div class="space-y-2">
 										<h4 class="font-medium text-gray-900">Popular Songs</h4>
-										{#each trend.popularSongs.slice(0, 5) as song}
+										{#each trend.popularSongs.slice(0, 5) as song, index (index)}
 											<div class="flex items-center justify-between">
 												<span class="text-sm">{song.title}</span>
 												<Badge>{song.usageCount} uses</Badge>
@@ -377,7 +377,7 @@
 								<div class="mt-4">
 									<h4 class="mb-2 font-medium text-gray-900">Suggested Themes</h4>
 									<div class="flex flex-wrap gap-2">
-										{#each trend.suggestedThemes as theme}
+										{#each trend.suggestedThemes as theme (theme)}
 											<Badge variant="default">{theme}</Badge>
 										{/each}
 									</div>

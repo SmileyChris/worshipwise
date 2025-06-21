@@ -195,7 +195,7 @@
 						<div>
 							<dt class="mb-1 text-sm font-medium text-gray-500">Labels</dt>
 							<div class="flex flex-wrap gap-1">
-								{#each song.expand.labels as label}
+								{#each song.expand.labels as label (label.id)}
 									<LabelBadge {label} />
 								{/each}
 							</div>
@@ -206,7 +206,7 @@
 						<div>
 							<dt class="mb-1 text-sm font-medium text-gray-500">Tags</dt>
 							<div class="flex flex-wrap gap-1">
-								{#each song.tags as tag}
+								{#each song.tags as tag (tag)}
 									<Badge>{tag}</Badge>
 								{/each}
 							</div>
@@ -295,7 +295,7 @@
 						{/if}
 
 						{#if song.sheet_music && song.sheet_music.length > 0}
-							{#each song.sheet_music as sheetMusic}
+							{#each song.sheet_music as sheetMusic (sheetMusic)}
 								<div class="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
 									<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
 										<svg
@@ -379,7 +379,7 @@
 				<Card>
 					<h2 class="font-title mb-4 text-lg font-semibold text-gray-900">Recent Usage</h2>
 					<div class="space-y-3">
-						{#each usageHistory.slice(0, 5) as usage}
+						{#each usageHistory.slice(0, 5) as usage (usage.id)}
 							<div class="flex items-start justify-between text-sm">
 								<div>
 									<div class="font-medium text-gray-900">

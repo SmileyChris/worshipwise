@@ -95,7 +95,7 @@
 
 			{#if songs.songs.length > 0}
 				<div class="space-y-3">
-					{#each songs.songs.slice(0, 5) as song}
+					{#each songs.songs.slice(0, 5) as song (song.id)}
 						<div class="flex items-center justify-between rounded-lg bg-gray-50 p-3">
 							<div>
 								<div class="font-medium text-gray-900">{song.title}</div>

@@ -64,7 +64,7 @@
 						class="flex-1 rounded-md border-gray-300"
 					>
 						<option value="">-- General flow tips --</option>
-						{#each servicesStore.services as service}
+						{#each servicesStore.services as service (service.id)}
 							<option value={service.id}>
 								{service.title || `Service ${new Date(service.service_date).toLocaleDateString()}`}
 							</option>
@@ -105,7 +105,7 @@
 				<h3 class="font-title text-lg font-semibold">General Worship Flow Guidelines</h3>
 			{/if}
 
-			{#each recommendationsStore.worshipFlowSuggestions as suggestion, index}
+			{#each recommendationsStore.worshipFlowSuggestions as suggestion, index (index)}
 				<Card
 					class={`border-l-4 ${
 						getSeverityColor(suggestion) === 'danger'

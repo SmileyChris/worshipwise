@@ -52,12 +52,6 @@
 	let audioFile: File | null = null;
 	let sheetMusic: FileList | null = null;
 
-	// Validation state
-	let titleError = $state('');
-	let categoryError = $state('');
-	let tempoError = $state('');
-	let durationError = $state('');
-
 	// Initialize form when song changes
 	$effect(() => {
 		if (song) {
@@ -116,21 +110,6 @@
 		{ value: 'Bm', label: 'Bm' }
 	];
 
-	// Computed values
-	let isEditing = $derived(!!song);
-	let isValid = $derived(
-		title.trim().length > 0 &&
-			category.trim().length > 0 &&
-			!titleError &&
-			!categoryError &&
-			!tempoError &&
-			!durationError
-	);
-	let canDelete = $derived(isEditing && auth.isAdmin);
-
-	// Delete confirmation state
-	let showDeleteConfirm = $state(false);
-
 	// Validation functions
 	function validateTitle(value: string): string {
 		if (!value.trim()) return 'Title is required';
@@ -169,22 +148,26 @@
 		return '';
 	}
 
-	// Real-time validation
-	$effect(() => {
-		titleError = validateTitle(title);
-	});
+	// Validation state - computed from reactive inputs
+	let titleError = $derived(validateTitle(title));
+	let categoryError = $derived(validateCategory(category));
+	let tempoError = $derived(validateTempo(tempo));
+	let durationError = $derived(validateDuration());
 
-	$effect(() => {
-		categoryError = validateCategory(category);
-	});
+	// Computed values
+	let isEditing = $derived(!!song);
+	let isValid = $derived(
+		title.trim().length > 0 &&
+			category.trim().length > 0 &&
+			!titleError &&
+			!categoryError &&
+			!tempoError &&
+			!durationError
+	);
+	let canDelete = $derived(isEditing && auth.isAdmin);
 
-	$effect(() => {
-		tempoError = validateTempo(tempo);
-	});
-
-	$effect(() => {
-		durationError = validateDuration();
-	});
+	// Delete confirmation state
+	let showDeleteConfirm = $state(false);
 
 	// File input handlers
 	function handleChordChartChange(event: Event) {
@@ -210,11 +193,6 @@
 		const finalCategoryError = validateCategory(category);
 		const finalTempoError = validateTempo(tempo);
 		const finalDurationError = validateDuration();
-
-		titleError = finalTitleError;
-		categoryError = finalCategoryError;
-		tempoError = finalTempoError;
-		durationError = finalDurationError;
 
 		if (finalTitleError || finalCategoryError || finalTempoError || finalDurationError) {
 			return;
