@@ -16,11 +16,8 @@ This document contains technical setup, architecture details, and development wo
 git clone https://github.com/your-org/worshipwise.git
 cd worshipwise
 
-# Install dependencies
-npm install
-
-# Install PocketBase (if not already installed)
-./scripts/install-pocketbase.sh
+# Complete setup (installs everything needed)
+just setup
 
 # Start development servers (recommended)
 just dev
@@ -28,14 +25,11 @@ just dev
 
 ### First Time Setup
 
-1. **Install PocketBase** (if needed):
+1. **Complete Setup** (if not done already):
 
    ```bash
-   # Install latest version
-   ./scripts/install-pocketbase.sh
-
-   # Or install specific version
-   ./scripts/install-pocketbase.sh 0.28.3
+   # Install everything needed (PocketBase, npm packages, Playwright browsers)
+   just setup
    ```
 
 2. **Access PocketBase Admin Panel**:
@@ -59,11 +53,10 @@ just dev
 ```bash
 # Development (recommended)
 just dev                      # Start both servers with smart detection
-just setup                    # Install PocketBase
+just setup                    # Complete setup (PocketBase, npm install, Playwright)
 just build                    # Build for production
 just test                     # Run tests
-just check                    # Type checking
-just lint                     # Code quality checks
+just check                    # Type checking and code quality checks
 ```
 
 ### Direct npm scripts:

@@ -11,6 +11,8 @@ dev:
 # Setup
 setup:
     ./scripts/install-pocketbase.sh
+    npm install
+    npx playwright install
 
 # Build
 build:
