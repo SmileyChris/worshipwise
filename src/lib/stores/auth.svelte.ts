@@ -373,7 +373,7 @@ class AuthStore {
 
 			// Set current church from profile or first available
 			if (this.profile?.church_id) {
-				const currentChurch = this.availableChurches.find(c => c.id === this.profile.church_id);
+				const currentChurch = this.availableChurches.find(c => c.id === this.profile!.church_id);
 				if (currentChurch) {
 					this.currentChurch = currentChurch;
 				}

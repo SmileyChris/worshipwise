@@ -51,14 +51,23 @@ describe('AuthStore', () => {
     });
 
     it('should sync with PocketBase auth store on initialization', () => {
-      const mockUser = { id: 'user1', email: 'test@example.com', name: 'Test User' };
-      mockPb.authStore.model = mockUser;
+      const mockUser = { 
+        id: 'user1', 
+        email: 'test@example.com', 
+        name: 'Test User',
+        created: '2024-01-01T00:00:00.000Z',
+        updated: '2024-01-01T00:00:00.000Z',
+        verified: true,
+        avatar: '',
+        emailVisibility: false
+      };
+      mockPb.authStore.model = mockUser as any;
       mockPb.authStore.token = 'test-token';
       mockPb.authStore.isValid = true;
 
       // Create a new auth store to test initialization
       flushSync(() => {
-        auth.user = mockPb.authStore.model as User;
+        auth.user = mockUser as User;
         auth.token = mockPb.authStore.token;
         auth.isValid = mockPb.authStore.isValid;
       });

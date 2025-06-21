@@ -108,7 +108,7 @@ export class ChurchesAPI {
 			// Authenticate the user
 			await pb.collection('users').authWithPassword(setupData.adminEmail, setupData.password);
 
-			return { church, user };
+			return { church: church as unknown as Church, user };
 		} catch (error) {
 			console.error('Initial setup failed:', error);
 			throw error;

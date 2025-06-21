@@ -202,7 +202,10 @@ class RecommendationsApi {
 					return usageDate >= threeMonthsAgo;
 				}).length;
 
-				if (recentUsageCount >= 3 && daysSince >= excludeRecentDays) {
+				const lastUsed = songUsages.length > 0 ? new Date(songUsages[0].used_date) : null;
+				const daysSinceLastUsed = lastUsed ? Math.floor((Date.now() - lastUsed.getTime()) / (1000 * 60 * 60 * 24)) : Infinity;
+
+				if (recentUsageCount >= 3 && daysSinceLastUsed >= excludeRecentDays) {
 					recommendations.push({
 						songId: song.id,
 						title: song.title,
@@ -571,7 +574,7 @@ class RecommendationsApi {
 			const congregationEngagement = this.analyzeCongregationEngagement(allUsage, allSongs);
 			
 			// Analyze seasonal readiness
-			const seasonalReadiness = this.analyzeSeasonalReadiness(allUsage, allSongs);
+			const seasonalReadiness = await this.analyzeSeasonalReadiness(allUsage, allSongs);
 
 			return {
 				rotationHealth,
@@ -1014,7 +1017,7 @@ class RecommendationsApi {
 		return 0;
 	}
 
-	private async getSeasonalReason(context?: any): string {
+	private async getSeasonalReason(context?: any): Promise<string> {
 		const seasonalContext = context || await this.getChurchSeasonalContext();
 		const month = seasonalContext.currentMonth;
 		const hemisphere = seasonalContext.hemisphere;

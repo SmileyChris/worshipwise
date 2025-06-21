@@ -141,7 +141,7 @@
 							<button
 								onclick={() => handleChurchSwitch(church.id)}
 								class="flex w-full items-center px-4 py-3 text-left hover:bg-gray-50 transition-colors"
-								class:bg-primary/5={church.id === auth.currentChurch?.id}
+								class:bg-primary={church.id === auth.currentChurch?.id}
 								role="menuitem"
 							>
 								<div class="flex-1 min-w-0">

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { updateUser, updateUserProfile, getUserActivity, type UserWithProfile } from '$lib/api/admin';
 	import type { User, Profile } from '$lib/types/auth';
+	import type { ChurchRole } from '$lib/types/church';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
@@ -24,7 +25,7 @@
 		name: '',
 		// Profile fields
 		profileName: '',
-		role: 'musician' as 'musician' | 'leader' | 'admin',
+		role: 'musician' as ChurchRole,
 		churchName: '',
 		isActive: true
 	});
