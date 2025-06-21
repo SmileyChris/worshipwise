@@ -18,6 +18,17 @@ Object.defineProperty(window, 'matchMedia', {
 	}))
 });
 
+// Mock Web Animations API for Svelte transitions
+Element.prototype.animate = vi.fn().mockReturnValue({
+	finished: Promise.resolve(),
+	cancel: vi.fn(),
+	finish: vi.fn(),
+	play: vi.fn(),
+	pause: vi.fn(),
+	addEventListener: vi.fn(),
+	removeEventListener: vi.fn()
+});
+
 // Mock SvelteKit modules for client tests
 vi.mock('$app/environment', () => ({
 	browser: true,

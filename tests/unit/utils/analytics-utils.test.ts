@@ -199,7 +199,7 @@ describe('Analytics Utils', () => {
 				totalSongs: 10,
 				totalServices: 5,
 				averageSetlistDuration: 100,
-				averageServiceDuration: 90,
+				averageServiceDuration: 95,
 				mostUsedSong: { title: 'Song', count: 1 },
 				topServiceType: { type: 'Sunday Morning', count: 1 },
 				activeWorshipLeaders: 2

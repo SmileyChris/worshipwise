@@ -81,7 +81,7 @@ describe('Service Utils', () => {
 					section_type: 'Opening' as const,
 					created: '2023-01-01T00:00:00Z',
 					updated: '2023-01-01T00:00:00Z',
-					expand: { song_id: createMockSong({ id: 'song-1', title: 'Song 1' }) }
+					expand: { song_id: createMockSong({ id: 'song-1', title: 'Song 1', duration_seconds: undefined }) }
 				}
 			];
 			expect(calculateServiceDuration(songsWithoutDuration)).toBe(0);
