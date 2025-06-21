@@ -63,7 +63,8 @@ describe('Songs API', () => {
 				artist: 'Test Artist',
 				key_signature: 'G',
 				tempo: 120,
-				genre: 'Contemporary'
+				genre: 'Contemporary',
+				category: 'worship'
 			};
 
 			const mockCreatedSong = createMockSong({ ...songData, id: 'song_new' });

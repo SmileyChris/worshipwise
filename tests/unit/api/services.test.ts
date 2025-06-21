@@ -155,7 +155,8 @@ describe('Services API', () => {
 			const createData = {
 				title: 'New Service',
 				service_date: '2024-06-15',
-				service_type: 'Sunday Morning'
+				service_type: 'Sunday Morning',
+				worship_leader: 'user_1'
 			};
 
 			const expectedData = {
@@ -178,7 +179,8 @@ describe('Services API', () => {
 				title: 'Template Service',
 				service_date: '2024-06-15',
 				service_type: 'Sunday Morning',
-				status: 'template' as const
+				is_template: true,
+				worship_leader: 'user_1'
 			};
 
 			const expectedData = {
@@ -201,7 +203,8 @@ describe('Services API', () => {
 			const createData = {
 				title: 'New Service',
 				service_date: '2024-06-15',
-				service_type: 'Sunday Morning'
+				service_type: 'Sunday Morning',
+				worship_leader: 'user_1'
 			};
 
 			await expect(servicesApi.createService(createData)).rejects.toThrow('Validation error');

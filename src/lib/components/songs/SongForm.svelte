@@ -410,7 +410,6 @@
 			name="tags"
 			bind:value={tagsInput}
 			placeholder="worship, contemporary, fast (comma-separated)"
-			help="Additional tags for searching and organization"
 		/>
 
 		<!-- Lyrics -->

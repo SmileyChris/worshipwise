@@ -181,11 +181,21 @@
 		<div class="p-4">
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 				<div>
-					<Input bind:value={searchQuery} placeholder="Search by email or name..." class="w-full" />
+					<Input
+						name="search"
+						bind:value={searchQuery}
+						placeholder="Search by email or name..."
+						class="w-full"
+					/>
 				</div>
 
 				<div>
-					<Select bind:value={roleFilter} onchange={handleRoleFilter} class="w-full">
+					<Select
+						name="roleFilter"
+						bind:value={roleFilter}
+						onchange={handleRoleFilter}
+						class="w-full"
+					>
 						<option value="">All Roles</option>
 						<option value="admin">Administrators</option>
 						<option value="leader">Leaders</option>
@@ -322,8 +332,10 @@
 										<!-- Role change dropdown -->
 										{#if user.profile}
 											<Select
+												name="userRole"
 												value={user.profile.role}
-												onchange={(e) => handleRoleChange(user, e.target.value)}
+												onchange={(value) =>
+													handleRoleChange(user, value as 'musician' | 'leader' | 'admin')}
 												class="text-sm"
 												disabled={actionLoading}
 											>

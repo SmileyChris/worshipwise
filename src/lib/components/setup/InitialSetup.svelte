@@ -214,7 +214,7 @@
 					<div class="space-y-4">
 						<Input
 							label="Church Name"
-							icon={Church}
+							name="churchName"
 							bind:value={setupData.churchName}
 							placeholder="e.g., Grace Community Church"
 							required
@@ -243,19 +243,25 @@
 						</div>
 
 						<div class="grid grid-cols-2 gap-4">
-							<Input label="City" icon={MapPin} bind:value={setupData.city} placeholder="City" />
-							<Input label="State/Province" bind:value={setupData.state} placeholder="State" />
+							<Input label="City" name="city" bind:value={setupData.city} placeholder="City" />
+							<Input
+								label="State/Province"
+								name="state"
+								bind:value={setupData.state}
+								placeholder="State"
+							/>
 						</div>
 
 						<Input
 							label="Country"
-							icon={Globe}
+							name="country"
 							bind:value={setupData.country}
 							placeholder="Country"
 						/>
 
 						<Input
 							label="Address (Optional)"
+							name="address"
 							bind:value={setupData.address}
 							placeholder="Street address"
 						/>
@@ -276,7 +282,7 @@
 					<div class="space-y-4">
 						<Input
 							label="Full Name"
-							icon={User}
+							name="adminName"
 							bind:value={setupData.adminName}
 							placeholder="John Smith"
 							required
@@ -285,7 +291,7 @@
 						<Input
 							label="Email Address"
 							type="email"
-							icon={Mail}
+							name="adminEmail"
 							bind:value={setupData.adminEmail}
 							placeholder="pastor@yourchurch.com"
 							required
@@ -294,7 +300,7 @@
 						<Input
 							label="Password"
 							type="password"
-							icon={Lock}
+							name="password"
 							bind:value={setupData.password}
 							placeholder="Choose a secure password"
 							required
@@ -303,7 +309,7 @@
 						<Input
 							label="Confirm Password"
 							type="password"
-							icon={Lock}
+							name="confirmPassword"
 							bind:value={setupData.confirmPassword}
 							placeholder="Confirm your password"
 							required

@@ -60,9 +60,9 @@ export function mockAuthenticatedUser(
 	};
 
 	// Set up PocketBase auth store mocks
-	mockPb.authStore.model = mockUser;
-	mockPb.authStore.token = mockState.token;
-	mockPb.authStore.isValid = mockState.isValid;
+	(mockPb.authStore as any).model = mockUser;
+	(mockPb.authStore as any).token = mockState.token;
+	(mockPb.authStore as any).isValid = mockState.isValid;
 
 	return mockState;
 }
@@ -383,7 +383,7 @@ export function createTestUser(
  */
 export function simulateAuthStateChange(newState: Partial<MockAuthState>) {
 	if (newState.user !== undefined) {
-		mockPb.authStore.model = newState.user;
+		(mockPb.authStore as any).model = newState.user;
 	}
 	if (newState.token !== undefined) {
 		mockPb.authStore.token = newState.token;

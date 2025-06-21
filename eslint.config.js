@@ -11,6 +11,16 @@ const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
 export default ts.config(
 	includeIgnoreFile(gitignorePath),
+	{
+		ignores: [
+			'tests/**/*',
+			'pocketbase/**/*',
+			'**/*.test.ts',
+			'**/*.test.js',
+			'**/*.spec.ts',
+			'**/*.spec.js'
+		]
+	},
 	js.configs.recommended,
 	...ts.configs.recommended,
 	...svelte.configs.recommended,

@@ -104,10 +104,10 @@
 									</div>
 								</div>
 
-								{#if song.expand?.usage_count !== undefined}
+								{#if song.expand?.song_usage_via_song && song.expand.song_usage_via_song.length > 0}
 									<div class="mt-1 ml-7">
 										<Badge size="sm" variant="default">
-											{formatUsageCount(song.expand.usage_count)}
+											{formatUsageCount(song.expand.song_usage_via_song.length)}
 										</Badge>
 									</div>
 								{/if}
@@ -161,10 +161,10 @@
 									</div>
 								</div>
 
-								{#if song.expand?.personal_usage_count !== undefined}
+								{#if song.expand?.song_usage_via_song && song.expand.song_usage_via_song.length > 0}
 									<div class="mt-1 ml-7">
 										<Badge size="sm" class="bg-primary/10 text-primary">
-											{formatUsageCount(song.expand.personal_usage_count)}
+											{formatUsageCount(song.expand.song_usage_via_song.length)}
 										</Badge>
 									</div>
 								{/if}

@@ -88,6 +88,16 @@ export interface CreateServiceSongData {
 	duration_override?: number;
 }
 
+export interface AddSongToServiceData {
+	song_id: string;
+	order_position?: number;
+	transposed_key?: string;
+	tempo_override?: number;
+	transition_notes?: string;
+	section_type?: ServiceSong['section_type'];
+	duration_override?: number;
+}
+
 export interface UpdateServiceSongData {
 	order_position?: number;
 	transposed_key?: string;

@@ -6,6 +6,7 @@ import type {
 	UpdateServiceData,
 	ServiceFilterOptions,
 	CreateServiceSongData,
+	AddSongToServiceData,
 	UpdateServiceSongData,
 	ServiceBuilderState,
 	SongAvailability
@@ -209,7 +210,7 @@ class ServicesStore {
 	/**
 	 * Add a song to the current service
 	 */
-	async addSongToService(songData: CreateServiceSongData): Promise<void> {
+	async addSongToService(songData: AddSongToServiceData): Promise<void> {
 		if (!this.currentService) {
 			throw new Error('No service selected');
 		}

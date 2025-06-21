@@ -179,7 +179,9 @@
 		}
 
 		try {
-			await servicesStore.addSongToService(song.id);
+			await servicesStore.addSongToService({
+				song_id: song.id
+			});
 			// Optional: Show success message
 		} catch (error) {
 			console.error('Failed to add song to service:', error);
