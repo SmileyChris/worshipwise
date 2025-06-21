@@ -2,6 +2,7 @@ import { pb } from '$lib/api/client';
 import { goto } from '$app/navigation';
 import { browser } from '$app/environment';
 import type { User, Profile, LoginCredentials, RegisterData } from '$lib/types/auth';
+import type { Church } from '$lib/types/church';
 
 class AuthStore {
 	// Reactive state using Svelte 5 runes
@@ -11,6 +12,11 @@ class AuthStore {
 	isValid = $state<boolean>(false);
 	loading = $state<boolean>(false);
 	error = $state<string | null>(null);
+	
+	// Church context state
+	currentChurch = $state<Church | null>(null);
+	availableChurches = $state<Church[]>([]);
+	churchLoading = $state<boolean>(false);
 
 	constructor() {
 		if (browser) {
@@ -19,9 +25,10 @@ class AuthStore {
 			this.token = pb.authStore.token;
 			this.isValid = pb.authStore.isValid;
 
-			// Load profile if user is already authenticated
+			// Load profile and churches if user is already authenticated
 			if (this.isValid && this.user) {
 				this.loadProfile();
+				this.loadUserChurches();
 			}
 
 			// Listen for auth changes from PocketBase
@@ -31,11 +38,14 @@ class AuthStore {
 				this.isValid = pb.authStore.isValid;
 				this.error = null;
 
-				// Load profile data when user logs in
+				// Load profile and church data when user logs in
 				if (this.isValid && this.user) {
 					await this.loadProfile();
+					await this.loadUserChurches();
 				} else {
 					this.profile = null;
+					this.currentChurch = null;
+					this.availableChurches = [];
 				}
 
 				console.log('Auth state changed:', {
@@ -333,6 +343,159 @@ class AuthStore {
 	clearError(): void {
 		this.error = null;
 	}
+
+	/**
+	 * Load churches available to the current user
+	 */
+	async loadUserChurches(): Promise<void> {
+		if (!this.user) return;
+
+		this.churchLoading = true;
+		try {
+			// Get all profiles for this user to find their churches
+			const userProfiles = await pb.collection('profiles').getList(1, 50, {
+				filter: `user_id = "${this.user.id}"`,
+				expand: 'church_id'
+			});
+
+			// Extract unique churches from profiles
+			const churchIds = [...new Set(userProfiles.items.map(p => p.church_id).filter(Boolean))];
+			
+			if (churchIds.length > 0) {
+				const churches = await pb.collection('churches').getList(1, 50, {
+					filter: churchIds.map(id => `id = "${id}"`).join(' || ')
+				});
+				
+				this.availableChurches = churches.items as unknown as Church[];
+			} else {
+				this.availableChurches = [];
+			}
+
+			// Set current church from profile or first available
+			if (this.profile?.church_id) {
+				const currentChurch = this.availableChurches.find(c => c.id === this.profile.church_id);
+				if (currentChurch) {
+					this.currentChurch = currentChurch;
+				}
+			} else if (this.availableChurches.length > 0) {
+				// Default to first church if no preference set
+				this.currentChurch = this.availableChurches[0];
+				// Update profile with default church if we have one
+				if (this.profile) {
+					await this.updateProfileInfo({ church_id: this.currentChurch.id });
+				}
+			}
+
+			console.log('Loaded user churches:', this.availableChurches.length);
+		} catch (error) {
+			console.error('Failed to load user churches:', error);
+		} finally {
+			this.churchLoading = false;
+		}
+	}
+
+	/**
+	 * Switch to a different church context
+	 */
+	async switchChurch(churchId: string): Promise<void> {
+		const targetChurch = this.availableChurches.find(c => c.id === churchId);
+		if (!targetChurch || !this.profile) return;
+
+		this.churchLoading = true;
+		try {
+			// Update user's profile with new church context
+			await this.updateProfileInfo({ church_id: churchId });
+			this.currentChurch = targetChurch;
+			
+			console.log('Switched to church:', targetChurch.name);
+		} catch (error) {
+			console.error('Failed to switch church:', error);
+			this.error = 'Failed to switch church context';
+		} finally {
+			this.churchLoading = false;
+		}
+	}
+
+	/**
+	 * Leave a church (if not the only admin)
+	 */
+	async leaveChurch(churchId: string): Promise<void> {
+		if (!this.user || !this.profile) return;
+
+		this.churchLoading = true;
+		try {
+			// Check if user is the only admin
+			const adminProfiles = await pb.collection('profiles').getList(1, 50, {
+				filter: `church_id = "${churchId}" && role = "admin"`
+			});
+
+			if (adminProfiles.items.length === 1 && adminProfiles.items[0].user_id === this.user.id) {
+				throw new Error('Cannot leave church - you are the only administrator. Transfer admin role to another user or delete the church.');
+			}
+
+			// Remove user from church by deleting their profile for this church
+			const userProfile = await pb.collection('profiles').getFirstListItem(
+				`user_id = "${this.user.id}" && church_id = "${churchId}"`
+			);
+			
+			await pb.collection('profiles').delete(userProfile.id);
+
+			// Reload churches and switch context if necessary
+			await this.loadUserChurches();
+
+			console.log('Left church successfully');
+		} catch (error: any) {
+			console.error('Failed to leave church:', error);
+			this.error = error.message || 'Failed to leave church';
+			throw error;
+		} finally {
+			this.churchLoading = false;
+		}
+	}
+
+	/**
+	 * Delete a church (only if user is admin)
+	 */
+	async deleteChurch(churchId: string): Promise<void> {
+		if (!this.user || !this.profile) return;
+
+		// Verify user is admin of this church
+		if (this.profile.church_id !== churchId || this.profile.role !== 'admin') {
+			throw new Error('Only church administrators can delete churches');
+		}
+
+		this.churchLoading = true;
+		try {
+			// Delete the church (cascading deletes should handle related data)
+			await pb.collection('churches').delete(churchId);
+
+			// Reload churches
+			await this.loadUserChurches();
+
+			console.log('Church deleted successfully');
+		} catch (error: any) {
+			console.error('Failed to delete church:', error);
+			this.error = error.message || 'Failed to delete church';
+			throw error;
+		} finally {
+			this.churchLoading = false;
+		}
+	}
+
+	/**
+	 * Get user's role in current church
+	 */
+	getCurrentChurchRole = $derived(this.profile?.role || 'member');
+
+	/**
+	 * Check if user can manage current church (is admin)
+	 */
+	canManageChurch = $derived(this.getCurrentChurchRole === 'admin');
+
+	/**
+	 * Check if user has multiple church affiliations
+	 */
+	hasMultipleChurches = $derived(this.availableChurches.length > 1);
 }
 
 // Export singleton instance

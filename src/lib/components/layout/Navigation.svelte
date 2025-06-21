@@ -2,6 +2,7 @@
 	import { page as pageStore } from '$app/stores';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { quickstartStore } from '$lib/stores/quickstart.svelte';
+	import ChurchSwitcher from './ChurchSwitcher.svelte';
 
 	// User menu dropdown state
 	let userMenuOpen = $state(false);
@@ -107,6 +108,9 @@
 
 			<!-- User menu -->
 			<div class="flex items-center space-x-4">
+				<!-- Church switcher -->
+				<ChurchSwitcher />
+
 				<!-- User info -->
 				<div class="hidden sm:flex sm:items-center sm:space-x-2">
 					<div class="text-sm">
@@ -197,11 +201,31 @@
 						</span>
 					</div>
 				</div>
-				<div class="ml-3">
+				<div class="ml-3 flex-1">
 					<div class="text-base font-medium text-gray-800">{auth.displayName}</div>
 					<div class="text-sm text-gray-500 capitalize">{auth.profile?.role}</div>
+					{#if auth.currentChurch}
+						<div class="text-xs text-gray-400 mt-1">{auth.currentChurch.name}</div>
+					{/if}
 				</div>
 			</div>
+
+			<!-- Church switcher for mobile -->
+			{#if auth.hasMultipleChurches}
+				<div class="mt-3 px-4">
+					<div class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Switch Church</div>
+					{#each auth.availableChurches as church}
+						{#if church.id !== auth.currentChurch?.id}
+							<button
+								onclick={() => auth.switchChurch(church.id)}
+								class="block w-full text-left px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded"
+							>
+								{church.name}
+							</button>
+						{/if}
+					{/each}
+				</div>
+			{/if}
 			<div class="mt-3 space-y-1">
 				<a
 					href="/profile"

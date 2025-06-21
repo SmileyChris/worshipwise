@@ -77,11 +77,12 @@ npm run test:coverage        # Generate coverage report
 ### Core Collections (PocketBase Schema)
 
 1. **Users** - Authentication with basic user data (email, password)
-2. **Profiles** - Extended user metadata (name, role, church_name, preferences)
-3. **Songs** - Central repository with metadata, keys, tempo, file attachments
-4. **Services** - Service planning with dates and themes
-5. **Service Songs** - Junction table for drag-and-drop ordering
-6. **Song Usage** - Analytics tracking (populated on service completion)
+2. **Churches** - Church organizations with timezone, location, and admin setup
+3. **Profiles** - Extended user metadata (name, role, church affiliation, preferences)
+4. **Songs** - Central repository with metadata, keys, tempo, file attachments
+5. **Services** - Service planning with dates and themes
+6. **Service Songs** - Junction table for drag-and-drop ordering
+7. **Song Usage** - Analytics tracking (populated on service completion)
 
 For detailed schema and security rules, see `plan/POCKETBASE_SETUP.md`.
 
@@ -96,14 +97,18 @@ src/
 │   │   ├── analytics/      # Reporting components
 │   │   └── ui/             # Shared UI components
 │   ├── stores/             # Svelte 5 runes-based stores
-│   │   ├── auth.svelte.ts       # PocketBase auth state
-│   │   ├── songs.svelte.ts      # Song management
-│   │   ├── services.svelte.ts   # Service state with real-time
-│   │   └── analytics.svelte.ts  # Analytics data
+│   │   ├── auth.svelte.ts            # PocketBase auth state
+│   │   ├── setup.svelte.ts           # Initial setup state management
+│   │   ├── songs.svelte.ts           # Song management
+│   │   ├── services.svelte.ts        # Service state with real-time
+│   │   ├── analytics.svelte.ts       # Analytics data
+│   │   └── recommendations.svelte.ts # AI insights and recommendations
 │   ├── api/                # PocketBase client and operations
 │   │   ├── client.ts            # PocketBase initialization
+│   │   ├── churches.ts          # Church setup and management
 │   │   ├── songs.ts             # Song CRUD operations
 │   │   ├── services.ts          # Service operations
+│   │   ├── recommendations.ts   # AI recommendations engine
 │   │   └── realtime.ts          # WebSocket subscriptions
 │   └── utils/              # Helper functions
 ├── routes/                 # SvelteKit pages and layouts
@@ -112,11 +117,19 @@ src/
 
 ## Key Features
 
+### Church Foundation Architecture
+
+- **Church-Centric Design**: All data is organized around church organizations as the foundational unit
+- **Initial Setup Flow**: First-time deployments require creating a church and admin user through `/setup` route
+- **Timezone-Aware Operations**: Churches have timezone settings for hemisphere-aware seasonal recommendations
+- **Automated Detection**: Hemisphere automatically detected from timezone for accurate seasonal contexts
+
 ### Authentication & Authorization
 
 - PocketBase handles auth with role-based permissions
-- Protected routes via `+layout.svelte` auth checks
-- Users have roles: musician, leader, admin with different access levels
+- Church-based multi-tenancy with users belonging to specific churches
+- Protected routes via `+layout.svelte` auth checks with setup guard
+- User roles: pastor, admin, leader, musician, member with church-specific permissions
 
 ### Smart Song Management
 
@@ -132,9 +145,11 @@ src/
 
 ### Analytics & Reporting
 
-- Usage frequency tracking per song
-- Heat maps showing service patterns
-- Top songs analysis with date filtering
+- Usage frequency tracking per song with church context
+- Heat maps showing service patterns with seasonal awareness
+- Top songs analysis with date filtering and hemisphere-specific recommendations
+- AI-powered worship insights with rotation health and diversity analysis
+- Church-specific seasonal trending based on timezone and location
 
 ## Development Guidelines
 
@@ -155,6 +170,8 @@ See `plan/SVELTE.md` and `plan/PB_SVELTE.md` for detailed patterns.
 - PocketBase client: `new PocketBase(browser ? window.location.origin : '')`
 - Single global PocketBase instance
 - Disable auto-cancellation for better UX: `pb.autoCancellation(false)`
+- Church-based data scoping for multi-tenancy
+- Initial setup detection with route guarding
 - Real-time subscriptions for collaborative features
 - Client-side caching with smart invalidation
 - Optimistic updates for better UX
