@@ -1,6 +1,8 @@
 /**
  * Analytics-related utility functions
  */
+import type { Song } from '$lib/types/song';
+import type { Service } from '$lib/types/service';
 
 /**
  * Color palette for charts
@@ -57,8 +59,8 @@ export interface AnalyticsOverview {
  * Aggregates usage data for overview statistics
  */
 export function aggregateUsageData(
-	songs: any[],
-	setlists: any[],
+	songs: Song[],
+	setlists: Service[],
 	usageData: UsageData[]
 ): AnalyticsOverview {
 	// Calculate basic counts

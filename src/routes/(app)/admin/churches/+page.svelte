@@ -21,7 +21,13 @@
 
 	let loading = $state<boolean>(false);
 	let error = $state<string | null>(null);
-	let churchDetails = $state<Record<string, any>>({});
+	let churchDetails = $state<Record<string, {
+		memberCount: number;
+		adminCount: number;
+		admins: any[];
+		isCurrentUserAdmin: boolean;
+		isOnlyAdmin: boolean;
+	}>>({});
 
 	onMount(() => {
 		loadChurchDetails();
@@ -33,7 +39,13 @@
 
 		try {
 			// Load detailed information for each church
-			const details: Record<string, any> = {};
+			const details: Record<string, {
+				memberCount: number;
+				adminCount: number;
+				admins: any[];
+				isCurrentUserAdmin: boolean;
+				isOnlyAdmin: boolean;
+			}> = {};
 
 			for (const church of auth.availableChurches) {
 				// Get member count and admin info for each church
@@ -55,9 +67,9 @@
 			}
 
 			churchDetails = details;
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Failed to load church details:', err);
-			error = err.message || 'Failed to load church details';
+			error = err instanceof Error ? err.message : 'Failed to load church details';
 		} finally {
 			loading = false;
 		}
@@ -67,8 +79,8 @@
 		try {
 			await auth.leaveChurch(churchId);
 			await loadChurchDetails(); // Refresh details
-		} catch (err: any) {
-			error = err.message || 'Failed to leave church';
+		} catch (err: unknown) {
+			error = err instanceof Error ? err.message : 'Failed to leave church';
 		}
 	}
 
@@ -84,8 +96,8 @@
 		try {
 			await auth.deleteChurch(churchId);
 			await loadChurchDetails(); // Refresh details
-		} catch (err: any) {
-			error = err.message || 'Failed to delete church';
+		} catch (err: unknown) {
+			error = err instanceof Error ? err.message : 'Failed to delete church';
 		}
 	}
 

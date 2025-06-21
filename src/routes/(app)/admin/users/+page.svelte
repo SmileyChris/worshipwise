@@ -54,9 +54,9 @@
 			}
 
 			users = result;
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Failed to load users:', err);
-			error = err.message || 'Failed to load users';
+			error = err instanceof Error ? err.message : 'Failed to load users';
 		} finally {
 			loading = false;
 		}
@@ -98,9 +98,9 @@
 
 			// Reload users to get updated data
 			await loadUsers();
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Failed to toggle user status:', err);
-			error = err.message || 'Failed to update user status';
+			error = err instanceof Error ? err.message : 'Failed to update user status';
 		} finally {
 			actionLoading = false;
 		}
@@ -111,9 +111,9 @@
 			actionLoading = true;
 			await changeUserRole(user.id, newRole);
 			await loadUsers();
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Failed to change user role:', err);
-			error = err.message || 'Failed to change user role';
+			error = err instanceof Error ? err.message : 'Failed to change user role';
 		} finally {
 			actionLoading = false;
 		}
@@ -127,9 +127,9 @@
 			await deleteUser(deletingUser.id);
 			deletingUser = null;
 			await loadUsers();
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Failed to delete user:', err);
-			error = err.message || 'Failed to delete user';
+			error = err instanceof Error ? err.message : 'Failed to delete user';
 		} finally {
 			actionLoading = false;
 		}

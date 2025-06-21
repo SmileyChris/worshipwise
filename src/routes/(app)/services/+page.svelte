@@ -149,8 +149,8 @@
 			// Open builder for the new service
 			selectedServiceId = newService.id;
 			showBuilder = true;
-		} catch (err: any) {
-			error = err.message || 'Failed to create service';
+		} catch (err: unknown) {
+			error = err instanceof Error ? err.message : 'Failed to create service';
 		} finally {
 			loading = false;
 		}

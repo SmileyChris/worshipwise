@@ -3,7 +3,7 @@
 	import { auth } from '$lib/stores/auth.svelte';
 	import { songsStore } from '$lib/stores/songs.svelte';
 	import { servicesStore } from '$lib/stores/services.svelte';
-	import type { Song } from '$lib/types/song';
+	import type { Song, Category } from '$lib/types/song';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
@@ -33,7 +33,7 @@
 	let initialLoadComplete = $state(false);
 
 	// Category data
-	let categoriesData = $state<Map<string, { category: any; songs: Song[] }> | null>(null);
+	let categoriesData = $state<Map<string, { category: Category; songs: Song[] }> | null>(null);
 	let categoriesLoading = $state(false);
 
 	// Reactive data from store

@@ -16,7 +16,7 @@
 		error?: string;
 		class?: string;
 		'data-testid'?: string;
-		children?: any;
+		children?: import('svelte').Snippet;
 		onchange?: (value: string) => void;
 	}
 

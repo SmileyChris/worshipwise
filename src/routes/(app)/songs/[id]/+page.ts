@@ -17,8 +17,8 @@ export const load: PageLoad = async ({ params }) => {
 			song,
 			usageHistory
 		};
-	} catch (err: any) {
-		if (err.status === 404) {
+	} catch (err: unknown) {
+		if (err && typeof err === 'object' && 'status' in err && err.status === 404) {
 			throw error(404, 'Song not found');
 		}
 		throw error(500, 'Failed to load song details');

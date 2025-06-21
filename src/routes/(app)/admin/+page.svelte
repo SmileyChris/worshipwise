@@ -13,9 +13,9 @@
 			loading = true;
 			error = null;
 			stats = await getAdminStats();
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Failed to load admin stats:', err);
-			error = err.message || 'Failed to load statistics';
+			error = err instanceof Error ? err.message : 'Failed to load statistics';
 		} finally {
 			loading = false;
 		}
