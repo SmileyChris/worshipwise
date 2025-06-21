@@ -59,7 +59,7 @@ export class SystemAPI {
 			// This should work anonymously if collections are set up properly
 			const users = await pb.collection('users').getList(1, 1);
 			return users.totalItems > 0;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			// If we can't access users anonymously, assume no users exist
 			console.warn('Could not check worship users:', error);
 			return false;

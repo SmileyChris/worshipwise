@@ -91,7 +91,7 @@ export class CategoriesAPI {
 	/**
 	 * Subscribe to real-time updates for categories
 	 */
-	subscribe(callback: (data: any) => void) {
+	subscribe(callback: (data: unknown) => void) {
 		return pb.collection(this.collection).subscribe('*', callback);
 	}
 }

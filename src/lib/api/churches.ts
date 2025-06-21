@@ -7,6 +7,7 @@ import type {
 	InviteUserData,
 	InitialChurchSetup
 } from '$lib/types/church';
+import type { User } from '$lib/types/auth';
 import {
 	getDefaultPermissions,
 	getDefaultChurchSettings,
@@ -32,7 +33,7 @@ export class ChurchesAPI {
 	 */
 	static async initialSetup(setupData: InitialChurchSetup): Promise<{
 		church: Church;
-		user: any;
+		user: User;
 	}> {
 		try {
 			// Create the admin user first

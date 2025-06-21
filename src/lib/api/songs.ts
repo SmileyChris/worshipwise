@@ -494,7 +494,7 @@ export class SongsAPI {
 	/**
 	 * Subscribe to real-time updates for songs
 	 */
-	subscribe(callback: (data: any) => void) {
+	subscribe(callback: (data: unknown) => void) {
 		return pb.collection(this.collection).subscribe('*', callback);
 	}
 }

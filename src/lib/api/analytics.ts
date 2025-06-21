@@ -1,4 +1,6 @@
 import { pb } from './client';
+import type { Song, ServiceSong } from '$lib/types/song';
+import type { User } from '$lib/types/auth';
 
 export interface AnalyticsOverview {
 	totalSongs: number;
@@ -145,7 +147,7 @@ export class AnalyticsAPI {
 			const songStats = new Map<
 				string,
 				{
-					song: any;
+					song: Song;
 					usageCount: number;
 					lastUsed: string;
 					positions: number[];
@@ -265,7 +267,7 @@ export class AnalyticsAPI {
 				stats.totalSongs += songs.length;
 
 				// Track popular songs for this service type
-				songs.forEach((setlistSong: any) => {
+				songs.forEach((setlistSong: ServiceSong) => {
 					const song = setlistSong.expand?.song_id;
 					if (song) {
 						const songId = song.id;
@@ -463,7 +465,7 @@ export class AnalyticsAPI {
 			const leaderMap = new Map<
 				string,
 				{
-					leader: any;
+					leader: User;
 					serviceCount: number;
 					totalDuration: number;
 					durationsCount: number;
@@ -501,7 +503,7 @@ export class AnalyticsAPI {
 
 				// Track keys and songs
 				const setlistSongs = setlist.expand?.setlist_songs_via_setlist_id || [];
-				setlistSongs.forEach((setlistSong: any) => {
+				setlistSongs.forEach((setlistSong: ServiceSong) => {
 					const song = setlistSong.expand?.song_id;
 					if (song) {
 						// Track unique songs
@@ -556,7 +558,7 @@ export class AnalyticsAPI {
 		dateTo?: string
 	): Promise<string> {
 		try {
-			let data: any[] = [];
+			let data: Record<string, string | number>[] = [];
 			let headers: string[] = [];
 
 			switch (type) {

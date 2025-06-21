@@ -112,7 +112,7 @@ export class LabelsAPI {
 	/**
 	 * Subscribe to real-time updates for labels
 	 */
-	subscribe(callback: (data: any) => void) {
+	subscribe(callback: (data: unknown) => void) {
 		return pb.collection(this.collection).subscribe('*', callback);
 	}
 }

@@ -164,7 +164,7 @@ export class ServicesAPI {
 			const existingSongs = await this.getServiceSongs(data.service_id);
 			const nextPosition = existingSongs.length + 1;
 
-			const serviceSongData: any = {
+			const serviceSongData: CreateServiceSongData & { setlist_id: string; added_by: string } = {
 				...data,
 				setlist_id: data.service_id,
 				order_position: data.order_position || nextPosition,
@@ -370,14 +370,14 @@ export class ServicesAPI {
 	/**
 	 * Subscribe to real-time updates for services
 	 */
-	subscribeToServices(callback: (data: any) => void) {
+	subscribeToServices(callback: (data: unknown) => void) {
 		return pb.collection(this.collection).subscribe('*', callback);
 	}
 
 	/**
 	 * Subscribe to real-time updates for service songs
 	 */
-	subscribeToServiceSongs(serviceId: string, callback: (data: any) => void) {
+	subscribeToServiceSongs(serviceId: string, callback: (data: unknown) => void) {
 		return pb.collection(this.serviceSongsCollection).subscribe('*', callback, {
 			filter: `setlist_id = "${serviceId}"`
 		});

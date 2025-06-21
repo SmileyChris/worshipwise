@@ -1,4 +1,5 @@
 import { pb } from './client';
+import type { Song, SongUsage, ServiceSong } from '$lib/types/song';
 
 export interface SongRecommendation {
 	songId: string;
@@ -248,7 +249,7 @@ class RecommendationsApi {
 				const songs = service.expand?.setlist_songs_via_setlist || [];
 				const suggestions: WorshipFlowSuggestion[] = [];
 
-				songs.forEach((item: any, index: number) => {
+				songs.forEach((item: ServiceSong, index: number) => {
 					const song = item.expand?.song;
 					if (!song) return;
 
@@ -326,7 +327,7 @@ class RecommendationsApi {
 			const songs = service.expand?.setlist_songs_via_setlist || [];
 			const analysis = { fast: 0, medium: 0, slow: 0 };
 
-			songs.forEach((item: any) => {
+			songs.forEach((item: ServiceSong) => {
 				const song = item.expand?.song;
 				if (song?.tempo) {
 					if (song.tempo >= 120) analysis.fast++;
@@ -612,7 +613,7 @@ class RecommendationsApi {
 		}
 	}
 
-	private analyzeRotationHealth(allUsage: any[], allSongs: any[]) {
+	private analyzeRotationHealth(allUsage: SongUsage[], allSongs: Song[]) {
 		const now = new Date();
 		const twoMonthsAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
 		const fourMonthsAgo = new Date(now.getTime() - 120 * 24 * 60 * 60 * 1000);
@@ -665,7 +666,7 @@ class RecommendationsApi {
 		return { score, status, insights, recommendations };
 	}
 
-	private analyzeDiversity(allUsage: any[], allSongs: any[]) {
+	private analyzeDiversity(allUsage: SongUsage[], allSongs: Song[]) {
 		// Key diversity analysis
 		const keysUsed = new Set(
 			allUsage.map((usage) => usage.expand?.song_id?.key_signature).filter(Boolean)
@@ -718,7 +719,7 @@ class RecommendationsApi {
 		};
 	}
 
-	private analyzeCongregationEngagement(allUsage: any[], allSongs: any[]) {
+	private analyzeCongregationEngagement(allUsage: SongUsage[], allSongs: Song[]) {
 		// Analyze familiarity levels
 		const songUsageCounts = new Map<string, number>();
 		allUsage.forEach((usage) => {
@@ -771,7 +772,7 @@ class RecommendationsApi {
 		};
 	}
 
-	private async analyzeSeasonalReadiness(allUsage: any[], allSongs: any[]) {
+	private async analyzeSeasonalReadiness(allUsage: SongUsage[], allSongs: Song[]) {
 		const seasonalContext = await this.getChurchSeasonalContext();
 		const currentMonth = seasonalContext.currentMonth;
 		const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
@@ -1016,7 +1017,7 @@ class RecommendationsApi {
 	}
 
 	// Helper methods
-	private async calculateSeasonalScore(song: any): Promise<number> {
+	private async calculateSeasonalScore(song: Song): Promise<number> {
 		const seasonalContext = await this.getChurchSeasonalContext();
 		const month = seasonalContext.currentMonth;
 
@@ -1064,7 +1065,7 @@ class RecommendationsApi {
 
 	// Synchronous version for backward compatibility
 	private calculateSeasonalScoreSync(
-		song: any,
+		song: Song,
 		hemisphere: 'northern' | 'southern' = 'northern'
 	): number {
 		const now = new Date();
@@ -1088,7 +1089,7 @@ class RecommendationsApi {
 		return 0;
 	}
 
-	private async getSeasonalReason(context?: any): Promise<string> {
+	private async getSeasonalReason(context?: Record<string, unknown>): Promise<string> {
 		const seasonalContext = context || (await this.getChurchSeasonalContext());
 		const month = seasonalContext.currentMonth;
 		const hemisphere = seasonalContext.hemisphere;
