@@ -78,7 +78,7 @@ class RecommendationsApi {
 			limit?: number;
 		} = {}
 	): Promise<SongRecommendation[]> {
-		const { excludeRecentDays = 28, serviceType, worshipLeaderId, limit = 10 } = filters;
+		const { excludeRecentDays = 28, worshipLeaderId, limit = 10 } = filters;
 
 		try {
 			// Get recent usage to exclude
@@ -459,7 +459,7 @@ class RecommendationsApi {
 	async getComparativePeriodAnalysis(
 		currentStart: Date,
 		currentEnd: Date,
-		periodType: 'month' | 'quarter' | 'year' = 'month'
+		_periodType: 'month' | 'quarter' | 'year' = 'month'
 	): Promise<ComparativePeriod> {
 		try {
 			// Calculate previous period
@@ -578,19 +578,13 @@ class RecommendationsApi {
 	}> {
 		try {
 			// Get comprehensive usage data
-			const [allUsage, allSongs, recentServices] = await Promise.all([
+			const [allUsage, allSongs] = await Promise.all([
 				pb.collection('song_usage').getFullList({
 					expand: 'song_id,setlist_id',
 					sort: '-used_date'
 				}),
 				pb.collection('songs').getFullList({
 					filter: 'is_active = true'
-				}),
-				pb.collection('setlists').getFullList({
-					filter: 'status = "completed"',
-					sort: '-service_date',
-					limit: 20,
-					expand: 'setlist_songs_via_setlist_id.song_id'
 				})
 			]);
 
@@ -628,10 +622,6 @@ class RecommendationsApi {
 			(song) => !allUsage.some((usage) => usage.song_id === song.id)
 		);
 
-		const recentlyUsed = allSongs.filter((song) => {
-			const lastUsage = allUsage.find((usage) => usage.song_id === song.id);
-			return lastUsage && new Date(lastUsage.used_date) >= twoMonthsAgo;
-		});
 
 		const overdue = allSongs.filter((song) => {
 			const lastUsage = allUsage.find((usage) => usage.song_id === song.id);
@@ -1019,7 +1009,7 @@ class RecommendationsApi {
 				month: 'numeric'
 			});
 			return parseInt(formatter.format(now));
-		} catch (error) {
+		} catch {
 			console.warn('Invalid timezone, using UTC:', timezone);
 			return new Date().getUTCMonth() + 1;
 		}

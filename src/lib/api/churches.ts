@@ -22,7 +22,7 @@ export class ChurchesAPI {
 		try {
 			const churches = await pb.collection('churches').getList(1, 1);
 			return churches.totalItems > 0;
-		} catch (error) {
+		} catch {
 			return false;
 		}
 	}
@@ -278,7 +278,7 @@ export class ChurchesAPI {
 	static async getChurchBySlug(slug: string): Promise<Church | null> {
 		try {
 			return await pb.collection('churches').getFirstListItem(`slug = "${slug}"`);
-		} catch (error) {
+		} catch {
 			return null;
 		}
 	}
@@ -292,7 +292,7 @@ export class ChurchesAPI {
 
 			const existing = await pb.collection('churches').getFirstListItem(filter);
 			return !existing;
-		} catch (error) {
+		} catch {
 			// No church found with this slug, so it's available
 			return true;
 		}

@@ -307,7 +307,7 @@ export class SongsAPI {
 			}
 
 			return { lastUsed: null, daysSince: Infinity };
-		} catch (error) {
+		} catch {
 			// No usage found
 			return { lastUsed: null, daysSince: Infinity };
 		}

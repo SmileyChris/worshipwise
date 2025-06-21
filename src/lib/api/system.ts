@@ -26,14 +26,14 @@ export class SystemAPI {
 				try {
 					const songs = await pb.collection('songs').getList(1, 1);
 					status.songsExist = songs.totalItems > 0;
-				} catch (error) {
+				} catch {
 					status.songsExist = false;
 				}
 
 				try {
 					const categories = await pb.collection('categories').getList(1, 1);
 					status.categoriesExist = categories.totalItems > 0;
-				} catch (error) {
+				} catch {
 					status.categoriesExist = false;
 				}
 			}
