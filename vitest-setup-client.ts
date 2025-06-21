@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { vi } from 'vitest';
+import { vi, beforeEach } from 'vitest';
 
 // Import pb-mock for client tests
 import './tests/helpers/pb-mock';
@@ -34,3 +34,8 @@ vi.mock('$app/stores', () => ({
 		subscribe: vi.fn(() => () => {})
 	}
 }));
+
+// Mock console.error to prevent error logs during tests
+beforeEach(() => {
+	vi.spyOn(console, 'error').mockImplementation(() => {});
+});

@@ -172,7 +172,7 @@
 						</svg>
 					</div>
 					<div class="ml-3">
-						<p class="text-sm text-red-800">{error}</p>
+						<p class="text-sm text-red-800" role="alert">{error}</p>
 					</div>
 				</div>
 			</div>

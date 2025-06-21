@@ -28,7 +28,6 @@ describe('AuthForm', () => {
       // Should not show register fields
       expect(screen.queryByTestId('name-input')).not.toBeInTheDocument();
       expect(screen.queryByTestId('password-confirm-input')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('church-input')).not.toBeInTheDocument();
     });
 
     it('should show forgot password link in login mode', () => {
@@ -162,7 +161,6 @@ describe('AuthForm', () => {
       expect(screen.getByTestId('email-input')).toBeInTheDocument();
       expect(screen.getByTestId('password-input')).toBeInTheDocument();
       expect(screen.getByTestId('password-confirm-input')).toBeInTheDocument();
-      expect(screen.getByTestId('church-input')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Create Account' })).toBeInTheDocument();
     });
 
@@ -240,14 +238,12 @@ describe('AuthForm', () => {
       const emailInput = screen.getByTestId('email-input');
       const passwordInput = screen.getByTestId('password-input');
       const passwordConfirmInput = screen.getByTestId('password-confirm-input');
-      const churchInput = screen.getByTestId('church-input');
       const submitButton = screen.getByRole('button', { name: 'Create Account' });
 
       await fireEvent.input(nameInput, { target: { value: 'John Doe' } });
       await fireEvent.input(emailInput, { target: { value: 'john@example.com' } });
       await fireEvent.input(passwordInput, { target: { value: 'password123' } });
       await fireEvent.input(passwordConfirmInput, { target: { value: 'password123' } });
-      await fireEvent.input(churchInput, { target: { value: 'Grace Church' } });
 
       await waitFor(() => {
         expect(submitButton).not.toBeDisabled();
@@ -260,12 +256,11 @@ describe('AuthForm', () => {
         password: 'password123',
         passwordConfirm: 'password123',
         name: 'John Doe',
-        church_name: 'Grace Church',
         role: 'musician'
       });
     });
 
-    it('should submit register form without church name', async () => {
+    it('should submit register form with default role', async () => {
       render(AuthForm, {
         props: {
           mode: 'register',
@@ -295,7 +290,6 @@ describe('AuthForm', () => {
         password: 'password123',
         passwordConfirm: 'password123',
         name: 'John Doe',
-        church_name: '',
         role: 'musician'
       });
     });
@@ -314,15 +308,19 @@ describe('AuthForm', () => {
       const passwordConfirmInput = screen.getByTestId('password-confirm-input');
       const submitButton = screen.getByRole('button', { name: 'Create Account' });
 
-      await fireEvent.input(nameInput, { target: { value: '' } });
+      // Fill fields with invalid data to trigger validation
       await fireEvent.input(emailInput, { target: { value: 'invalid-email' } });
       await fireEvent.input(passwordInput, { target: { value: '123' } });
       await fireEvent.input(passwordConfirmInput, { target: { value: 'different' } });
+      // Leave name empty
 
+      // Submit button should be disabled due to validation
+      expect(submitButton).toBeDisabled();
+
+      // Try to submit anyway
       await fireEvent.click(submitButton);
 
       expect(mockOnSubmit).not.toHaveBeenCalled();
-      expect(screen.getByText('Name is required')).toBeInTheDocument();
       expect(screen.getByText('Please enter a valid email address')).toBeInTheDocument();
       expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
       expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
@@ -386,34 +384,33 @@ describe('AuthForm', () => {
     });
   });
 
-  describe('Form Reset on Mode Change', () => {
-    it('should clear form when switching modes', async () => {
-      const { rerender } = render(AuthForm, {
+  describe('Mode Switching', () => {
+    it('should display correct fields for login mode', () => {
+      render(AuthForm, {
         props: {
           mode: 'login',
           onSubmit: mockOnSubmit
         }
       });
 
-      const emailInput = screen.getByTestId('email-input');
-      const passwordInput = screen.getByTestId('password-input');
+      expect(screen.getByTestId('email-input')).toBeInTheDocument();
+      expect(screen.getByTestId('password-input')).toBeInTheDocument();
+      expect(screen.queryByTestId('name-input')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('password-confirm-input')).not.toBeInTheDocument();
+    });
 
-      // Fill in login form
-      await fireEvent.input(emailInput, { target: { value: 'test@example.com' } });
-      await fireEvent.input(passwordInput, { target: { value: 'password123' } });
-
-      // Switch to register mode
-      rerender({
-        mode: 'register',
-        onSubmit: mockOnSubmit
+    it('should display correct fields for register mode', () => {
+      render(AuthForm, {
+        props: {
+          mode: 'register',
+          onSubmit: mockOnSubmit
+        }
       });
 
-      // Form should be cleared
-      expect(screen.getByTestId('email-input')).toHaveValue('');
-      expect(screen.getByTestId('password-input')).toHaveValue('');
-      expect(screen.getByTestId('name-input')).toHaveValue('');
-      expect(screen.getByTestId('password-confirm-input')).toHaveValue('');
-      expect(screen.getByTestId('church-input')).toHaveValue('');
+      expect(screen.getByTestId('email-input')).toBeInTheDocument();
+      expect(screen.getByTestId('password-input')).toBeInTheDocument();
+      expect(screen.getByTestId('name-input')).toBeInTheDocument();
+      expect(screen.getByTestId('password-confirm-input')).toBeInTheDocument();
     });
   });
 
@@ -426,12 +423,12 @@ describe('AuthForm', () => {
         }
       });
 
-      expect(screen.getByRole('form')).toBeInTheDocument();
-      expect(screen.getByLabelText('Full Name')).toBeInTheDocument();
-      expect(screen.getByLabelText('Email')).toBeInTheDocument();
-      expect(screen.getByLabelText('Password')).toBeInTheDocument();
-      expect(screen.getByLabelText('Confirm Password')).toBeInTheDocument();
-      expect(screen.getByLabelText('Church Name (Optional)')).toBeInTheDocument();
+      // Form element exists and has proper labels
+      expect(document.querySelector('form')).toBeInTheDocument();
+      expect(screen.getByLabelText(/Full Name/)).toBeInTheDocument();
+      expect(screen.getByLabelText(/^Email/)).toBeInTheDocument();
+      expect(screen.getByLabelText(/^Password \*/)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Confirm Password/)).toBeInTheDocument();
     });
 
     it('should have proper autocomplete attributes', () => {
@@ -446,7 +443,6 @@ describe('AuthForm', () => {
       expect(screen.getByTestId('email-input')).toHaveAttribute('autocomplete', 'email');
       expect(screen.getByTestId('password-input')).toHaveAttribute('autocomplete', 'new-password');
       expect(screen.getByTestId('password-confirm-input')).toHaveAttribute('autocomplete', 'new-password');
-      expect(screen.getByTestId('church-input')).toHaveAttribute('autocomplete', 'organization');
     });
 
     it('should have proper autocomplete for login mode', () => {

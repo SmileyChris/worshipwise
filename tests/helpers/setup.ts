@@ -25,6 +25,8 @@ beforeEach(() => {
   setupTestEnvironment();
   mockPb.reset();
   vi.clearAllMocks();
+  // Mock console.error to prevent error logs during tests
+  vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 afterEach(() => {

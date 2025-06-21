@@ -434,14 +434,10 @@ describe('Authentication Integration Tests', () => {
       const usersCollection = mockPb.collection('users');
       usersCollection.authWithPassword = vi.fn().mockRejectedValue(networkError);
 
-      try {
-        await auth.login({
-          email: 'test@example.com',
-          password: 'password123'
-        });
-      } catch (error) {
-        expect(error).toBe(networkError);
-      }
+      await expect(auth.login({
+        email: 'test@example.com',
+        password: 'password123'
+      })).rejects.toThrow('Network error');
 
       expect(auth.loading).toBe(false);
       expect(auth.error).toBe('Network error');
@@ -459,7 +455,7 @@ describe('Authentication Integration Tests', () => {
 
       const logoutSpy = vi.spyOn(auth, 'logout').mockResolvedValue();
 
-      await auth.refreshAuth();
+      await expect(auth.refreshAuth()).resolves.toBeUndefined();
 
       expect(logoutSpy).toHaveBeenCalled();
     });
@@ -485,7 +481,7 @@ describe('Authentication Integration Tests', () => {
       profilesCollection.getList = vi.fn().mockRejectedValue(new Error('Database error'));
 
       // Should not throw, should handle gracefully
-      await auth.loadProfile();
+      await expect(auth.loadProfile()).resolves.toBeUndefined();
 
       expect(auth.profile).toBeNull();
     });

@@ -50,7 +50,7 @@ describe('Songs API', () => {
     });
 
     it('should throw error if song not found', async () => {
-      mockPb.collection('songs').mockError(new Error('Not found'));
+      mockPb.collection('songs').getOne.mockRejectedValue(new Error('Not found'));
 
       await expect(songsApi.getSong('invalid_id')).rejects.toThrow('Not found');
     });
