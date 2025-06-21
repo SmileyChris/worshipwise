@@ -378,13 +378,12 @@
 
 <!-- Create service modal -->
 <Modal open={showCreateModal} title="Create New Service" onclose={() => (showCreateModal = false)}>
-	{#snippet children()}
-		<form
-			class="space-y-4"
-			onsubmit={(e) => {
-				e.preventDefault();
-				handleCreateService();
-			}}
+	<form
+		class="space-y-4"
+		onsubmit={(e) => {
+			e.preventDefault();
+			handleCreateService();
+		}}
 		>
 			<div>
 				<label for="title" class="block text-sm font-medium text-gray-700">Title *</label>
@@ -462,5 +461,4 @@
 				</Button>
 			</div>
 		</form>
-	{/snippet}
 </Modal>

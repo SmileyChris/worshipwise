@@ -1,5 +1,6 @@
 import { pb } from './client';
-import type { Song, SongUsage, ServiceSong } from '$lib/types/song';
+import type { Song, SongUsage } from '$lib/types/song';
+import type { ServiceSong } from '$lib/types/service';
 
 export interface SongRecommendation {
 	songId: string;

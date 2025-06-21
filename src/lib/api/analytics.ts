@@ -1,5 +1,6 @@
 import { pb } from './client';
-import type { Song, ServiceSong } from '$lib/types/song';
+import type { Song } from '$lib/types/song';
+import type { ServiceSong } from '$lib/types/service';
 import type { User } from '$lib/types/auth';
 
 export interface AnalyticsOverview {
@@ -558,7 +559,7 @@ export class AnalyticsAPI {
 		dateTo?: string
 	): Promise<string> {
 		try {
-			let data: Record<string, string | number>[] = [];
+			let data: unknown[] = [];
 			let headers: string[] = [];
 
 			switch (type) {
