@@ -58,7 +58,7 @@
 			{placeholder}
 			{required}
 			{disabled}
-			autocomplete={autocomplete as any}
+			autocomplete={autocomplete}
 			class={inputClasses}
 			aria-describedby={error ? errorId : undefined}
 			aria-invalid={error ? 'true' : 'false'}

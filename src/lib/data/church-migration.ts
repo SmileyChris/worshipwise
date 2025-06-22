@@ -1,5 +1,5 @@
 import { pb } from '$lib/api/client';
-import type { Church, ChurchMembership, ChurchRole } from '$lib/types/church';
+import type { Church, ChurchRole } from '$lib/types/church';
 import { getDefaultPermissions, getDefaultChurchSettings } from '$lib/types/church';
 
 /**
@@ -55,7 +55,7 @@ export class ChurchMigration {
 	/**
 	 * Create the default church from existing user data
 	 */
-	private static async createDefaultChurch(users: any[]): Promise<Church> {
+	private static async createDefaultChurch(users: Record<string, unknown>[]): Promise<Church> {
 		// Find the best candidate for church owner (admin first, then any user)
 		const adminUser = users.find((u) => u.role === 'admin') || users[0];
 
@@ -83,7 +83,7 @@ export class ChurchMigration {
 	/**
 	 * Create church memberships for all existing users
 	 */
-	private static async createMembershipsForUsers(users: any[], churchId: string): Promise<void> {
+	private static async createMembershipsForUsers(users: Record<string, unknown>[], churchId: string): Promise<void> {
 		const membershipPromises = users.map((user) => {
 			// Map old user roles to church roles
 			const role = this.mapUserRoleToChurchRole(user.role);
@@ -141,7 +141,7 @@ export class ChurchMigration {
 		const records = await pb.collection(collectionName).getFullList();
 
 		const updatePromises = records.map((record) => {
-			const updateData: any = {
+			const updateData: Record<string, unknown> = {
 				church_id: churchId
 			};
 
@@ -160,7 +160,7 @@ export class ChurchMigration {
 	/**
 	 * Update users with current_church_id
 	 */
-	private static async updateUsersWithCurrentChurch(users: any[], churchId: string): Promise<void> {
+	private static async updateUsersWithCurrentChurch(users: Record<string, unknown>[], churchId: string): Promise<void> {
 		const updatePromises = users.map((user) =>
 			pb.collection('users').update(user.id, {
 				current_church_id: churchId
@@ -186,7 +186,7 @@ export class ChurchMigration {
 	/**
 	 * Determine the best church name from existing user data
 	 */
-	private static determineChurchName(users: any[]): string {
+	private static determineChurchName(users: Record<string, unknown>[]): string {
 		// Try to find a consistent church name from users
 		const churchNames = users
 			.map((u) => u.church_name)
@@ -276,8 +276,8 @@ export class ChurchMigration {
 			if (services.items.some((service) => !service.church_id)) {
 				issues.push('Some services missing church_id');
 			}
-		} catch (error: any) {
-			issues.push(`Validation error: ${error.message}`);
+		} catch (error: unknown) {
+			issues.push(`Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`);
 		}
 
 		return {
