@@ -7,7 +7,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
-	import { Church, Clock, User, Mail, Lock } from 'lucide-svelte';
+	import { Church, Clock } from 'lucide-svelte';
 
 	let loading = $state<boolean>(false);
 	let error = $state<string | null>(null);
@@ -63,7 +63,7 @@
 			} else {
 				setupData.timezone = 'UTC';
 			}
-		} catch (error) {
+		} catch {
 			setupData.timezone = 'UTC';
 		}
 	});
@@ -134,9 +134,9 @@
 
 			// Redirect to dashboard
 			await goto('/dashboard');
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Setup failed:', err);
-			error = err.message || 'Setup failed. Please try again.';
+			error = err instanceof Error ? err.message : 'Setup failed. Please try again.';
 		} finally {
 			loading = false;
 		}

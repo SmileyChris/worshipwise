@@ -370,7 +370,7 @@ export class SongsAPI {
 	/**
 	 * Get usage history for a specific song
 	 */
-	async getSongUsageHistory(songId: string): Promise<any[]> {
+	async getSongUsageHistory(songId: string): Promise<Record<string, unknown>[]> {
 		try {
 			const usageRecords = await pb.collection('song_usage').getFullList({
 				filter: `song_id = "${songId}"`,
