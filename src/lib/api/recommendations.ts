@@ -251,12 +251,12 @@ class RecommendationsApi {
 				const suggestions: WorshipFlowSuggestion[] = [];
 
 				songs.forEach((item: ServiceSong, index: number) => {
-					const song = item.expand?.song;
+					const song = item.expand?.song_id;
 					if (!song) return;
 
 					// Analyze tempo flow
 					if (index > 0) {
-						const prevSong = songs[index - 1].expand?.song;
+						const prevSong = songs[index - 1].expand?.song_id;
 						if (prevSong && song.tempo && prevSong.tempo) {
 							const tempoChange = song.tempo - prevSong.tempo;
 							if (Math.abs(tempoChange) > 40) {
@@ -329,7 +329,7 @@ class RecommendationsApi {
 			const analysis = { fast: 0, medium: 0, slow: 0 };
 
 			songs.forEach((item: ServiceSong) => {
-				const song = item.expand?.song;
+				const song = item.expand?.song_id;
 				if (song?.tempo) {
 					if (song.tempo >= 120) analysis.fast++;
 					else if (song.tempo >= 80) analysis.medium++;
