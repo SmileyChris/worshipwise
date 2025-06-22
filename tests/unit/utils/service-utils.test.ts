@@ -401,7 +401,18 @@ describe('Service Utils', () => {
 			worship_leader: 'user1',
 			created: '2024-01-01T00:00:00Z',
 			updated: '2024-01-01T00:00:00Z',
-			expand: { worship_leader: { name: 'John Doe' } }
+			expand: { 
+				worship_leader: { 
+					id: 'user1',
+					name: 'John Doe',
+					email: 'john@example.com',
+					created: '2024-01-01T00:00:00Z',
+					updated: '2024-01-01T00:00:00Z',
+					verified: true,
+					avatar: '',
+					emailVisibility: false
+				} 
+			}
 		};
 
 		it('should generate correct PDF data structure', () => {

@@ -29,6 +29,7 @@ describe('Analytics Utils', () => {
 			{ 
 				id: '1', 
 				title: 'Song 1',
+				category: 'worship',
 				created_by: 'user1',
 				is_active: true,
 				created: '2023-01-01T00:00:00Z',
@@ -37,6 +38,7 @@ describe('Analytics Utils', () => {
 			{ 
 				id: '2', 
 				title: 'Song 2',
+				category: 'worship',
 				created_by: 'user1', 
 				is_active: true,
 				created: '2023-01-01T00:00:00Z',

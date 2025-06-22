@@ -405,22 +405,25 @@ class SongsStore {
 	 * Subscribe to real-time updates
 	 */
 	async subscribeToUpdates(): Promise<() => void> {
-		return await songsApi.subscribe((data) => {
+		return await songsApi.subscribe((data: unknown) => {
 			console.log('Real-time song update:', data);
+			
+			// Type-safe access to event data
+			const eventData = data as { action: string; record: { id: string } & Record<string, any> };
 
-			if (data.action === 'create') {
+			if (eventData.action === 'create') {
 				// Add new song to the beginning of the list if it matches current filters
-				this.songs = [data.record as unknown as Song, ...this.songs];
+				this.songs = [eventData.record as unknown as Song, ...this.songs];
 				this.totalItems += 1;
-			} else if (data.action === 'update') {
+			} else if (eventData.action === 'update') {
 				// Update existing song
-				const index = this.songs.findIndex((s) => s.id === data.record.id);
+				const index = this.songs.findIndex((s) => s.id === eventData.record.id);
 				if (index !== -1) {
-					this.songs[index] = data.record as unknown as Song;
+					this.songs[index] = eventData.record as unknown as Song;
 				}
-			} else if (data.action === 'delete') {
+			} else if (eventData.action === 'delete') {
 				// Remove deleted song
-				this.songs = this.songs.filter((s) => s.id !== data.record.id);
+				this.songs = this.songs.filter((s) => s.id !== eventData.record.id);
 				this.totalItems = Math.max(0, this.totalItems - 1);
 			}
 		});

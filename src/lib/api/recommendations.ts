@@ -670,14 +670,20 @@ class RecommendationsApi {
 	private analyzeDiversity(allUsage: SongUsage[], allSongs: Song[]) {
 		// Key diversity analysis
 		const keysUsed = new Set(
-			allUsage.map((usage) => usage.expand?.song_id?.key_signature).filter(Boolean)
+			allUsage.map((usage) => {
+				const song = allSongs.find(s => s.id === usage.song_id);
+				return song?.key_signature;
+			}).filter(Boolean)
 		);
 
 		const totalPossibleKeys = 12; // Major/minor for each chromatic note
 		const keyDiversity = (keysUsed.size / totalPossibleKeys) * 100;
 
 		// Tempo diversity (categorize by tempo ranges)
-		const tempos = allUsage.map((usage) => usage.expand?.song_id?.tempo).filter(Boolean);
+		const tempos = allUsage.map((usage) => {
+			const song = allSongs.find(s => s.id === usage.song_id);
+			return song?.tempo;
+		}).filter(Boolean);
 		const fastCount = tempos.filter((t) => t >= 120).length;
 		const mediumCount = tempos.filter((t) => t >= 80 && t < 120).length;
 		const slowCount = tempos.filter((t) => t < 80).length;
@@ -700,7 +706,10 @@ class RecommendationsApi {
 
 		// Artist diversity
 		const artistsUsed = new Set(
-			allUsage.map((usage) => usage.expand?.song_id?.artist).filter(Boolean)
+			allUsage.map((usage) => {
+				const song = allSongs.find(s => s.id === usage.song_id);
+				return song?.artist;
+			}).filter(Boolean)
 		);
 
 		const totalArtists = new Set(allSongs.map((song) => song.artist).filter(Boolean)).size;
@@ -1092,7 +1101,7 @@ class RecommendationsApi {
 
 	private async getSeasonalReason(context?: Record<string, unknown>): Promise<string> {
 		const seasonalContext = context || (await this.getChurchSeasonalContext());
-		const month = seasonalContext.currentMonth;
+		const month = seasonalContext.currentMonth as number;
 		const hemisphere = seasonalContext.hemisphere;
 
 		// Religious seasons are the same regardless of hemisphere

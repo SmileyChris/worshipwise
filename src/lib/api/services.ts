@@ -164,15 +164,13 @@ export class ServicesAPI {
 			const existingSongs = await this.getServiceSongs(data.service_id);
 			const nextPosition = existingSongs.length + 1;
 
-			const serviceSongData: CreateServiceSongData & { setlist_id: string; added_by: string } = {
-				...data,
-				setlist_id: data.service_id,
+			const { service_id, ...songDataWithoutServiceId } = data;
+			const serviceSongData = {
+				...songDataWithoutServiceId,
+				setlist_id: service_id,
 				order_position: data.order_position || nextPosition,
 				added_by: pb.authStore.model?.id || ''
 			};
-
-			// Remove service_id since we're using setlist_id in the database
-			delete serviceSongData.service_id;
 
 			const record = await pb.collection(this.serviceSongsCollection).create(serviceSongData);
 			return record as unknown as ServiceSong;
