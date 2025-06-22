@@ -629,7 +629,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Service Management', () => {
 	test('creates and manages service', async ({ page }) => {
 		// Mock APIs
-		await page.route('**/api/collections/setlists/records', async (route) => {
+		await page.route('**/api/collections/services/records', async (route) => {
 			// Database collection name
 			if (route.request().method() === 'POST') {
 				await route.fulfill({

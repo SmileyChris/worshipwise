@@ -120,7 +120,7 @@ export class ChurchMigration {
 	private static async updateCollectionsWithChurchId(churchId: string): Promise<void> {
 		const collections = [
 			{ name: 'songs', defaultVisibility: 'church' },
-			{ name: 'setlists', defaultVisibility: null }, // services collection (legacy name)
+			{ name: 'services', defaultVisibility: null }, // services collection
 			{ name: 'categories', defaultVisibility: 'church' },
 			{ name: 'labels', defaultVisibility: 'church' }
 		];
@@ -280,7 +280,7 @@ export class ChurchMigration {
 				issues.push('Some songs missing church_id');
 			}
 
-			const services = await pb.collection('setlists').getList(1, 5);
+			const services = await pb.collection('services').getList(1, 5);
 			if (services.items.some((service) => !service.church_id)) {
 				issues.push('Some services missing church_id');
 			}

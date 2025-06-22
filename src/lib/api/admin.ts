@@ -318,7 +318,7 @@ export async function getUserActivity(userId: string): Promise<{
 		// You would need to implement this in your auth flow
 
 		// Get services created by this user
-		const setlists = await pb.collection('setlists').getList(1, 1, {
+		const services = await pb.collection('services').getList(1, 1, {
 			filter: `created_by = "${userId}"`,
 			fields: 'id'
 		});
@@ -330,7 +330,7 @@ export async function getUserActivity(userId: string): Promise<{
 		});
 
 		return {
-			servicesCreated: setlists.totalItems,
+			servicesCreated: services.totalItems,
 			songsAdded: songs.totalItems
 		};
 	} catch (error) {

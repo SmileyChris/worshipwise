@@ -49,7 +49,7 @@
 </script>
 
 <div class="space-y-6">
-	<!-- Setlist Selection -->
+	<!-- Service Selection -->
 	<Card>
 		<h3 class="font-title mb-4 text-lg font-semibold">Analyze Worship Flow</h3>
 		<div class="space-y-4">
@@ -100,7 +100,7 @@
 	{#if !recommendationsStore.loading && recommendationsStore.worshipFlowSuggestions.length > 0}
 		<div class="space-y-4">
 			{#if selectedServiceId && !showGeneralTips}
-				<h3 class="font-title text-lg font-semibold">Setlist Flow Analysis</h3>
+				<h3 class="font-title text-lg font-semibold">Service Flow Analysis</h3>
 			{:else}
 				<h3 class="font-title text-lg font-semibold">General Worship Flow Guidelines</h3>
 			{/if}

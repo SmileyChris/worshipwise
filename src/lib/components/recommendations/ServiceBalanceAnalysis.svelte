@@ -47,7 +47,7 @@
 </script>
 
 <div class="space-y-6">
-	<!-- Setlist Selection -->
+	<!-- Service Selection -->
 	<Card>
 		<h3 class="font-title mb-4 text-lg font-semibold">Analyze Service Balance</h3>
 		<div class="space-y-4">

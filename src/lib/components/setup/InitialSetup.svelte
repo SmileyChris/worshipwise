@@ -169,14 +169,6 @@
 		setupData.churchName.trim().length > 0 && setupData.timezone.length > 0
 	);
 
-	// Check if step 2 is valid for enabling submit button
-	const isStep2Valid = $derived(
-		setupData.adminName.trim().length > 0 &&
-			setupData.adminEmail.trim().length > 0 &&
-			setupData.password.length >= 6 &&
-			setupData.password === setupData.confirmPassword
-	);
-
 	// Function to handle Enter key on step 2 fields
 	function handleStep2Enter() {
 		handleSetup(); // Always call handleSetup, let it handle validation

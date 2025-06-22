@@ -10,8 +10,8 @@ import type {
 } from '$lib/types/service';
 
 export class ServicesAPI {
-	private collection = 'setlists';
-	private serviceSongsCollection = 'setlist_songs';
+	private collection = 'services';
+	private serviceSongsCollection = 'service_songs';
 
 	/**
 	 * Get all services with optional filtering
@@ -95,7 +95,7 @@ export class ServicesAPI {
 	async getServiceSongs(serviceId: string): Promise<ServiceSong[]> {
 		try {
 			const records = await pb.collection(this.serviceSongsCollection).getFullList({
-				filter: `setlist_id = "${serviceId}"`,
+				filter: `service_id = "${serviceId}"`,
 				sort: 'order_position',
 				expand: 'song_id,added_by'
 			});
@@ -167,7 +167,7 @@ export class ServicesAPI {
 			const { service_id, ...songDataWithoutServiceId } = data;
 			const serviceSongData = {
 				...songDataWithoutServiceId,
-				setlist_id: service_id,
+				service_id: service_id,
 				order_position: data.order_position || nextPosition,
 				added_by: pb.authStore.model?.id || ''
 			};
@@ -310,10 +310,10 @@ export class ServicesAPI {
 			const usagePromises = songs.map((song) =>
 				pb.collection('song_usage').create({
 					song_id: song.song_id,
-					setlist_id: serviceId,
+					service_id: serviceId,
 					used_date: service.service_date,
 					used_key: song.transposed_key || '',
-					position_in_setlist: song.order_position,
+					position_in_service: song.order_position,
 					worship_leader: service.worship_leader,
 					service_type: service.service_type || ''
 				})
@@ -377,7 +377,7 @@ export class ServicesAPI {
 	 */
 	subscribeToServiceSongs(serviceId: string, callback: (data: unknown) => void) {
 		return pb.collection(this.serviceSongsCollection).subscribe('*', callback, {
-			filter: `setlist_id = "${serviceId}"`
+			filter: `service_id = "${serviceId}"`
 		});
 	}
 }

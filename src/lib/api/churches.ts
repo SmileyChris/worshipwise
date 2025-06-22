@@ -315,7 +315,7 @@ export class ChurchesAPI {
 			pb.collection('songs').getList(1, 1, {
 				filter: `church_id = "${churchId}" && is_active = true`
 			}),
-			pb.collection('setlists').getList(1, 1, {
+			pb.collection('services').getList(1, 1, {
 				filter: `church_id = "${churchId}"`
 			})
 		]);

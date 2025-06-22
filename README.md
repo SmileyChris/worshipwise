@@ -80,16 +80,17 @@ Want to contribute or run locally? See our [Development Guide](README_DEVELOPMEN
 
 - **Phase 1**: Foundation & Authentication ✅
 - **Phase 2**: Song Management & File Uploads ✅
+- **Phase 3**: Analytics Dashboard & Database Schema Consolidation ✅
 
 ### 🚧 **Current Development**
 
-- **Phase 3**: Advanced Service Features & Analytics (In Progress)
+- **Phase 4**: Intelligent Worship Insights & Recommendations (In Progress)
 
 ### 🎯 **Upcoming Features**
 
-- **Phase 4**: Mobile App & Offline Support
-- **Phase 5**: Advanced Analytics & Reporting
-- **Phase 6**: Integrations & Polish
+- **Phase 5**: Enhanced Service Features & Real-Time Collaboration
+- **Phase 6**: Mobile App & Offline Support
+- **Phase 7**: Integrations & Polish
 
 _Detailed development roadmap available for contributors in [DEVELOPMENT_ROADMAP.md](plan/DEVELOPMENT_ROADMAP.md)_
 
@@ -133,6 +134,7 @@ WorshipWise is designed with security in mind:
 
 - **Development Setup**: [README_DEVELOPMENT.md](README_DEVELOPMENT.md)
 - **Project Roadmap**: [plan/DEVELOPMENT_ROADMAP.md](plan/DEVELOPMENT_ROADMAP.md)
+- **Database Schema**: [plan/DATABASE_SCHEMA.md](plan/DATABASE_SCHEMA.md)
 - **Technical Guides**: Available in the `plan/` directory
 
 ## 🆘 Support

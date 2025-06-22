@@ -2,6 +2,8 @@
 
 This document provides detailed instructions for setting up the PocketBase backend for WorshipWise, including collection schemas, relationships, and security rules.
 
+**⚠️ Migration Update**: As of June 2025, WorshipWise uses a consolidated database migration structure. See the [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) for the complete, current schema definition. This document provides historical context and detailed setup instructions.
+
 ## Initial PocketBase Setup
 
 ### 1. Download and Install PocketBase
@@ -22,7 +24,29 @@ chmod +x pocketbase
 2. Create admin account on first visit
 3. Access Collections tab to begin schema setup
 
-## Collection Schemas
+## Current Migration Structure
+
+WorshipWise now uses a **single consolidated migration file** (`20250622_initial_worshipwise.js`) that creates the complete database schema. This replaces the previous system of 10+ separate migration files.
+
+### Key Changes:
+
+- **Single Migration**: All collections created in one migration for consistency
+- **Church-Centric Architecture**: Multi-tenant system where all data is organized around church organizations
+- **Complete Schema**: Includes all collections, relationships, and security rules
+- **Modern PocketBase**: Updated for PocketBase v0.23+ with improved field definitions
+
+### Running Migrations:
+
+```bash
+cd pocketbase/
+./pocketbase migrate
+```
+
+The migration will create all necessary collections automatically. For detailed schema information, see [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md).
+
+## Collection Schemas (Legacy Reference)
+
+**Note**: The schemas below are for reference. The actual implementation is in the consolidated migration file and documented in [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md).
 
 ### 1. Users Collection (Auth Collection)
 
@@ -362,7 +386,7 @@ chmod +x pocketbase
 
 ### 3. Services Collection
 
-**Collection Name**: `setlists` _(legacy database name for compatibility)_  
+**Collection Name**: `services`  
 **Type**: Base Collection  
 **Purpose**: Manages worship services and service planning
 
@@ -450,7 +474,7 @@ chmod +x pocketbase
 
 ### 4. Service Songs Collection (Junction Table)
 
-**Collection Name**: `setlist_songs` _(legacy database name for compatibility)_  
+**Collection Name**: `service_songs`  
 **Type**: Base Collection  
 **Purpose**: Junction table linking songs to services with ordering and customization
 
@@ -458,10 +482,10 @@ chmod +x pocketbase
 
 ```javascript
 {
-  "setlist": {  // Links to service (collection name is legacy)
+  "service_id": {  // Links to service
     "type": "relation",
     "required": true,
-    "relatedCollection": "setlists",  // Points to Services collection
+    "relatedCollection": "services",
     "cascadeDelete": true
   },
   "song": {
@@ -500,23 +524,23 @@ chmod +x pocketbase
 
 #### API Rules:
 
-_Note: `setlist` in rules refers to the service record (database field name)_
+_Note: `service_id` in rules refers to the service record_
 
 ```javascript
 {
-  "listRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || setlist.worship_leader = @request.auth.id || setlist.team_members ?~ @request.auth.id)",
-  "viewRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || setlist.worship_leader = @request.auth.id || setlist.team_members ?~ @request.auth.id)",
-  "createRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || setlist.worship_leader = @request.auth.id)",
-  "updateRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || setlist.worship_leader = @request.auth.id)",
-  "deleteRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || setlist.worship_leader = @request.auth.id)"
+  "listRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || service_id.worship_leader = @request.auth.id || service_id.team_members ?~ @request.auth.id)",
+  "viewRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || service_id.worship_leader = @request.auth.id || service_id.team_members ?~ @request.auth.id)",
+  "createRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || service_id.worship_leader = @request.auth.id)",
+  "updateRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || service_id.worship_leader = @request.auth.id)",
+  "deleteRule": "@request.auth.id != '' && (@request.auth.role = 'admin' || service_id.worship_leader = @request.auth.id)"
 }
 ```
 
 #### Indexes:
 
-- `setlist` (for service queries - database field name)
+- `service_id` (for service queries)
 - `order` (for sorting)
-- Composite: `(setlist, order)` (for ordered service song queries)
+- Composite: `(service_id, order)` (for ordered service song queries)
 
 ### 5. Song Usage Collection
 
@@ -533,10 +557,10 @@ _Note: `setlist` in rules refers to the service record (database field name)_
     "relatedCollection": "songs",
     "cascadeDelete": false
   },
-  "setlist": {
+  "service_id": {
     "type": "relation",
     "required": true,
-    "relatedCollection": "setlists",
+    "relatedCollection": "services",
     "cascadeDelete": true
   },
   "usage_date": {
@@ -608,7 +632,7 @@ GROUP BY s.id, s.title, s.artist;
 ## Database Relationships Summary
 
 ```
-users (1) ─────┬─── (many) setlists
+users (1) ─────┬─── (many) services
                ├─── (many) songs (created_by)
                ├─── (many) labels (created_by)
                └─── (many) song_usage
@@ -617,19 +641,19 @@ categories (1) ─── (many) songs
 
 labels (many) ─── (many) songs
 
-songs (1) ─────┬─── (many) setlist_songs
+songs (1) ─────┬─── (many) service_songs
                ├─── (many) song_usage
                ├─── (1) category
                └─── (many) labels
 
-setlists (1) ──┬─── (many) setlist_songs  # Services → Service Songs
-               └─── (many) song_usage   # Services → Usage Records
+services (1) ──┬─── (many) service_songs
+               └─── (many) song_usage
 
-setlist_songs ─┬─── (1) setlist  # Service Songs → Parent Service
-               └─── (1) song     # Service Songs → Song
+service_songs ─┬─── (1) service_id  # Service Songs → Parent Service
+               └─── (1) song        # Service Songs → Song
 
-song_usage ────┬─── (1) song     # Usage → Song
-               ├─── (1) setlist  # Usage → Service (database field)
+song_usage ────┬─── (1) song        # Usage → Song
+               ├─── (1) service_id  # Usage → Service
                └─── (1) worship_leader  # Usage → Leader
 ```
 
@@ -737,7 +761,7 @@ In PocketBase Admin → Settings:
 "@request.auth.role ?~ 'leader|admin'";
 
 // Relation-based access
-'setlist.worship_leader = @request.auth.id';
+'service_id.worship_leader = @request.auth.id';
 
 // Multiple conditions
 "@request.auth.id != '' && (is_active = true || created_by = @request.auth.id)";
@@ -785,30 +809,29 @@ Regular maintenance tasks:
 
 ### 3. Migration Scripts
 
-For schema changes, create migration scripts:
+**Current Approach**: WorshipWise uses a single consolidated migration file (`20250622_initial_worshipwise.js`) for the complete schema. Future changes should be made as additional numbered migration files.
+
+**Creating New Migrations**:
 
 ```javascript
-// migration_001_add_song_duration.js
-migrate((db) => {
-	const dao = new Dao(db);
-	const collection = dao.findCollectionByNameOrId('songs');
-
-	// Add new field
-	const field = new SchemaField({
-		system: false,
-		id: 'duration',
-		name: 'duration_seconds',
-		type: 'number',
-		required: false,
-		min: 30,
-		max: 1800
-	});
-
-	collection.schema.addField(field);
-
-	return dao.saveCollection(collection);
-});
+// Example: 20250623_add_new_feature.js
+migrate(
+	(app) => {
+		// Migration code here
+		const collection = app.findCollectionByNameOrId('songs');
+		// Add fields, modify schema, etc.
+		return app.save(collection);
+	},
+	(app) => {
+		// Rollback code here
+		const collection = app.findCollectionByNameOrId('songs');
+		// Remove changes
+		return app.save(collection);
+	}
+);
 ```
+
+**Migration Naming Convention**: `YYYYMMDD_description.js` (e.g., `20250623_add_lyrics_analysis.js`)
 
 ## Troubleshooting
 

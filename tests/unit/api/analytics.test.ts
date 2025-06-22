@@ -15,7 +15,7 @@ describe('Analytics API - Basic Tests', () => {
 	describe('getOverview', () => {
 		it('should handle empty data gracefully', async () => {
 			mockPb.collection('songs').mockGetList([], 0);
-			mockPb.collection('setlists').mockGetList([], 0);
+			mockPb.collection('services').mockGetList([], 0);
 			mockPb.collection('song_usage').mockGetList([], 0);
 
 			const result = await analyticsApi.getOverview();
@@ -32,7 +32,7 @@ describe('Analytics API - Basic Tests', () => {
 
 		it('should return correct counts for overview', async () => {
 			mockPb.collection('songs').mockGetList([], 5);
-			mockPb.collection('setlists').mockGetList([], 3);
+			mockPb.collection('services').mockGetList([], 3);
 			mockPb.collection('song_usage').mockGetList([], 10);
 
 			const result = await analyticsApi.getOverview();
@@ -55,7 +55,7 @@ describe('Analytics API - Basic Tests', () => {
 
 	describe('getServiceTypeStats', () => {
 		it('should return empty array when no services', async () => {
-			mockPb.collection('setlists').mockGetFullList([]);
+			mockPb.collection('services').mockGetFullList([]);
 
 			const result = await analyticsApi.getServiceTypeStats();
 
@@ -65,7 +65,7 @@ describe('Analytics API - Basic Tests', () => {
 
 	describe('getKeyUsageStats', () => {
 		it('should return empty array when no data', async () => {
-			mockPb.collection('setlist_songs').mockGetFullList([]);
+			mockPb.collection('service_songs').mockGetFullList([]);
 
 			const result = await analyticsApi.getKeyUsageStats();
 
@@ -76,7 +76,7 @@ describe('Analytics API - Basic Tests', () => {
 	describe('getUsageTrends', () => {
 		it('should return empty array when no data', async () => {
 			mockPb.collection('song_usage').mockGetFullList([]);
-			mockPb.collection('setlists').mockGetFullList([]);
+			mockPb.collection('services').mockGetFullList([]);
 
 			const result = await analyticsApi.getUsageTrends();
 
@@ -86,7 +86,7 @@ describe('Analytics API - Basic Tests', () => {
 
 	describe('getWorshipLeaderStats', () => {
 		it('should return empty array when no services', async () => {
-			mockPb.collection('setlists').mockGetFullList([]);
+			mockPb.collection('services').mockGetFullList([]);
 
 			const result = await analyticsApi.getWorshipLeaderStats();
 
@@ -104,7 +104,7 @@ describe('Analytics API - Basic Tests', () => {
 		});
 
 		it('should export empty services CSV', async () => {
-			mockPb.collection('setlists').mockGetFullList([]);
+			mockPb.collection('services').mockGetFullList([]);
 
 			const result = await analyticsApi.exportToCSV('services');
 
@@ -112,11 +112,11 @@ describe('Analytics API - Basic Tests', () => {
 		});
 
 		it('should export empty leaders CSV', async () => {
-			mockPb.collection('setlists').mockGetFullList([]);
+			mockPb.collection('services').mockGetFullList([]);
 
 			const result = await analyticsApi.exportToCSV('leaders');
 
-			expect(result).toContain('Name,Setlist Count');
+			expect(result).toContain('Name,Service Count');
 		});
 	});
 });

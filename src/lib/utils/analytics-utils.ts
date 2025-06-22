@@ -60,21 +60,21 @@ export interface AnalyticsOverview {
  */
 export function aggregateUsageData(
 	songs: Song[],
-	setlists: Service[],
+	services: Service[],
 	usageData: UsageData[]
 ): AnalyticsOverview {
 	// Calculate basic counts
 	const totalSongs = songs.length;
-	const totalServices = setlists.length;
+	const totalServices = services.length;
 
-	// Calculate average setlist duration
-	const completedSetlists = setlists.filter((s) => s.status === 'completed');
+	// Calculate average service duration
+	const completedServices = services.filter((s) => s.status === 'completed');
 	const averageServiceDuration =
-		completedSetlists.length > 0
-			? completedSetlists.reduce(
+		completedServices.length > 0
+			? completedServices.reduce(
 					(sum, s) => sum + (s.actual_duration || s.estimated_duration || 0),
 					0
-				) / completedSetlists.length
+				) / completedServices.length
 			: 0;
 
 	// Find most used song
@@ -94,9 +94,9 @@ export function aggregateUsageData(
 		: { title: 'No data', count: 0 };
 
 	// Find top service type
-	const serviceTypeCounts = setlists.reduce(
-		(acc, setlist) => {
-			const type = setlist.service_type || 'Unknown';
+	const serviceTypeCounts = services.reduce(
+		(acc, service) => {
+			const type = service.service_type || 'Unknown';
 			acc[type] = (acc[type] || 0) + 1;
 			return acc;
 		},
@@ -112,7 +112,7 @@ export function aggregateUsageData(
 		: { type: 'No data', count: 0 };
 
 	// Count active worship leaders
-	const uniqueLeaders = new Set(setlists.map((s) => s.worship_leader).filter(Boolean));
+	const uniqueLeaders = new Set(services.map((s) => s.worship_leader).filter(Boolean));
 	const activeWorshipLeaders = uniqueLeaders.size;
 
 	return {
@@ -257,7 +257,7 @@ export function generateInsights(
 
 	// Service type insights
 	if (overview.topServiceType.count > overview.totalServices * 0.5) {
-		insights.push(`${overview.topServiceType.type} services make up the majority of your setlists`);
+		insights.push(`${overview.topServiceType.type} services make up the majority of your services`);
 	}
 
 	// Duration insights

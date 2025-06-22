@@ -80,7 +80,7 @@
 	// Usage stats
 	let usageStats = $derived.by(() => {
 		const totalUses = usageHistory.length;
-		const uniqueServices = new Set(usageHistory.map((u) => u.setlist_id)).size;
+		const uniqueServices = new Set(usageHistory.map((u) => u.service_id)).size;
 		const uniqueLeaders = new Set(usageHistory.map((u) => u.worship_leader)).size;
 
 		// Recent usage (last 6 months)

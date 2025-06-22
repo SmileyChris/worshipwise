@@ -61,9 +61,9 @@ export class AnalyticsAPI {
 			const dateFilter = this.buildDateFilter(dateFrom, dateTo);
 
 			// Get basic counts
-			const [songsResult, setlistsResult, usageResult] = await Promise.all([
+			const [songsResult, servicesResult, usageResult] = await Promise.all([
 				pb.collection('songs').getList(1, 1, { filter: 'is_active = true' }),
-				pb.collection('setlists').getList(1, 1, {
+				pb.collection('services').getList(1, 1, {
 					filter: dateFilter ? `status = "completed" && ${dateFilter}` : 'status = "completed"'
 				}),
 				pb.collection('song_usage').getList(1, 1, {
@@ -71,14 +71,14 @@ export class AnalyticsAPI {
 				})
 			]);
 
-			// Get setlists with songs for calculations
-			const completedSetlists = await pb.collection('setlists').getFullList({
+			// Get services with songs for calculations
+			const completedServices = await pb.collection('services').getFullList({
 				filter: dateFilter ? `status = "completed" && ${dateFilter}` : 'status = "completed"',
-				expand: 'setlist_songs_via_setlist_id.song_id'
+				expand: 'service_songs_via_service_id.song_id'
 			});
 
 			// Calculate derived metrics
-			const totalServices = setlistsResult.totalItems;
+			const totalServices = servicesResult.totalItems;
 			const totalUsages = usageResult.totalItems;
 			const totalSongs = songsResult.totalItems;
 
@@ -86,30 +86,30 @@ export class AnalyticsAPI {
 			let avgServiceDuration = 0;
 			const activeLeaders = new Set();
 
-			if (completedSetlists.length > 0) {
-				let totalSongsInSetlists = 0;
+			if (completedServices.length > 0) {
+				let totalSongsInServices = 0;
 				let totalDuration = 0;
-				let setlistsWithDuration = 0;
+				let servicesWithDuration = 0;
 
-				completedSetlists.forEach((setlist) => {
+				completedServices.forEach((service) => {
 					// Count songs
-					const songCount = setlist.expand?.setlist_songs_via_setlist_id?.length || 0;
-					totalSongsInSetlists += songCount;
+					const songCount = service.expand?.service_songs_via_service_id?.length || 0;
+					totalSongsInServices += songCount;
 
 					// Track duration
-					if (setlist.actual_duration || setlist.estimated_duration) {
-						totalDuration += setlist.actual_duration || setlist.estimated_duration;
-						setlistsWithDuration++;
+					if (service.actual_duration || service.estimated_duration) {
+						totalDuration += service.actual_duration || service.estimated_duration;
+						servicesWithDuration++;
 					}
 
 					// Track worship leaders
-					if (setlist.worship_leader) {
-						activeLeaders.add(setlist.worship_leader);
+					if (service.worship_leader) {
+						activeLeaders.add(service.worship_leader);
 					}
 				});
 
-				avgSongsPerService = totalSongsInSetlists / completedSetlists.length;
-				avgServiceDuration = setlistsWithDuration > 0 ? totalDuration / setlistsWithDuration : 0;
+				avgSongsPerService = totalSongsInServices / completedServices.length;
+				avgServiceDuration = servicesWithDuration > 0 ? totalDuration / servicesWithDuration : 0;
 			}
 
 			return {
@@ -174,8 +174,8 @@ export class AnalyticsAPI {
 				stats.usageCount++;
 
 				// Track position if available
-				if (usage.position_in_setlist) {
-					stats.positions.push(usage.position_in_setlist);
+				if (usage.position_in_service) {
+					stats.positions.push(usage.position_in_service);
 				}
 
 				// Update last used date (records are sorted by date desc)
@@ -223,9 +223,9 @@ export class AnalyticsAPI {
 		try {
 			const dateFilter = this.buildDateFilter(dateFrom, dateTo);
 
-			const services = await pb.collection('setlists').getFullList({
+			const services = await pb.collection('services').getFullList({
 				filter: dateFilter ? `status = "completed" && ${dateFilter}` : 'status = "completed"',
-				expand: 'setlist_songs_via_setlist_id.song_id'
+				expand: 'service_songs_via_service_id.song_id'
 			});
 
 			// Group by service type
@@ -268,8 +268,8 @@ export class AnalyticsAPI {
 				stats.totalSongs += songs.length;
 
 				// Track popular songs for this service type
-				songs.forEach((setlistSong: ServiceSong) => {
-					const song = setlistSong.expand?.song_id;
+				songs.forEach((serviceSong: ServiceSong) => {
+					const song = serviceSong.expand?.song_id;
 					if (song) {
 						const songId = song.id;
 						stats.songCounts.set(songId, (stats.songCounts.get(songId) || 0) + 1);
@@ -313,21 +313,21 @@ export class AnalyticsAPI {
 		try {
 			const dateFilter = this.buildDateFilter(dateFrom, dateTo);
 
-			// Get setlist songs with key information
-			const setlistSongs = await pb.collection('setlist_songs').getFullList({
-				expand: 'song_id,setlist_id',
+			// Get service songs with key information
+			const serviceSongs = await pb.collection('service_songs').getFullList({
+				expand: 'song_id,service_id',
 				filter: dateFilter
-					? `setlist_id.status = "completed" && setlist_id.${dateFilter}`
-					: 'setlist_id.status = "completed"'
+					? `service_id.status = "completed" && service_id.${dateFilter}`
+					: 'service_id.status = "completed"'
 			});
 
 			// Count key usage
 			const keyCounts = new Map<string, number>();
 			let totalCount = 0;
 
-			setlistSongs.forEach((setlistSong) => {
+			serviceSongs.forEach((serviceSong) => {
 				// Use transposed key if available, otherwise original song key
-				const key = setlistSong.transposed_key || setlistSong.expand?.song_id?.key_signature;
+				const key = serviceSong.transposed_key || serviceSong.expand?.song_id?.key_signature;
 
 				if (key) {
 					keyCounts.set(key, (keyCounts.get(key) || 0) + 1);
@@ -363,12 +363,12 @@ export class AnalyticsAPI {
 			const dateFilter = this.buildDateFilter(dateFrom, dateTo);
 
 			// Get usage data
-			const [usageRecords, setlists] = await Promise.all([
+			const [usageRecords, services] = await Promise.all([
 				pb.collection('song_usage').getFullList({
 					filter: dateFilter || undefined,
 					sort: 'used_date'
 				}),
-				pb.collection('setlists').getFullList({
+				pb.collection('services').getFullList({
 					filter: dateFilter ? `status = "completed" && ${dateFilter}` : 'status = "completed"',
 					sort: 'service_date'
 				})
@@ -402,9 +402,9 @@ export class AnalyticsAPI {
 				trendsMap.get(key)!.usageCount++;
 			});
 
-			// Process setlists
-			setlists.forEach((setlist) => {
-				const date = new Date(setlist.service_date);
+			// Process services
+			services.forEach((service) => {
+				const date = new Date(service.service_date);
 				const key = this.formatDateForInterval(date, interval);
 
 				if (!trendsMap.has(key)) {
@@ -419,7 +419,7 @@ export class AnalyticsAPI {
 				const stats = trendsMap.get(key)!;
 				stats.serviceCount++;
 
-				const duration = setlist.actual_duration || setlist.estimated_duration;
+				const duration = service.actual_duration || service.estimated_duration;
 				if (duration) {
 					stats.totalDuration += duration;
 					stats.durationsCount++;
@@ -457,9 +457,9 @@ export class AnalyticsAPI {
 		try {
 			const dateFilter = this.buildDateFilter(dateFrom, dateTo);
 
-			const setlists = await pb.collection('setlists').getFullList({
+			const services = await pb.collection('services').getFullList({
 				filter: dateFilter ? `status = "completed" && ${dateFilter}` : 'status = "completed"',
-				expand: 'worship_leader,setlist_songs_via_setlist_id.song_id'
+				expand: 'worship_leader,service_songs_via_service_id.song_id'
 			});
 
 			// Group by worship leader
@@ -475,9 +475,9 @@ export class AnalyticsAPI {
 				}
 			>();
 
-			setlists.forEach((setlist) => {
-				const leaderId = setlist.worship_leader;
-				const leader = setlist.expand?.worship_leader;
+			services.forEach((service) => {
+				const leaderId = service.worship_leader;
+				const leader = service.expand?.worship_leader;
 
 				if (!leader) return;
 
@@ -496,22 +496,22 @@ export class AnalyticsAPI {
 				stats.serviceCount++;
 
 				// Track duration
-				const duration = setlist.actual_duration || setlist.estimated_duration;
+				const duration = service.actual_duration || service.estimated_duration;
 				if (duration) {
 					stats.totalDuration += duration;
 					stats.durationsCount++;
 				}
 
 				// Track keys and songs
-				const setlistSongs = setlist.expand?.setlist_songs_via_setlist_id || [];
-				setlistSongs.forEach((setlistSong: ServiceSong) => {
-					const song = setlistSong.expand?.song_id;
+				const serviceSongs = service.expand?.service_songs_via_service_id || [];
+				serviceSongs.forEach((serviceSong: ServiceSong) => {
+					const song = serviceSong.expand?.song_id;
 					if (song) {
 						// Track unique songs
 						stats.songs.add(song.id);
 
 						// Track keys used
-						const key = setlistSong.transposed_key || song.key_signature;
+						const key = serviceSong.transposed_key || song.key_signature;
 						if (key) {
 							stats.keys.set(key, (stats.keys.get(key) || 0) + 1);
 						}
@@ -606,7 +606,7 @@ export class AnalyticsAPI {
 					const data = await this.getWorshipLeaderStats(50, dateFrom, dateTo);
 					headers = [
 						'Name',
-						'Setlist Count',
+						'Service Count',
 						'Avg Duration (min)',
 						'Unique Songs',
 						'Favorite Keys'

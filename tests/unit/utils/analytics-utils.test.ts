@@ -222,7 +222,7 @@ describe('Analytics Utils', () => {
 				activeWorshipLeaders: 2
 			};
 
-			const insights = generateInsights(overview, [], { start: '2024-01-01', end: '2024-01-31' });
+			const insights = generateInsights(overview, []);
 
 			expect(insights).toContain('"Amazing Grace" is your most popular song with 8 uses');
 		});
@@ -231,14 +231,13 @@ describe('Analytics Utils', () => {
 			const overview = {
 				totalSongs: 10,
 				totalServices: 5,
-				averageSetlistDuration: 100,
-				averageServiceDuration: 95,
+				averageServiceDuration: 100,
 				mostUsedSong: { title: 'Song', count: 1 },
 				topServiceType: { type: 'Sunday Morning', count: 1 },
 				activeWorshipLeaders: 2
 			};
 
-			const insights = generateInsights(overview, [], { start: '2024-01-01', end: '2024-01-31' });
+			const insights = generateInsights(overview, []);
 
 			expect(insights).toContain('Your services tend to run longer than average (90+ minutes)');
 		});
@@ -253,7 +252,7 @@ describe('Analytics Utils', () => {
 				activeWorshipLeaders: 1
 			};
 
-			const insights = generateInsights(overview, [], { start: '2024-01-01', end: '2024-01-31' });
+			const insights = generateInsights(overview, []);
 
 			expect(insights).toContain('Consider developing additional worship leaders for variety');
 		});

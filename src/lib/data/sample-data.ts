@@ -125,7 +125,7 @@ export const sampleData: QuickstartData = {
 				'Be Thou my vision O Lord of my heart\nNaught be all else to me save that Thou art\nThou my best thought by day or by night\nWaking or sleeping Thy presence my light'
 		}
 	],
-	sampleSetlists: [
+	sampleServices: [
 		{
 			title: 'Sunday Morning Service',
 			theme: "God's Love and Grace",
@@ -233,8 +233,7 @@ export async function importSampleData(
 				const generalCategory = await categoriesAPI.createCategory({
 					name: 'General',
 					description: 'Songs without a specific category',
-					sort_order: 999,
-					is_active: true
+					sort_order: 999
 				});
 				categoryMap['General'] = generalCategory.id;
 				return generalCategory.id;

@@ -197,7 +197,7 @@
 					<h4 class="font-medium text-green-900">Setup Complete! 🎉</h4>
 					<p class="text-sm text-green-700">
 						Your WorshipWise system is ready. You can now start managing songs and building
-						setlists.
+						services.
 					</p>
 				</div>
 			</div>

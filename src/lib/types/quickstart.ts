@@ -19,7 +19,7 @@ export interface SetupStep {
 
 export interface QuickstartData {
 	sampleSongs: SampleSong[];
-	sampleSetlists: SampleSetlist[];
+	sampleServices: SampleService[];
 }
 
 export interface SampleSong {
@@ -33,7 +33,7 @@ export interface SampleSong {
 	lyrics?: string;
 }
 
-export interface SampleSetlist {
+export interface SampleService {
 	title: string;
 	theme?: string;
 	date: string;

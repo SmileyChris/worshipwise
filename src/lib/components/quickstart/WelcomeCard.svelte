@@ -44,7 +44,7 @@
 
 				<div class="rounded-lg bg-gray-50 p-4 text-center">
 					<Users class="mx-auto mb-2 h-8 w-8 text-green-600" />
-					<h4 class="font-title font-medium text-gray-900">Team Setlists</h4>
+					<h4 class="font-title font-medium text-gray-900">Team Services</h4>
 					<p class="text-sm text-gray-600">
 						Build worship sets together with real-time collaboration
 					</p>

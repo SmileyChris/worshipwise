@@ -147,7 +147,7 @@ class QuickstartStore {
 			throw new Error('Must be logged in to import sample data');
 		}
 
-		await importSampleData(songsApi, categoriesApi, currentUser);
+		await importSampleData(songsApi, categoriesApi);
 		this.updateStepStatus('sample-data', 'completed');
 	}
 

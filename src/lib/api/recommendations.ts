@@ -89,7 +89,7 @@ class RecommendationsApi {
 
 			let recentUsageFilter = `used_date >= "${cutoffDate.toISOString()}"`;
 			if (worshipLeaderId) {
-				recentUsageFilter += ` && setlist_id.worship_leader = "${worshipLeaderId}"`;
+				recentUsageFilter += ` && service_id.worship_leader = "${worshipLeaderId}"`;
 			}
 
 			const recentUsage = await pb.collection('song_usage').getFullList({
@@ -112,7 +112,7 @@ class RecommendationsApi {
 
 			// Get historical usage data for scoring
 			const allUsage = await pb.collection('song_usage').getFullList({
-				expand: 'song_id,setlist_id',
+				expand: 'song_id,service_id',
 				sort: '-used_date'
 			});
 
@@ -243,11 +243,11 @@ class RecommendationsApi {
 		try {
 			// If analyzing an existing service
 			if (serviceId) {
-				const service = await pb.collection('setlists').getOne(serviceId, {
-					expand: 'setlist_songs_via_setlist.song'
+				const service = await pb.collection('services').getOne(serviceId, {
+					expand: 'service_songs_via_service.song'
 				});
 
-				const songs = service.expand?.setlist_songs_via_setlist || [];
+				const songs = service.expand?.service_songs_via_service || [];
 				const suggestions: WorshipFlowSuggestion[] = [];
 
 				songs.forEach((item: ServiceSong, index: number) => {
@@ -321,11 +321,11 @@ class RecommendationsApi {
 	 */
 	async analyzeServiceBalance(serviceId: string): Promise<ServiceBalanceAnalysis> {
 		try {
-			const service = await pb.collection('setlists').getOne(serviceId, {
-				expand: 'setlist_songs_via_setlist.song'
+			const service = await pb.collection('services').getOne(serviceId, {
+				expand: 'service_songs_via_service.song'
 			});
 
-			const songs = service.expand?.setlist_songs_via_setlist || [];
+			const songs = service.expand?.service_songs_via_service || [];
 			const analysis = { fast: 0, medium: 0, slow: 0 };
 
 			songs.forEach((item: ServiceSong) => {
@@ -472,33 +472,33 @@ class RecommendationsApi {
 			const currentFilter = `usage_date >= "${currentStart.toISOString()}" && usage_date <= "${currentEnd.toISOString()}"`;
 			const currentUsages = await pb.collection('song_usage').getFullList({
 				filter: currentFilter,
-				expand: 'song,setlist'
+				expand: 'song,service'
 			});
 
 			// Get previous period data
 			const prevFilter = `usage_date >= "${prevStart.toISOString()}" && usage_date <= "${prevEnd.toISOString()}"`;
 			const prevUsages = await pb.collection('song_usage').getFullList({
 				filter: prevFilter,
-				expand: 'song,setlist'
+				expand: 'song,service'
 			});
 
 			// Calculate metrics
-			const currentUniqueSetlists = new Set(currentUsages.map((u) => u.setlist)).size;
-			const prevUniqueSetlists = new Set(prevUsages.map((u) => u.setlist)).size;
+			const currentUniqueServices = new Set(currentUsages.map((u) => u.service)).size;
+			const prevUniqueServices = new Set(prevUsages.map((u) => u.service)).size;
 
 			const currentStats = {
 				period: this.formatPeriod(currentStart, currentEnd),
 				usageCount: currentUsages.length,
 				uniqueSongs: new Set(currentUsages.map((u) => u.song)).size,
 				avgServiceLength:
-					currentUniqueSetlists > 0 ? currentUsages.length / currentUniqueSetlists : 0
+					currentUniqueServices > 0 ? currentUsages.length / currentUniqueServices : 0
 			};
 
 			const prevStats = {
 				period: this.formatPeriod(prevStart, prevEnd),
 				usageCount: prevUsages.length,
 				uniqueSongs: new Set(prevUsages.map((u) => u.song)).size,
-				avgServiceLength: prevUniqueSetlists > 0 ? prevUsages.length / prevUniqueSetlists : 0
+				avgServiceLength: prevUniqueServices > 0 ? prevUsages.length / prevUniqueServices : 0
 			};
 
 			// Calculate changes
@@ -581,7 +581,7 @@ class RecommendationsApi {
 			// Get comprehensive usage data
 			const [allUsage, allSongs] = await Promise.all([
 				pb.collection('song_usage').getFullList({
-					expand: 'song_id,setlist_id',
+					expand: 'song_id,service_id',
 					sort: '-used_date'
 				}),
 				pb.collection('songs').getFullList({
