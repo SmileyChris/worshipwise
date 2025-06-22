@@ -71,7 +71,7 @@ describe('InitialSetup', () => {
 			const churchNameInput = screen.getByLabelText(/Church Name/i);
 			await user.type(churchNameInput, 'Test Church');
 
-			// Reset timezone to empty (it auto-detects by default)
+			// Reset timezone to empty (overrides auto-detection)
 			const timezoneSelect = screen.getByLabelText(/Timezone/i);
 			await user.selectOptions(timezoneSelect, '');
 
@@ -124,6 +124,48 @@ describe('InitialSetup', () => {
 
 			expect(screen.getByText('Admin Account')).toBeInTheDocument();
 		});
+
+		it('should proceed to step 2 when Enter is pressed in church name field with valid data', async () => {
+			render(InitialSetup);
+
+			const churchNameInput = screen.getByLabelText(/Church Name/i);
+			const timezoneSelect = screen.getByLabelText(/Timezone/i);
+
+			await user.type(churchNameInput, 'Test Church');
+			await user.selectOptions(timezoneSelect, 'America/New_York');
+
+			await user.type(churchNameInput, '{Enter}');
+
+			expect(screen.getByText('Admin Account')).toBeInTheDocument();
+		});
+
+		it('should not proceed to step 2 when Enter is pressed with invalid data', async () => {
+			render(InitialSetup);
+
+			const churchNameInput = screen.getByLabelText(/Church Name/i);
+			await user.type(churchNameInput, '{Enter}');
+
+			// Should still be on step 1
+			expect(screen.getByText('Church Information')).toBeInTheDocument();
+			expect(screen.queryByText('Admin Account')).not.toBeInTheDocument();
+		});
+
+		it('should focus admin name field after advancing to step 2', async () => {
+			render(InitialSetup);
+
+			const churchNameInput = screen.getByLabelText(/Church Name/i);
+			const timezoneSelect = screen.getByLabelText(/Timezone/i);
+
+			await user.type(churchNameInput, 'Test Church');
+			await user.selectOptions(timezoneSelect, 'America/New_York');
+
+			const nextButton = screen.getByRole('button', { name: /next step/i });
+			await user.click(nextButton);
+
+			// Check that admin name field is focused
+			const adminNameInput = screen.getByLabelText(/Full Name/i);
+			expect(adminNameInput).toHaveFocus();
+		});
 	});
 
 	describe('Step 2 - Admin Account', () => {
@@ -145,14 +187,14 @@ describe('InitialSetup', () => {
 			expect(screen.getByText('Admin Account')).toBeInTheDocument();
 			expect(screen.getByLabelText(/Full Name/i)).toBeInTheDocument();
 			expect(screen.getByLabelText(/Email Address/i)).toBeInTheDocument();
-			expect(screen.getByLabelText(/^Password$/i)).toBeInTheDocument();
+			expect(screen.getByLabelText('Password *')).toBeInTheDocument();
 			expect(screen.getByLabelText(/Confirm Password/i)).toBeInTheDocument();
 		});
 
 		it('should show setup summary with only church name and timezone', () => {
 			expect(screen.getByText('Setup Summary')).toBeInTheDocument();
-			expect(screen.getByText('Church: Test Church')).toBeInTheDocument();
-			expect(screen.getByText(/Timezone:.*New York/)).toBeInTheDocument();
+			expect(screen.getByText('Test Church')).toBeInTheDocument();
+			expect(screen.getByText('New York, USA (EST)')).toBeInTheDocument();
 			
 			// Should NOT show location info
 			expect(screen.queryByText(/Location:/)).not.toBeInTheDocument();
@@ -166,7 +208,12 @@ describe('InitialSetup', () => {
 		});
 
 		it('should validate password length', async () => {
-			const passwordInput = screen.getByLabelText(/^Password$/i);
+			const nameInput = screen.getByLabelText(/Full Name/i);
+			const emailInput = screen.getByLabelText(/Email Address/i);
+			const passwordInput = screen.getByLabelText('Password *');
+
+			await user.type(nameInput, 'John Doe');
+			await user.type(emailInput, 'john@test.com');
 			await user.type(passwordInput, '12345'); // Too short
 
 			const completeButton = screen.getByRole('button', { name: /complete setup/i });
@@ -178,7 +225,7 @@ describe('InitialSetup', () => {
 		it('should validate password confirmation', async () => {
 			const nameInput = screen.getByLabelText(/Full Name/i);
 			const emailInput = screen.getByLabelText(/Email Address/i);
-			const passwordInput = screen.getByLabelText(/^Password$/i);
+			const passwordInput = screen.getByLabelText('Password *');
 			const confirmInput = screen.getByLabelText(/Confirm Password/i);
 
 			await user.type(nameInput, 'John Doe');
@@ -210,7 +257,7 @@ describe('InitialSetup', () => {
 
 			const nameInput = screen.getByLabelText(/Full Name/i);
 			const emailInput = screen.getByLabelText(/Email Address/i);
-			const passwordInput = screen.getByLabelText(/^Password$/i);
+			const passwordInput = screen.getByLabelText('Password *');
 			const confirmInput = screen.getByLabelText(/Confirm Password/i);
 
 			await user.type(nameInput, 'John Doe');
@@ -231,7 +278,7 @@ describe('InitialSetup', () => {
 
 			const nameInput = screen.getByLabelText(/Full Name/i);
 			const emailInput = screen.getByLabelText(/Email Address/i);
-			const passwordInput = screen.getByLabelText(/^Password$/i);
+			const passwordInput = screen.getByLabelText('Password *');
 			const confirmInput = screen.getByLabelText(/Confirm Password/i);
 
 			await user.type(nameInput, 'John Doe');
@@ -243,6 +290,158 @@ describe('InitialSetup', () => {
 			await user.click(completeButton);
 
 			expect(screen.getByText('Setup failed')).toBeInTheDocument();
+		});
+
+		describe('Validation Behavior', () => {
+			it('should show error when clicking button with empty fields', async () => {
+				const completeButton = screen.getByRole('button', { name: /complete setup/i });
+				await user.click(completeButton);
+
+				expect(screen.getByText('Admin name is required')).toBeInTheDocument();
+			});
+
+			it('should show error when admin name is missing', async () => {
+				const emailInput = screen.getByLabelText(/Email Address/i);
+				const passwordInput = screen.getByLabelText('Password *');
+				const confirmInput = screen.getByLabelText(/Confirm Password/i);
+
+				await user.type(emailInput, 'john@test.com');
+				await user.type(passwordInput, 'password123');
+				await user.type(confirmInput, 'password123');
+
+				const completeButton = screen.getByRole('button', { name: /complete setup/i });
+				await user.click(completeButton);
+
+				expect(screen.getByText('Admin name is required')).toBeInTheDocument();
+			});
+
+			it('should show error when password is too short', async () => {
+				const nameInput = screen.getByLabelText(/Full Name/i);
+				const emailInput = screen.getByLabelText(/Email Address/i);
+				const passwordInput = screen.getByLabelText('Password *');
+				const confirmInput = screen.getByLabelText(/Confirm Password/i);
+
+				await user.type(nameInput, 'John Doe');
+				await user.type(emailInput, 'john@test.com');
+				await user.type(passwordInput, '12345'); // Too short
+				await user.type(confirmInput, '12345');
+
+				const completeButton = screen.getByRole('button', { name: /complete setup/i });
+				await user.click(completeButton);
+
+				expect(screen.getByText('Password must be at least 6 characters')).toBeInTheDocument();
+			});
+
+			it('should show error when passwords do not match', async () => {
+				const nameInput = screen.getByLabelText(/Full Name/i);
+				const emailInput = screen.getByLabelText(/Email Address/i);
+				const passwordInput = screen.getByLabelText('Password *');
+				const confirmInput = screen.getByLabelText(/Confirm Password/i);
+
+				await user.type(nameInput, 'John Doe');
+				await user.type(emailInput, 'john@test.com');
+				await user.type(passwordInput, 'password123');
+				await user.type(confirmInput, 'different');
+
+				const completeButton = screen.getByRole('button', { name: /complete setup/i });
+				await user.click(completeButton);
+
+				expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
+			});
+
+			it('should proceed when all fields are valid', async () => {
+				mockedChurchesAPI.initialSetup.mockResolvedValue({ success: true });
+
+				const nameInput = screen.getByLabelText(/Full Name/i);
+				const emailInput = screen.getByLabelText(/Email Address/i);
+				const passwordInput = screen.getByLabelText('Password *');
+				const confirmInput = screen.getByLabelText(/Confirm Password/i);
+
+				await user.type(nameInput, 'John Doe');
+				await user.type(emailInput, 'john@test.com');
+				await user.type(passwordInput, 'password123');
+				await user.type(confirmInput, 'password123');
+
+				const completeButton = screen.getByRole('button', { name: /complete setup/i });
+				await user.click(completeButton);
+
+				expect(mockedChurchesAPI.initialSetup).toHaveBeenCalled();
+			});
+		});
+
+		describe('Enter Key Functionality', () => {
+			it('should submit form when Enter is pressed in any field with valid data', async () => {
+				mockedChurchesAPI.initialSetup.mockResolvedValue({ success: true });
+
+				const nameInput = screen.getByLabelText(/Full Name/i);
+				const emailInput = screen.getByLabelText(/Email Address/i);
+				const passwordInput = screen.getByLabelText('Password *');
+				const confirmInput = screen.getByLabelText(/Confirm Password/i);
+
+				await user.type(nameInput, 'John Doe');
+				await user.type(emailInput, 'john@test.com');
+				await user.type(passwordInput, 'password123');
+				await user.type(confirmInput, 'password123');
+
+				// Test Enter in each field
+				await user.type(nameInput, '{Enter}');
+
+				expect(mockedChurchesAPI.initialSetup).toHaveBeenCalled();
+				expect(mockedSetupStore.markSetupCompleted).toHaveBeenCalled();
+				expect(mockedGoto).toHaveBeenCalledWith('/dashboard');
+			});
+
+			it('should show error when Enter is pressed with invalid data', async () => {
+				const nameInput = screen.getByLabelText(/Full Name/i);
+				const passwordInput = screen.getByLabelText('Password *');
+
+				await user.type(nameInput, 'John Doe');
+				await user.type(passwordInput, '123'); // Too short
+
+				await user.type(passwordInput, '{Enter}');
+
+				expect(screen.getByText('Admin email is required')).toBeInTheDocument();
+				expect(mockedChurchesAPI.initialSetup).not.toHaveBeenCalled();
+			});
+
+			it('should submit when Enter is pressed in email field with valid data', async () => {
+				mockedChurchesAPI.initialSetup.mockResolvedValue({ success: true });
+
+				const nameInput = screen.getByLabelText(/Full Name/i);
+				const emailInput = screen.getByLabelText(/Email Address/i);
+				const passwordInput = screen.getByLabelText('Password *');
+				const confirmInput = screen.getByLabelText(/Confirm Password/i);
+
+				await user.type(nameInput, 'John Doe');
+				await user.type(emailInput, 'john@test.com');
+				await user.type(passwordInput, 'password123');
+				await user.type(confirmInput, 'password123');
+
+				await user.type(emailInput, '{Enter}');
+
+				expect(mockedChurchesAPI.initialSetup).toHaveBeenCalled();
+			});
+
+			it('should submit when Enter is pressed in password fields with valid data', async () => {
+				mockedChurchesAPI.initialSetup.mockResolvedValue({ success: true });
+
+				const nameInput = screen.getByLabelText(/Full Name/i);
+				const emailInput = screen.getByLabelText(/Email Address/i);
+				const passwordInput = screen.getByLabelText('Password *');
+				const confirmInput = screen.getByLabelText(/Confirm Password/i);
+
+				await user.type(nameInput, 'John Doe');
+				await user.type(emailInput, 'john@test.com');
+				await user.type(passwordInput, 'password123');
+				await user.type(confirmInput, 'password123');
+
+				// Clear previous calls
+				mockedChurchesAPI.initialSetup.mockClear();
+
+				await user.type(confirmInput, '{Enter}');
+
+				expect(mockedChurchesAPI.initialSetup).toHaveBeenCalled();
+			});
 		});
 	});
 });

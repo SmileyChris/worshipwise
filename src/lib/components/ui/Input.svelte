@@ -13,6 +13,7 @@
 		autocomplete?: HTMLInputElement['autocomplete'];
 		class?: string;
 		'data-testid'?: string;
+		onkeydown?: (event: KeyboardEvent) => void;
 	}
 
 	let {
@@ -27,8 +28,11 @@
 		error = '',
 		autocomplete = '',
 		class: className = '',
-		'data-testid': testId = ''
+		'data-testid': testId = '',
+		onkeydown
 	}: Props = $props();
+	
+	let inputElement: HTMLInputElement;
 
 	let inputId = id || `input-${name}`;
 	let errorId = `error-${name}`;
@@ -38,6 +42,11 @@
 			error ? 'ring-red-300 focus:ring-red-600' : 'ring-gray-300'
 		} ${disabled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'bg-white'} ${className}`
 	);
+	
+	// Expose focus method
+	export function focus() {
+		inputElement?.focus();
+	}
 </script>
 
 <div class="space-y-1">
@@ -52,6 +61,7 @@
 
 	<div class="relative">
 		<input
+			bind:this={inputElement}
 			id={inputId}
 			{name}
 			{type}
@@ -64,6 +74,7 @@
 			aria-describedby={error ? errorId : undefined}
 			aria-invalid={error ? 'true' : 'false'}
 			data-testid={testId}
+			{onkeydown}
 		/>
 	</div>
 

@@ -12,6 +12,9 @@
 	let loading = $state<boolean>(false);
 	let error = $state<string | null>(null);
 	let step = $state<number>(1);
+	
+	// Element references
+	let adminNameInput: Input;
 
 	// Form data
 	let setupData = $state<InitialChurchSetup>({
@@ -109,6 +112,10 @@
 	function nextStep() {
 		if (step === 1 && validateStep1()) {
 			step = 2;
+			// Focus on admin name input after step transition
+			setTimeout(() => {
+				adminNameInput?.focus();
+			}, 0);
 		}
 	}
 
@@ -161,6 +168,19 @@
 	const isStep1Valid = $derived(
 		setupData.churchName.trim().length > 0 && setupData.timezone.length > 0
 	);
+
+	// Check if step 2 is valid for enabling submit button
+	const isStep2Valid = $derived(
+		setupData.adminName.trim().length > 0 &&
+		setupData.adminEmail.trim().length > 0 &&
+		setupData.password.length >= 6 &&
+		setupData.password === setupData.confirmPassword
+	);
+
+	// Function to handle Enter key on step 2 fields
+	function handleStep2Enter() {
+		handleSetup(); // Always call handleSetup, let it handle validation
+	}
 </script>
 
 <svelte:head>
@@ -223,18 +243,26 @@
 							bind:value={setupData.churchName}
 							placeholder="e.g., Grace Community Church"
 							required
+							onkeydown={(e) => {
+								if (e.key === 'Enter') {
+									e.preventDefault();
+									nextStep();
+								}
+							}}
 						/>
 
 						<div>
-							<label class="mb-2 block text-sm font-medium text-gray-700">
+							<label for="timezone-select" class="mb-2 block text-sm font-medium text-gray-700">
 								<Clock class="mr-1 inline h-4 w-4" />
 								Timezone
 							</label>
 							<select
+								id="timezone-select"
 								bind:value={setupData.timezone}
 								class="focus:ring-primary w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:outline-none"
 								required
 							>
+								<option value="">Select your timezone...</option>
 								{#each timezoneOptions as option (option.value)}
 									<option value={option.value}>{option.label}</option>
 								{/each}
@@ -262,11 +290,18 @@
 
 					<div class="space-y-4">
 						<Input
+							bind:this={adminNameInput}
 							label="Full Name"
 							name="adminName"
 							bind:value={setupData.adminName}
 							placeholder="John Smith"
 							required
+							onkeydown={(e) => {
+								if (e.key === 'Enter') {
+									e.preventDefault();
+									handleStep2Enter();
+								}
+							}}
 						/>
 
 						<Input
@@ -276,6 +311,12 @@
 							bind:value={setupData.adminEmail}
 							placeholder="pastor@yourchurch.com"
 							required
+							onkeydown={(e) => {
+								if (e.key === 'Enter') {
+									e.preventDefault();
+									handleStep2Enter();
+								}
+							}}
 						/>
 
 						<Input
@@ -285,6 +326,12 @@
 							bind:value={setupData.password}
 							placeholder="Choose a secure password"
 							required
+							onkeydown={(e) => {
+								if (e.key === 'Enter') {
+									e.preventDefault();
+									handleStep2Enter();
+								}
+							}}
 						/>
 
 						<Input
@@ -294,6 +341,12 @@
 							bind:value={setupData.confirmPassword}
 							placeholder="Confirm your password"
 							required
+							onkeydown={(e) => {
+								if (e.key === 'Enter') {
+									e.preventDefault();
+									handleStep2Enter();
+								}
+							}}
 						/>
 					</div>
 
