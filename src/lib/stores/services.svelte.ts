@@ -66,7 +66,7 @@ class ServicesStore {
 
 		try {
 			this.services = await servicesApi.getServices(this.filters);
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to load services:', error);
 			this.error = this.getErrorMessage(error);
 		} finally {
@@ -80,7 +80,7 @@ class ServicesStore {
 	async loadUpcomingServices(limit = 10): Promise<void> {
 		try {
 			this.upcomingServices = await servicesApi.getUpcomingServices(limit);
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to load upcoming services:', error);
 		}
 	}
@@ -91,7 +91,7 @@ class ServicesStore {
 	async loadTemplates(): Promise<void> {
 		try {
 			this.templates = await servicesApi.getTemplates();
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to load templates:', error);
 		}
 	}
@@ -116,7 +116,7 @@ class ServicesStore {
 			this.builderState.service = service;
 			this.builderState.songs = songs;
 			this.builderState.isDirty = false;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to load service:', error);
 			this.error = this.getErrorMessage(error);
 		} finally {
@@ -138,7 +138,7 @@ class ServicesStore {
 			this.services = [newService, ...this.services];
 
 			return newService;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to create service:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;
@@ -170,7 +170,7 @@ class ServicesStore {
 			}
 
 			return updatedService;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to update service:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;
@@ -198,7 +198,7 @@ class ServicesStore {
 				this.currentServiceSongs = [];
 				this.clearBuilderState();
 			}
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to delete service:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;
@@ -232,7 +232,7 @@ class ServicesStore {
 			// Update builder state
 			this.builderState.songs = this.currentServiceSongs;
 			this.builderState.isDirty = true;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to add song to service:', error);
 			this.builderState.error = this.getErrorMessage(error);
 			throw error;
@@ -259,7 +259,7 @@ class ServicesStore {
 			// Update builder state
 			this.builderState.songs = this.currentServiceSongs;
 			this.builderState.isDirty = true;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to remove song from service:', error);
 			this.builderState.error = this.getErrorMessage(error);
 			throw error;
@@ -287,7 +287,7 @@ class ServicesStore {
 			// Update builder state
 			this.builderState.songs = this.currentServiceSongs;
 			this.builderState.isDirty = true;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to update service song:', error);
 			this.builderState.error = this.getErrorMessage(error);
 			throw error;
@@ -322,7 +322,7 @@ class ServicesStore {
 			// Update builder state
 			this.builderState.songs = this.currentServiceSongs;
 			this.builderState.isDirty = true;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to reorder service songs:', error);
 			this.builderState.error = this.getErrorMessage(error);
 			throw error;
@@ -345,7 +345,7 @@ class ServicesStore {
 			this.services = [duplicatedService, ...this.services];
 
 			return duplicatedService;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to duplicate service:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;
@@ -375,7 +375,7 @@ class ServicesStore {
 				this.currentService = completedService;
 				this.builderState.service = completedService;
 			}
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to complete service:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;
@@ -453,7 +453,7 @@ class ServicesStore {
 	/**
 	 * Set drag state
 	 */
-	setDraggedSong(song: any): void {
+	setDraggedSong(song: Song): void {
 		this.builderState.draggedSong = song;
 	}
 
@@ -500,11 +500,14 @@ class ServicesStore {
 	/**
 	 * Get error message from API error
 	 */
-	private getErrorMessage(error: any): string {
-		if (error?.response?.data?.message) {
-			return error.response.data.message;
+	private getErrorMessage(error: unknown): string {
+		if (error && typeof error === 'object' && 'response' in error) {
+			const apiError = error as { response?: { data?: { message?: string } } };
+			if (apiError.response?.data?.message) {
+				return apiError.response.data.message;
+			}
 		}
-		if (error?.message) {
+		if (error instanceof Error) {
 			return error.message;
 		}
 		return 'An unexpected error occurred';

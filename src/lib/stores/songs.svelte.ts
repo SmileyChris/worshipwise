@@ -108,7 +108,7 @@ class SongsStore {
 
 			// Update stats
 			await this.updateStats();
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to load songs:', error);
 			this.error = this.getErrorMessage(error);
 		} finally {
@@ -122,7 +122,7 @@ class SongsStore {
 	async loadAllSongs(): Promise<Song[]> {
 		try {
 			return await songsApi.getSongs();
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to load all songs:', error);
 			return [];
 		}
@@ -142,7 +142,7 @@ class SongsStore {
 			await this.loadSongs();
 
 			return newSong;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to create song:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;
@@ -168,7 +168,7 @@ class SongsStore {
 			}
 
 			return updatedSong;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to update song:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;
@@ -193,7 +193,7 @@ class SongsStore {
 
 			// Update stats
 			await this.updateStats();
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to delete song:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;

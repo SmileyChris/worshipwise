@@ -461,7 +461,6 @@ class RecommendationsApi {
 	async getComparativePeriodAnalysis(
 		currentStart: Date,
 		currentEnd: Date,
-		_periodType: 'month' | 'quarter' | 'year' = 'month'
 	): Promise<ComparativePeriod> {
 		try {
 			// Calculate previous period
@@ -628,7 +627,6 @@ class RecommendationsApi {
 
 	private analyzeRotationHealth(allUsage: SongUsage[], allSongs: Song[]) {
 		const now = new Date();
-		const twoMonthsAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
 		const fourMonthsAgo = new Date(now.getTime() - 120 * 24 * 60 * 60 * 1000);
 
 		// Categorize songs by last usage
