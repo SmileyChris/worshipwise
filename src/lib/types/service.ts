@@ -10,7 +10,7 @@ export interface Service {
 	theme?: string;
 	notes?: string;
 	worship_leader: string;
-	team_members?: string[] | Record<string, any>;
+	team_members?: string[] | Record<string, unknown>;
 	is_completed?: boolean;
 	is_archived?: boolean;
 	// Optional advanced fields (may not exist in all environments)
@@ -57,7 +57,7 @@ export interface CreateServiceData {
 	theme?: string;
 	notes?: string;
 	worship_leader: string;
-	team_members?: string[] | Record<string, any>;
+	team_members?: string[] | Record<string, unknown>;
 	estimated_duration?: number;
 	is_template?: boolean;
 	status?: Service['status'];
@@ -70,7 +70,7 @@ export interface UpdateServiceData {
 	theme?: string;
 	notes?: string;
 	worship_leader?: string;
-	team_members?: string[] | Record<string, any>;
+	team_members?: string[] | Record<string, unknown>;
 	status?: Service['status'];
 	estimated_duration?: number;
 	actual_duration?: number;
@@ -180,7 +180,7 @@ export interface ServiceCollaborationEvent {
 	userId: string;
 	userName?: string;
 	timestamp: string;
-	data: any;
+	data: Record<string, unknown>;
 }
 
 export interface CollaboratorPresence {

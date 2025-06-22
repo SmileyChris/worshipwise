@@ -7,7 +7,7 @@
  * @param wait The number of milliseconds to delay
  * @returns The debounced function
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: never[]) => unknown>(
 	func: T,
 	wait: number
 ): (...args: Parameters<T>) => void {
@@ -26,7 +26,7 @@ export function debounce<T extends (...args: any[]) => any>(
  * @param wait The number of milliseconds to delay
  * @returns Object with the debounced function and a cancel method
  */
-export function debounceWithCancel<T extends (...args: any[]) => any>(
+export function debounceWithCancel<T extends (...args: never[]) => unknown>(
 	func: T,
 	wait: number
 ): {

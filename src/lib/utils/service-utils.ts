@@ -208,10 +208,10 @@ export function findOptimalInsertionPosition(songs: ServiceSong[], sectionType: 
 
 	// If no songs of this section type exist, find the appropriate position
 	// based on the standard service flow
-	const sectionOrder = SECTION_TYPES.indexOf(sectionType as any);
+	const sectionOrder = SECTION_TYPES.indexOf(sectionType as (typeof SECTION_TYPES)[number]);
 
 	for (let i = 0; i < songs.length; i++) {
-		const currentSectionOrder = SECTION_TYPES.indexOf(songs[i].section_type as any);
+		const currentSectionOrder = SECTION_TYPES.indexOf(songs[i].section_type as (typeof SECTION_TYPES)[number]);
 		if (currentSectionOrder > sectionOrder) {
 			return i;
 		}

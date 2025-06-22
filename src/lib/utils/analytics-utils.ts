@@ -244,7 +244,7 @@ export function formatDateLabel(dateString: string): string {
 export function generateInsights(
 	overview: AnalyticsOverview,
 	usageData: UsageData[],
-	dateRange: { start: string; end: string }
+	_dateRange: { start: string; end: string }
 ): string[] {
 	const insights: string[] = [];
 
@@ -394,7 +394,7 @@ export function getDefaultChartOptions(type: 'bar' | 'line' | 'pie' = 'bar') {
  * Exports analytics data to CSV format
  */
 export function exportToCSV(
-	data: Array<Record<string, any>>,
+	data: Array<Record<string, unknown>>,
 	filename: string = 'analytics-export.csv'
 ): void {
 	if (data.length === 0) return;

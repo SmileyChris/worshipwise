@@ -16,8 +16,8 @@ export interface Profile {
 	role: 'pastor' | 'admin' | 'leader' | 'musician' | 'member';
 	church_id?: string;
 	church_name?: string;
-	preferred_keys?: Record<string, any>;
-	notification_preferences?: Record<string, any>;
+	preferred_keys?: Record<string, unknown>;
+	notification_preferences?: Record<string, unknown>;
 	is_active?: boolean;
 	created: string;
 	updated: string;
