@@ -45,6 +45,9 @@ export class ChurchesAPI {
 				emailVisibility: true
 			});
 
+			// Authenticate the user immediately after creation
+			await pb.collection('users').authWithPassword(setupData.adminEmail, setupData.password);
+
 			// Generate unique slug from church name
 			const baseSlug = setupData.churchName
 				.toLowerCase()
@@ -90,12 +93,12 @@ export class ChurchesAPI {
 				is_active: true
 			});
 
-			// Create pastor membership for the admin user
+			// Create admin membership for the initial user
 			await pb.collection('church_memberships').create({
 				church_id: church.id,
 				user_id: user.id,
-				role: 'pastor',
-				permissions: getDefaultPermissions('pastor'),
+				role: 'admin',
+				permissions: getDefaultPermissions('admin'),
 				status: 'active',
 				joined_date: new Date().toISOString(),
 				is_active: true
@@ -105,9 +108,6 @@ export class ChurchesAPI {
 			await pb.collection('users').update(user.id, {
 				current_church_id: church.id
 			});
-
-			// Authenticate the user
-			await pb.collection('users').authWithPassword(setupData.adminEmail, setupData.password);
 
 			return { church: church as unknown as Church, user: user as unknown as User };
 		} catch (error) {

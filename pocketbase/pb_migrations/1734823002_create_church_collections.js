@@ -1,6 +1,5 @@
 /// <reference path="../pb_data/types.d.ts" />
-migrate((db) => {
-  const dao = new Dao(db);
+migrate((app) => {
   const collection = new Collection({
     "id": "church_collection_id",
     "created": "2024-12-21 23:16:42.000Z",
@@ -266,21 +265,18 @@ migrate((db) => {
         "options": {}
       }
     ],
-    "indexes": [
-      "CREATE UNIQUE INDEX `idx_churches_slug` ON `churches` (`slug`)"
-    ],
-    "listRule": "@request.auth.id != '' && (@request.auth.id = owner_user_id || @collection.church_memberships.church_id ?= id && @collection.church_memberships.user_id ?= @request.auth.id && @collection.church_memberships.is_active = true)",
-    "viewRule": "@request.auth.id != '' && (@request.auth.id = owner_user_id || @collection.church_memberships.church_id ?= id && @collection.church_memberships.user_id ?= @request.auth.id && @collection.church_memberships.is_active = true)",
+    "indexes": [],
+    "listRule": "@request.auth.id != ''",
+    "viewRule": "@request.auth.id != ''",
     "createRule": "@request.auth.id != ''",
-    "updateRule": "@request.auth.id != '' && (@request.auth.id = owner_user_id || (@collection.church_memberships.church_id ?= id && @collection.church_memberships.user_id ?= @request.auth.id && @collection.church_memberships.role ?~ 'admin|pastor' && @collection.church_memberships.is_active = true))",
-    "deleteRule": "@request.auth.id != '' && @request.auth.id = owner_user_id",
+    "updateRule": "@request.auth.id != ''",
+    "deleteRule": "@request.auth.id != ''",
     "options": {}
   });
 
-  return dao.saveCollection(collection);
-}, (db) => {
+  return app.save(collection);
+}, (app) => {
   // Rollback - delete churches collection
-  const dao = new Dao(db);
-  const collection = dao.findCollectionByNameOrId("churches");
-  return dao.deleteCollection(collection);
+  const collection = app.findCollectionByNameOrId("churches");
+  return app.delete(collection);
 });

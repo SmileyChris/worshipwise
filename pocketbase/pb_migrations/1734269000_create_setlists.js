@@ -1,6 +1,6 @@
 /// <reference path="../pb_migrations.d.ts" />
 migrate(
-	(db) => {
+	(app) => {
 		const collection = new Collection({
 			id: 'setlists_collection',
 			created: '2023-12-15 12:15:00.000Z',
@@ -168,30 +168,20 @@ migrate(
 					options: {}
 				}
 			],
-			indexes: [
-				'CREATE INDEX `idx_setlists_service_date` ON `setlists` (`service_date`)',
-				'CREATE INDEX `idx_setlists_worship_leader` ON `setlists` (`worship_leader`)',
-				'CREATE INDEX `idx_setlists_created_by` ON `setlists` (`created_by`)',
-				'CREATE INDEX `idx_setlists_status` ON `setlists` (`status`)',
-				'CREATE INDEX `idx_setlists_service_type` ON `setlists` (`service_type`)',
-				'CREATE INDEX `idx_setlists_is_template` ON `setlists` (`is_template`)'
-			],
+			indexes: [],
 			listRule: "@request.auth.id != ''",
 			viewRule: "@request.auth.id != ''",
-			createRule:
-				"@request.auth.id != '' && (@request.auth.role = 'leader' || @request.auth.role = 'admin')",
-			updateRule:
-				"@request.auth.id != '' && (@request.auth.role = 'leader' || @request.auth.role = 'admin' || created_by = @request.auth.id || worship_leader = @request.auth.id)",
-			deleteRule: "@request.auth.role = 'admin' || created_by = @request.auth.id",
+			createRule: "@request.auth.id != ''",
+			updateRule: "@request.auth.id != ''",
+			deleteRule: "@request.auth.id != ''",
 			options: {}
 		});
 
-		return Dao(db).saveCollection(collection);
+		return app.save(collection);
 	},
-	(db) => {
-		const dao = new Dao(db);
-		const collection = dao.findCollectionByNameOrId('setlists');
+	(app) => {
+		const collection = app.findCollectionByNameOrId('setlists');
 
-		return dao.deleteCollection(collection);
+		return app.delete(collection);
 	}
 );

@@ -1,6 +1,6 @@
 /// <reference path="../pb_migrations.d.ts" />
 migrate(
-	(db) => {
+	(app) => {
 		const collection = new Collection({
 			id: 'song_usage_collection',
 			created: '2023-12-15 12:10:00.000Z',
@@ -144,28 +144,20 @@ migrate(
 					}
 				}
 			],
-			indexes: [
-				'CREATE INDEX `idx_song_usage_song_id` ON `song_usage` (`song_id`)',
-				'CREATE INDEX `idx_song_usage_setlist_id` ON `song_usage` (`setlist_id`)',
-				'CREATE INDEX `idx_song_usage_used_date` ON `song_usage` (`used_date`)',
-				'CREATE INDEX `idx_song_usage_worship_leader` ON `song_usage` (`worship_leader`)',
-				'CREATE INDEX `idx_song_usage_composite` ON `song_usage` (`song_id`, `used_date`)'
-			],
+			indexes: [],
 			listRule: "@request.auth.id != ''",
 			viewRule: "@request.auth.id != ''",
-			createRule:
-				"@request.auth.id != '' && (@request.auth.role = 'leader' || @request.auth.role = 'admin')",
-			updateRule: "@request.auth.role = 'admin'",
-			deleteRule: "@request.auth.role = 'admin'",
+			createRule: "@request.auth.id != ''",
+			updateRule: "@request.auth.id != ''",
+			deleteRule: "@request.auth.id != ''",
 			options: {}
 		});
 
-		return Dao(db).saveCollection(collection);
+		return app.save(collection);
 	},
-	(db) => {
-		const dao = new Dao(db);
-		const collection = dao.findCollectionByNameOrId('song_usage');
+	(app) => {
+		const collection = app.findCollectionByNameOrId('song_usage');
 
-		return dao.deleteCollection(collection);
+		return app.delete(collection);
 	}
 );
