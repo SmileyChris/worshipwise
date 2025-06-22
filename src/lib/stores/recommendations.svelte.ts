@@ -136,8 +136,7 @@ class RecommendationsStore {
 		try {
 			this.comparativePeriod = await recommendationsApi.getComparativePeriodAnalysis(
 				currentStart,
-				currentEnd,
-				periodType
+				currentEnd
 			);
 		} catch (error) {
 			this.error = error instanceof Error ? error.message : 'Failed to load comparative analysis';
@@ -186,8 +185,8 @@ class RecommendationsStore {
 		return this.rotationRecommendations()
 			.sort((a, b) => {
 				// Prioritize songs that haven't been used in longer time
-				const aDays = a.metadata?.daysSinceLastUse || 0;
-				const bDays = b.metadata?.daysSinceLastUse || 0;
+				const aDays = (a.metadata?.daysSinceLastUse as number) || 0;
+				const bDays = (b.metadata?.daysSinceLastUse as number) || 0;
 				return bDays - aDays;
 			})
 			.slice(0, count);
@@ -216,7 +215,7 @@ class RecommendationsStore {
 
 		// Rotation insights
 		const overdueSongs = this.rotationRecommendations().filter(
-			(r) => r.metadata?.daysSinceLastUse > 60
+			(r) => (r.metadata?.daysSinceLastUse as number) > 60
 		);
 		if (overdueSongs.length > 0) {
 			insights.push(`${overdueSongs.length} songs haven't been used in over 2 months`);

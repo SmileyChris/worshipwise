@@ -12,9 +12,10 @@
 		}
 	});
 
-	async function handleLogin(data: LoginCredentials) {
+	async function handleLogin(data: unknown) {
+		const credentials = data as LoginCredentials;
 		try {
-			await auth.login(data);
+			await auth.login(credentials);
 			// Navigation is handled in the auth store
 		} catch (error) {
 			// Error is handled in the auth store and displayed in the form

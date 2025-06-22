@@ -9,7 +9,7 @@
 		required?: boolean;
 		disabled?: boolean;
 		error?: string;
-		autocomplete?: string;
+		autocomplete?: HTMLInputElement['autocomplete'];
 		class?: string;
 		'data-testid'?: string;
 	}
@@ -58,7 +58,7 @@
 			{placeholder}
 			{required}
 			{disabled}
-			autocomplete={autocomplete}
+			{autocomplete}
 			class={inputClasses}
 			aria-describedby={error ? errorId : undefined}
 			aria-invalid={error ? 'true' : 'false'}

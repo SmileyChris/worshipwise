@@ -72,8 +72,8 @@ export class ChurchMigration {
 			max_songs: 1000,
 			max_storage_mb: 2048,
 			settings: getDefaultChurchSettings(),
-			owner_user_id: adminUser.id,
-			billing_email: adminUser.email,
+			owner_user_id: (adminUser as { id: string }).id,
+			billing_email: (adminUser as { email: string }).email,
 			is_active: true
 		};
 
@@ -83,24 +83,28 @@ export class ChurchMigration {
 	/**
 	 * Create church memberships for all existing users
 	 */
-	private static async createMembershipsForUsers(users: Record<string, unknown>[], churchId: string): Promise<void> {
+	private static async createMembershipsForUsers(
+		users: Record<string, unknown>[],
+		churchId: string
+	): Promise<void> {
 		const membershipPromises = users.map((user) => {
 			// Map old user roles to church roles
-			const role = this.mapUserRoleToChurchRole(user.role);
+			const role = this.mapUserRoleToChurchRole((user as { role: string }).role);
 
 			const membershipData = {
 				church_id: churchId,
-				user_id: user.id,
+				user_id: (user as { id: string }).id,
 				role: role,
 				permissions: getDefaultPermissions(role),
 				status: 'active' as const,
-				preferred_keys: user.preferred_keys || [],
-				notification_preferences: user.notification_preferences || {
+				preferred_keys: (user as { preferred_keys?: unknown }).preferred_keys || [],
+				notification_preferences: (user as { notification_preferences?: unknown })
+					.notification_preferences || {
 					email_service_reminders: true,
 					email_new_songs: false,
 					email_member_activity: false
 				},
-				joined_date: user.created,
+				joined_date: (user as { created: string }).created,
 				is_active: true
 			};
 
@@ -160,9 +164,12 @@ export class ChurchMigration {
 	/**
 	 * Update users with current_church_id
 	 */
-	private static async updateUsersWithCurrentChurch(users: Record<string, unknown>[], churchId: string): Promise<void> {
+	private static async updateUsersWithCurrentChurch(
+		users: Record<string, unknown>[],
+		churchId: string
+	): Promise<void> {
 		const updatePromises = users.map((user) =>
-			pb.collection('users').update(user.id, {
+			pb.collection('users').update((user as { id: string }).id, {
 				current_church_id: churchId
 			})
 		);
@@ -189,18 +196,19 @@ export class ChurchMigration {
 	private static determineChurchName(users: Record<string, unknown>[]): string {
 		// Try to find a consistent church name from users
 		const churchNames = users
-			.map((u) => u.church_name)
+			.map((u) => (u as { church_name?: string }).church_name)
 			.filter(Boolean)
 			.filter((name, index, arr) => arr.indexOf(name) === index); // unique
 
 		if (churchNames.length === 1) {
-			return churchNames[0];
+			return churchNames[0] as string;
 		}
 
 		// If multiple or no church names, use a generic name
-		const adminUser = users.find((u) => u.role === 'admin');
-		if (adminUser?.church_name) {
-			return adminUser.church_name;
+		const adminUser = users.find((u) => (u as { role: string }).role === 'admin');
+		const adminChurchName = (adminUser as { church_name?: string })?.church_name;
+		if (adminChurchName) {
+			return adminChurchName;
 		}
 
 		return 'My Church';

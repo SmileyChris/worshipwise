@@ -138,7 +138,7 @@
 				}
 			}
 		} catch (err: unknown) {
-			error = err.message || 'Failed to update service';
+			error = err instanceof Error ? err.message : 'Failed to update service';
 		} finally {
 			draggedSong = null;
 			draggedServiceSong = null;
@@ -149,7 +149,7 @@
 		try {
 			await servicesStore.removeSongFromService(songId);
 		} catch (err: unknown) {
-			error = err.message || 'Failed to remove song';
+			error = err instanceof Error ? err.message : 'Failed to remove song';
 		}
 	}
 
@@ -157,7 +157,7 @@
 		try {
 			await servicesStore.updateServiceSong(songId, { transposed_key: newKey });
 		} catch (err: unknown) {
-			error = err.message || 'Failed to update key';
+			error = err instanceof Error ? err.message : 'Failed to update key';
 		}
 	}
 
@@ -165,7 +165,7 @@
 		try {
 			await servicesStore.updateServiceSong(songId, { transition_notes: notes });
 		} catch (err: unknown) {
-			error = err.message || 'Failed to update notes';
+			error = err instanceof Error ? err.message : 'Failed to update notes';
 		}
 	}
 

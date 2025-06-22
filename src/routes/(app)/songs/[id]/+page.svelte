@@ -86,7 +86,9 @@
 		// Recent usage (last 6 months)
 		const sixMonthsAgo = new Date();
 		sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-		const recentUses = usageHistory.filter((u) => new Date(u.used_date) > sixMonthsAgo).length;
+		const recentUses = usageHistory.filter(
+			(u) => new Date(u.used_date as string) > sixMonthsAgo
+		).length;
 
 		return {
 			totalUses,
@@ -382,7 +384,7 @@
 							<div class="flex items-start justify-between text-sm">
 								<div>
 									<div class="font-medium text-gray-900">
-										{formatDate(usage.used_date)}
+										{formatDate(usage.used_date as string)}
 									</div>
 									{#if usage.service_type}
 										<div class="text-xs text-gray-500">{usage.service_type}</div>

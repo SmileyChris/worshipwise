@@ -7,7 +7,7 @@
 		mode: 'login' | 'register';
 		loading?: boolean;
 		error?: string | null;
-		onSubmit: (data: Record<string, string>) => void;
+		onSubmit: (data: unknown) => void;
 	}
 
 	let { mode, loading = false, error = null, onSubmit }: Props = $props();

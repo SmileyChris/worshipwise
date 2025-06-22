@@ -12,9 +12,10 @@
 		}
 	});
 
-	async function handleRegister(data: RegisterData) {
+	async function handleRegister(data: unknown) {
+		const registerData = data as RegisterData;
 		try {
-			await auth.register(data);
+			await auth.register(registerData);
 			// Navigation is handled in the auth store
 		} catch (error) {
 			// Error is handled in the auth store and displayed in the form

@@ -460,7 +460,7 @@ class RecommendationsApi {
 	 */
 	async getComparativePeriodAnalysis(
 		currentStart: Date,
-		currentEnd: Date,
+		currentEnd: Date
 	): Promise<ComparativePeriod> {
 		try {
 			// Calculate previous period

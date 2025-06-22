@@ -10,7 +10,8 @@
 		ArcElement,
 		Title,
 		Tooltip,
-		Legend
+		Legend,
+		type ChartConfiguration
 	} from 'chart.js';
 
 	// Register Chart.js components
@@ -39,7 +40,7 @@
 	onMount(() => {
 		if (canvasElement) {
 			// Create chart instance
-			chartInstance = new Chart(canvasElement, config);
+			chartInstance = new Chart(canvasElement, config as unknown as ChartConfiguration);
 		}
 	});
 
@@ -55,8 +56,8 @@
 	$effect(() => {
 		if (chartInstance && config) {
 			// Update chart data and options
-			chartInstance.data = config.data;
-			chartInstance.options = config.options || {};
+			chartInstance.data = (config as unknown as ChartConfiguration).data;
+			chartInstance.options = (config as unknown as ChartConfiguration).options || {};
 			chartInstance.update();
 		}
 	});

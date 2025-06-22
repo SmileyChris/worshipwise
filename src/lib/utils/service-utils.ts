@@ -211,7 +211,9 @@ export function findOptimalInsertionPosition(songs: ServiceSong[], sectionType: 
 	const sectionOrder = SECTION_TYPES.indexOf(sectionType as (typeof SECTION_TYPES)[number]);
 
 	for (let i = 0; i < songs.length; i++) {
-		const currentSectionOrder = SECTION_TYPES.indexOf(songs[i].section_type as (typeof SECTION_TYPES)[number]);
+		const currentSectionOrder = SECTION_TYPES.indexOf(
+			songs[i].section_type as (typeof SECTION_TYPES)[number]
+		);
 		if (currentSectionOrder > sectionOrder) {
 			return i;
 		}

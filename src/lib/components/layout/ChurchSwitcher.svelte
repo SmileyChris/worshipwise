@@ -174,7 +174,7 @@
 							</button>
 
 							<!-- Church management buttons -->
-							{#if church.id !== auth.currentChurch?.id && canLeaveChurch(church)}
+							{#if church.id !== auth.currentChurch?.id && canLeaveChurch()}
 								<div
 									class="absolute top-1/2 right-2 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
 								>

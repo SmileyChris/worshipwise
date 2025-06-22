@@ -6,7 +6,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import {
-		Church,
+		Church as ChurchIcon,
 		Users,
 		Globe,
 		Clock,
@@ -68,7 +68,11 @@
 				details[church.id] = {
 					memberCount: members,
 					adminCount: admins.length,
-					admins: admins,
+					admins: admins.map((a) => ({
+						id: a.id,
+						name: a.name || 'Unknown',
+						email: a.expand?.user?.email || 'Unknown'
+					})),
 					isCurrentUserAdmin: admins.some((a) => a.user_id === auth.user?.id),
 					isOnlyAdmin: admins.length === 1 && admins[0].user_id === auth.user?.id
 				};
@@ -198,7 +202,7 @@
 						<!-- Church Header -->
 						<div class="flex items-start space-x-3">
 							<div class="bg-primary/10 rounded-lg p-2">
-								<Church class="text-primary h-6 w-6" />
+								<ChurchIcon class="text-primary h-6 w-6" />
 							</div>
 							<div class="min-w-0 flex-1">
 								<h3 class="font-title truncate text-lg font-semibold text-gray-900">
@@ -324,7 +328,7 @@
 	<!-- No Churches State -->
 	{#if !loading && auth.availableChurches.length === 0}
 		<Card class="py-12 text-center">
-			<Church class="mx-auto mb-4 h-12 w-12 text-gray-400" />
+			<ChurchIcon class="mx-auto mb-4 h-12 w-12 text-gray-400" />
 			<h3 class="mb-2 text-lg font-medium text-gray-900">No Churches Found</h3>
 			<p class="mb-4 text-gray-600">
 				It looks like you're not affiliated with any churches. This shouldn't normally happen.
@@ -337,7 +341,7 @@
 	<Card class="border-blue-200 bg-blue-50">
 		<div class="flex">
 			<div class="flex-shrink-0">
-				<Church class="h-5 w-5 text-blue-400" />
+				<ChurchIcon class="h-5 w-5 text-blue-400" />
 			</div>
 			<div class="ml-3">
 				<h3 class="text-sm font-medium text-blue-800">Church Management Tips</h3>

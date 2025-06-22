@@ -375,7 +375,7 @@ export class SongsAPI {
 			const usageRecords = await pb.collection('song_usage').getFullList({
 				filter: `song_id = "${songId}"`,
 				sort: '-used_date',
-				expand: 'setlist_id,worship_leader'
+				expand: 'service_id,worship_leader'
 			});
 
 			return usageRecords;

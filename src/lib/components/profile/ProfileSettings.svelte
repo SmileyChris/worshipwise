@@ -221,7 +221,12 @@
 			passwordSuccess = 'Password changed successfully!';
 		} catch (error: unknown) {
 			console.error('Password change failed:', error);
-			if (error.response?.status === 400) {
+			if (
+				error &&
+				typeof error === 'object' &&
+				'response' in error &&
+				(error as { response?: { status?: number } }).response?.status === 400
+			) {
 				passwordError = 'Current password is incorrect';
 			} else {
 				passwordError = auth.getErrorMessage(error);
