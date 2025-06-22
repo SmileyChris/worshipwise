@@ -17,7 +17,7 @@
 		UserPlus,
 		Crown
 	} from 'lucide-svelte';
-	import type { Church as ChurchType } from '$lib/types/church';
+	import type { Church } from '$lib/types/church';
 
 	let loading = $state<boolean>(false);
 	let error = $state<string | null>(null);
@@ -27,7 +27,7 @@
 			{
 				memberCount: number;
 				adminCount: number;
-				admins: any[];
+				admins: { id: string; name: string; email: string }[];
 				isCurrentUserAdmin: boolean;
 				isOnlyAdmin: boolean;
 			}
@@ -49,7 +49,7 @@
 				{
 					memberCount: number;
 					adminCount: number;
-					admins: any[];
+					admins: { id: string; name: string; email: string }[];
 					isCurrentUserAdmin: boolean;
 					isOnlyAdmin: boolean;
 				}

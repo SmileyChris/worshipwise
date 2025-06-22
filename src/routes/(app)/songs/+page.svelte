@@ -189,25 +189,6 @@
 		}
 	}
 
-	async function handleSongFormSubmit(event: CustomEvent) {
-		try {
-			const data = event.detail;
-
-			if ('id' in data) {
-				// Update existing song
-				await songsStore.updateSong(data.id, data.data);
-			} else {
-				// Create new song
-				await songsStore.createSong(data);
-			}
-
-			showSongForm = false;
-			songsStore.selectSong(null);
-		} catch (error) {
-			console.error('Failed to save song:', error);
-		}
-	}
-
 	function handleSongFormCancel() {
 		showSongForm = false;
 		songsStore.selectSong(null);
