@@ -7,7 +7,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
-	import { Church, Globe, MapPin, Clock, User, Mail, Lock } from 'lucide-svelte';
+	import { Church, Clock, User, Mail, Lock } from 'lucide-svelte';
 
 	let loading = $state<boolean>(false);
 	let error = $state<string | null>(null);

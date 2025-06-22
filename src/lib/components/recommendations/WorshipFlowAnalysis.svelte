@@ -27,7 +27,7 @@
 		}
 	}
 
-	function getSeverityColor(suggestion: any) {
+	function getSeverityColor(suggestion: { reason: string }) {
 		if (
 			suggestion.reason.includes('Large tempo change') ||
 			suggestion.reason.includes('difficult')
@@ -37,7 +37,7 @@
 		return 'warning';
 	}
 
-	function getSeverityIcon(suggestion: any) {
+	function getSeverityIcon(suggestion: { reason: string }) {
 		if (
 			suggestion.reason.includes('Large tempo change') ||
 			suggestion.reason.includes('difficult')

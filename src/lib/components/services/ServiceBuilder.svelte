@@ -1,15 +1,12 @@
 <script lang="ts">
-	import type { Service, ServiceSong, CreateServiceSongData } from '$lib/types/service';
+	import type { ServiceSong, CreateServiceSongData } from '$lib/types/service';
 	import type { Song } from '$lib/types/song';
 	import { servicesStore } from '$lib/stores/services.svelte';
 	import { songsStore } from '$lib/stores/songs.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
-	import Select from '$lib/components/ui/Select.svelte';
 	import { onMount } from 'svelte';
 	import { flip } from 'svelte/animate';
-	import { fade } from 'svelte/transition';
 
 	interface Props {
 		serviceId: string;
@@ -69,8 +66,8 @@
 			await servicesStore.loadService(serviceId);
 			// Load available songs
 			await songsStore.loadSongs();
-		} catch (err: any) {
-			error = err.message || 'Failed to load service';
+		} catch (err: unknown) {
+			error = err instanceof Error ? err.message : 'Failed to load service';
 		} finally {
 			loading = false;
 		}
@@ -140,7 +137,7 @@
 					await servicesStore.reorderServiceSongs(newOrder);
 				}
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			error = err.message || 'Failed to update service';
 		} finally {
 			draggedSong = null;
@@ -151,7 +148,7 @@
 	async function removeSongFromService(songId: string) {
 		try {
 			await servicesStore.removeSongFromService(songId);
-		} catch (err: any) {
+		} catch (err: unknown) {
 			error = err.message || 'Failed to remove song';
 		}
 	}
@@ -159,7 +156,7 @@
 	async function updateSongKey(songId: string, newKey: string) {
 		try {
 			await servicesStore.updateServiceSong(songId, { transposed_key: newKey });
-		} catch (err: any) {
+		} catch (err: unknown) {
 			error = err.message || 'Failed to update key';
 		}
 	}
@@ -167,7 +164,7 @@
 	async function updateSongNotes(songId: string, notes: string) {
 		try {
 			await servicesStore.updateServiceSong(songId, { transition_notes: notes });
-		} catch (err: any) {
+		} catch (err: unknown) {
 			error = err.message || 'Failed to update notes';
 		}
 	}

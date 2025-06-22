@@ -10,7 +10,7 @@ export interface SongRecommendation {
 	reason: string;
 	score: number;
 	type: 'rotation' | 'seasonal' | 'flow' | 'key_compatibility' | 'popularity';
-	metadata: Record<string, any>;
+	metadata: Record<string, unknown>;
 }
 
 export interface WorshipFlowSuggestion {
