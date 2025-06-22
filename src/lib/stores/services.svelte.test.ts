@@ -194,7 +194,6 @@ describe('ServicesStore', () => {
 
 			expect(servicesStore.templates).toEqual(templates);
 		});
-
 	});
 
 	describe('loadService', () => {
@@ -303,7 +302,9 @@ describe('ServicesStore', () => {
 			const error = new Error('Update failed');
 			mockedServicesApi.updateService.mockRejectedValue(error);
 
-			await expect(servicesStore.updateService('service-1', updateData)).rejects.toThrow('Update failed');
+			await expect(servicesStore.updateService('service-1', updateData)).rejects.toThrow(
+				'Update failed'
+			);
 
 			expect(servicesStore.services[0]).toEqual(mockService); // Unchanged
 			expect(servicesStore.error).toBe('Update failed');
@@ -381,7 +382,7 @@ describe('ServicesStore', () => {
 		it('should sort songs by order position', async () => {
 			const song1 = { ...mockServiceSong, id: 'ss-1', order_position: 2 };
 			const song2 = { ...mockServiceSong, id: 'ss-2', order_position: 1 };
-			
+
 			servicesStore.currentServiceSongs = [song1];
 			mockedServicesApi.addSongToService.mockResolvedValue(song2);
 
@@ -396,20 +397,24 @@ describe('ServicesStore', () => {
 		it('should throw error when no service selected', async () => {
 			servicesStore.currentService = null;
 
-			await expect(servicesStore.addSongToService({
-				song_id: 'song-1',
-				order_position: 1
-			})).rejects.toThrow('No service selected');
+			await expect(
+				servicesStore.addSongToService({
+					song_id: 'song-1',
+					order_position: 1
+				})
+			).rejects.toThrow('No service selected');
 		});
 
 		it('should handle errors when adding song to service', async () => {
 			const error = new Error('Add failed');
 			mockedServicesApi.addSongToService.mockRejectedValue(error);
 
-			await expect(servicesStore.addSongToService({
-				song_id: 'song-1',
-				order_position: 1
-			})).rejects.toThrow('Add failed');
+			await expect(
+				servicesStore.addSongToService({
+					song_id: 'song-1',
+					order_position: 1
+				})
+			).rejects.toThrow('Add failed');
 
 			expect(servicesStore.builderState.error).toBe('Add failed');
 			expect(servicesStore.builderState.isLoading).toBe(false);
@@ -437,7 +442,9 @@ describe('ServicesStore', () => {
 			const error = new Error('Remove failed');
 			mockedServicesApi.removeSongFromService.mockRejectedValue(error);
 
-			await expect(servicesStore.removeSongFromService('service-song-1')).rejects.toThrow('Remove failed');
+			await expect(servicesStore.removeSongFromService('service-song-1')).rejects.toThrow(
+				'Remove failed'
+			);
 
 			expect(servicesStore.currentServiceSongs).toEqual([mockServiceSong]); // Unchanged
 			expect(servicesStore.builderState.error).toBe('Remove failed');
@@ -459,7 +466,10 @@ describe('ServicesStore', () => {
 			expect(servicesStore.currentServiceSongs[0]).toEqual(updatedSong);
 			expect(servicesStore.builderState.songs[0]).toEqual(updatedSong);
 			expect(servicesStore.builderState.isDirty).toBe(true);
-			expect(mockedServicesApi.updateServiceSong).toHaveBeenCalledWith('service-song-1', updateData);
+			expect(mockedServicesApi.updateServiceSong).toHaveBeenCalledWith(
+				'service-song-1',
+				updateData
+			);
 		});
 
 		it('should handle updating non-existent service song', async () => {
@@ -477,7 +487,9 @@ describe('ServicesStore', () => {
 			const error = new Error('Update failed');
 			mockedServicesApi.updateServiceSong.mockRejectedValue(error);
 
-			await expect(servicesStore.updateServiceSong('service-song-1', updateData)).rejects.toThrow('Update failed');
+			await expect(servicesStore.updateServiceSong('service-song-1', updateData)).rejects.toThrow(
+				'Update failed'
+			);
 
 			expect(servicesStore.builderState.error).toBe('Update failed');
 		});
@@ -698,7 +710,12 @@ describe('ServicesStore', () => {
 		it('should calculate current service duration', () => {
 			servicesStore.currentServiceSongs = [
 				{ ...mockServiceSong, duration_override: 300 },
-				{ ...mockServiceSong, id: 'ss-2', duration_override: null, expand: { song_id: { duration_seconds: 240 } as Song } }
+				{
+					...mockServiceSong,
+					id: 'ss-2',
+					duration_override: null,
+					expand: { song_id: { duration_seconds: 240 } as Song }
+				}
 			];
 
 			expect(servicesStore.currentServiceDuration).toBe(540);

@@ -38,6 +38,7 @@ export interface ChurchSettings {
 	auto_approve_members: boolean;
 	default_key_signatures: string[];
 	preferred_ccli_license?: string;
+	mistral_api_key?: string;
 }
 
 export interface ChurchMembership {

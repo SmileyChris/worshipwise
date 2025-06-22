@@ -5,14 +5,17 @@ This directory contains tools for fetching and analyzing worship song lyrics usi
 ## Components
 
 ### 1. `lyrics_search_mcp_server.py`
+
 A lightweight MCP server that fetches song lyrics from the web using DuckDuckGo search and HTML parsing.
 
 **Features:**
+
 - Self-contained with inline dependencies via uv
 - Web scraping with intelligent lyrics extraction
 - FastMCP integration for LLM tool use
 
 **Usage:**
+
 ```bash
 # Run as standalone MCP server
 uv run lyrics_search_mcp_server.py
@@ -22,15 +25,18 @@ uv run lyrics_search_mcp_server.py
 ```
 
 ### 2. `analyze_lyrics.py`
+
 Python script that combines MCP lyrics fetching with Ollama-powered analysis for worship planning.
 
 **Features:**
+
 - Fetches lyrics via MCP server
 - Analyzes themes, biblical references, worship elements
 - Provides service placement recommendations
 - Generates structured reports for worship planners
 
 **Usage:**
+
 ```bash
 # Basic analysis (with available Ollama model)
 uv run analyze_lyrics.py "Amazing Grace" "John Newton" --model qwen3:1.7b
@@ -43,9 +49,11 @@ uv run simple_test.py
 ```
 
 ### 3. `lyrics.sh` 🚀 **SIMPLE & RELIABLE**
+
 Clean shell script that just works - no complex UI, no dependencies, no TTY issues.
 
 **Features:**
+
 - 🐚 **Pure Bash**: Works in any environment
 - 🎨 **Colored Output**: Clean ANSI colors for readability
 - 🔧 **Smart Detection**: Auto-detects available Ollama models
@@ -54,6 +62,7 @@ Clean shell script that just works - no complex UI, no dependencies, no TTY issu
 - 🛡️ **Error Handling**: Clear error messages and helpful suggestions
 
 **Usage:**
+
 ```bash
 # Direct analysis
 ./lyrics.sh "Amazing Grace"
@@ -93,34 +102,36 @@ This tool could integrate with the main WorshipWise application in several ways:
 ```typescript
 // Potential integration in WorshipWise
 interface LyricsAnalysis {
-  title: string;
-  artist?: string;
-  themes: string[];
-  biblical_references: string[];
-  worship_elements: string[];
-  emotional_tone: string;
-  service_placement: string;
-  seasonal_appropriateness: string[];
-  complexity_level: 'Simple' | 'Moderate' | 'Complex';
-  summary: string;
+	title: string;
+	artist?: string;
+	themes: string[];
+	biblical_references: string[];
+	worship_elements: string[];
+	emotional_tone: string;
+	service_placement: string;
+	seasonal_appropriateness: string[];
+	complexity_level: 'Simple' | 'Moderate' | 'Complex';
+	summary: string;
 }
 
 // Could be added to existing Song schema
 interface Song {
-  // ... existing fields
-  lyrics_analysis?: LyricsAnalysis;
-  last_analyzed?: Date;
+	// ... existing fields
+	lyrics_analysis?: LyricsAnalysis;
+	last_analyzed?: Date;
 }
 ```
 
 ## Prerequisites
 
 ### For MCP Server
+
 - Python 3.10+
 - uv package manager
 - Internet connection for lyrics search
 
 ### For Ollama Analysis
+
 - Ollama installed and running (`http://localhost:11434`)
 - At least one model available (check with `ollama list`)
 - Common lightweight models: `qwen3:1.7b`, `phi3.5`, `gemma2:2b`
@@ -179,8 +190,8 @@ SEASONAL APPROPRIATENESS:
   • Year-round appropriate
 
 SUMMARY:
-A classic hymn of personal testimony about God's transforming grace. 
-Perfect for moments of reflection and communion, with universal 
+A classic hymn of personal testimony about God's transforming grace.
+Perfect for moments of reflection and communion, with universal
 themes that resonate across denominations and seasons.
 
 ==================================================

@@ -180,18 +180,19 @@ describe('SongsStore', () => {
 			songsStore.currentPage = 2;
 			songsStore.perPage = 10;
 			songsStore.filters = { search: 'test', key: 'C', tags: ['hymn'], sort: 'title' };
-			
+
 			mockedSongsApi.getSongsPaginated.mockResolvedValue(mockPaginatedResult);
 			mockedSongsApi.getSongsUsageInfo.mockResolvedValue(new Map());
 			mockedSongsApi.getSongs.mockResolvedValue([]);
 
 			await songsStore.loadSongs();
 
-			expect(mockedSongsApi.getSongsPaginated).toHaveBeenCalledWith(
-				2,
-				10,
-				{ search: 'test', key: 'C', tags: ['hymn'], sort: 'title' }
-			);
+			expect(mockedSongsApi.getSongsPaginated).toHaveBeenCalledWith(2, 10, {
+				search: 'test',
+				key: 'C',
+				tags: ['hymn'],
+				sort: 'title'
+			});
 		});
 	});
 
@@ -443,7 +444,7 @@ describe('SongsStore', () => {
 		it('should calculate usage status correctly', () => {
 			// Access private method through store instance
 			const store = songsStore as any;
-			
+
 			expect(store.calculateUsageStatus(7)).toBe('recent');
 			expect(store.calculateUsageStatus(20)).toBe('caution');
 			expect(store.calculateUsageStatus(35)).toBe('available');
@@ -456,7 +457,7 @@ describe('SongsStore', () => {
 				{ ...mockSong, id: 'song-3', key_signature: 'C' },
 				{ ...mockSong, id: 'song-4', key_signature: null }
 			];
-			
+
 			const store = songsStore as any;
 			const mostUsedKey = store.getMostUsedKey(songs);
 			expect(mostUsedKey).toBe('C');
@@ -467,7 +468,7 @@ describe('SongsStore', () => {
 				{ ...mockSong, key_signature: null },
 				{ ...mockSong, id: 'song-2', key_signature: undefined }
 			];
-			
+
 			const store = songsStore as any;
 			const mostUsedKey = store.getMostUsedKey(songs);
 			expect(mostUsedKey).toBeUndefined();
@@ -480,7 +481,7 @@ describe('SongsStore', () => {
 				{ ...mockSong, id: 'song-3', tempo: null },
 				{ ...mockSong, id: 'song-4', tempo: 100 }
 			];
-			
+
 			const store = songsStore as any;
 			const avgTempo = store.getAverageTempo(songs);
 			expect(avgTempo).toBe(120); // (120 + 140 + 100) / 3 = 120
@@ -491,7 +492,7 @@ describe('SongsStore', () => {
 				{ ...mockSong, tempo: null },
 				{ ...mockSong, id: 'song-2', tempo: 0 }
 			];
-			
+
 			const store = songsStore as any;
 			const avgTempo = store.getAverageTempo(songs);
 			expect(avgTempo).toBeUndefined();

@@ -195,7 +195,7 @@ describe('InitialSetup', () => {
 			expect(screen.getByText('Setup Summary')).toBeInTheDocument();
 			expect(screen.getByText('Test Church')).toBeInTheDocument();
 			expect(screen.getByText('New York, USA (EST)')).toBeInTheDocument();
-			
+
 			// Should NOT show location info
 			expect(screen.queryByText(/Location:/)).not.toBeInTheDocument();
 		});

@@ -29,6 +29,21 @@ export interface Label {
 	};
 }
 
+export interface LyricsAnalysis {
+	title: string;
+	artist?: string;
+	themes: string[];
+	biblical_references: string[];
+	worship_elements: string[];
+	emotional_tone: string;
+	service_placement: string;
+	seasonal_appropriateness: string[];
+	complexity_level: 'Simple' | 'Moderate' | 'Complex';
+	summary: string;
+	analyzed_at: string;
+	confidence_score?: number;
+}
+
 export interface Song {
 	id: string;
 	title: string;
@@ -46,6 +61,7 @@ export interface Song {
 	ccli_number?: string;
 	copyright_info?: string;
 	notes?: string;
+	lyrics_analysis?: LyricsAnalysis;
 	created_by: string;
 	is_active: boolean;
 	created: string;
@@ -85,6 +101,7 @@ export interface CreateSongData {
 	ccli_number?: string;
 	copyright_info?: string;
 	notes?: string;
+	lyrics_analysis?: LyricsAnalysis;
 }
 
 export interface UpdateSongData {
@@ -103,6 +120,7 @@ export interface UpdateSongData {
 	ccli_number?: string;
 	copyright_info?: string;
 	notes?: string;
+	lyrics_analysis?: LyricsAnalysis;
 }
 
 export interface SongUsage {

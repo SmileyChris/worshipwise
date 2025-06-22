@@ -13,14 +13,14 @@ PocketBase migrations are JavaScript files that define database schema changes. 
 ```javascript
 /// <reference path="../pb_data/types.d.ts" />
 migrate(
-  (app) => {
-    // Up migration - apply changes
-    // Create or modify collections here
-  },
-  (app) => {
-    // Down migration - rollback changes
-    // Remove or restore collections here
-  }
+	(app) => {
+		// Up migration - apply changes
+		// Create or modify collections here
+	},
+	(app) => {
+		// Down migration - rollback changes
+		// Remove or restore collections here
+	}
 );
 ```
 
@@ -28,33 +28,33 @@ migrate(
 
 ```javascript
 migrate(
-  (app) => {
-    const collection = new Collection({
-      name: "collection_name",
-      type: "base", // or "auth"
-      fields: [
-        new TextField({ 
-          name: "title", 
-          required: true,
-          max: 200
-        }),
-        new RelationField({
-          name: "user_id",
-          required: true,
-          options: {
-            collectionId: "_pb_users_auth_",
-            maxSelect: 1
-          }
-        })
-      ]
-    });
+	(app) => {
+		const collection = new Collection({
+			name: 'collection_name',
+			type: 'base', // or "auth"
+			fields: [
+				new TextField({
+					name: 'title',
+					required: true,
+					max: 200
+				}),
+				new RelationField({
+					name: 'user_id',
+					required: true,
+					options: {
+						collectionId: '_pb_users_auth_',
+						maxSelect: 1
+					}
+				})
+			]
+		});
 
-    return app.save(collection);
-  },
-  (app) => {
-    const collection = app.findCollectionByNameOrId("collection_name");
-    return app.delete(collection);
-  }
+		return app.save(collection);
+	},
+	(app) => {
+		const collection = app.findCollectionByNameOrId('collection_name');
+		return app.delete(collection);
+	}
 );
 ```
 
@@ -70,34 +70,34 @@ migrate(
 
 ```javascript
 migrate(
-  (app) => {
-    const collection = new Collection({
-      id: 'unique_collection_id',
-      created: '2023-12-15 12:00:00.000Z',
-      updated: '2023-12-15 12:00:00.000Z',
-      name: 'collection_name',
-      type: 'base',
-      system: false,
-      schema: [
-        // Field definitions
-      ],
-      indexes: [
-        // Index definitions
-      ],
-      listRule: "access_rule",
-      viewRule: "access_rule", 
-      createRule: "access_rule",
-      updateRule: "access_rule",
-      deleteRule: "access_rule",
-      options: {}
-    });
+	(app) => {
+		const collection = new Collection({
+			id: 'unique_collection_id',
+			created: '2023-12-15 12:00:00.000Z',
+			updated: '2023-12-15 12:00:00.000Z',
+			name: 'collection_name',
+			type: 'base',
+			system: false,
+			schema: [
+				// Field definitions
+			],
+			indexes: [
+				// Index definitions
+			],
+			listRule: 'access_rule',
+			viewRule: 'access_rule',
+			createRule: 'access_rule',
+			updateRule: 'access_rule',
+			deleteRule: 'access_rule',
+			options: {}
+		});
 
-    return app.save(collection);
-  },
-  (app) => {
-    const collection = app.findCollectionByNameOrId('collection_name');
-    return app.delete(collection);
-  }
+		return app.save(collection);
+	},
+	(app) => {
+		const collection = app.findCollectionByNameOrId('collection_name');
+		return app.delete(collection);
+	}
 );
 ```
 
@@ -105,34 +105,34 @@ migrate(
 
 ```javascript
 migrate(
-  (app) => {
-    const collection = app.findCollectionByNameOrId('existing_collection');
-    
-    // Modify collection properties
-    collection.schema.push({
-      system: false,
-      id: 'new_field',
-      name: 'new_field',
-      type: 'text',
-      required: false,
-      unique: false,
-      options: {
-        min: null,
-        max: 255,
-        pattern: ''
-      }
-    });
+	(app) => {
+		const collection = app.findCollectionByNameOrId('existing_collection');
 
-    return app.save(collection);
-  },
-  (app) => {
-    const collection = app.findCollectionByNameOrId('existing_collection');
-    
-    // Remove the added field
-    collection.schema = collection.schema.filter(field => field.name !== 'new_field');
-    
-    return app.save(collection);
-  }
+		// Modify collection properties
+		collection.schema.push({
+			system: false,
+			id: 'new_field',
+			name: 'new_field',
+			type: 'text',
+			required: false,
+			unique: false,
+			options: {
+				min: null,
+				max: 255,
+				pattern: ''
+			}
+		});
+
+		return app.save(collection);
+	},
+	(app) => {
+		const collection = app.findCollectionByNameOrId('existing_collection');
+
+		// Remove the added field
+		collection.schema = collection.schema.filter((field) => field.name !== 'new_field');
+
+		return app.save(collection);
+	}
 );
 ```
 
@@ -269,10 +269,10 @@ migrate(
 
 ```javascript
 indexes: [
-  'CREATE INDEX `idx_collection_field` ON `collection_name` (`field_name`)',
-  'CREATE INDEX `idx_collection_composite` ON `collection_name` (`field1`, `field2`)',
-  'CREATE UNIQUE INDEX `idx_collection_unique` ON `collection_name` (`unique_field`)'
-]
+	'CREATE INDEX `idx_collection_field` ON `collection_name` (`field_name`)',
+	'CREATE INDEX `idx_collection_composite` ON `collection_name` (`field1`, `field2`)',
+	'CREATE UNIQUE INDEX `idx_collection_unique` ON `collection_name` (`unique_field`)'
+];
 ```
 
 ## Access Rules
@@ -377,53 +377,59 @@ viewRule: "@request.auth.id != '' && church = @request.auth.church",
 ### 1. Wrong Syntax Version
 
 ❌ **Incorrect (pre-v0.23.0):**
+
 ```javascript
 migrate((db) => {
-  const dao = new Dao(db);
-  return dao.saveCollection(collection);
+	const dao = new Dao(db);
+	return dao.saveCollection(collection);
 });
 ```
 
 ✅ **Correct (v0.23.0+):**
+
 ```javascript
 migrate((app) => {
-  return app.save(collection);
+	return app.save(collection);
 });
 ```
 
 ### 2. Missing Down Migration
 
 ❌ **Incorrect:**
+
 ```javascript
 migrate((app) => {
-  // Only up function
+	// Only up function
 });
 ```
 
 ✅ **Correct:**
+
 ```javascript
 migrate(
-  (app) => {
-    // Up function
-  },
-  (app) => {
-    // Down function
-  }
+	(app) => {
+		// Up function
+	},
+	(app) => {
+		// Down function
+	}
 );
 ```
 
 ### 3. Incorrect Collection References
 
 ❌ **Incorrect:**
+
 ```javascript
-collectionId: 'users' // Wrong - should use actual collection ID
+collectionId: 'users'; // Wrong - should use actual collection ID
 ```
 
 ✅ **Correct:**
+
 ```javascript
-collectionId: '_pb_users_auth_' // System users collection
+collectionId: '_pb_users_auth_'; // System users collection
 // or
-collectionId: 'custom_collection_id' // Custom collection ID
+collectionId: 'custom_collection_id'; // Custom collection ID
 ```
 
 ## Working with This Project
@@ -439,6 +445,7 @@ This project uses a church-centric multi-tenancy model:
 ### Existing Collections
 
 Current schema includes:
+
 - `users` (extended with church relations)
 - `churches` (foundational organization unit)
 - `profiles` (user metadata with church context)

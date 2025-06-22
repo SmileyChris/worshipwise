@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { auth } from '$lib/stores/auth.svelte';
-	import type { Song, CreateSongData, UpdateSongData } from '$lib/types/song';
+	import type { Song, CreateSongData, UpdateSongData, LyricsAnalysis } from '$lib/types/song';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
@@ -9,6 +9,7 @@
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import CategorySelect from '$lib/components/ui/CategorySelect.svelte';
 	import LabelSelector from '$lib/components/ui/LabelSelector.svelte';
+	import LyricsAnalyzer from './LyricsAnalyzer.svelte';
 
 	interface Props {
 		song?: Song | null;
@@ -46,6 +47,7 @@
 	let lyrics = $state(song?.lyrics || '');
 	let notes = $state(song?.notes || '');
 	let tagsInput = $state('');
+	let lyricsAnalysis = $state<LyricsAnalysis | null>(song?.lyrics_analysis || null);
 
 	// File inputs
 	let chordChart: File | null = null;
@@ -66,6 +68,7 @@
 			lyrics = song.lyrics || '';
 			notes = song.notes || '';
 			tagsInput = song.tags?.join(', ') || '';
+			lyricsAnalysis = song.lyrics_analysis || null;
 
 			// Handle duration
 			if (song.duration_seconds) {
@@ -228,7 +231,8 @@
 			notes: notes.trim() || undefined,
 			chord_chart: chordChart || undefined,
 			audio_file: audioFile || undefined,
-			sheet_music: sheetMusic ? Array.from(sheetMusic) : undefined
+			sheet_music: sheetMusic ? Array.from(sheetMusic) : undefined,
+			lyrics_analysis: lyricsAnalysis || undefined
 		};
 
 		if (isEditing && song) {
@@ -257,6 +261,15 @@
 
 	function handleDeleteCancel() {
 		showDeleteConfirm = false;
+	}
+
+	function handleAnalysisComplete(analysis: LyricsAnalysis) {
+		lyricsAnalysis = analysis;
+		// If lyrics were found during analysis, update the lyrics field too
+		if (!lyrics.trim() && analysis.title === title) {
+			// Note: The LyricsAnalyzer component would need to be modified to also return the found lyrics
+			// For now, we just store the analysis
+		}
 	}
 </script>
 
@@ -404,6 +417,18 @@
 				placeholder="Enter song lyrics..."
 			></textarea>
 		</div>
+
+		<!-- AI Lyrics Analysis -->
+		{#if auth.currentChurch}
+			<LyricsAnalyzer
+				{title}
+				{artist}
+				{lyrics}
+				church={auth.currentChurch}
+				onAnalysisComplete={handleAnalysisComplete}
+				disabled={loading}
+			/>
+		{/if}
 
 		<!-- File Uploads -->
 		<div class="space-y-4">

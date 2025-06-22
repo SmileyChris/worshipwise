@@ -1,4 +1,3 @@
-
 # 🧪 Testing SvelteKit Components with Runes – 2025 Edition
 
 An opinionated, modern guide to **testing Svelte components and stores** that use **runes** (Svelte 5.x) with **Vitest 4.x** and **SvelteKit 2.22+**.
@@ -7,11 +6,11 @@ An opinionated, modern guide to **testing Svelte components and stores** that us
 
 ## 🧱 1. Minimal Tooling Stack
 
-| Purpose | Library | Why it matters |
-|--------|---------|----------------|
-| **Test runner** | **Vitest 4** | Supports browser mode + native Vite integration |
-| **Component testing** | **@testing-library/svelte** | Declarative and DOM-realistic |
-| **Runic control** | **`flushSync`, `tick`, `mount`, `unmount` from `svelte`** | Ensure runic reactivity executes predictably |
+| Purpose               | Library                                                   | Why it matters                                  |
+| --------------------- | --------------------------------------------------------- | ----------------------------------------------- |
+| **Test runner**       | **Vitest 4**                                              | Supports browser mode + native Vite integration |
+| **Component testing** | **@testing-library/svelte**                               | Declarative and DOM-realistic                   |
+| **Runic control**     | **`flushSync`, `tick`, `mount`, `unmount` from `svelte`** | Ensure runic reactivity executes predictably    |
 
 ---
 
@@ -23,13 +22,13 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  plugins: [sveltekit()],
-  test: {
-    globals: true,
-    environment: 'jsdom',      // or 'browser'
-    browser: { enabled: true, name: 'chromium' },
-    includeSource: ['src/**/*.{ts,js,svelte}']
-  }
+	plugins: [sveltekit()],
+	test: {
+		globals: true,
+		environment: 'jsdom', // or 'browser'
+		browser: { enabled: true, name: 'chromium' },
+		includeSource: ['src/**/*.{ts,js,svelte}']
+	}
 });
 ```
 
@@ -39,9 +38,9 @@ export default defineConfig({
 
 ## 📂 3. File Naming for Runes
 
-| Usage | File Type |
-|-------|-----------|
-| Code that uses runes | `.svelte.js` / `.svelte.ts` |
+| Usage                | File Type                             |
+| -------------------- | ------------------------------------- |
+| Code that uses runes | `.svelte.js` / `.svelte.ts`           |
 | Tests that use runes | `.svelte.test.js` / `.svelte.test.ts` |
 
 > ⚠ Only `.svelte.*` files are parsed for runes.
@@ -55,8 +54,8 @@ export default defineConfig({
 ```ts
 // counter.svelte.js
 export function useCounter(init = 0) {
-  let count = $state(init);
-  return { get: () => count, inc: () => ++count };
+	let count = $state(init);
+	return { get: () => count, inc: () => ++count };
 }
 
 // counter.svelte.test.js
@@ -64,10 +63,10 @@ import { test, expect } from 'vitest';
 import { useCounter } from './counter.svelte.js';
 
 test('increments', () => {
-  const c = useCounter(1);
-  expect(c.get()).toBe(1);
-  c.inc();
-  expect(c.get()).toBe(2);
+	const c = useCounter(1);
+	expect(c.get()).toBe(1);
+	c.inc();
+	expect(c.get()).toBe(2);
 });
 ```
 
@@ -78,9 +77,9 @@ test('increments', () => {
 ```ts
 // math.svelte.js
 export function double(n) {
-  let base = $state(n);
-  const d = $derived(() => base * 2);
-  return { base: () => base, set: v => base = v, double: () => d };
+	let base = $state(n);
+	const d = $derived(() => base * 2);
+	return { base: () => base, set: (v) => (base = v), double: () => d };
 }
 
 // math.svelte.test.js
@@ -89,11 +88,11 @@ import { test, expect } from 'vitest';
 import { double } from './math.svelte.js';
 
 test('derived value updates', () => {
-  const d = double(2);
-  expect(d.double()).toBe(4);
-  d.set(3);
-  flushSync();
-  expect(d.double()).toBe(6);
+	const d = double(2);
+	expect(d.double()).toBe(4);
+	d.set(3);
+	flushSync();
+	expect(d.double()).toBe(6);
 });
 ```
 
@@ -104,9 +103,11 @@ test('derived value updates', () => {
 ```ts
 // logger.svelte.js
 export function makeLogger(getVal) {
-  let out = $state([]);
-  $effect(() => { out.push(getVal()); });
-  return { log: () => out };
+	let out = $state([]);
+	$effect(() => {
+		out.push(getVal());
+	});
+	return { log: () => out };
 }
 
 // logger.svelte.test.js
@@ -118,16 +119,16 @@ let dispose;
 afterEach(() => dispose?.());
 
 test('logs each change', () => {
-  dispose = $effect.root(() => {
-    let n = $state(0);
-    const l = makeLogger(() => n);
-    flushSync();
-    expect(l.log()).toEqual([0]);
+	dispose = $effect.root(() => {
+		let n = $state(0);
+		const l = makeLogger(() => n);
+		flushSync();
+		expect(l.log()).toEqual([0]);
 
-    n = 1;
-    flushSync();
-    expect(l.log()).toEqual([0, 1]);
-  });
+		n = 1;
+		flushSync();
+		expect(l.log()).toEqual([0, 1]);
+	});
 });
 ```
 
@@ -140,7 +141,7 @@ test('logs each change', () => {
 ```svelte
 <!-- Counter.svelte -->
 <script>
-  let count = $state(0);
+	let count = $state(0);
 </script>
 
 <button on:click={() => count++}>{count}</button>
@@ -154,12 +155,12 @@ import { flushSync } from 'svelte';
 import { test, expect } from 'vitest';
 
 test('click increments label', async () => {
-  const { getByRole } = render(Counter);
-  const btn = getByRole('button');
+	const { getByRole } = render(Counter);
+	const btn = getByRole('button');
 
-  await fireEvent.click(btn);
-  flushSync();
-  expect(btn.textContent).toBe('1');
+	await fireEvent.click(btn);
+	flushSync();
+	expect(btn.textContent).toBe('1');
 });
 ```
 
@@ -174,7 +175,7 @@ test('click increments label', async () => {
 import { afterEach } from 'vitest';
 
 afterEach(() => {
-  vi.resetModules(); // avoid stale rune state
+	vi.resetModules(); // avoid stale rune state
 });
 ```
 
@@ -182,12 +183,12 @@ afterEach(() => {
 
 ## 🧰 7. Troubleshooting
 
-| Symptom | Likely Cause | Solution |
-|--------|---------------|----------|
-| `ReferenceError: window` | Not using browser mode | Set `test.browser.enabled = true` |
-| `$effect` throws | Used outside root context | Wrap in `$effect.root()` |
-| DOM assertion fails | Rune state hasn't flushed | Call `flushSync()` |
-| `onMount` not firing | Missing `'browser'` resolve | Add resolve condition in plugin |
+| Symptom                  | Likely Cause                | Solution                          |
+| ------------------------ | --------------------------- | --------------------------------- |
+| `ReferenceError: window` | Not using browser mode      | Set `test.browser.enabled = true` |
+| `$effect` throws         | Used outside root context   | Wrap in `$effect.root()`          |
+| DOM assertion fails      | Rune state hasn't flushed   | Call `flushSync()`                |
+| `onMount` not firing     | Missing `'browser'` resolve | Add resolve condition in plugin   |
 
 ---
 

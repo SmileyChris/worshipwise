@@ -12,7 +12,7 @@
 	let loading = $state<boolean>(false);
 	let error = $state<string | null>(null);
 	let step = $state<number>(1);
-	
+
 	// Element references
 	let adminNameInput: Input;
 
@@ -172,9 +172,9 @@
 	// Check if step 2 is valid for enabling submit button
 	const isStep2Valid = $derived(
 		setupData.adminName.trim().length > 0 &&
-		setupData.adminEmail.trim().length > 0 &&
-		setupData.password.length >= 6 &&
-		setupData.password === setupData.confirmPassword
+			setupData.adminEmail.trim().length > 0 &&
+			setupData.password.length >= 6 &&
+			setupData.password === setupData.confirmPassword
 	);
 
 	// Function to handle Enter key on step 2 fields

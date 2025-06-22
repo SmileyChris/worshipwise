@@ -188,7 +188,9 @@ See `plan/SVELTE.md` and `plan/PB_SVELTE.md` for detailed patterns.
 **Multi-layered testing approach optimized for Svelte 5 runes and PocketBase integration:**
 
 #### **Unit Tests (Node.js Environment) - 190 store tests**
+
 **✅ What Works Well:**
+
 - API interactions and data mutations
 - State management and business logic operations
 - Error handling and edge cases
@@ -198,13 +200,16 @@ See `plan/SVELTE.md` and `plan/PB_SVELTE.md` for detailed patterns.
 - Builder state management (drag & drop logic)
 
 **❌ Limitations in Node.js:**
+
 - `$derived()` and `$derived.by()` runes don't execute outside Svelte runtime
 - Browser-specific DOM APIs (CSV export, file handling)
 - Reactive computations and insights generation
 - Component-level reactive updates
 
 #### **Integration/Component Tests (Browser Environment)**
+
 **🎯 Should Cover:**
+
 - Derived value calculations and reactive updates
 - Component interactions with store state
 - UI state changes and user interactions
@@ -212,7 +217,9 @@ See `plan/SVELTE.md` and `plan/PB_SVELTE.md` for detailed patterns.
 - Real-time UI updates from WebSocket events
 
 #### **E2E Tests (Playwright) - Full User Workflows**
+
 **🎯 Should Cover:**
+
 - Complete drag & drop service building
 - CSV export functionality with file downloads
 - Real-time collaboration between multiple users
@@ -221,6 +228,7 @@ See `plan/SVELTE.md` and `plan/PB_SVELTE.md` for detailed patterns.
 - Complex workflows spanning multiple pages
 
 #### **Testing Architecture:**
+
 - Multi-project Vitest setup for client/server separation
 - Comprehensive PocketBase API mocking for unit tests
 - Mock WebSocket events for real-time testing
@@ -228,6 +236,7 @@ See `plan/SVELTE.md` and `plan/PB_SVELTE.md` for detailed patterns.
 - Coverage requirements: 80% minimum for testable logic
 
 #### **Svelte 5 Runes Testing Guidelines:**
+
 - Test rune-based stores through method calls, not reactive values
 - Use integration tests for derived value validation
 - Test business logic separately from reactive computations

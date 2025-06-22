@@ -193,7 +193,7 @@ describe('AnalyticsStore', () => {
 
 		it('should pass date range to API calls', async () => {
 			analyticsStore.dateRange = { from: '2024-01-01', to: '2024-12-31' };
-			
+
 			mockedAnalyticsApi.getOverview.mockResolvedValue(mockOverview);
 			mockedAnalyticsApi.getSongUsageStats.mockResolvedValue([]);
 			mockedAnalyticsApi.getServiceTypeStats.mockResolvedValue([]);
@@ -204,8 +204,15 @@ describe('AnalyticsStore', () => {
 			await analyticsStore.loadAnalytics();
 
 			expect(mockedAnalyticsApi.getOverview).toHaveBeenCalledWith('2024-01-01', '2024-12-31');
-			expect(mockedAnalyticsApi.getSongUsageStats).toHaveBeenCalledWith(20, '2024-01-01', '2024-12-31');
-			expect(mockedAnalyticsApi.getServiceTypeStats).toHaveBeenCalledWith('2024-01-01', '2024-12-31');
+			expect(mockedAnalyticsApi.getSongUsageStats).toHaveBeenCalledWith(
+				20,
+				'2024-01-01',
+				'2024-12-31'
+			);
+			expect(mockedAnalyticsApi.getServiceTypeStats).toHaveBeenCalledWith(
+				'2024-01-01',
+				'2024-12-31'
+			);
 		});
 	});
 
@@ -260,7 +267,11 @@ describe('AnalyticsStore', () => {
 			await analyticsStore.loadWorshipLeaderStats(5);
 
 			expect(analyticsStore.worshipLeaderStats).toEqual(mockWorshipLeaderStats);
-			expect(mockedAnalyticsApi.getWorshipLeaderStats).toHaveBeenCalledWith(5, undefined, undefined);
+			expect(mockedAnalyticsApi.getWorshipLeaderStats).toHaveBeenCalledWith(
+				5,
+				undefined,
+				undefined
+			);
 		});
 
 		it('should handle errors in individual load methods', async () => {
@@ -289,7 +300,7 @@ describe('AnalyticsStore', () => {
 
 		it('should clear date range and reload analytics', async () => {
 			analyticsStore.dateRange = { from: '2024-01-01', to: '2024-12-31' };
-			
+
 			mockedAnalyticsApi.getOverview.mockResolvedValue(mockOverview);
 			mockedAnalyticsApi.getSongUsageStats.mockResolvedValue([]);
 			mockedAnalyticsApi.getServiceTypeStats.mockResolvedValue([]);
@@ -352,7 +363,11 @@ describe('AnalyticsStore', () => {
 
 			await analyticsStore.exportData('leaders');
 
-			expect(mockedAnalyticsApi.exportToCSV).toHaveBeenCalledWith('leaders', '2024-01-01', '2024-12-31');
+			expect(mockedAnalyticsApi.exportToCSV).toHaveBeenCalledWith(
+				'leaders',
+				'2024-01-01',
+				'2024-12-31'
+			);
 		});
 	});
 
@@ -433,7 +448,9 @@ describe('AnalyticsStore', () => {
 			expect(store.getErrorMessage(errorInstance)).toBe('Error instance message');
 
 			// Unknown error
-			expect(store.getErrorMessage('string error')).toBe('An unexpected error occurred while loading analytics');
+			expect(store.getErrorMessage('string error')).toBe(
+				'An unexpected error occurred while loading analytics'
+			);
 		});
 	});
 });

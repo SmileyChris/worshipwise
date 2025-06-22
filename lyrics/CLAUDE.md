@@ -9,6 +9,7 @@ This is a lyrics analysis toolkit that combines MCP (Model Context Protocol) ser
 ## Core Architecture
 
 ### MCP + Ollama Pipeline
+
 The system uses a two-stage pipeline:
 
 1. **Lyrics Retrieval**: `lyrics_search_mcp_server.py` - FastMCP server that searches the web for lyrics using DuckDuckGo search and intelligent HTML parsing
@@ -24,6 +25,7 @@ The system uses a two-stage pipeline:
 ## Development Commands
 
 ### Running Analysis
+
 ```bash
 # Recommended: Use the shell script (most reliable)
 ./lyrics.sh                              # Interactive menu
@@ -43,6 +45,7 @@ uv run simple_test.py                     # Basic functionality test
 ```
 
 ### System Requirements
+
 ```bash
 # Install dependencies
 curl -LsSf https://astral.sh/uv/install.sh | sh    # uv package manager
@@ -59,15 +62,18 @@ ollama serve                             # Start Ollama service
 ## Code Architecture
 
 ### Lyrics Retrieval Strategy
+
 The system uses a multi-layered search approach prioritizing Christian/worship sources:
 
 1. **Direct Christian Sites**: Hymnary.org, WorshipTogether, ChristianLyrics
-2. **Genius Search**: With worship/Christian keyword enhancement  
+2. **Genius Search**: With worship/Christian keyword enhancement
 3. **Google Search**: Filtered to prioritize religious content
 4. **Fallback Samples**: Built-in sample lyrics for demonstration
 
 ### Lyrics Extraction Algorithm
+
 Intelligent HTML parsing using BeautifulSoup with:
+
 - Common lyrics container detection (`.lyrics`, `.song-lyrics`, `.chord-chart`)
 - Chord line filtering (removes guitar chord patterns like "C F G Am")
 - Heuristic text analysis (groups of 15+ short lines)
@@ -75,6 +81,7 @@ Intelligent HTML parsing using BeautifulSoup with:
 - Christian content detection scoring
 
 ### Ollama Integration
+
 - Uses local Ollama instance (http://localhost:11434)
 - Supports multiple models with auto-detection
 - Structured JSON prompts for consistent analysis output
@@ -82,6 +89,7 @@ Intelligent HTML parsing using BeautifulSoup with:
 - Temperature-controlled generation (0.3 for consistency)
 
 ### Analysis Structure
+
 ```python
 @dataclass
 class LyricsAnalysis:
@@ -101,6 +109,7 @@ class LyricsAnalysis:
 ## Integration Patterns
 
 ### WorshipWise Integration Points
+
 This tool is designed to integrate with the main WorshipWise application:
 
 ```typescript
@@ -113,12 +122,13 @@ interface Song {
 
 // Analysis trigger points
 - Song creation/editing in database
-- Service builder recommendations  
+- Service builder recommendations
 - Analytics dashboard enhancement
 - AI-powered song suggestions
 ```
 
 ### Execution Modes
+
 1. **Interactive Mode**: `./lyrics.sh` menu-driven interface
 2. **Direct Analysis**: `./lyrics.sh "Title" "Artist"` command-line
 3. **JSON Output**: `--json` flag for programmatic integration
@@ -127,6 +137,7 @@ interface Song {
 ## Error Handling & Reliability
 
 ### Robust Fallback Chain
+
 - Network timeouts with graceful degradation
 - Multiple search sources (DDG, Google, direct sites)
 - Sample lyrics when network fails
@@ -134,6 +145,7 @@ interface Song {
 - Clear error messaging with helpful suggestions
 
 ### Christian Content Focus
+
 - Prioritizes Christian/worship lyrics sources
 - Filters out secular music platforms
 - Content scoring for worship relevance
@@ -142,6 +154,7 @@ interface Song {
 ## File Dependencies
 
 ### Python Dependencies (via uv inline)
+
 - `fastmcp>=2.0.0` - MCP server framework
 - `duckduckgo_search>=4.0.0` - Web search
 - `beautifulsoup4>=4.12` - HTML parsing
@@ -149,6 +162,7 @@ interface Song {
 - `requests>=2.31.0` - HTTP requests
 
 ### External Dependencies
+
 - **uv**: Python package manager for inline dependencies
 - **Ollama**: Local LLM service (localhost:11434)
 - **jq**: JSON parsing in shell scripts (optional)
@@ -157,12 +171,15 @@ interface Song {
 ## Testing Strategy
 
 ### Test Files
+
 - `simple_test.py`: Core functionality verification
 - `test_*.py`: Various component tests
 - `./lyrics.sh test`: Integrated system diagnostics
 
 ### Health Checks
+
 The system includes comprehensive health checking:
+
 - uv installation and version
 - Ollama service availability and model count
 - Network connectivity for lyrics search
@@ -171,18 +188,21 @@ The system includes comprehensive health checking:
 ## Usage Notes
 
 ### Recommended Workflow
+
 1. Use `./lyrics.sh test` to verify system health
 2. Use `./lyrics.sh` interactive mode for exploration
 3. Use direct command-line for automation
 4. JSON output mode for integration with other tools
 
 ### Performance Considerations
+
 - Lyrics search can take 10-30 seconds depending on network
 - Ollama analysis typically 5-15 seconds depending on model
 - Lightweight models recommended: qwen2.5:1.5b, phi3.5, gemma2:2b
 - Results cached by Ollama for repeated analysis
 
 ### Content Handling
+
 - Lyrics are truncated for copyright compliance
 - Focus on analysis rather than full lyrics reproduction
 - Christian content prioritization in search results
