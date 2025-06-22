@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { quickstartStore } from '$lib/stores/quickstart.svelte.js';
 	import Button from '$lib/components/ui/Button.svelte';
-	import { AlertCircle, CheckCircle, RefreshCw, Settings } from 'lucide-svelte';
+	import { AlertCircle, RefreshCw, Settings } from 'lucide-svelte';
 
 	const store = quickstartStore;
 

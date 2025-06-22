@@ -2,7 +2,7 @@
 	import { quickstartStore } from '$lib/stores/quickstart.svelte.js';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
-	import { Check, X, Clock, AlertCircle, ExternalLink } from 'lucide-svelte';
+	import { Check, X, Clock, AlertCircle } from 'lucide-svelte';
 
 	let { open = $bindable(false) } = $props();
 

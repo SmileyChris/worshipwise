@@ -7,35 +7,6 @@
 
 	let { recommendation }: { recommendation: SongRecommendation } = $props();
 
-	function getTypeIcon(type: string) {
-		switch (type) {
-			case 'rotation':
-				return TrendingUp;
-			case 'seasonal':
-				return Calendar;
-			case 'popularity':
-				return Star;
-			default:
-				return Music;
-		}
-	}
-
-	function getTypeColor(type: string) {
-		switch (type) {
-			case 'rotation':
-				return 'blue';
-			case 'seasonal':
-				return 'green';
-			case 'popularity':
-				return 'yellow';
-			case 'flow':
-				return 'purple';
-			case 'key_compatibility':
-				return 'indigo';
-			default:
-				return 'gray';
-		}
-	}
 
 	function getScoreColor(score: number) {
 		if (score >= 0.8) return 'text-green-600';

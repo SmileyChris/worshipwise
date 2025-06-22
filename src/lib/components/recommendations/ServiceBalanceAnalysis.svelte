@@ -34,17 +34,6 @@
 		return 'text-red-600';
 	}
 
-	function getTempoIcon(tempo: 'fast' | 'medium' | 'slow') {
-		switch (tempo) {
-			case 'fast':
-				return Zap;
-			case 'medium':
-				return Clock;
-			case 'slow':
-				return Heart;
-		}
-	}
-
 	function getTempoLabel(tempo: 'fast' | 'medium' | 'slow'): string {
 		switch (tempo) {
 			case 'fast':
@@ -110,8 +99,6 @@
 		{@const analysis = recommendationsStore.serviceBalanceAnalysis}
 		{@const total =
 			analysis.currentBalance.fast + analysis.currentBalance.medium + analysis.currentBalance.slow}
-		{@const idealTotal =
-			analysis.idealBalance.fast + analysis.idealBalance.medium + analysis.idealBalance.slow}
 
 		<div class="space-y-6">
 			<!-- Current vs Ideal Balance -->
