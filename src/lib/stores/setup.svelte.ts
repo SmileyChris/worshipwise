@@ -19,7 +19,7 @@ class SetupStore {
 			return !hasChurches;
 		} catch (error: unknown) {
 			console.error('Failed to check setup status:', error);
-			this.error = error.message || 'Failed to check setup status';
+			this.error = error instanceof Error ? error.message : 'Failed to check setup status';
 			this.setupRequired = false; // Assume setup not required on error
 			return false;
 		} finally {

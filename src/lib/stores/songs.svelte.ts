@@ -348,10 +348,13 @@ class SongsStore {
 	 * Get error message from API error
 	 */
 	private getErrorMessage(error: unknown): string {
-		if (error?.response?.data?.message) {
-			return error.response.data.message;
+		if (error && typeof error === 'object' && 'response' in error) {
+			const apiError = error as { response?: { data?: { message?: string } } };
+			if (apiError.response?.data?.message) {
+				return apiError.response.data.message;
+			}
 		}
-		if (error?.message) {
+		if (error instanceof Error) {
 			return error.message;
 		}
 		return 'An unexpected error occurred';
