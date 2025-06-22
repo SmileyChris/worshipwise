@@ -187,40 +187,6 @@ verify_installation() {
 # Function to set up initial configuration
 setup_configuration() {
     log_info "Setting up PocketBase configuration..."
-    
-    # Create migrations directory if it doesn't exist
-    mkdir -p "$PROJECT_ROOT/$POCKETBASE_DIR/migrations"
-    
-    # Check if migrations exist
-    if [ -f "$PROJECT_ROOT/$POCKETBASE_DIR/migrations/1734267000_create_songs.js" ]; then
-        log_success "Existing migrations found - keeping them"
-    else
-        log_info "No migrations found - they will be created when you first run the server"
-    fi
-    
-    # Create a comprehensive .gitignore for PocketBase directory
-    cat > "$PROJECT_ROOT/$POCKETBASE_DIR/.gitignore" << 'EOF'
-# PocketBase data directory (contains database and uploaded files)
-pb_data/
-
-# PocketBase migrations directory (auto-generated)
-pb_migrations/
-
-# PocketBase executable (downloaded by install script)
-pocketbase
-
-# Log files
-*.log
-
-# Backup files
-*.backup
-
-# Temporary files
-*.tmp
-*.temp
-EOF
-    log_success "Created comprehensive .gitignore for PocketBase directory"
-}
 
 # Function to display next steps
 show_next_steps() {
