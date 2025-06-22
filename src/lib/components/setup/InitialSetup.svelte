@@ -7,7 +7,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
-	import { Church, Clock } from 'lucide-svelte';
+	import { Clock } from 'lucide-svelte';
 
 	let loading = $state<boolean>(false);
 	let error = $state<string | null>(null);
@@ -156,6 +156,11 @@
 			!setupData.timezone.startsWith('America/Sao_Paulo') &&
 			!setupData.timezone.startsWith('America/Argentina')
 	);
+
+	// Check if step 1 is valid for enabling next button
+	const isStep1Valid = $derived(
+		setupData.churchName.trim().length > 0 && setupData.timezone.length > 0
+	);
 </script>
 
 <svelte:head>
@@ -169,7 +174,7 @@
 		<!-- Header -->
 		<div class="mb-8 text-center">
 			<div class="mb-4 flex items-center justify-center gap-3">
-				<Church class="text-primary h-12 w-12" />
+				<img src="/logo.svg" alt="WorshipWise" class="h-12 w-12" />
 				<h1 class="font-title text-3xl font-bold text-gray-900">WorshipWise</h1>
 			</div>
 			<p class="text-gray-600">Welcome! Let's set up your church's worship management system.</p>
@@ -223,7 +228,7 @@
 						<div>
 							<label class="mb-2 block text-sm font-medium text-gray-700">
 								<Clock class="mr-1 inline h-4 w-4" />
-								Timezone *
+								Timezone
 							</label>
 							<select
 								bind:value={setupData.timezone}
@@ -241,34 +246,10 @@
 								</p>
 							{/if}
 						</div>
-
-						<div class="grid grid-cols-2 gap-4">
-							<Input label="City" name="city" bind:value={setupData.city} placeholder="City" />
-							<Input
-								label="State/Province"
-								name="state"
-								bind:value={setupData.state}
-								placeholder="State"
-							/>
-						</div>
-
-						<Input
-							label="Country"
-							name="country"
-							bind:value={setupData.country}
-							placeholder="Country"
-						/>
-
-						<Input
-							label="Address (Optional)"
-							name="address"
-							bind:value={setupData.address}
-							placeholder="Street address"
-						/>
 					</div>
 
 					<div class="flex justify-end">
-						<Button onclick={nextStep}>Next Step</Button>
+						<Button onclick={nextStep} disabled={!isStep1Valid}>Next Step</Button>
 					</div>
 				</div>
 			{:else if step === 2}
@@ -321,7 +302,6 @@
 						<h3 class="mb-2 font-medium text-gray-900">Setup Summary</h3>
 						<div class="space-y-1 text-sm text-gray-600">
 							<p><strong>Church:</strong> {setupData.churchName}</p>
-							<p><strong>Location:</strong> {setupData.city || 'Not specified'}</p>
 							<p><strong>Timezone:</strong> {getSelectedTimezoneLabel()}</p>
 							<p><strong>Admin:</strong> {setupData.adminName} ({setupData.adminEmail})</p>
 						</div>
