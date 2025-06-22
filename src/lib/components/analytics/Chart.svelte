@@ -10,8 +10,7 @@
 		ArcElement,
 		Title,
 		Tooltip,
-		Legend,
-		type ChartConfiguration
+		Legend
 	} from 'chart.js';
 
 	// Register Chart.js components
@@ -28,7 +27,7 @@
 	);
 
 	interface Props {
-		config: any;
+		config: Record<string, unknown>;
 		class?: string;
 	}
 

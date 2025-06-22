@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Type imports
-	import type { User, Profile } from '$lib/types/auth';
+	import type { Profile } from '$lib/types/auth';
 
 	// Component imports
 	import Button from '$lib/components/ui/Button.svelte';
@@ -171,7 +171,7 @@
 			await auth.updateProfileInfo(profileData, userData);
 
 			profileSuccess = 'Profile updated successfully!';
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Profile update failed:', error);
 			profileError = auth.getErrorMessage(error);
 		} finally {
@@ -219,7 +219,7 @@
 			confirmPassword = '';
 
 			passwordSuccess = 'Password changed successfully!';
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Password change failed:', error);
 			if (error.response?.status === 400) {
 				passwordError = 'Current password is incorrect';

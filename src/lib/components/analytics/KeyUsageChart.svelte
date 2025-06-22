@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Chart from './Chart.svelte';
 	import type { KeyUsageStats } from '$lib/api/analytics';
-	import type { ChartConfiguration, TooltipItem } from 'chart.js';
+	import type { TooltipItem } from 'chart.js';
 
 	interface Props {
 		data: KeyUsageStats[];

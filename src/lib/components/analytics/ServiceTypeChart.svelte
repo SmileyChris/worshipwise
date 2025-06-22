@@ -1,7 +1,6 @@
 <script lang="ts">
 	import Chart from './Chart.svelte';
 	import type { ServiceTypeStats } from '$lib/api/analytics';
-	import type { ChartConfiguration } from 'chart.js';
 
 	interface Props {
 		data: ServiceTypeStats[];

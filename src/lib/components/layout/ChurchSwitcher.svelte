@@ -90,7 +90,7 @@
 		return church.name || 'Unnamed Church';
 	}
 
-	function canLeaveChurch(church: ChurchType): boolean {
+	function canLeaveChurch(_church: ChurchType): boolean {
 		// Can't leave if it's the only church
 		if (auth.availableChurches.length === 1) return false;
 

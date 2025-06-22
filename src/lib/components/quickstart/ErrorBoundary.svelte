@@ -2,7 +2,7 @@
 	import { SystemAPI } from '$lib/api/system.js';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
-	import { AlertTriangle, RefreshCw, ExternalLink, Terminal } from 'lucide-svelte';
+	import { AlertTriangle, RefreshCw, Terminal } from 'lucide-svelte';
 
 	let { error, children } = $props();
 
