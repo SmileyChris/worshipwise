@@ -13,7 +13,7 @@
 import { describe, it, expect } from 'vitest';
 
 // Import all auth test suites
-import '../../src/lib/stores/auth.test';
+import '../../src/lib/stores/auth.svelte.test';
 // Note: Svelte component tests are run separately in the client environment
 // import '../../src/lib/components/auth/AuthForm.svelte.test';
 // import '../../src/lib/components/profile/ProfileSettings.svelte.test';

@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { vi, beforeEach } from 'vitest';
+import { vi, beforeEach, afterEach } from 'vitest';
 
 // Import pb-mock for client tests
 import './tests/helpers/pb-mock';
@@ -29,6 +29,9 @@ Element.prototype.animate = vi.fn().mockReturnValue({
 	removeEventListener: vi.fn()
 });
 
+// Force browser environment for @testing-library/svelte
+globalThis.window = globalThis.window || {};
+
 // Mock SvelteKit modules for client tests
 vi.mock('$app/environment', () => ({
 	browser: true,
@@ -49,4 +52,9 @@ vi.mock('$app/stores', () => ({
 // Mock console.error to prevent error logs during tests
 beforeEach(() => {
 	vi.spyOn(console, 'error').mockImplementation(() => {});
+});
+
+// Reset modules after each test to prevent stale rune state
+afterEach(() => {
+	vi.resetModules();
 });
