@@ -49,19 +49,36 @@ describe('Analytics Utils', () => {
 		const mockServices = [
 			{
 				id: '1',
+				title: 'Service 1',
+				service_date: '2024-01-07',
 				status: 'completed',
 				actual_duration: 60,
 				service_type: 'Sunday Morning',
-				worship_leader: 'leader1'
+				worship_leader: 'leader1',
+				created: '2024-01-01T00:00:00Z',
+				updated: '2024-01-01T00:00:00Z'
 			},
 			{
 				id: '2',
+				title: 'Service 2',
+				service_date: '2024-01-14',
 				status: 'completed',
 				estimated_duration: 45,
 				service_type: 'Sunday Morning',
-				worship_leader: 'leader2'
+				worship_leader: 'leader2',
+				created: '2024-01-01T00:00:00Z',
+				updated: '2024-01-01T00:00:00Z'
 			},
-			{ id: '3', status: 'draft', service_type: 'Wednesday Night', worship_leader: 'leader1' }
+			{ 
+				id: '3',
+				title: 'Service 3',
+				service_date: '2024-01-17',
+				status: 'draft',
+				service_type: 'Wednesday Night',
+				worship_leader: 'leader1',
+				created: '2024-01-01T00:00:00Z',
+				updated: '2024-01-01T00:00:00Z'
+			}
 		];
 
 		const mockUsageData = [

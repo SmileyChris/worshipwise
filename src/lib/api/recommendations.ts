@@ -683,7 +683,7 @@ class RecommendationsApi {
 		const tempos = allUsage.map((usage) => {
 			const song = allSongs.find(s => s.id === usage.song_id);
 			return song?.tempo;
-		}).filter(Boolean);
+		}).filter((t): t is number => t !== undefined);
 		const fastCount = tempos.filter((t) => t >= 120).length;
 		const mediumCount = tempos.filter((t) => t >= 80 && t < 120).length;
 		const slowCount = tempos.filter((t) => t < 80).length;
@@ -1102,7 +1102,7 @@ class RecommendationsApi {
 	private async getSeasonalReason(context?: Record<string, unknown>): Promise<string> {
 		const seasonalContext = context || (await this.getChurchSeasonalContext());
 		const month = seasonalContext.currentMonth as number;
-		const hemisphere = seasonalContext.hemisphere;
+		const hemisphere = seasonalContext.hemisphere as 'northern' | 'southern';
 
 		// Religious seasons are the same regardless of hemisphere
 		if (month === 12 || month === 1) return 'Perfect for Christmas/Advent season';
