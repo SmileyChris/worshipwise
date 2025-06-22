@@ -32,14 +32,42 @@ Python script that combines MCP lyrics fetching with Ollama-powered analysis for
 
 **Usage:**
 ```bash
-# Basic analysis
-python analyze_lyrics.py "Amazing Grace" "John Newton"
+# Basic analysis (with available Ollama model)
+uv run analyze_lyrics.py "Amazing Grace" "John Newton" --model qwen3:1.7b
 
 # JSON output
-python analyze_lyrics.py "How Great Thou Art" --json
+uv run analyze_lyrics.py "How Great Thou Art" --json --model qwen3:1.7b
 
-# Custom Ollama model
-python analyze_lyrics.py "Blessed Be Your Name" --model llama3.1
+# Simple test (working example)
+uv run simple_test.py
+```
+
+### 3. `lyrics.sh` 🚀 **SIMPLE & RELIABLE**
+Clean shell script that just works - no complex UI, no dependencies, no TTY issues.
+
+**Features:**
+- 🐚 **Pure Bash**: Works in any environment
+- 🎨 **Colored Output**: Clean ANSI colors for readability
+- 🔧 **Smart Detection**: Auto-detects available Ollama models
+- ⚙️ **System Testing**: Built-in diagnostics for all components
+- 📝 **Multiple Modes**: Direct analysis or interactive menu
+- 🛡️ **Error Handling**: Clear error messages and helpful suggestions
+
+**Usage:**
+```bash
+# Direct analysis
+./lyrics.sh "Amazing Grace"
+./lyrics.sh "How Great Thou Art" "Traditional"
+./lyrics.sh "10,000 Reasons" "Matt Redman"
+
+# Interactive menu
+./lyrics.sh
+
+# System testing
+./lyrics.sh test
+
+# Help
+./lyrics.sh help
 ```
 
 ## Integration Approach
@@ -94,8 +122,8 @@ interface Song {
 
 ### For Ollama Analysis
 - Ollama installed and running (`http://localhost:11434`)
-- Appropriate model downloaded (e.g., `ollama pull llama3.2`)
-- requests library for API calls
+- At least one model available (check with `ollama list`)
+- Common lightweight models: `qwen3:1.7b`, `phi3.5`, `gemma2:2b`
 
 ## Installation
 
@@ -106,12 +134,14 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Install Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
 
-# Pull a model
-ollama pull llama3.2
+# Pull a lightweight model
+ollama pull qwen2.5:1.5b
 
-# Make scripts executable
-chmod +x lyrics_search_mcp_server.py
-chmod +x analyze_lyrics.py
+# Test the system
+./lyrics.sh test
+
+# Try a quick analysis
+./lyrics.sh "Amazing Grace"
 ```
 
 ## Example Output
