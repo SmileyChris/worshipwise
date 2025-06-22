@@ -26,8 +26,22 @@ describe('Analytics Utils', () => {
 
 	describe('aggregateUsageData', () => {
 		const mockSongs = [
-			{ id: '1', title: 'Song 1' },
-			{ id: '2', title: 'Song 2' }
+			{ 
+				id: '1', 
+				title: 'Song 1',
+				created_by: 'user1',
+				is_active: true,
+				created: '2023-01-01T00:00:00Z',
+				updated: '2023-01-01T00:00:00Z'
+			},
+			{ 
+				id: '2', 
+				title: 'Song 2',
+				created_by: 'user1', 
+				is_active: true,
+				created: '2023-01-01T00:00:00Z',
+				updated: '2023-01-01T00:00:00Z'
+			}
 		];
 
 		const mockServices = [

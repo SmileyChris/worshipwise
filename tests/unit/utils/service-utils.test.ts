@@ -393,10 +393,14 @@ describe('Service Utils', () => {
 
 	describe('generateServicePDFData', () => {
 		const mockService = {
+			id: 'service1',
 			title: 'Sunday Service',
 			service_date: '2024-01-01',
 			service_type: 'Sunday Morning',
 			theme: 'New Beginnings',
+			worship_leader: 'user1',
+			created: '2024-01-01T00:00:00Z',
+			updated: '2024-01-01T00:00:00Z',
 			expand: { worship_leader: { name: 'John Doe' } }
 		};
 
@@ -411,8 +415,12 @@ describe('Service Utils', () => {
 
 		it('should handle missing data gracefully', () => {
 			const minimalService = {
+				id: 'service2',
 				title: 'Service',
-				service_date: '2024-01-01'
+				service_date: '2024-01-01',
+				worship_leader: 'user1',
+				created: '2024-01-01T00:00:00Z',
+				updated: '2024-01-01T00:00:00Z'
 			};
 
 			const pdfData = generateServicePDFData(minimalService, []);
