@@ -185,14 +185,56 @@ See `plan/SVELTE.md` and `plan/PB_SVELTE.md` for detailed patterns.
 
 ### Testing Strategy
 
-- Unit tests with Vitest for stores and utilities
-- Component tests with Testing Library for Svelte
-- E2E tests with Playwright for user workflows
-- Mock PocketBase API calls in tests
-- Coverage requirements: 80% minimum for all metrics
-- Multi-project Vitest setup for client/server separation
+**Multi-layered testing approach optimized for Svelte 5 runes and PocketBase integration:**
 
-See `plan/TESTING_GUIDE.md` for comprehensive testing patterns.
+#### **Unit Tests (Node.js Environment) - 190 store tests**
+**✅ What Works Well:**
+- API interactions and data mutations
+- State management and business logic operations
+- Error handling and edge cases
+- Real-time subscription logic
+- CRUD operations with mocked PocketBase
+- Filter management and search functionality
+- Builder state management (drag & drop logic)
+
+**❌ Limitations in Node.js:**
+- `$derived()` and `$derived.by()` runes don't execute outside Svelte runtime
+- Browser-specific DOM APIs (CSV export, file handling)
+- Reactive computations and insights generation
+- Component-level reactive updates
+
+#### **Integration/Component Tests (Browser Environment)**
+**🎯 Should Cover:**
+- Derived value calculations and reactive updates
+- Component interactions with store state
+- UI state changes and user interactions
+- Form validation and error display
+- Real-time UI updates from WebSocket events
+
+#### **E2E Tests (Playwright) - Full User Workflows**
+**🎯 Should Cover:**
+- Complete drag & drop service building
+- CSV export functionality with file downloads
+- Real-time collaboration between multiple users
+- Church setup and authentication flows
+- Analytics dashboard interactions
+- Complex workflows spanning multiple pages
+
+#### **Testing Architecture:**
+- Multi-project Vitest setup for client/server separation
+- Comprehensive PocketBase API mocking for unit tests
+- Mock WebSocket events for real-time testing
+- Type-safe error handling validation
+- Coverage requirements: 80% minimum for testable logic
+
+#### **Svelte 5 Runes Testing Guidelines:**
+- Test rune-based stores through method calls, not reactive values
+- Use integration tests for derived value validation
+- Test business logic separately from reactive computations
+- Mock external dependencies to isolate store behavior
+- Focus unit tests on state mutations and API interactions
+
+See `plan/TESTING_GUIDE.md` for comprehensive testing patterns and examples.
 
 ### Performance Considerations
 
