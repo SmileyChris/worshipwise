@@ -224,7 +224,10 @@ export function findOptimalInsertionPosition(songs: ServiceSong[], sectionType: 
 /**
  * Generates a service PDF export data structure
  */
-export function generateServicePDFData(service: import('$lib/types/service').Service, songs: ServiceSong[]) {
+export function generateServicePDFData(
+	service: import('$lib/types/service').Service,
+	songs: ServiceSong[]
+) {
 	const sections = groupSongsBySection(songs);
 	const totalDuration = calculateServiceDuration(songs);
 

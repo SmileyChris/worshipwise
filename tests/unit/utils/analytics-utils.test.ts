@@ -26,8 +26,8 @@ describe('Analytics Utils', () => {
 
 	describe('aggregateUsageData', () => {
 		const mockSongs = [
-			{ 
-				id: '1', 
+			{
+				id: '1',
 				title: 'Song 1',
 				category: 'worship',
 				created_by: 'user1',
@@ -35,11 +35,11 @@ describe('Analytics Utils', () => {
 				created: '2023-01-01T00:00:00Z',
 				updated: '2023-01-01T00:00:00Z'
 			},
-			{ 
-				id: '2', 
+			{
+				id: '2',
 				title: 'Song 2',
 				category: 'worship',
-				created_by: 'user1', 
+				created_by: 'user1',
 				is_active: true,
 				created: '2023-01-01T00:00:00Z',
 				updated: '2023-01-01T00:00:00Z'
@@ -69,7 +69,7 @@ describe('Analytics Utils', () => {
 				created: '2024-01-01T00:00:00Z',
 				updated: '2024-01-01T00:00:00Z'
 			},
-			{ 
+			{
 				id: '3',
 				title: 'Service 3',
 				service_date: '2024-01-17',

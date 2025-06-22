@@ -100,7 +100,9 @@
 			onsave();
 		} catch (err: unknown) {
 			console.error('Failed to update user:', err);
-			error = (err && typeof err === 'object' && 'message' in err ? err.message : 'Failed to update user') as string;
+			error = (
+				err && typeof err === 'object' && 'message' in err ? err.message : 'Failed to update user'
+			) as string;
 		} finally {
 			loading = false;
 		}

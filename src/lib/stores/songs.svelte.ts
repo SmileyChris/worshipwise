@@ -407,7 +407,7 @@ class SongsStore {
 	async subscribeToUpdates(): Promise<() => void> {
 		return await songsApi.subscribe((data: unknown) => {
 			console.log('Real-time song update:', data);
-			
+
 			// Type-safe access to event data
 			const eventData = data as { action: string; record: { id: string } & Record<string, any> };
 

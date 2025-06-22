@@ -21,13 +21,18 @@
 
 	let loading = $state<boolean>(false);
 	let error = $state<string | null>(null);
-	let churchDetails = $state<Record<string, {
-		memberCount: number;
-		adminCount: number;
-		admins: any[];
-		isCurrentUserAdmin: boolean;
-		isOnlyAdmin: boolean;
-	}>>({});
+	let churchDetails = $state<
+		Record<
+			string,
+			{
+				memberCount: number;
+				adminCount: number;
+				admins: any[];
+				isCurrentUserAdmin: boolean;
+				isOnlyAdmin: boolean;
+			}
+		>
+	>({});
 
 	onMount(() => {
 		loadChurchDetails();
@@ -39,13 +44,16 @@
 
 		try {
 			// Load detailed information for each church
-			const details: Record<string, {
-				memberCount: number;
-				adminCount: number;
-				admins: any[];
-				isCurrentUserAdmin: boolean;
-				isOnlyAdmin: boolean;
-			}> = {};
+			const details: Record<
+				string,
+				{
+					memberCount: number;
+					adminCount: number;
+					admins: any[];
+					isCurrentUserAdmin: boolean;
+					isOnlyAdmin: boolean;
+				}
+			> = {};
 
 			for (const church of auth.availableChurches) {
 				// Get member count and admin info for each church

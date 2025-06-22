@@ -524,7 +524,7 @@ class ServicesStore {
 	async subscribeToServices(): Promise<() => void> {
 		return await servicesApi.subscribeToServices((data: unknown) => {
 			console.log('Real-time service update:', data);
-			
+
 			// Type-safe access to event data
 			const eventData = data as { action: string; record: { id: string } & Record<string, any> };
 
@@ -560,7 +560,7 @@ class ServicesStore {
 	async subscribeToServiceSongs(serviceId: string): Promise<() => void> {
 		return await servicesApi.subscribeToServiceSongs(serviceId, (data: unknown) => {
 			console.log('Real-time service song update:', data);
-			
+
 			// Type-safe access to event data
 			const eventData = data as { action: string; record: { id: string } & Record<string, any> };
 
@@ -577,7 +577,9 @@ class ServicesStore {
 					this.builderState.songs = this.currentServiceSongs;
 				}
 			} else if (eventData.action === 'delete') {
-				this.currentServiceSongs = this.currentServiceSongs.filter((s) => s.id !== eventData.record.id);
+				this.currentServiceSongs = this.currentServiceSongs.filter(
+					(s) => s.id !== eventData.record.id
+				);
 				this.builderState.songs = this.currentServiceSongs;
 			}
 		});

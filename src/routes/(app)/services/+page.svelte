@@ -384,81 +384,81 @@
 			e.preventDefault();
 			handleCreateService();
 		}}
-		>
-			<div>
-				<label for="title" class="block text-sm font-medium text-gray-700">Title *</label>
-				<input
-					id="title"
-					type="text"
-					bind:value={createForm.title}
-					placeholder="Sunday Morning Worship"
-					required
-					class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
-				/>
-			</div>
+	>
+		<div>
+			<label for="title" class="block text-sm font-medium text-gray-700">Title *</label>
+			<input
+				id="title"
+				type="text"
+				bind:value={createForm.title}
+				placeholder="Sunday Morning Worship"
+				required
+				class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
+			/>
+		</div>
 
-			<div>
-				<label for="service_date" class="block text-sm font-medium text-gray-700">
-					Service Date * {getDateDescription(createForm.service_date)}
-				</label>
-				<input
-					id="service_date"
-					type="date"
-					bind:value={createForm.service_date}
-					required
-					class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
-				/>
-				{#if createForm.service_date}
-					<p class="mt-1 text-xs text-gray-500">Next available Sunday selected automatically</p>
-				{/if}
-			</div>
-
-			<div>
-				<label for="service_type" class="block text-sm font-medium text-gray-700">
-					Service Type
-				</label>
-				<select
-					id="service_type"
-					bind:value={createForm.service_type}
-					class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
-				>
-					{#each serviceTypes as type (type)}
-						<option value={type}>{type}</option>
-					{/each}
-				</select>
-			</div>
-
-			<div>
-				<label for="theme" class="block text-sm font-medium text-gray-700">Theme</label>
-				<input
-					id="theme"
-					type="text"
-					bind:value={createForm.theme}
-					placeholder="Grace and Mercy"
-					class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
-				/>
-			</div>
-
-			<div>
-				<label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
-				<textarea
-					id="notes"
-					bind:value={createForm.notes}
-					rows="3"
-					class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
-					placeholder="Special instructions or notes..."
-				></textarea>
-			</div>
-
-			{#if error}
-				<div class="text-sm text-red-600">{error}</div>
+		<div>
+			<label for="service_date" class="block text-sm font-medium text-gray-700">
+				Service Date * {getDateDescription(createForm.service_date)}
+			</label>
+			<input
+				id="service_date"
+				type="date"
+				bind:value={createForm.service_date}
+				required
+				class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
+			/>
+			{#if createForm.service_date}
+				<p class="mt-1 text-xs text-gray-500">Next available Sunday selected automatically</p>
 			{/if}
+		</div>
 
-			<div class="flex justify-end gap-3 pt-4">
-				<Button variant="ghost" onclick={() => (showCreateModal = false)}>Cancel</Button>
-				<Button type="submit" variant="primary" disabled={loading}>
-					{loading ? 'Creating...' : 'Create Service'}
-				</Button>
-			</div>
-		</form>
+		<div>
+			<label for="service_type" class="block text-sm font-medium text-gray-700">
+				Service Type
+			</label>
+			<select
+				id="service_type"
+				bind:value={createForm.service_type}
+				class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
+			>
+				{#each serviceTypes as type (type)}
+					<option value={type}>{type}</option>
+				{/each}
+			</select>
+		</div>
+
+		<div>
+			<label for="theme" class="block text-sm font-medium text-gray-700">Theme</label>
+			<input
+				id="theme"
+				type="text"
+				bind:value={createForm.theme}
+				placeholder="Grace and Mercy"
+				class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
+			/>
+		</div>
+
+		<div>
+			<label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
+			<textarea
+				id="notes"
+				bind:value={createForm.notes}
+				rows="3"
+				class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
+				placeholder="Special instructions or notes..."
+			></textarea>
+		</div>
+
+		{#if error}
+			<div class="text-sm text-red-600">{error}</div>
+		{/if}
+
+		<div class="flex justify-end gap-3 pt-4">
+			<Button variant="ghost" onclick={() => (showCreateModal = false)}>Cancel</Button>
+			<Button type="submit" variant="primary" disabled={loading}>
+				{loading ? 'Creating...' : 'Create Service'}
+			</Button>
+		</div>
+	</form>
 </Modal>

@@ -401,7 +401,8 @@
 					<div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
 						<div>
 							<p class="text-sm text-gray-700">
-								Showing page <span class="font-medium">{currentPage}</span> of <span class="font-medium">{users.totalPages}</span>
+								Showing page <span class="font-medium">{currentPage}</span> of
+								<span class="font-medium">{users.totalPages}</span>
 								({users.totalItems} total users)
 							</p>
 						</div>

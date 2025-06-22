@@ -591,16 +591,28 @@ class RecommendationsApi {
 			]);
 
 			// Analyze rotation health
-			const rotationHealth = this.analyzeRotationHealth(allUsage as unknown as SongUsage[], allSongs as unknown as Song[]);
+			const rotationHealth = this.analyzeRotationHealth(
+				allUsage as unknown as SongUsage[],
+				allSongs as unknown as Song[]
+			);
 
 			// Analyze diversity
-			const diversityAnalysis = this.analyzeDiversity(allUsage as unknown as SongUsage[], allSongs as unknown as Song[]);
+			const diversityAnalysis = this.analyzeDiversity(
+				allUsage as unknown as SongUsage[],
+				allSongs as unknown as Song[]
+			);
 
 			// Analyze congregation engagement
-			const congregationEngagement = this.analyzeCongregationEngagement(allUsage as unknown as SongUsage[], allSongs as unknown as Song[]);
+			const congregationEngagement = this.analyzeCongregationEngagement(
+				allUsage as unknown as SongUsage[],
+				allSongs as unknown as Song[]
+			);
 
 			// Analyze seasonal readiness
-			const seasonalReadiness = await this.analyzeSeasonalReadiness(allUsage as unknown as SongUsage[], allSongs as unknown as Song[]);
+			const seasonalReadiness = await this.analyzeSeasonalReadiness(
+				allUsage as unknown as SongUsage[],
+				allSongs as unknown as Song[]
+			);
 
 			return {
 				rotationHealth,
@@ -623,7 +635,6 @@ class RecommendationsApi {
 		const neverUsed = allSongs.filter(
 			(song) => !allUsage.some((usage) => usage.song_id === song.id)
 		);
-
 
 		const overdue = allSongs.filter((song) => {
 			const lastUsage = allUsage.find((usage) => usage.song_id === song.id);
@@ -670,20 +681,24 @@ class RecommendationsApi {
 	private analyzeDiversity(allUsage: SongUsage[], allSongs: Song[]) {
 		// Key diversity analysis
 		const keysUsed = new Set(
-			allUsage.map((usage) => {
-				const song = allSongs.find(s => s.id === usage.song_id);
-				return song?.key_signature;
-			}).filter(Boolean)
+			allUsage
+				.map((usage) => {
+					const song = allSongs.find((s) => s.id === usage.song_id);
+					return song?.key_signature;
+				})
+				.filter(Boolean)
 		);
 
 		const totalPossibleKeys = 12; // Major/minor for each chromatic note
 		const keyDiversity = (keysUsed.size / totalPossibleKeys) * 100;
 
 		// Tempo diversity (categorize by tempo ranges)
-		const tempos = allUsage.map((usage) => {
-			const song = allSongs.find(s => s.id === usage.song_id);
-			return song?.tempo;
-		}).filter((t): t is number => t !== undefined);
+		const tempos = allUsage
+			.map((usage) => {
+				const song = allSongs.find((s) => s.id === usage.song_id);
+				return song?.tempo;
+			})
+			.filter((t): t is number => t !== undefined);
 		const fastCount = tempos.filter((t) => t >= 120).length;
 		const mediumCount = tempos.filter((t) => t >= 80 && t < 120).length;
 		const slowCount = tempos.filter((t) => t < 80).length;
@@ -706,10 +721,12 @@ class RecommendationsApi {
 
 		// Artist diversity
 		const artistsUsed = new Set(
-			allUsage.map((usage) => {
-				const song = allSongs.find(s => s.id === usage.song_id);
-				return song?.artist;
-			}).filter(Boolean)
+			allUsage
+				.map((usage) => {
+					const song = allSongs.find((s) => s.id === usage.song_id);
+					return song?.artist;
+				})
+				.filter(Boolean)
 		);
 
 		const totalArtists = new Set(allSongs.map((song) => song.artist).filter(Boolean)).size;
