@@ -243,8 +243,8 @@ export function formatDateLabel(dateString: string): string {
  */
 export function generateInsights(
 	overview: AnalyticsOverview,
-	usageData: UsageData[],
-	_dateRange: { start: string; end: string }
+	usageData: UsageData[]
+	// dateRange: { start: string; end: string } // Reserved for future date-specific insights
 ): string[] {
 	const insights: string[] = [];
 

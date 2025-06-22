@@ -18,7 +18,7 @@ class RecommendationsStore {
 	serviceBalanceAnalysis = $state<ServiceBalanceAnalysis | null>(null);
 	seasonalTrends = $state<SeasonalTrend[]>([]);
 	comparativePeriod = $state<ComparativePeriod | null>(null);
-	worshipInsights = $state<any | null>(null);
+	worshipInsights = $state<Record<string, unknown> | null>(null);
 
 	// Filter preferences
 	recommendationFilters = $state<{
@@ -127,8 +127,8 @@ class RecommendationsStore {
 	 */
 	async loadComparativePeriodAnalysis(
 		currentStart: Date,
-		currentEnd: Date,
-		periodType: 'month' | 'quarter' | 'year' = 'month'
+		currentEnd: Date
+		// periodType: 'month' | 'quarter' | 'year' = 'month' // Reserved for future period-specific analysis
 	) {
 		this.loading = true;
 		this.error = null;

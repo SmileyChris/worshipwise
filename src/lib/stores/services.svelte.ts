@@ -5,7 +5,6 @@ import type {
 	CreateServiceData,
 	UpdateServiceData,
 	ServiceFilterOptions,
-	CreateServiceSongData,
 	AddSongToServiceData,
 	UpdateServiceSongData,
 	ServiceBuilderState,
@@ -529,7 +528,10 @@ class ServicesStore {
 			console.log('Real-time service update:', data);
 
 			// Type-safe access to event data
-			const eventData = data as { action: string; record: { id: string } & Record<string, any> };
+			const eventData = data as {
+				action: string;
+				record: { id: string } & Record<string, unknown>;
+			};
 
 			if (eventData.action === 'create') {
 				this.services = [eventData.record as unknown as Service, ...this.services];
@@ -565,7 +567,10 @@ class ServicesStore {
 			console.log('Real-time service song update:', data);
 
 			// Type-safe access to event data
-			const eventData = data as { action: string; record: { id: string } & Record<string, any> };
+			const eventData = data as {
+				action: string;
+				record: { id: string } & Record<string, unknown>;
+			};
 
 			if (eventData.action === 'create') {
 				const newSong = eventData.record as unknown as ServiceSong;

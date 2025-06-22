@@ -347,7 +347,7 @@ class SongsStore {
 	/**
 	 * Get error message from API error
 	 */
-	private getErrorMessage(error: any): string {
+	private getErrorMessage(error: unknown): string {
 		if (error?.response?.data?.message) {
 			return error.response.data.message;
 		}
@@ -367,13 +367,15 @@ class SongsStore {
 	/**
 	 * Get songs grouped by category with category information
 	 */
-	async getSongsByCategory(): Promise<Map<string, { category: any; songs: Song[] }>> {
+	async getSongsByCategory(): Promise<
+		Map<string, { category: Record<string, unknown>; songs: Song[] }>
+	> {
 		try {
 			// Load all songs with expanded category information
 			const allSongs = await songsApi.getSongs({});
 
 			// Group songs by category
-			const categoryMap = new Map<string, { category: any; songs: Song[] }>();
+			const categoryMap = new Map<string, { category: Record<string, unknown>; songs: Song[] }>();
 
 			allSongs.forEach((song) => {
 				const categoryId = song.category;
@@ -409,7 +411,10 @@ class SongsStore {
 			console.log('Real-time song update:', data);
 
 			// Type-safe access to event data
-			const eventData = data as { action: string; record: { id: string } & Record<string, any> };
+			const eventData = data as {
+				action: string;
+				record: { id: string } & Record<string, unknown>;
+			};
 
 			if (eventData.action === 'create') {
 				// Add new song to the beginning of the list if it matches current filters

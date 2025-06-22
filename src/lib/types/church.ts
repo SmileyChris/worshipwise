@@ -299,7 +299,8 @@ export function detectHemisphereFromTimezone(timezone: string): 'northern' | 'so
  * Get timezone-appropriate default settings
  */
 export function getTimezoneAwareDefaults(timezone: string): Partial<ChurchSettings> {
-	const _hemisphere = detectHemisphereFromTimezone(timezone);
+	// Note: hemisphere detection for future seasonal recommendations
+	// const hemisphere = detectHemisphereFromTimezone(timezone);
 
 	// Adjust default service types based on location
 	const default_service_types = ['Sunday Morning', 'Sunday Evening'];

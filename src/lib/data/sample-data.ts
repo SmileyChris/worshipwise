@@ -1,4 +1,6 @@
 import type { QuickstartData } from '$lib/types/quickstart.js';
+import type { CategoriesAPI } from '$lib/api/categories';
+import type { SongsAPI } from '$lib/api/songs';
 
 // Default categories for the church
 export const defaultCategories = [
@@ -146,7 +148,7 @@ export const sampleData: QuickstartData = {
 };
 
 export async function createDefaultCategories(
-	categoriesAPI: any
+	categoriesAPI: CategoriesAPI
 ): Promise<{ [key: string]: string }> {
 	console.log('Creating default categories...');
 
@@ -184,9 +186,9 @@ export async function createDefaultCategories(
 }
 
 export async function importSampleData(
-	songsAPI: any,
-	categoriesAPI: any,
-	user: any
+	songsAPI: SongsAPI,
+	categoriesAPI: CategoriesAPI
+	// user: Record<string, unknown> // Reserved for future user-specific data
 ): Promise<void> {
 	console.log('Importing sample data...');
 

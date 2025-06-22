@@ -17,7 +17,7 @@ class SetupStore {
 			const hasChurches = await ChurchesAPI.hasChurches();
 			this.setupRequired = !hasChurches;
 			return !hasChurches;
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to check setup status:', error);
 			this.error = error.message || 'Failed to check setup status';
 			this.setupRequired = false; // Assume setup not required on error

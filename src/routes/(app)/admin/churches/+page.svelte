@@ -17,7 +17,6 @@
 		UserPlus,
 		Crown
 	} from 'lucide-svelte';
-	import type { Church } from '$lib/types/church';
 
 	let loading = $state<boolean>(false);
 	let error = $state<string | null>(null);

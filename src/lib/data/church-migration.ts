@@ -249,7 +249,7 @@ export class ChurchMigration {
 		try {
 			const churches = await pb.collection('churches').getList(1, 1);
 			return churches.totalItems === 0;
-		} catch (error) {
+		} catch {
 			// If churches collection doesn't exist, migration is definitely needed
 			return true;
 		}

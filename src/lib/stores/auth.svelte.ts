@@ -74,7 +74,7 @@ class AuthStore {
 
 			// Redirect to dashboard
 			await goto('/dashboard');
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Login failed:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;
@@ -119,7 +119,7 @@ class AuthStore {
 
 			// Redirect to dashboard
 			await goto('/dashboard');
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Registration failed:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;
@@ -136,7 +136,7 @@ class AuthStore {
 			pb.authStore.clear();
 			await goto('/login');
 			console.log('Logout successful');
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Logout error:', error);
 		}
 	}
@@ -150,7 +150,7 @@ class AuthStore {
 		try {
 			await pb.collection('users').authRefresh();
 			console.log('Auth refreshed successfully');
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Auth refresh failed:', error);
 			// If refresh fails, clear auth and redirect to login
 			this.logout();
@@ -167,7 +167,7 @@ class AuthStore {
 		try {
 			await pb.collection('users').requestPasswordReset(email);
 			console.log('Password reset email sent to:', email);
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Password reset request failed:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;
@@ -190,7 +190,7 @@ class AuthStore {
 		try {
 			await pb.collection('users').confirmPasswordReset(token, password, passwordConfirm);
 			console.log('Password reset confirmed successfully');
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Password reset confirmation failed:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;
@@ -213,7 +213,7 @@ class AuthStore {
 			// Update local state - PocketBase won't automatically trigger onChange for profile updates
 			this.user = updatedUser as unknown as User;
 			console.log('Profile updated successfully');
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Profile update failed:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;
@@ -243,7 +243,7 @@ class AuthStore {
 			this.profile = updatedProfile as unknown as Profile;
 
 			console.log('Profile information updated successfully');
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Profile info update failed:', error);
 			this.error = this.getErrorMessage(error);
 			throw error;
@@ -308,7 +308,7 @@ class AuthStore {
 	/**
 	 * Extract user-friendly error message
 	 */
-	getErrorMessage(error: any): string {
+	getErrorMessage(error: unknown): string {
 		if (error?.response?.data) {
 			const data = error.response.data;
 
@@ -450,7 +450,7 @@ class AuthStore {
 			await this.loadUserChurches();
 
 			console.log('Left church successfully');
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to leave church:', error);
 			this.error = error.message || 'Failed to leave church';
 			throw error;
@@ -479,7 +479,7 @@ class AuthStore {
 			await this.loadUserChurches();
 
 			console.log('Church deleted successfully');
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to delete church:', error);
 			this.error = error.message || 'Failed to delete church';
 			throw error;

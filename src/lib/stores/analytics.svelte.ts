@@ -91,7 +91,7 @@ class AnalyticsStore {
 				this.loadUsageTrends(),
 				this.loadWorshipLeaderStats()
 			]);
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to load analytics:', error);
 			this.error = this.getErrorMessage(error);
 		} finally {
@@ -108,7 +108,7 @@ class AnalyticsStore {
 				this.dateRange.from || undefined,
 				this.dateRange.to || undefined
 			);
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to load overview:', error);
 			throw error;
 		}
@@ -124,7 +124,7 @@ class AnalyticsStore {
 				this.dateRange.from || undefined,
 				this.dateRange.to || undefined
 			);
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to load song usage stats:', error);
 			throw error;
 		}
@@ -139,7 +139,7 @@ class AnalyticsStore {
 				this.dateRange.from || undefined,
 				this.dateRange.to || undefined
 			);
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to load service type stats:', error);
 			throw error;
 		}
@@ -154,7 +154,7 @@ class AnalyticsStore {
 				this.dateRange.from || undefined,
 				this.dateRange.to || undefined
 			);
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to load key usage stats:', error);
 			throw error;
 		}
@@ -170,7 +170,7 @@ class AnalyticsStore {
 				this.dateRange.to || undefined,
 				this.trendInterval
 			);
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to load usage trends:', error);
 			throw error;
 		}
@@ -186,7 +186,7 @@ class AnalyticsStore {
 				this.dateRange.from || undefined,
 				this.dateRange.to || undefined
 			);
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to load worship leader stats:', error);
 			throw error;
 		}
@@ -251,7 +251,7 @@ class AnalyticsStore {
 				document.body.removeChild(link);
 				URL.revokeObjectURL(url);
 			}
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to export analytics data:', error);
 			this.error = this.getErrorMessage(error);
 		} finally {
@@ -288,7 +288,7 @@ class AnalyticsStore {
 					await this.loadWorshipLeaderStats();
 					break;
 			}
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error(`Failed to refresh ${section}:`, error);
 			this.error = this.getErrorMessage(error);
 		}
@@ -364,7 +364,7 @@ class AnalyticsStore {
 	/**
 	 * Get error message from API error
 	 */
-	private getErrorMessage(error: any): string {
+	private getErrorMessage(error: unknown): string {
 		if (error?.response?.data?.message) {
 			return error.response.data.message;
 		}
