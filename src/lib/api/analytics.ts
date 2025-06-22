@@ -559,12 +559,12 @@ export class AnalyticsAPI {
 		dateTo?: string
 	): Promise<string> {
 		try {
-			let data: unknown[] = [];
 			let headers: string[] = [];
+			let csvRows: string[] = [];
 
 			switch (type) {
-				case 'songs':
-					data = await this.getSongUsageStats(100, dateFrom, dateTo);
+				case 'songs': {
+					const data = await this.getSongUsageStats(100, dateFrom, dateTo);
 					headers = [
 						'Title',
 						'Artist',
@@ -573,31 +573,9 @@ export class AnalyticsAPI {
 						'Days Since Last Use',
 						'Avg Position'
 					];
-					break;
-				case 'services':
-					data = await this.getServiceTypeStats(dateFrom, dateTo);
-					headers = ['Service Type', 'Count', 'Avg Duration (min)', 'Avg Songs'];
-					break;
-				case 'leaders':
-					data = await this.getWorshipLeaderStats(50, dateFrom, dateTo);
-					headers = [
-						'Name',
-						'Setlist Count',
-						'Avg Duration (min)',
-						'Unique Songs',
-						'Favorite Keys'
-					];
-					break;
-			}
-
-			// Convert to CSV format
-			const csvRows = [headers.join(',')];
-
-			data.forEach((item) => {
-				let row: string[] = [];
-				switch (type) {
-					case 'songs':
-						row = [
+					csvRows = [headers.join(',')];
+					data.forEach((item) => {
+						const row = [
 							`"${item.title}"`,
 							`"${item.artist || ''}"`,
 							item.usageCount.toString(),
@@ -605,27 +583,48 @@ export class AnalyticsAPI {
 							item.daysSinceLastUse.toString(),
 							item.avgPosition.toString()
 						];
-						break;
-					case 'services':
-						row = [
+						csvRows.push(row.join(','));
+					});
+					break;
+				}
+				case 'services': {
+					const data = await this.getServiceTypeStats(dateFrom, dateTo);
+					headers = ['Service Type', 'Count', 'Avg Duration (min)', 'Avg Songs'];
+					csvRows = [headers.join(',')];
+					data.forEach((item) => {
+						const row = [
 							`"${item.serviceType}"`,
 							item.count.toString(),
 							item.avgDuration.toString(),
 							item.avgSongs.toString()
 						];
-						break;
-					case 'leaders':
-						row = [
+						csvRows.push(row.join(','));
+					});
+					break;
+				}
+				case 'leaders': {
+					const data = await this.getWorshipLeaderStats(50, dateFrom, dateTo);
+					headers = [
+						'Name',
+						'Setlist Count',
+						'Avg Duration (min)',
+						'Unique Songs',
+						'Favorite Keys'
+					];
+					csvRows = [headers.join(',')];
+					data.forEach((item) => {
+						const row = [
 							`"${item.name}"`,
 							item.serviceCount.toString(),
 							item.avgDuration.toString(),
 							item.uniqueSongs.toString(),
 							`"${item.favoriteKeys.join(', ')}"`
 						];
-						break;
+						csvRows.push(row.join(','));
+					});
+					break;
 				}
-				csvRows.push(row.join(','));
-			});
+			}
 
 			return csvRows.join('\n');
 		} catch (error) {
