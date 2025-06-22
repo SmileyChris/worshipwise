@@ -1,4 +1,5 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-unused-props */
 	import type { Song } from '$lib/types/song';
 	import Card from '$lib/components/ui/Card.svelte';
 	import SongCard from './SongCard.svelte';
