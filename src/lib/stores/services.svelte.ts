@@ -522,27 +522,30 @@ class ServicesStore {
 	 * Subscribe to real-time updates for services
 	 */
 	async subscribeToServices(): Promise<() => void> {
-		return await servicesApi.subscribeToServices((data) => {
+		return await servicesApi.subscribeToServices((data: unknown) => {
 			console.log('Real-time service update:', data);
+			
+			// Type-safe access to event data
+			const eventData = data as { action: string; record: { id: string } & Record<string, any> };
 
-			if (data.action === 'create') {
-				this.services = [data.record as unknown as Service, ...this.services];
-			} else if (data.action === 'update') {
-				const index = this.services.findIndex((s) => s.id === data.record.id);
+			if (eventData.action === 'create') {
+				this.services = [eventData.record as unknown as Service, ...this.services];
+			} else if (eventData.action === 'update') {
+				const index = this.services.findIndex((s) => s.id === eventData.record.id);
 				if (index !== -1) {
-					this.services[index] = data.record as unknown as Service;
+					this.services[index] = eventData.record as unknown as Service;
 				}
 
 				// Update current service if it's the one being updated
-				if (this.currentService?.id === data.record.id) {
-					this.currentService = data.record as unknown as Service;
+				if (this.currentService?.id === eventData.record.id) {
+					this.currentService = eventData.record as unknown as Service;
 					this.builderState.service = this.currentService;
 				}
-			} else if (data.action === 'delete') {
-				this.services = this.services.filter((s) => s.id !== data.record.id);
+			} else if (eventData.action === 'delete') {
+				this.services = this.services.filter((s) => s.id !== eventData.record.id);
 
 				// Clear current service if it was deleted
-				if (this.currentService?.id === data.record.id) {
+				if (this.currentService?.id === eventData.record.id) {
 					this.currentService = null;
 					this.currentServiceSongs = [];
 					this.clearBuilderState();
@@ -555,23 +558,26 @@ class ServicesStore {
 	 * Subscribe to real-time updates for service songs
 	 */
 	async subscribeToServiceSongs(serviceId: string): Promise<() => void> {
-		return await servicesApi.subscribeToServiceSongs(serviceId, (data) => {
+		return await servicesApi.subscribeToServiceSongs(serviceId, (data: unknown) => {
 			console.log('Real-time service song update:', data);
+			
+			// Type-safe access to event data
+			const eventData = data as { action: string; record: { id: string } & Record<string, any> };
 
-			if (data.action === 'create') {
-				const newSong = data.record as unknown as ServiceSong;
+			if (eventData.action === 'create') {
+				const newSong = eventData.record as unknown as ServiceSong;
 				this.currentServiceSongs = [...this.currentServiceSongs, newSong].sort(
 					(a, b) => a.order_position - b.order_position
 				);
 				this.builderState.songs = this.currentServiceSongs;
-			} else if (data.action === 'update') {
-				const index = this.currentServiceSongs.findIndex((s) => s.id === data.record.id);
+			} else if (eventData.action === 'update') {
+				const index = this.currentServiceSongs.findIndex((s) => s.id === eventData.record.id);
 				if (index !== -1) {
-					this.currentServiceSongs[index] = data.record as unknown as ServiceSong;
+					this.currentServiceSongs[index] = eventData.record as unknown as ServiceSong;
 					this.builderState.songs = this.currentServiceSongs;
 				}
-			} else if (data.action === 'delete') {
-				this.currentServiceSongs = this.currentServiceSongs.filter((s) => s.id !== data.record.id);
+			} else if (eventData.action === 'delete') {
+				this.currentServiceSongs = this.currentServiceSongs.filter((s) => s.id !== eventData.record.id);
 				this.builderState.songs = this.currentServiceSongs;
 			}
 		});
