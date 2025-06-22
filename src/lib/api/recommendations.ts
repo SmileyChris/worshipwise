@@ -174,7 +174,7 @@ class RecommendationsApi {
 				}
 
 				// Seasonal recommendations
-				const seasonalScore = await this.calculateSeasonalScore(song);
+				const seasonalScore = await this.calculateSeasonalScore(song as unknown as Song);
 				if (seasonalScore > 0) {
 					const seasonalContext = await this.getChurchSeasonalContext();
 					recommendations.push({
@@ -591,16 +591,16 @@ class RecommendationsApi {
 			]);
 
 			// Analyze rotation health
-			const rotationHealth = this.analyzeRotationHealth(allUsage, allSongs);
+			const rotationHealth = this.analyzeRotationHealth(allUsage as unknown as SongUsage[], allSongs as unknown as Song[]);
 
 			// Analyze diversity
-			const diversityAnalysis = this.analyzeDiversity(allUsage, allSongs);
+			const diversityAnalysis = this.analyzeDiversity(allUsage as unknown as SongUsage[], allSongs as unknown as Song[]);
 
 			// Analyze congregation engagement
-			const congregationEngagement = this.analyzeCongregationEngagement(allUsage, allSongs);
+			const congregationEngagement = this.analyzeCongregationEngagement(allUsage as unknown as SongUsage[], allSongs as unknown as Song[]);
 
 			// Analyze seasonal readiness
-			const seasonalReadiness = await this.analyzeSeasonalReadiness(allUsage, allSongs);
+			const seasonalReadiness = await this.analyzeSeasonalReadiness(allUsage as unknown as SongUsage[], allSongs as unknown as Song[]);
 
 			return {
 				rotationHealth,
