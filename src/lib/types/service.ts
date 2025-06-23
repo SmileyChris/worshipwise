@@ -4,6 +4,7 @@ import type { Song } from './song';
 
 export interface Service {
 	id: string;
+	church_id: string;
 	title: string;
 	service_date: string;
 	service_type?: string;

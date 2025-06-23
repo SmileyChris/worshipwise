@@ -1,4 +1,5 @@
 import { pb } from './client';
+import { auth } from '$lib/stores/auth.svelte';
 import type { Song, CreateSongData, UpdateSongData, SongFilterOptions } from '$lib/types/song';
 
 export class SongsAPI {
@@ -196,8 +197,16 @@ export class SongsAPI {
 	 */
 	async createSong(data: CreateSongData): Promise<Song> {
 		try {
+			// Ensure user has a current church
+			if (!auth.currentChurch?.id) {
+				throw new Error('No church selected. Please select a church to add songs.');
+			}
+
 			// Prepare form data for file uploads
 			const formData = new FormData();
+
+			// Add church context - REQUIRED for church-scoped data
+			formData.append('church_id', auth.currentChurch.id);
 
 			// Add text fields
 			formData.append('title', data.title);

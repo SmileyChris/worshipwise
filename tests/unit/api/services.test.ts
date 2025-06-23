@@ -8,6 +8,14 @@ vi.mock('$lib/api/client', () => ({
 	pb: mockPb
 }));
 
+// Mock the auth store
+vi.mock('$lib/stores/auth.svelte', () => ({
+	auth: {
+		currentChurch: { id: 'church_test123', name: 'Test Church' },
+		user: { id: 'user123', email: 'test@example.com' }
+	}
+}));
+
 describe('Services API', () => {
 	beforeEach(() => {
 		mockPb.reset();
@@ -161,6 +169,7 @@ describe('Services API', () => {
 
 			const expectedData = {
 				...createData,
+				church_id: 'church_test123',
 				created_by: 'user_1',
 				status: 'draft'
 			};
@@ -185,6 +194,7 @@ describe('Services API', () => {
 
 			const expectedData = {
 				...createData,
+				church_id: 'church_test123',
 				created_by: 'user_1'
 			};
 

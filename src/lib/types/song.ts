@@ -46,6 +46,7 @@ export interface LyricsAnalysis {
 
 export interface Song {
 	id: string;
+	church_id: string;
 	title: string;
 	artist?: string;
 	category: string;
@@ -125,6 +126,7 @@ export interface UpdateSongData {
 
 export interface SongUsage {
 	id: string;
+	church_id: string;
 	song_id: string;
 	service_id: string;
 	used_date: string;

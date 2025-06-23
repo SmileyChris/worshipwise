@@ -1,4 +1,5 @@
 import { pb } from './client';
+import { auth } from '$lib/stores/auth.svelte';
 import type {
 	Service,
 	CreateServiceData,
@@ -112,8 +113,14 @@ export class ServicesAPI {
 	 */
 	async createService(data: CreateServiceData): Promise<Service> {
 		try {
+			// Ensure user has a current church
+			if (!auth.currentChurch?.id) {
+				throw new Error('No church selected. Please select a church to create services.');
+			}
+
 			const serviceData = {
 				...data,
+				church_id: auth.currentChurch.id, // REQUIRED for church-scoped data
 				created_by: pb.authStore.model?.id || ''
 			};
 
@@ -306,9 +313,15 @@ export class ServicesAPI {
 			const service = await this.getService(serviceId);
 			const songs = await this.getServiceSongs(serviceId);
 
+			// Ensure we have church context
+			if (!auth.currentChurch?.id) {
+				throw new Error('No church context available for tracking usage');
+			}
+
 			// Create usage records for each song
 			const usagePromises = songs.map((song) =>
 				pb.collection('song_usage').create({
+					church_id: auth.currentChurch!.id, // REQUIRED for church-scoped data
 					song_id: song.song_id,
 					service_id: serviceId,
 					used_date: service.service_date,

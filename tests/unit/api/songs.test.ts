@@ -8,6 +8,14 @@ vi.mock('$lib/api/client', () => ({
 	pb: mockPb
 }));
 
+// Mock the auth store
+vi.mock('$lib/stores/auth.svelte', () => ({
+	auth: {
+		currentChurch: { id: 'church_test123', name: 'Test Church' },
+		user: { id: 'user123', email: 'test@example.com' }
+	}
+}));
+
 describe('Songs API', () => {
 	beforeEach(() => {
 		mockPb.reset();

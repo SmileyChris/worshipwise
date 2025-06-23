@@ -16,6 +16,7 @@ class AuthStore {
 	// Church context state
 	currentChurch = $state<Church | null>(null);
 	availableChurches = $state<Church[]>([]);
+	churchMemberships = $state<Record<string, any>[]>([]);
 	churchLoading = $state<boolean>(false);
 
 	constructor() {
@@ -46,6 +47,7 @@ class AuthStore {
 					this.profile = null;
 					this.currentChurch = null;
 					this.availableChurches = [];
+					this.churchMemberships = [];
 				}
 
 				console.log('Auth state changed:', {
@@ -356,33 +358,32 @@ class AuthStore {
 
 		this.churchLoading = true;
 		try {
-			// Get all profiles for this user to find their churches
-			const userProfiles = await pb.collection('profiles').getList(1, 50, {
-				filter: `user_id = "${this.user.id}"`,
+			// Get church memberships for this user
+			const memberships = await pb.collection('church_memberships').getFullList({
+				filter: `user_id = "${this.user.id}" && status = "active" && is_active = true`,
 				expand: 'church_id'
 			});
 
-			// Extract unique churches from profiles
-			const churchIds = [...new Set(userProfiles.items.map((p) => p.church_id).filter(Boolean))];
+			// Store memberships for role access
+			this.churchMemberships = memberships;
 
-			if (churchIds.length > 0) {
-				const churches = await pb.collection('churches').getList(1, 50, {
-					filter: churchIds.map((id) => `id = "${id}"`).join(' || ')
-				});
+			// Extract churches from memberships
+			this.availableChurches = memberships
+				.map((m) => m.expand?.church_id)
+				.filter(Boolean) as unknown as Church[];
 
-				this.availableChurches = churches.items as unknown as Church[];
-			} else {
-				this.availableChurches = [];
-			}
-
-			// Set current church from profile or first available
+			// Set current church from profile preference or first available
 			if (this.profile?.church_id) {
 				const currentChurch = this.availableChurches.find((c) => c.id === this.profile!.church_id);
 				if (currentChurch) {
 					this.currentChurch = currentChurch;
+				} else if (this.availableChurches.length > 0) {
+					// Profile has invalid church_id, use first available
+					this.currentChurch = this.availableChurches[0];
+					await this.updateProfileInfo({ church_id: this.currentChurch.id });
 				}
 			} else if (this.availableChurches.length > 0) {
-				// Default to first church if no preference set
+				// No preference set, default to first church
 				this.currentChurch = this.availableChurches[0];
 				// Update profile with default church if we have one
 				if (this.profile) {
@@ -491,12 +492,19 @@ class AuthStore {
 	/**
 	 * Get user's role in current church
 	 */
-	getCurrentChurchRole = $derived(this.profile?.role || 'member');
+	getCurrentChurchRole = $derived(() => {
+		if (!this.currentChurch?.id || !this.churchMemberships.length) return 'member';
+		
+		const membership = this.churchMemberships.find(
+			(m) => m.church_id === this.currentChurch!.id
+		);
+		return membership?.role || 'member';
+	});
 
 	/**
 	 * Check if user can manage current church (is admin)
 	 */
-	canManageChurch = $derived(this.getCurrentChurchRole === 'admin');
+	canManageChurch = $derived(this.getCurrentChurchRole() === 'admin');
 
 	/**
 	 * Check if user has multiple church affiliations

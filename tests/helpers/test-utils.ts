@@ -5,6 +5,7 @@ import type { Song } from '$lib/types/song';
 // Test data generators
 export const createMockSong = (overrides: Partial<Song> = {}): Song => ({
 	id: 'song_' + Math.random().toString(36).substr(2, 9),
+	church_id: 'church_test123',
 	title: 'Amazing Grace',
 	artist: 'John Newton',
 	category: 'hymn',
@@ -29,6 +30,7 @@ export const createMockSong = (overrides: Partial<Song> = {}): Song => ({
 
 export const createMockService = (overrides: Partial<MockRecord> = {}): MockRecord => ({
 	id: 'service_' + Math.random().toString(36).substr(2, 9),
+	church_id: 'church_test123',
 	created: new Date().toISOString(),
 	updated: new Date().toISOString(),
 	title: 'Sunday Morning Service',
@@ -63,6 +65,7 @@ export const createMockServiceSong = (overrides: Partial<MockRecord> = {}): Mock
 
 export const createMockSongUsage = (overrides: Partial<MockRecord> = {}): MockRecord => ({
 	id: 'usage_' + Math.random().toString(36).substr(2, 9),
+	church_id: 'church_test123',
 	created: new Date().toISOString(),
 	updated: new Date().toISOString(),
 	song_id: 'song_123',
