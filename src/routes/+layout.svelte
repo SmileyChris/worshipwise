@@ -36,8 +36,8 @@
 		if (browser) {
 			const isPublicRoute = publicRoutes.includes(currentPath);
 
-			// Check setup requirements first
-			if (setupStore.setupRequired === null && !isPublicRoute && currentPath !== '/setup') {
+			// Check setup requirements first (but not for root route - it handles its own setup logic)
+			if (setupStore.setupRequired === null && !isPublicRoute && currentPath !== '/setup' && currentPath !== '/') {
 				// Need to check setup status
 				setupStore.checkSetupRequired().then((setupRequired) => {
 					if (setupRequired) {
@@ -48,7 +48,7 @@
 						isReady = true;
 					}
 				});
-			} else if (setupStore.setupRequired === true && currentPath !== '/setup') {
+			} else if (setupStore.setupRequired === true && currentPath !== '/setup' && currentPath !== '/') {
 				// Setup is required, redirect to setup
 				goto('/setup');
 			} else if (setupStore.setupRequired === false) {

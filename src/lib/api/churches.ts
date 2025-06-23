@@ -18,13 +18,22 @@ import {
 export class ChurchesAPI {
 	/**
 	 * Check if any churches exist in the system
+	 * Uses anonymous view to avoid authentication requirements
 	 */
 	static async hasChurches(): Promise<boolean> {
 		try {
-			const churches = await pb.collection('churches').getList(1, 1);
-			return churches.totalItems > 0;
+			const result = await pb.collection('setup_status').getFirstListItem('', {
+				requestKey: null // Disable caching for setup status
+			});
+			return result.setup_required === false;
 		} catch {
-			return false;
+			// If view fails, fallback to checking churches directly (requires auth)
+			try {
+				const churches = await pb.collection('churches').getList(1, 1);
+				return churches.totalItems > 0;
+			} catch {
+				return false;
+			}
 		}
 	}
 
