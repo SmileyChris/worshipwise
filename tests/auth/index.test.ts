@@ -13,11 +13,12 @@
 import { describe, it, expect } from 'vitest';
 
 // Import all auth test suites
-import '../../src/lib/stores/auth.svelte.test';
-// Note: Svelte component tests are run separately in the client environment
-// import '../../src/lib/components/auth/AuthForm.svelte.test';
-// import '../../src/lib/components/profile/ProfileSettings.svelte.test';
-// import '../../src/lib/components/admin/UserEditModal.svelte.test';
+// Note: Svelte store and component tests are run separately in the client environment
+// They cannot be imported in server tests due to browser-specific dependencies
+// - auth.svelte.test runs AuthStore tests
+// - AuthForm.svelte.test runs auth form component tests  
+// - ProfileSettings.svelte.test runs profile component tests
+// - UserEditModal.svelte.test runs admin component tests
 import '../integration/auth.test';
 
 describe('Authentication Test Suite', () => {

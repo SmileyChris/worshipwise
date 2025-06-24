@@ -9,6 +9,7 @@ vi.mock('$lib/stores/recommendations.svelte', () => ({
 		loadRecommendations: vi.fn().mockResolvedValue(undefined),
 		loadSongRecommendations: vi.fn().mockResolvedValue(undefined),
 		loadSeasonalTrends: vi.fn().mockResolvedValue(undefined),
+		loadComparativePeriodAnalysis: vi.fn().mockResolvedValue(undefined),
 		clearCache: vi.fn(),
 		getSummaryInsights: vi.fn().mockReturnValue({
 			totalRecommendations: 0,

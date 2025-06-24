@@ -1,9 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createLyricsSearchClient, validateLyricsContent } from './lyrics';
 
 describe('Lyrics Search Client', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// Mock global fetch
+		vi.stubGlobal('fetch', vi.fn());
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
 	});
 
 	describe('validateLyricsContent', () => {
@@ -35,7 +41,7 @@ Was blind but now I see`;
 
 		it('should handle search failures gracefully', async () => {
 			// Mock all search engines to fail
-			(globalThis.fetch as any).mockRejectedValue(new Error('Network error'));
+			globalThis.fetch.mockRejectedValue(new Error('Network error'));
 
 			const client = createLyricsSearchClient();
 			const result = await client.searchLyrics('Test Song', 'Test Artist');
@@ -45,7 +51,7 @@ Was blind but now I see`;
 
 		it('should return null when no lyrics found', async () => {
 			// Mock empty responses
-			(globalThis.fetch as any).mockResolvedValue({
+			globalThis.fetch.mockResolvedValue({
 				ok: true,
 				json: async () => ({})
 			});
@@ -67,7 +73,7 @@ And grace my fears relieved`,
 				AbstractURL: 'https://example.com'
 			};
 
-			(globalThis.fetch as any).mockResolvedValue({
+			globalThis.fetch.mockResolvedValue({
 				ok: true,
 				json: async () => mockResponse
 			});

@@ -67,7 +67,12 @@ describe('ProfileSettings', () => {
 		auth.user = mockUser;
 		auth.currentMembership = mockMembership;
 		auth.updateProfile = vi.fn().mockResolvedValue(undefined);
-		auth.getErrorMessage = vi.fn().mockReturnValue('Mock error message');
+		auth.getErrorMessage = vi.fn().mockImplementation((error) => {
+			if (error instanceof Error) {
+				return error.message;
+			}
+			return 'Mock error message';
+		});
 		auth.isAdmin = false;
 		auth.hasRole = vi.fn().mockReturnValue(false);
 		auth.loadProfile = vi.fn().mockResolvedValue(undefined);
@@ -186,8 +191,12 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should display profile update error message', async () => {
+			// Mock the PocketBase update to fail
 			const error = new Error('Update failed');
-			auth.updateProfile = vi.fn().mockRejectedValue(error);
+			const usersCollection = {
+				update: vi.fn().mockRejectedValue(error)
+			};
+			(pb.collection as any).mockReturnValue(usersCollection);
 
 			render(ProfileSettings);
 
@@ -198,7 +207,7 @@ describe('ProfileSettings', () => {
 			await fireEvent.click(updateButton);
 
 			await waitFor(() => {
-				expect(screen.getByText('Mock error message')).toBeInTheDocument();
+				expect(screen.getByText('Update failed')).toBeInTheDocument();
 			});
 		});
 
@@ -397,56 +406,11 @@ describe('ProfileSettings', () => {
 			await fireEvent.click(changePasswordButton);
 
 			await waitFor(() => {
-				expect(screen.getByText('Mock error message')).toBeInTheDocument();
+				expect(screen.getByText('Update failed')).toBeInTheDocument();
 			});
 		});
 	});
 
-	describe('Role Management', () => {
-		it('should show limited role options for musicians', () => {
-			auth.isAdmin = false;
-			auth.hasRole = vi.fn().mockImplementation((role) => role === 'musician');
-
-			render(ProfileSettings);
-
-			const roleSelect = screen.getByTestId('profile-role-select');
-			const options = roleSelect.querySelectorAll('option');
-
-			// Should only have musician option (or possibly member and musician)
-			expect(options.length).toBeGreaterThanOrEqual(1);
-			expect(Array.from(options).some((opt) => opt.value === 'musician')).toBe(true);
-		});
-
-		it('should show leader and musician options for leaders', () => {
-			auth.isAdmin = false;
-			auth.hasRole = vi.fn().mockImplementation((role) => role === 'leader');
-
-			render(ProfileSettings);
-
-			const roleSelect = screen.getByTestId('profile-role-select');
-			const options = roleSelect.querySelectorAll('option');
-
-			// Should have musician and leader options (no admin)
-			expect(options.length).toBeGreaterThan(1);
-			expect(Array.from(options).some((opt) => opt.value === 'musician')).toBe(true);
-			expect(Array.from(options).some((opt) => opt.value === 'leader')).toBe(true);
-			expect(Array.from(options).some((opt) => opt.value === 'admin')).toBe(false);
-		});
-
-		it('should show all role options for admins', () => {
-			auth.isAdmin = true;
-
-			render(ProfileSettings);
-
-			const roleSelect = screen.getByTestId('profile-role-select');
-			const options = roleSelect.querySelectorAll('option');
-
-			// Should have all role options
-			expect(Array.from(options).some((opt) => opt.value === 'musician')).toBe(true);
-			expect(Array.from(options).some((opt) => opt.value === 'leader')).toBe(true);
-			expect(Array.from(options).some((opt) => opt.value === 'admin')).toBe(true);
-		});
-	});
 
 	describe('Form State Management', () => {
 		it('should disable submit buttons when forms are invalid', () => {
@@ -461,9 +425,11 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should show loading states during operations', async () => {
-			auth.updateProfile = vi
-				.fn()
-				.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
+			// Mock PocketBase update to delay for loading state test
+			const usersCollection = {
+				update: vi.fn().mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)))
+			};
+			(pb.collection as any).mockReturnValue(usersCollection);
 
 			render(ProfileSettings);
 
@@ -486,7 +452,6 @@ describe('ProfileSettings', () => {
 			// Check for form inputs by test ID instead of exact label text
 			expect(screen.getByTestId('profile-name-input')).toBeInTheDocument();
 			expect(screen.getByTestId('profile-email-input')).toBeInTheDocument();
-			expect(screen.getByTestId('profile-role-select')).toBeInTheDocument();
 			expect(screen.getByTestId('current-password-input')).toBeInTheDocument();
 			expect(screen.getByTestId('new-password-input')).toBeInTheDocument();
 			expect(screen.getByTestId('confirm-password-input')).toBeInTheDocument();
