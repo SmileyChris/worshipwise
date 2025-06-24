@@ -82,15 +82,21 @@ cd pocketbase && ./pocketbase migrate        # Run database migrations
 
 ### Core Collections (PocketBase Schema)
 
-1. **Users** - Authentication with basic user data (email, password)
+1. **Users** - Authentication with basic user data (email, password, name, avatar)
 2. **Churches** - Church organizations with timezone, location, and admin setup
-3. **Profiles** - Extended user metadata (name, role, church affiliation, preferences)
+3. **Church Memberships** - User-to-church relationships with roles and permissions
 4. **Songs** - Central repository with metadata, keys, tempo, file attachments
 5. **Services** - Service planning with dates and themes
 6. **Service Songs** - Junction table for drag-and-drop ordering
 7. **Song Usage** - Analytics tracking (populated on service completion)
 
 For detailed schema and security rules, see `plan/POCKETBASE_SETUP.md`.
+
+#### Terminology Clarification
+- **User Profile**: Refers to user account data (name, email, avatar) stored in the Users collection
+- **Church Membership**: Refers to the user's role and permissions within a specific church
+- **Profile Components/Routes**: UI elements for managing user account settings (not membership settings)
+- The `updateProfile()` method updates user data only, not church membership data
 
 ### Project Structure
 
