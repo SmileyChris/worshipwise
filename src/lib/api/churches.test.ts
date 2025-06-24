@@ -1,35 +1,41 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ChurchesAPI } from './churches';
 import type { InitialChurchSetup } from '$lib/types/church';
 
-// Create simple mock PocketBase
-const mockCollection = {
-	getFullList: vi.fn(),
-	getFirstListItem: vi.fn(),
-	getOne: vi.fn(),
-	create: vi.fn(),
-	update: vi.fn(),
-	delete: vi.fn(),
-	authWithPassword: vi.fn()
-};
+// Use vi.hoisted to define mocks before imports
+const { mockPb, mockCollection } = vi.hoisted(() => {
+	const mockCollection = {
+		getFullList: vi.fn(),
+		getFirstListItem: vi.fn(),
+		getOne: vi.fn(),
+		create: vi.fn(),
+		update: vi.fn(),
+		delete: vi.fn(),
+		authWithPassword: vi.fn()
+	};
 
-const mockPb = {
-	collection: vi.fn(() => mockCollection),
-	authStore: {
-		model: { id: 'user1' },
-		token: 'test-token',
-		isValid: true,
-		clear: vi.fn(),
-		save: vi.fn(),
-		onChange: vi.fn()
-	},
-	autoCancellation: vi.fn()
-};
+	const mockPb = {
+		collection: vi.fn(() => mockCollection),
+		authStore: {
+			model: { id: 'user1' },
+			token: 'test-token',
+			isValid: true,
+			clear: vi.fn(),
+			save: vi.fn(),
+			onChange: vi.fn()
+		},
+		autoCancellation: vi.fn()
+	};
+
+	return { mockPb, mockCollection };
+});
 
 // Mock the client module 
 vi.mock('./client', () => ({
 	pb: mockPb
 }));
+
+// Import after mocking
+import { ChurchesAPI } from './churches';
 
 describe('Churches API - Simple Tests', () => {
 	beforeEach(() => {

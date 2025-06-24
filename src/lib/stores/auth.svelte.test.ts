@@ -189,6 +189,7 @@ describe('AuthStore', () => {
 
 			expect(usersCollection.create).toHaveBeenCalledWith({
 				email: registerData.email,
+				name: registerData.name,
 				password: registerData.password,
 				passwordConfirm: registerData.passwordConfirm
 			});
