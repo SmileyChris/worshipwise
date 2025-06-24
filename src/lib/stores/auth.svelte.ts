@@ -105,18 +105,9 @@ class AuthStore {
 			// Auto-login to get authenticated context
 			await pb.collection('users').authWithPassword(data.email, data.password);
 
-			// Create the profile record with additional user data
-			const profile = await pb.collection('profiles').create({
-				user_id: user.id,
-				name: data.name,
-				role: data.role || 'musician',
-				is_active: true
-			});
-
-			// Set the profile in the store
-			this.profile = profile as unknown as Profile;
-
-			console.log('Profile created:', profile.name);
+			// Note: Church membership will be created when user joins a church
+			// For now, just load existing memberships
+			await this.loadUserChurches();
 			console.log('Registration successful:', user.email);
 
 			// Redirect to dashboard
@@ -225,7 +216,7 @@ class AuthStore {
 	}
 
 	/**
-	 * Update profile information
+	 * Update profile information via church membership
 	 */
 	async updateProfileInfo(profileData: Partial<Profile>, userData?: Partial<User>): Promise<void> {
 		if (!this.user || !this.profile) return;
@@ -240,9 +231,24 @@ class AuthStore {
 				this.user = updatedUser as unknown as User;
 			}
 
-			// Update profile record
-			const updatedProfile = await pb.collection('profiles').update(this.profile.id, profileData);
-			this.profile = updatedProfile as unknown as Profile;
+			// Update church membership record with profile data
+			const membershipData: any = {};
+			if (profileData.preferred_keys) membershipData.preferred_keys = profileData.preferred_keys;
+			if (profileData.notification_preferences) membershipData.notification_preferences = profileData.notification_preferences;
+			if (profileData.role) membershipData.role = profileData.role;
+
+			if (Object.keys(membershipData).length > 0) {
+				const updatedMembership = await pb.collection('church_memberships').update(this.profile.id, membershipData);
+				
+				// Update local profile with new data
+				this.profile = {
+					...this.profile,
+					...profileData,
+					preferred_keys: updatedMembership.preferred_keys,
+					notification_preferences: updatedMembership.notification_preferences,
+					role: updatedMembership.role
+				};
+			}
 
 			console.log('Profile information updated successfully');
 		} catch (error: unknown) {
@@ -255,21 +261,38 @@ class AuthStore {
 	}
 
 	/**
-	 * Load user profile data
+	 * Load user profile data from church memberships
 	 */
 	async loadProfile(): Promise<void> {
 		if (!this.user) return;
 
 		try {
-			const profiles = await pb.collection('profiles').getList(1, 1, {
-				filter: `user_id = "${this.user.id}"`
+			// Get the user's primary church membership (first active one)
+			const memberships = await pb.collection('church_memberships').getList(1, 1, {
+				filter: `user_id = "${this.user.id}" && status = "active" && is_active = true`,
+				expand: 'church_id',
+				sort: '-created'
 			});
 
-			if (profiles.items.length > 0) {
-				this.profile = profiles.items[0] as unknown as Profile;
+			if (memberships.items.length > 0) {
+				const membership = memberships.items[0];
+				// Create a profile-like object from membership data
+				this.profile = {
+					id: membership.id,
+					user_id: this.user.id,
+					name: this.user.name,
+					role: membership.role,
+					church_id: membership.church_id,
+					church_name: membership.expand?.church_id?.name,
+					preferred_keys: membership.preferred_keys,
+					notification_preferences: membership.notification_preferences,
+					is_active: membership.is_active,
+					created: membership.created,
+					updated: membership.updated
+				} as Profile;
 			}
 		} catch (error) {
-			console.error('Failed to load profile:', error);
+			console.error('Failed to load profile from memberships:', error);
 		}
 	}
 
@@ -430,22 +453,22 @@ class AuthStore {
 		this.churchLoading = true;
 		try {
 			// Check if user is the only admin
-			const adminProfiles = await pb.collection('profiles').getList(1, 50, {
-				filter: `church_id = "${churchId}" && role = "admin"`
+			const adminMemberships = await pb.collection('church_memberships').getList(1, 50, {
+				filter: `church_id = "${churchId}" && role = "admin" && status = "active"`
 			});
 
-			if (adminProfiles.items.length === 1 && adminProfiles.items[0].user_id === this.user.id) {
+			if (adminMemberships.items.length === 1 && adminMemberships.items[0].user_id === this.user.id) {
 				throw new Error(
 					'Cannot leave church - you are the only administrator. Transfer admin role to another user or delete the church.'
 				);
 			}
 
-			// Remove user from church by deleting their profile for this church
-			const userProfile = await pb
-				.collection('profiles')
+			// Remove user from church by deleting their membership
+			const userMembership = await pb
+				.collection('church_memberships')
 				.getFirstListItem(`user_id = "${this.user.id}" && church_id = "${churchId}"`);
 
-			await pb.collection('profiles').delete(userProfile.id);
+			await pb.collection('church_memberships').delete(userMembership.id);
 
 			// Reload churches and switch context if necessary
 			await this.loadUserChurches();
@@ -467,7 +490,8 @@ class AuthStore {
 		if (!this.user || !this.profile) return;
 
 		// Verify user is admin of this church
-		if (this.profile.church_id !== churchId || this.profile.role !== 'admin') {
+		const membership = this.churchMemberships.find(m => m.church_id === churchId);
+		if (!membership || membership.role !== 'admin') {
 			throw new Error('Only church administrators can delete churches');
 		}
 

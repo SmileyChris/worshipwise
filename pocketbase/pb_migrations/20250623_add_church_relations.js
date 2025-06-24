@@ -37,11 +37,11 @@ migrate(
     songsCollection.fields = [churchIdField, ...existingFields];
 
     // Update access rules to include church scoping
-    songsCollection.listRule = "@request.auth.id != '' && church_id.id ?= @request.auth.church_memberships_via_user.church_id.id";
-    songsCollection.viewRule = "@request.auth.id != '' && church_id.id ?= @request.auth.church_memberships_via_user.church_id.id";
-    songsCollection.createRule = "@request.auth.id != '' && church_id.id ?= @request.auth.church_memberships_via_user.church_id.id";
-    songsCollection.updateRule = "@request.auth.id != '' && created_by = @request.auth.id && church_id.id ?= @request.auth.church_memberships_via_user.church_id.id";
-    songsCollection.deleteRule = "@request.auth.id != '' && created_by = @request.auth.id && church_id.id ?= @request.auth.church_memberships_via_user.church_id.id";
+    songsCollection.listRule = "@request.auth.id != '' && church_id ?= @request.auth.church_memberships_via_user_id.church_id";
+    songsCollection.viewRule = "@request.auth.id != '' && church_id ?= @request.auth.church_memberships_via_user_id.church_id";
+    songsCollection.createRule = "@request.auth.id != ''";
+    songsCollection.updateRule = "@request.auth.id != '' && created_by = @request.auth.id && church_id ?= @request.auth.church_memberships_via_user_id.church_id";
+    songsCollection.deleteRule = "@request.auth.id != '' && created_by = @request.auth.id && church_id ?= @request.auth.church_memberships_via_user_id.church_id";
 
     try {
       app.save(songsCollection);
@@ -73,11 +73,11 @@ migrate(
     servicesCollection.fields = [churchIdField, ...existingFields];
 
     // Update access rules to include church scoping
-    servicesCollection.listRule = "@request.auth.id != '' && church_id.id ?= @request.auth.church_memberships_via_user.church_id.id";
-    servicesCollection.viewRule = "@request.auth.id != '' && church_id.id ?= @request.auth.church_memberships_via_user.church_id.id";
-    servicesCollection.createRule = "@request.auth.id != '' && church_id.id ?= @request.auth.church_memberships_via_user.church_id.id";
-    servicesCollection.updateRule = "@request.auth.id != '' && created_by = @request.auth.id && church_id.id ?= @request.auth.church_memberships_via_user.church_id.id";
-    servicesCollection.deleteRule = "@request.auth.id != '' && created_by = @request.auth.id && church_id.id ?= @request.auth.church_memberships_via_user.church_id.id";
+    servicesCollection.listRule = "@request.auth.id != '' && church_id ?= @request.auth.church_memberships_via_user_id.church_id";
+    servicesCollection.viewRule = "@request.auth.id != '' && church_id ?= @request.auth.church_memberships_via_user_id.church_id";
+    servicesCollection.createRule = "@request.auth.id != ''";
+    servicesCollection.updateRule = "@request.auth.id != '' && created_by = @request.auth.id && church_id ?= @request.auth.church_memberships_via_user_id.church_id";
+    servicesCollection.deleteRule = "@request.auth.id != '' && created_by = @request.auth.id && church_id ?= @request.auth.church_memberships_via_user_id.church_id";
 
     try {
       app.save(servicesCollection);
@@ -109,9 +109,9 @@ migrate(
     songUsageCollection.fields = [churchIdField, ...existingFields];
 
     // Update access rules to include church scoping
-    songUsageCollection.listRule = "@request.auth.id != '' && church_id.id ?= @request.auth.church_memberships_via_user.church_id.id";
-    songUsageCollection.viewRule = "@request.auth.id != '' && church_id.id ?= @request.auth.church_memberships_via_user.church_id.id";
-    songUsageCollection.createRule = "@request.auth.id != '' && church_id.id ?= @request.auth.church_memberships_via_user.church_id.id";
+    songUsageCollection.listRule = "@request.auth.id != '' && church_id ?= @request.auth.church_memberships_via_user_id.church_id";
+    songUsageCollection.viewRule = "@request.auth.id != '' && church_id ?= @request.auth.church_memberships_via_user_id.church_id";
+    songUsageCollection.createRule = "@request.auth.id != ''";
 
     try {
       app.save(songUsageCollection);

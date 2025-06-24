@@ -9,8 +9,16 @@ export class CategoriesAPI {
 	 */
 	async getCategories(): Promise<Category[]> {
 		try {
+			// Get current user's church context
+			const { auth } = await import('$lib/stores/auth.svelte');
+			const currentChurch = auth.currentChurch;
+			
+			if (!currentChurch) {
+				throw new Error('No church context available - please ensure you are logged in and have selected a church');
+			}
+
 			const records = await pb.collection(this.collection).getFullList({
-				filter: 'is_active = true',
+				filter: `is_active = true && church_id = "${currentChurch.id}"`,
 				sort: 'sort_order'
 			});
 
@@ -44,8 +52,17 @@ export class CategoriesAPI {
 		sort_order: number;
 	}): Promise<Category> {
 		try {
+			// Get current user's church context
+			const { auth } = await import('$lib/stores/auth.svelte');
+			const currentChurch = auth.currentChurch;
+			
+			if (!currentChurch) {
+				throw new Error('No church context available - please ensure you are logged in and have selected a church');
+			}
+
 			const record = await pb.collection(this.collection).create({
 				...data,
+				church_id: currentChurch.id,
 				is_active: true
 			});
 			return record as unknown as Category;

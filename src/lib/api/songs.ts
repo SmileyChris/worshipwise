@@ -10,7 +10,12 @@ export class SongsAPI {
 	 */
 	async getSongs(options: SongFilterOptions = {}): Promise<Song[]> {
 		try {
-			let filter = 'is_active = true';
+			// Ensure user has a current church
+			if (!auth.currentChurch?.id) {
+				throw new Error('No church selected. Please select a church to view songs.');
+			}
+
+			let filter = `is_active = true && church_id = "${auth.currentChurch.id}"`;
 			const filterParts: string[] = [];
 
 			// Add search filter
@@ -79,6 +84,11 @@ export class SongsAPI {
 		cutoffDate.setDate(cutoffDate.getDate() - weeksToCheck * 7);
 
 		try {
+			// Ensure user has a current church
+			if (!auth.currentChurch?.id) {
+				throw new Error('No church selected. Please select a church to view songs.');
+			}
+
 			// First, get recently used song IDs
 			const recentUsage = await pb.collection('song_usage').getFullList({
 				filter: `used_date >= "${cutoffDate.toISOString()}"`,
@@ -88,7 +98,7 @@ export class SongsAPI {
 			const recentSongIds = recentUsage.map((u) => u.song_id);
 
 			// Build filter to exclude recently used songs
-			let filterQuery = 'is_active = true';
+			let filterQuery = `is_active = true && church_id = "${auth.currentChurch.id}"`;
 			if (recentSongIds.length > 0) {
 				const excludeFilter = recentSongIds.map((id) => `id != "${id}"`).join(' && ');
 				filterQuery += ` && (${excludeFilter})`;
@@ -138,7 +148,12 @@ export class SongsAPI {
 		perPage: number;
 	}> {
 		try {
-			let filter = 'is_active = true';
+			// Ensure user has a current church
+			if (!auth.currentChurch?.id) {
+				throw new Error('No church selected. Please select a church to view songs.');
+			}
+
+			let filter = `is_active = true && church_id = "${auth.currentChurch.id}"`;
 			const filterParts: string[] = [];
 
 			// Apply same filtering logic as getSongs
