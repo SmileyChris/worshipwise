@@ -173,7 +173,7 @@
 			<div class="p-6">
 				<h3 class="font-title mb-4 text-lg font-medium text-gray-900">Quick Actions</h3>
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-					<Button href="/admin/users" variant="outline" class="justify-start">
+					<Button href="/admin/members" variant="outline" class="justify-start">
 						<span class="mr-2">👥</span>
 						Manage Users
 					</Button>

@@ -18,6 +18,8 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import UserEditModal from '$lib/components/admin/UserEditModal.svelte';
 	import ConfirmDialog from '$lib/components/admin/ConfirmDialog.svelte';
+	import { auth } from '$lib/stores/auth.svelte';
+	import { Trash2 } from 'lucide-svelte';
 
 	// State
 	let users = $state<UserListResponse | null>(null);
@@ -33,10 +35,31 @@
 	// Modals and actions
 	let editingUser = $state<UserWithMembership | null>(null);
 	let deletingUser = $state<UserWithMembership | null>(null);
+	let deletingChurch = $state(false);
 	let actionLoading = $state(false);
 
 	// Search debounce
 	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+
+	// Derived state
+	let isOnlyMember = $derived(users?.totalItems === 1);
+
+	async function handleDeleteChurch() {
+		if (!auth.currentChurch) return;
+
+		try {
+			actionLoading = true;
+			await auth.deleteChurch(auth.currentChurch.id);
+			deletingChurch = false;
+			// Redirect to setup since church is deleted
+			window.location.href = '/setup';
+		} catch (error) {
+			console.error('Failed to delete church:', error);
+			// Handle error appropriately
+		} finally {
+			actionLoading = false;
+		}
+	}
 
 	async function loadUsers() {
 		try {
@@ -455,6 +478,36 @@
 			</div>
 		{/if}
 	</Card>
+
+	<!-- Delete Church Section - Only show if user is the only member -->
+	{#if isOnlyMember && auth.isAdmin}
+		<Card class="mt-6 border-red-200 bg-red-50">
+			<div class="p-6">
+				<div class="flex items-start space-x-3">
+					<Trash2 class="h-6 w-6 text-red-600 mt-0.5" />
+					<div class="flex-1">
+						<h3 class="text-lg font-medium text-red-900">Delete Church</h3>
+						<p class="mt-1 text-sm text-red-700">
+							You are the only member of this church. If you no longer need this church, you can permanently delete it and all its data.
+						</p>
+						<p class="mt-2 text-sm text-red-600 font-medium">
+							Warning: This action cannot be undone. All songs, services, and church data will be permanently deleted.
+						</p>
+						<div class="mt-4">
+							<Button
+								onclick={() => (deletingChurch = true)}
+								variant="danger"
+								size="sm"
+							>
+								<Trash2 class="mr-2 h-4 w-4" />
+								Delete Church
+							</Button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</Card>
+	{/if}
 </div>
 
 <!-- Edit User Modal -->
@@ -480,6 +533,20 @@
 		confirmLabel="Delete User"
 		onconfirm={handleDeleteUser}
 		oncancel={() => (deletingUser = null)}
+		loading={actionLoading}
+		danger={true}
+	/>
+{/if}
+
+<!-- Delete Church Confirmation -->
+{#if deletingChurch}
+	<ConfirmDialog
+		open={deletingChurch}
+		title="Delete Church"
+		message="Are you sure you want to permanently delete '{auth.currentChurch?.name}' and all its data? This includes all songs, services, analytics, and member information. This action cannot be undone."
+		confirmLabel="Delete Church"
+		onconfirm={handleDeleteChurch}
+		oncancel={() => (deletingChurch = false)}
 		loading={actionLoading}
 		danger={true}
 	/>

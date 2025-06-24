@@ -21,10 +21,6 @@
 			items.push({ name: 'Analytics', href: '/analytics', icon: '📊' });
 		}
 
-		// Add admin section for admins only
-		if (auth.isAdmin) {
-			items.push({ name: 'Admin', href: '/admin', icon: '⚙️' });
-		}
 
 		return items;
 	});
