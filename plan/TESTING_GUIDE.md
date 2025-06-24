@@ -1158,4 +1158,145 @@ export default defineConfig({
 }
 ```
 
+## Enhanced PocketBase Mocking System
+
+### Improved Mock Architecture
+
+The PocketBase mocking system has been significantly improved for better maintainability and developer experience:
+
+#### **Type-Safe Mock Data Builders**
+
+Simple factory functions replace complex builder patterns:
+
+```typescript
+import { mockUser, mockChurch, mockMembership } from '../../../tests/helpers/mock-builders';
+
+// Object-based approach - more concise and readable
+const user = mockUser({
+  email: 'test@example.com',
+  name: 'Test User'
+});
+
+const church = mockChurch({
+  name: 'Test Church',
+  timezone: 'America/New_York'
+});
+
+const membership = mockMembership({
+  user_id: user.id,
+  church_id: church.id,
+  role: 'admin'
+});
+```
+
+#### **Standardized Error Testing**
+
+Realistic error responses matching PocketBase structure:
+
+```typescript
+import { pbErrors } from '../../../tests/helpers/pb-mock';
+
+// Standard error types
+setupMockPb()
+  .collection('songs')
+  .fails(pbErrors.notFound());
+
+setupMockPb()
+  .collection('users')
+  .fails(pbErrors.unauthorized());
+
+// Validation errors with field details
+setupMockPb()
+  .collection('users')
+  .fails(pbErrors.validation({
+    email: { code: 'validation_invalid_email', message: 'Invalid email format' }
+  }));
+```
+
+#### **Fluent Mock Setup**
+
+Chainable operations for cleaner test setup:
+
+```typescript
+import { setupMockPb } from '../../../tests/helpers/pb-mock';
+
+// Setup authentication and collections
+setupMockPb()
+  .withAuth(mockUser())
+  .collection('songs')
+  .returnsMany([song1, song2, song3]);
+
+// Setup multiple operations
+setupMockPb()
+  .collection('church_memberships')
+  .returnsOne(membership)
+  .onCreate(newMembership)
+  .onUpdate(updatedMembership);
+```
+
+#### **Helper Functions**
+
+Convenient shortcuts for common patterns:
+
+```typescript
+import { createMany, mockAdmin, mockLeader, mockMusician, resetMockCounters } from '../../../tests/helpers/mock-builders';
+
+beforeEach(() => {
+  resetMockCounters(); // Consistent IDs across tests
+});
+
+// Create multiple items with variations
+const songs = createMany(mockSong, 5, (i) => ({
+  title: `Song ${i + 1}`,
+  key_signature: ['C', 'D', 'E', 'F', 'G'][i]
+}));
+
+// Role-specific shortcuts
+const adminMembership = mockAdmin({ user_id: 'user-1' });
+const leaderMembership = mockLeader({ user_id: 'user-2' });
+const musicianMembership = mockMusician({ user_id: 'user-3' });
+```
+
+#### **Migration Example**
+
+**Before (verbose builder pattern):**
+```typescript
+const user = mockUser()
+  .withEmail('admin@test.com')
+  .withName('Admin')
+  .build();
+
+const membership = mockMembership()
+  .asAdmin()
+  .forUser(user.id)
+  .forChurch('church-1')
+  .build();
+```
+
+**After (concise factory approach):**
+```typescript
+const user = mockUser({
+  email: 'admin@test.com',
+  name: 'Admin'
+});
+
+const membership = mockMembership({
+  role: 'admin',
+  user_id: user.id,
+  church_id: 'church-1'
+});
+```
+
+#### **Best Practices**
+
+1. **Import from setup**: Server tests should import from `../../../tests/helpers/setup`
+2. **Reset counters**: Use `resetMockCounters()` in test setup for predictable IDs
+3. **Named mocks**: All mocks include `.mockName()` for better debugging output
+4. **Type safety**: All factories provide full TypeScript support
+5. **Error realism**: Use `pbErrors` for realistic error responses
+
+This improved mocking system provides better developer experience, type safety, and maintainability while closely matching PocketBase's actual behavior.
+
+---
+
 This comprehensive testing guide provides a solid foundation for maintaining high code quality and ensuring the reliability of the WorshipWise application throughout development and deployment.
