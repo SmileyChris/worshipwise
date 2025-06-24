@@ -56,21 +56,21 @@
 
 			for (const church of auth.availableChurches) {
 				// Get member count and admin info for each church
-				const profiles = await pb.collection('profiles').getList(1, 50, {
-					filter: `church_id = "${church.id}"`,
+				const memberships = await pb.collection('church_memberships').getList(1, 50, {
+					filter: `church_id = "${church.id}" && is_active = true`,
 					expand: 'user_id'
 				});
 
-				const admins = profiles.items.filter((p) => p.role === 'admin');
-				const members = profiles.items.length;
+				const admins = memberships.items.filter((m) => m.role === 'admin');
+				const members = memberships.items.length;
 
 				details[church.id] = {
 					memberCount: members,
 					adminCount: admins.length,
 					admins: admins.map((a) => ({
 						id: a.id,
-						name: a.name || 'Unknown',
-						email: a.expand?.user?.email || 'Unknown'
+						name: a.expand?.user_id?.name || 'Unknown',
+						email: a.expand?.user_id?.email || 'Unknown'
 					})),
 					isCurrentUserAdmin: admins.some((a) => a.user_id === auth.user?.id),
 					isOnlyAdmin: admins.length === 1 && admins[0].user_id === auth.user?.id

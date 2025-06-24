@@ -311,11 +311,6 @@
 												{user.name || 'No name'}
 											</div>
 											<div class="text-sm text-gray-500">{user.email}</div>
-											{#if user.membership?.expand?.church_id}
-												<div class="text-xs text-gray-400">
-													{user.membership.expand.church_id.name}
-												</div>
-											{/if}
 										</div>
 									</div>
 								</td>

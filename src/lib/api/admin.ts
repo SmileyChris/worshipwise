@@ -30,31 +30,33 @@ export interface AdminStats {
  */
 export async function getAdminStats(): Promise<AdminStats> {
 	try {
-		// Get total users count
-		const usersCount = await pb.collection('users').getList(1, 1, {
-			fields: 'id'
-		});
-
-		// Get profiles with role breakdown
-		const profiles = await pb.collection('profiles').getFullList({
+		// Get current church
+		const currentUser = pb.authStore.model;
+		if (!currentUser?.current_church_id) {
+			throw new Error('No current church selected');
+		}
+		
+		// Get church memberships with role breakdown for the current church
+		const memberships = await pb.collection('church_memberships').getFullList({
+			filter: `church_id = "${currentUser.current_church_id}"`,
 			fields: 'role,is_active,created'
 		});
 
-		// Calculate statistics
-		const totalUsers = usersCount.totalItems;
-		const activeUsers = profiles.filter((p) => p.is_active !== false).length;
-		const inactiveUsers = profiles.filter((p) => p.is_active === false).length;
+		// Calculate statistics - total users is now church members only
+		const totalUsers = memberships.length;
+		const activeUsers = memberships.filter((m) => m.is_active !== false).length;
+		const inactiveUsers = memberships.filter((m) => m.is_active === false).length;
 
 		const usersByRole = {
-			admin: profiles.filter((p) => p.role === 'admin').length,
-			leader: profiles.filter((p) => p.role === 'leader').length,
-			musician: profiles.filter((p) => p.role === 'musician').length
+			admin: memberships.filter((m) => m.role === 'admin').length,
+			leader: memberships.filter((m) => m.role === 'leader').length,
+			musician: memberships.filter((m) => m.role === 'musician').length
 		};
 
 		// Users created in last 30 days
 		const thirtyDaysAgo = new Date();
 		thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-		const recentlyCreated = profiles.filter((p) => new Date(p.created) > thirtyDaysAgo).length;
+		const recentlyCreated = memberships.filter((m) => new Date(m.created) > thirtyDaysAgo).length;
 
 		return {
 			totalUsers,
@@ -79,36 +81,32 @@ export async function getUsers(
 	sort: string = '-created'
 ): Promise<UserListResponse> {
 	try {
-		// Get users with pagination
-		const users = await pb.collection('users').getList(page, perPage, {
-			filter,
+		// Get current church
+		const currentUser = pb.authStore.model;
+		if (!currentUser?.current_church_id) {
+			throw new Error('No current church selected');
+		}
+
+		// First get church memberships for the current church
+		const memberships = await pb.collection('church_memberships').getList(page, perPage, {
+			filter: `church_id = "${currentUser.current_church_id}"`,
 			sort,
-			fields: 'id,email,name,verified,created,updated'
+			expand: 'user_id'
 		});
 
-		// Get profiles for all users in this page
-		const userIds = users.items.map((user) => user.id);
-		const profiles =
-			userIds.length > 0
-				? await pb.collection('profiles').getFullList({
-						filter: userIds.map((id) => `user_id = "${id}"`).join(' || ')
-					})
-				: [];
-
-		// Combine users with their profiles
-		const usersWithMemberships: UserWithMembership[] = users.items.map(
-			(user) =>
-				({
-					...user,
-					membership: profiles.find((p) => p.user_id === user.id)
-				}) as unknown as UserWithMembership
-		);
+		// Extract users from memberships
+		const usersWithMemberships: UserWithMembership[] = memberships.items
+			.filter((m) => m.expand?.user_id)
+			.map((membership) => ({
+				...membership.expand!.user_id,
+				membership: membership
+			}) as unknown as UserWithMembership);
 
 		return {
-			page: users.page,
-			perPage: users.perPage,
-			totalPages: users.totalPages,
-			totalItems: users.totalItems,
+			page: memberships.page,
+			perPage: memberships.perPage,
+			totalPages: memberships.totalPages,
+			totalItems: memberships.totalItems,
 			items: usersWithMemberships
 		};
 	} catch (error) {
@@ -125,9 +123,55 @@ export async function searchUsers(
 	page: number = 1,
 	perPage: number = 20
 ): Promise<UserListResponse> {
-	const filter = query.trim() ? `email ~ "${query}" || name ~ "${query}"` : '';
+	try {
+		// Get current church
+		const currentUser = pb.authStore.model;
+		if (!currentUser?.current_church_id) {
+			throw new Error('No current church selected');
+		}
 
-	return getUsers(page, perPage, filter);
+		// Search for users first
+		const users = await pb.collection('users').getFullList({
+			filter: query.trim() ? `email ~ "${query}" || name ~ "${query}"` : '',
+			fields: 'id,email,name,verified,created,updated'
+		});
+
+		if (users.length === 0) {
+			return {
+				page: 1,
+				perPage,
+				totalPages: 0,
+				totalItems: 0,
+				items: []
+			};
+		}
+
+		// Get memberships for found users in the current church
+		const userIds = users.map((u) => u.id);
+		const memberships = await pb.collection('church_memberships').getList(page, perPage, {
+			filter: `church_id = "${currentUser.current_church_id}" && (${userIds.map((id) => `user_id = "${id}"`).join(' || ')})`,
+			expand: 'user_id'
+		});
+
+		// Combine users with memberships
+		const usersWithMemberships: UserWithMembership[] = memberships.items
+			.filter((m) => m.expand?.user_id)
+			.map((membership) => ({
+				...membership.expand!.user_id,
+				membership: membership
+			}) as unknown as UserWithMembership);
+
+		return {
+			page: memberships.page,
+			perPage: memberships.perPage,
+			totalPages: memberships.totalPages,
+			totalItems: memberships.totalItems,
+			items: usersWithMemberships
+		};
+	} catch (error) {
+		console.error('Failed to search users:', error);
+		throw error;
+	}
 }
 
 /**
@@ -139,14 +183,19 @@ export async function getUsersByRole(
 	perPage: number = 20
 ): Promise<UserListResponse> {
 	try {
-		// First get profiles with the specified role
-		const profiles = await pb.collection('profiles').getList(page, perPage, {
-			filter: `role = "${role}"`,
+		// First get church memberships with the specified role
+		const currentUser = pb.authStore.model;
+		if (!currentUser?.current_church_id) {
+			throw new Error('No current church selected');
+		}
+		
+		const memberships = await pb.collection('church_memberships').getList(page, perPage, {
+			filter: `church_id = "${currentUser.current_church_id}" && role = "${role}"`,
 			sort: '-created'
 		});
 
-		// Get users for these profiles
-		const userIds = profiles.items.map((p) => p.user_id);
+		// Get users for these memberships
+		const userIds = memberships.items.map((m) => m.user_id);
 		const users =
 			userIds.length > 0
 				? await pb.collection('users').getFullList({
@@ -160,15 +209,15 @@ export async function getUsersByRole(
 			(user) =>
 				({
 					...user,
-					membership: profiles.items.find((p) => p.user_id === user.id)
+					membership: memberships.items.find((m) => m.user_id === user.id)
 				}) as unknown as UserWithMembership
 		);
 
 		return {
-			page: profiles.page,
-			perPage: profiles.perPage,
-			totalPages: profiles.totalPages,
-			totalItems: profiles.totalItems,
+			page: memberships.page,
+			perPage: memberships.perPage,
+			totalPages: memberships.totalPages,
+			totalItems: memberships.totalItems,
 			items: usersWithMemberships
 		};
 	} catch (error) {
@@ -213,14 +262,19 @@ export async function updateUserMembership(
  */
 export async function deactivateUser(userId: string): Promise<void> {
 	try {
-		// Get user's profile
-		const profiles = await pb.collection('profiles').getList(1, 1, {
-			filter: `user_id = "${userId}"`
+		// Get user's church membership
+		const currentUser = pb.authStore.model;
+		if (!currentUser?.current_church_id) {
+			throw new Error('No current church selected');
+		}
+		
+		const memberships = await pb.collection('church_memberships').getList(1, 1, {
+			filter: `user_id = "${userId}" && church_id = "${currentUser.current_church_id}"`
 		});
 
-		if (profiles.items.length > 0) {
-			const profile = profiles.items[0];
-			await pb.collection('profiles').update(profile.id, {
+		if (memberships.items.length > 0) {
+			const membership = memberships.items[0];
+			await pb.collection('church_memberships').update(membership.id, {
 				is_active: false
 			});
 		}
@@ -235,14 +289,19 @@ export async function deactivateUser(userId: string): Promise<void> {
  */
 export async function reactivateUser(userId: string): Promise<void> {
 	try {
-		// Get user's profile
-		const profiles = await pb.collection('profiles').getList(1, 1, {
-			filter: `user_id = "${userId}"`
+		// Get user's church membership
+		const currentUser = pb.authStore.model;
+		if (!currentUser?.current_church_id) {
+			throw new Error('No current church selected');
+		}
+		
+		const memberships = await pb.collection('church_memberships').getList(1, 1, {
+			filter: `user_id = "${userId}" && church_id = "${currentUser.current_church_id}"`
 		});
 
-		if (profiles.items.length > 0) {
-			const profile = profiles.items[0];
-			await pb.collection('profiles').update(profile.id, {
+		if (memberships.items.length > 0) {
+			const membership = memberships.items[0];
+			await pb.collection('church_memberships').update(membership.id, {
 				is_active: true
 			});
 		}
@@ -257,13 +316,13 @@ export async function reactivateUser(userId: string): Promise<void> {
  */
 export async function deleteUser(userId: string): Promise<void> {
 	try {
-		// First delete the profile
-		const profiles = await pb.collection('profiles').getList(1, 1, {
+		// First delete all church memberships for this user
+		const memberships = await pb.collection('church_memberships').getFullList({
 			filter: `user_id = "${userId}"`
 		});
 
-		if (profiles.items.length > 0) {
-			await pb.collection('profiles').delete(profiles.items[0].id);
+		for (const membership of memberships) {
+			await pb.collection('church_memberships').delete(membership.id);
 		}
 
 		// Then delete the user
@@ -282,18 +341,23 @@ export async function changeUserRole(
 	newRole: 'musician' | 'leader' | 'admin'
 ): Promise<void> {
 	try {
-		// Get user's profile
-		const profiles = await pb.collection('profiles').getList(1, 1, {
-			filter: `user_id = "${userId}"`
+		// Get user's church membership
+		const currentUser = pb.authStore.model;
+		if (!currentUser?.current_church_id) {
+			throw new Error('No current church selected');
+		}
+		
+		const memberships = await pb.collection('church_memberships').getList(1, 1, {
+			filter: `user_id = "${userId}" && church_id = "${currentUser.current_church_id}"`
 		});
 
-		if (profiles.items.length > 0) {
-			const profile = profiles.items[0];
-			await pb.collection('profiles').update(profile.id, {
+		if (memberships.items.length > 0) {
+			const membership = memberships.items[0];
+			await pb.collection('church_memberships').update(membership.id, {
 				role: newRole
 			});
 		} else {
-			throw new Error('User profile not found');
+			throw new Error('User membership not found in current church');
 		}
 	} catch (error) {
 		console.error('Failed to change user role:', error);
