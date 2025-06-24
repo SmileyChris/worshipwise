@@ -247,7 +247,7 @@ class AuthStore {
 	user = $state(pb.authStore.model);
 	token = $state(pb.authStore.token);
 	isValid = $state(pb.authStore.isValid);
-	
+
 	// Church context
 	currentChurch = $state<Church | null>(null);
 	membership = $state<ChurchMembership | null>(null);
@@ -269,10 +269,11 @@ class AuthStore {
 
 		try {
 			// Get user's church membership
-			const membership = await pb.collection('church_memberships').getFirstListItem(
-				`user_id = "${this.user.id}" && status = "active"`,
-				{ expand: 'church_id' }
-			);
+			const membership = await pb
+				.collection('church_memberships')
+				.getFirstListItem(`user_id = "${this.user.id}" && status = "active"`, {
+					expand: 'church_id'
+				});
 
 			this.membership = membership;
 			this.currentChurch = membership.expand?.church_id || null;
@@ -286,8 +287,10 @@ class AuthStore {
 	}
 
 	canManageUsers(): boolean {
-		return this.hasPermission('users:manage') || 
-		       ['admin', 'pastor'].includes(this.membership?.role || '');
+		return (
+			this.hasPermission('users:manage') ||
+			['admin', 'pastor'].includes(this.membership?.role || '')
+		);
 	}
 }
 

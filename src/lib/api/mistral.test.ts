@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createMistralClient, isValidMistralAPIKey } from './mistral';
 
-
 describe('Mistral API Client', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();

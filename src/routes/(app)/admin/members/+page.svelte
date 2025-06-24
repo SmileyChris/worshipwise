@@ -484,21 +484,19 @@
 		<Card class="mt-6 border-red-200 bg-red-50">
 			<div class="p-6">
 				<div class="flex items-start space-x-3">
-					<Trash2 class="h-6 w-6 text-red-600 mt-0.5" />
+					<Trash2 class="mt-0.5 h-6 w-6 text-red-600" />
 					<div class="flex-1">
 						<h3 class="text-lg font-medium text-red-900">Delete Church</h3>
 						<p class="mt-1 text-sm text-red-700">
-							You are the only member of this church. If you no longer need this church, you can permanently delete it and all its data.
+							You are the only member of this church. If you no longer need this church, you can
+							permanently delete it and all its data.
 						</p>
-						<p class="mt-2 text-sm text-red-600 font-medium">
-							Warning: This action cannot be undone. All songs, services, and church data will be permanently deleted.
+						<p class="mt-2 text-sm font-medium text-red-600">
+							Warning: This action cannot be undone. All songs, services, and church data will be
+							permanently deleted.
 						</p>
 						<div class="mt-4">
-							<Button
-								onclick={() => (deletingChurch = true)}
-								variant="danger"
-								size="sm"
-							>
+							<Button onclick={() => (deletingChurch = true)} variant="danger" size="sm">
 								<Trash2 class="mr-2 h-4 w-4" />
 								Delete Church
 							</Button>
@@ -543,7 +541,8 @@
 	<ConfirmDialog
 		open={deletingChurch}
 		title="Delete Church"
-		message="Are you sure you want to permanently delete '{auth.currentChurch?.name}' and all its data? This includes all songs, services, analytics, and member information. This action cannot be undone."
+		message="Are you sure you want to permanently delete '{auth.currentChurch
+			?.name}' and all its data? This includes all songs, services, analytics, and member information. This action cannot be undone."
 		confirmLabel="Delete Church"
 		onconfirm={handleDeleteChurch}
 		oncancel={() => (deletingChurch = false)}

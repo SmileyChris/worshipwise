@@ -193,12 +193,9 @@ describe('AuthStore', () => {
 				passwordConfirm: registerData.passwordConfirm
 			});
 
-			// Note: In real implementation, church_id would come from setup context
-			expect(membershipsCollection.create).toHaveBeenCalledWith(expect.objectContaining({
-				user_id: mockUser.id,
-				role: registerData.role,
-				status: 'active'
-			}));
+			// Note: Church membership is not created during registration
+			// It's created when user joins a church
+			expect(membershipsCollection.create).not.toHaveBeenCalled();
 
 			expect(goto).toHaveBeenCalledWith('/dashboard');
 			expect(auth.loading).toBe(false);
@@ -239,10 +236,10 @@ describe('AuthStore', () => {
 			};
 
 			const mockUser = { id: 'user1', email: 'newuser@example.com' };
-			const mockMembership = { 
-				id: 'membership1', 
+			const mockMembership = {
+				id: 'membership1',
 				church_id: 'church1',
-				user_id: 'user1', 
+				user_id: 'user1',
 				role: 'musician',
 				permissions: [],
 				status: 'active'
@@ -257,12 +254,8 @@ describe('AuthStore', () => {
 
 			await auth.register(registerData);
 
-			expect(membershipsCollection.create).toHaveBeenCalledWith({
-				user_id: mockUser.id,
-				name: registerData.name,
-				role: 'musician', // Default role
-				is_active: true
-			});
+			// Church membership is not created during registration
+			expect(membershipsCollection.create).not.toHaveBeenCalled();
 		});
 	});
 
@@ -338,7 +331,10 @@ describe('AuthStore', () => {
 
 			await auth.loadProfile();
 
-			expect(console.error).toHaveBeenCalledWith('Failed to load current membership:', expect.any(Error));
+			expect(console.error).toHaveBeenCalledWith(
+				'Failed to load current membership:',
+				expect.any(Error)
+			);
 			expect(auth.currentMembership).toBeNull();
 		});
 	});
@@ -552,8 +548,8 @@ describe('AuthStore', () => {
 
 		it('should handle profile info update errors', async () => {
 			const mockUser = { id: 'user1', email: 'test@example.com' } as User;
-			const mockMembership = { 
-				id: 'membership1', 
+			const mockMembership = {
+				id: 'membership1',
 				church_id: 'church1',
 				user_id: 'user1',
 				role: 'musician',
@@ -721,11 +717,11 @@ describe('AuthStore', () => {
 			// User name takes precedence
 			auth.user = { name: 'User Name', email: 'test@example.com' } as User;
 			expect(auth.displayName).toBe('User Name');
-			
+
 			// Falls back to email if no name
 			auth.user = { email: 'test@example.com' } as User;
 			expect(auth.displayName).toBe('test@example.com');
-			
+
 			// Falls back to 'User' if no name or email
 			auth.user = {} as User;
 			expect(auth.displayName).toBe('User');

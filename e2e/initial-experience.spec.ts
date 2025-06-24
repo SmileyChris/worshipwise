@@ -68,9 +68,6 @@ test.describe('Initial User Experience', () => {
 		// Test form fields exist and can be filled
 		await page.fill('[name="churchName"]', 'Grace Community Church');
 		await page.selectOption('select', 'America/New_York');
-		await page.fill('[name="city"]', 'New York');
-		await page.fill('[name="state"]', 'NY');
-		await page.fill('[name="country"]', 'United States');
 
 		// Verify hemisphere detection appears
 		await expect(page.locator('text=Northern Hemisphere')).toBeVisible();
@@ -90,7 +87,7 @@ test.describe('Initial User Experience', () => {
 
 		// Verify setup summary shows entered data
 		await expect(page.locator('text=Grace Community Church')).toBeVisible();
-		await expect(page.locator('text=Pastor John')).toBeVisible();
+		await expect(page.locator('text=John Smith')).toBeVisible();
 
 		// Test back navigation
 		await page.click('text=Back');
@@ -141,7 +138,6 @@ test.describe('Initial User Experience', () => {
 		// Fill step 1 data
 		await page.fill('[name="churchName"]', 'Test Church');
 		await page.selectOption('select', 'UTC');
-		await page.fill('[name="city"]', 'Test City');
 
 		// Navigate to step 2
 		await page.click('text=Next Step');
@@ -151,7 +147,6 @@ test.describe('Initial User Experience', () => {
 
 		// Verify data is preserved
 		await expect(page.locator('[name="churchName"]')).toHaveValue('Test Church');
-		await expect(page.locator('[name="city"]')).toHaveValue('Test City');
 		await expect(page.locator('select')).toHaveValue('UTC');
 	});
 

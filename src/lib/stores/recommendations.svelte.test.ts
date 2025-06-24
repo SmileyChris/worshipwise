@@ -92,72 +92,79 @@ describe('RecommendationsStore', () => {
 
 	const mockFlowSuggestions: WorshipFlowSuggestion[] = [
 		{
-			position: 'after_song_2',
+			position: 2,
 			suggestion: 'Consider a slower transition',
 			reason: 'Large tempo change from 140 to 80 BPM',
-			priority: 'high',
-			songSuggestions: ['song-bridge-1']
+			recommendedTempo: 'medium',
+			recommendedKey: 'G'
 		},
 		{
-			position: 'before_song_4',
+			position: 4,
 			suggestion: 'Add bridge song',
 			reason: 'Key change from G to D might be difficult',
-			priority: 'medium',
-			songSuggestions: ['song-bridge-2']
+			recommendedTempo: 'slow',
+			recommendedKey: 'A'
 		}
 	];
 
 	const mockServiceBalance: ServiceBalanceAnalysis = {
-		serviceId: 'service-1',
-		balanceScore: 0.7,
-		analysis: {
-			tempoVariation: 'moderate',
-			keyProgression: 'good',
-			energyFlow: 'needs_improvement'
+		currentBalance: {
+			fast: 2,
+			medium: 3,
+			slow: 1
 		},
 		recommendations: [
 			'Consider adding a slower song after the opening',
 			'The key changes are well-planned'
 		],
-		metadata: {
-			avgTempo: 125,
-			tempoRange: { min: 80, max: 160 },
-			keyDistribution: { C: 2, G: 1, D: 1 }
+		idealBalance: {
+			fast: 2,
+			medium: 2,
+			slow: 2
 		}
 	};
 
 	const mockSeasonalTrends: SeasonalTrend[] = [
 		{
 			season: 'Christmas',
-			period: { start: '2024-12-01', end: '2024-12-31' },
-			trendingSongs: ['Silent Night', 'O Holy Night'],
-			popularThemes: ['birth', 'peace', 'joy'],
-			recommendedKeys: ['G', 'C', 'F'],
-			avgTempo: 100
+			month: 12,
+			popularSongs: [
+				{
+					songId: 'song-2',
+					title: 'Silent Night',
+					usageCount: 5,
+					trend: 'increasing'
+				},
+				{
+					songId: 'song-5',
+					title: 'O Holy Night',
+					usageCount: 3,
+					trend: 'stable'
+				}
+			],
+			suggestedThemes: ['birth', 'peace', 'joy']
 		}
 	];
 
 	const mockComparativePeriod: ComparativePeriod = {
-		currentPeriod: {
-			start: '2024-01-01',
-			end: '2024-01-31',
-			songCount: 25,
+		current: {
+			period: 'Jan 1, 2024 - Jan 31, 2024',
+			usageCount: 25,
 			uniqueSongs: 20,
-			avgRating: 4.5
+			avgServiceLength: 5
 		},
-		previousPeriod: {
-			start: '2023-12-01',
-			end: '2023-12-31',
-			songCount: 20,
+		previous: {
+			period: 'Dec 1, 2023 - Dec 31, 2023',
+			usageCount: 20,
 			uniqueSongs: 18,
-			avgRating: 4.3
+			avgServiceLength: 4.5
 		},
-		comparison: {
-			songCountChange: 5,
-			uniqueSongsChange: 2,
-			ratingChange: 0.2,
-			insights: ['More songs used this period', 'Higher ratings overall']
-		}
+		changes: {
+			usageChange: 25,
+			diversityChange: 11.1,
+			lengthChange: 11.1
+		},
+		insights: ['More songs used this period', 'Higher song diversity']
 	};
 
 	const mockWorshipInsights = {

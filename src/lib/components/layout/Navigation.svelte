@@ -21,7 +21,6 @@
 			items.push({ name: 'Analytics', href: '/analytics', icon: '📊' });
 		}
 
-
 		return items;
 	});
 

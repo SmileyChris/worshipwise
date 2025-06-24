@@ -70,6 +70,15 @@ describe('ProfileSettings', () => {
 		auth.getErrorMessage = vi.fn().mockReturnValue('Mock error message');
 		auth.isAdmin = false;
 		auth.hasRole = vi.fn().mockReturnValue(false);
+		auth.loadProfile = vi.fn().mockResolvedValue(undefined);
+
+		// Setup pb mocks
+		const mockUpdate = vi.fn().mockResolvedValue(mockUser);
+		const mockAuthWithPassword = vi.fn().mockResolvedValue({ record: mockUser });
+		pb.collection = vi.fn().mockImplementation((collection: string) => ({
+			update: mockUpdate,
+			authWithPassword: mockAuthWithPassword
+		}));
 	});
 
 	describe('Profile Information Form', () => {
@@ -79,7 +88,7 @@ describe('ProfileSettings', () => {
 			expect(screen.getByRole('heading', { name: 'Profile Information' })).toBeInTheDocument();
 			expect(screen.getByTestId('profile-name-input')).toHaveValue(mockUser.name);
 			expect(screen.getByTestId('profile-email-input')).toHaveValue(mockUser.email);
-			expect(screen.getByTestId('profile-role-select')).toHaveValue(mockMembership.role);
+			// Role is not editable in ProfileSettings - it's just user data
 		});
 
 		it('should validate name field', async () => {
@@ -131,29 +140,33 @@ describe('ProfileSettings', () => {
 
 			await fireEvent.click(updateButton);
 
-			expect(auth.updateProfile).toHaveBeenCalledWith({
-				name: 'Updated Name',
-				email: 'updated@example.com'
+			await waitFor(() => {
+				expect(pb.collection).toHaveBeenCalledWith('users');
+				const usersCollection = pb.collection('users');
+				expect(usersCollection.update).toHaveBeenCalledWith(mockUser.id, {
+					name: 'Updated Name',
+					email: 'updated@example.com'
+				});
 			});
 		});
 
-		it('should not update user data if email unchanged', async () => {
+		it('should update user data when name changes', async () => {
 			render(ProfileSettings);
 
 			const nameInput = screen.getByTestId('profile-name-input');
 			const updateButton = screen.getByRole('button', { name: /update profile/i });
 
-			// Change only profile data
+			// Change name only
 			await fireEvent.input(nameInput, { target: { value: 'Updated Name' } });
 			await fireEvent.click(updateButton);
 
-			expect(auth.updateProfile).toHaveBeenCalledWith(
-				{
+			await waitFor(() => {
+				const usersCollection = pb.collection('users');
+				expect(usersCollection.update).toHaveBeenCalledWith(mockUser.id, {
 					name: 'Updated Name',
-					role: 'musician'
-				},
-				undefined
-			);
+					email: mockUser.email // Email remains unchanged
+				});
+			});
 		});
 
 		it('should display profile update success message', async () => {

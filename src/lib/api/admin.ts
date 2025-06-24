@@ -5,7 +5,6 @@ import type { ChurchMembership } from '$lib/types/church';
 // Re-export types for convenience
 export type { UserWithMembership };
 
-
 export interface UserListResponse {
 	page: number;
 	perPage: number;
@@ -199,7 +198,9 @@ export async function updateUserMembership(
 	membershipData: Partial<ChurchMembership>
 ): Promise<ChurchMembership> {
 	try {
-		const updatedMembership = await pb.collection('church_memberships').update(membershipId, membershipData);
+		const updatedMembership = await pb
+			.collection('church_memberships')
+			.update(membershipId, membershipData);
 		return updatedMembership as unknown as ChurchMembership;
 	} catch (error) {
 		console.error('Failed to update user membership:', error);

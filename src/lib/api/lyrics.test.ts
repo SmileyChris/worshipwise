@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createLyricsSearchClient, validateLyricsContent } from './lyrics';
 
-
 describe('Lyrics Search Client', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();

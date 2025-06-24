@@ -53,7 +53,6 @@
 		}
 	}
 
-
 	function handleClickOutside(event: MouseEvent) {
 		const target = event.target as Element;
 		const dropdown = document.getElementById('church-switcher');
@@ -128,14 +127,18 @@
 							<!-- Main church button -->
 							<button
 								onclick={() => handleChurchSwitch(church.id)}
-								class="flex w-full items-center px-4 py-3 text-left transition-colors hover:bg-primary hover:text-white group/item cursor-pointer"
+								class="hover:bg-primary group/item flex w-full cursor-pointer items-center px-4 py-3 text-left transition-colors hover:text-white"
 								role="menuitem"
 							>
 								<div class="min-w-0 flex-1">
 									<div class="flex items-center space-x-2">
-										<Building class="h-4 w-4 flex-shrink-0 text-gray-400 group-hover/item:text-white" />
+										<Building
+											class="h-4 w-4 flex-shrink-0 text-gray-400 group-hover/item:text-white"
+										/>
 										<div class="min-w-0 flex-1">
-											<p class="truncate text-sm font-medium text-gray-900 group-hover/item:text-white">
+											<p
+												class="truncate text-sm font-medium text-gray-900 group-hover/item:text-white"
+											>
 												{getChurchDisplayName(church)}
 											</p>
 											{#if church.city}
@@ -173,7 +176,6 @@
 									</button>
 								</div>
 							{/if}
-
 						</div>
 					{/each}
 				</div>
@@ -182,7 +184,7 @@
 				<div class="border-t border-gray-100 pt-2">
 					<a
 						href="/churches/add"
-						class="flex w-full items-center px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 cursor-pointer"
+						class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
 						onclick={closeDropdown}
 						role="menuitem"
 					>
@@ -210,7 +212,6 @@
 						</p>
 					</div>
 				{/if}
-
 			</div>
 		{/if}
 	</div>

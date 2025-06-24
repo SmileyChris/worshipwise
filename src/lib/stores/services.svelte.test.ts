@@ -57,14 +57,15 @@ describe('ServicesStore', () => {
 	const mockService: Service = {
 		id: 'service-1',
 		church_id: 'church-1',
-		name: 'Sunday Morning Service',
+		title: 'Sunday Morning Service',
 		theme: 'Worship',
 		service_date: '2024-01-07T10:00:00Z',
 		status: 'planned',
 		estimated_duration: 3600,
-		actual_duration: null,
+		actual_duration: undefined,
 		notes: 'Test service',
 		is_template: false,
+		worship_leader: 'user-1',
 		created: '2024-01-01T00:00:00Z',
 		updated: '2024-01-01T00:00:00Z'
 	};
@@ -74,10 +75,10 @@ describe('ServicesStore', () => {
 		service_id: 'service-1',
 		song_id: 'song-1',
 		order_position: 1,
-		key_signature: 'C',
-		tempo_bpm: 120,
+		transposed_key: 'C',
+		tempo_override: 120,
 		duration_override: 240,
-		notes: 'Intro song',
+		special_notes: 'Intro song',
 		created: '2024-01-01T00:00:00Z',
 		updated: '2024-01-01T00:00:00Z',
 		expand: {
@@ -85,7 +86,13 @@ describe('ServicesStore', () => {
 				id: 'song-1',
 				title: 'Amazing Grace',
 				artist: 'Traditional',
-				duration_seconds: 240
+				duration_seconds: 240,
+				church_id: 'church-1',
+				category: 'category-1',
+				created_by: 'user-1',
+				is_active: true,
+				created: '2024-01-01T00:00:00Z',
+				updated: '2024-01-01T00:00:00Z'
 			} as Song
 		}
 	};
@@ -96,14 +103,16 @@ describe('ServicesStore', () => {
 		title: 'Amazing Grace',
 		artist: 'Traditional',
 		key_signature: 'C',
-		tempo_bpm: 120,
+		tempo: 120,
 		duration_seconds: 240,
 		ccli_number: '12345',
-		copyright_year: 1779,
-		themes: ['worship', 'grace'],
+		copyright_info: 'Public Domain (1779)',
+		tags: ['worship', 'grace'],
 		labels: ['classic'],
 		notes: 'Traditional hymn',
-		files: [],
+		category: 'category-1',
+		created_by: 'user-1',
+		is_active: true,
 		created: '2024-01-01T00:00:00Z',
 		updated: '2024-01-01T00:00:00Z'
 	};
@@ -229,11 +238,11 @@ describe('ServicesStore', () => {
 	describe('createService', () => {
 		it('should create service successfully', async () => {
 			const createData: CreateServiceData = {
-				church_id: 'church-1',
-				name: 'New Service',
+				title: 'New Service',
 				theme: 'Praise',
 				service_date: '2024-01-14T10:00:00Z',
-				estimated_duration: 3600
+				estimated_duration: 3600,
+				worship_leader: 'user-1'
 			};
 			mockedServicesApi.createService.mockResolvedValue(mockService);
 
@@ -248,11 +257,11 @@ describe('ServicesStore', () => {
 
 		it('should handle errors when creating service', async () => {
 			const createData: CreateServiceData = {
-				church_id: 'church-1',
-				name: 'New Service',
+				title: 'New Service',
 				theme: 'Praise',
 				service_date: '2024-01-14T10:00:00Z',
-				estimated_duration: 3600
+				estimated_duration: 3600,
+				worship_leader: 'user-1'
 			};
 			const error = new Error('Validation failed');
 			mockedServicesApi.createService.mockRejectedValue(error);
@@ -273,8 +282,8 @@ describe('ServicesStore', () => {
 		});
 
 		it('should update service successfully', async () => {
-			const updateData: UpdateServiceData = { name: 'Updated Service' };
-			const updatedService = { ...mockService, name: 'Updated Service' };
+			const updateData: UpdateServiceData = { title: 'Updated Service' };
+			const updatedService = { ...mockService, title: 'Updated Service' };
 			mockedServicesApi.updateService.mockResolvedValue(updatedService);
 
 			const result = await servicesStore.updateService('service-1', updateData);
@@ -287,8 +296,8 @@ describe('ServicesStore', () => {
 		});
 
 		it('should handle updating non-existent service in local array', async () => {
-			const updateData: UpdateServiceData = { name: 'Updated Service' };
-			const updatedService = { ...mockService, id: 'different-id', name: 'Updated Service' };
+			const updateData: UpdateServiceData = { title: 'Updated Service' };
+			const updatedService = { ...mockService, id: 'different-id', title: 'Updated Service' };
 			mockedServicesApi.updateService.mockResolvedValue(updatedService);
 
 			const result = await servicesStore.updateService('different-id', updateData);
@@ -298,7 +307,7 @@ describe('ServicesStore', () => {
 		});
 
 		it('should handle errors when updating service', async () => {
-			const updateData: UpdateServiceData = { name: 'Updated Service' };
+			const updateData: UpdateServiceData = { title: 'Updated Service' };
 			const error = new Error('Update failed');
 			mockedServicesApi.updateService.mockRejectedValue(error);
 
@@ -362,8 +371,8 @@ describe('ServicesStore', () => {
 			const songData: AddSongToServiceData = {
 				song_id: 'song-1',
 				order_position: 1,
-				key_signature: 'C',
-				tempo_bpm: 120
+				transposed_key: 'C',
+				tempo_override: 120
 			};
 			mockedServicesApi.addSongToService.mockResolvedValue(mockServiceSong);
 
@@ -457,8 +466,8 @@ describe('ServicesStore', () => {
 		});
 
 		it('should update service song successfully', async () => {
-			const updateData: UpdateServiceSongData = { key_signature: 'D' };
-			const updatedSong = { ...mockServiceSong, key_signature: 'D' };
+			const updateData: UpdateServiceSongData = { transposed_key: 'D' };
+			const updatedSong = { ...mockServiceSong, transposed_key: 'D' };
 			mockedServicesApi.updateServiceSong.mockResolvedValue(updatedSong);
 
 			await servicesStore.updateServiceSong('service-song-1', updateData);
@@ -473,8 +482,8 @@ describe('ServicesStore', () => {
 		});
 
 		it('should handle updating non-existent service song', async () => {
-			const updateData: UpdateServiceSongData = { key_signature: 'D' };
-			const updatedSong = { ...mockServiceSong, id: 'different-id', key_signature: 'D' };
+			const updateData: UpdateServiceSongData = { transposed_key: 'D' };
+			const updatedSong = { ...mockServiceSong, id: 'different-id', transposed_key: 'D' };
 			mockedServicesApi.updateServiceSong.mockResolvedValue(updatedSong);
 
 			await servicesStore.updateServiceSong('different-id', updateData);
@@ -483,7 +492,7 @@ describe('ServicesStore', () => {
 		});
 
 		it('should handle errors when updating service song', async () => {
-			const updateData: UpdateServiceSongData = { key_signature: 'D' };
+			const updateData: UpdateServiceSongData = { transposed_key: 'D' };
 			const error = new Error('Update failed');
 			mockedServicesApi.updateServiceSong.mockRejectedValue(error);
 
@@ -771,10 +780,12 @@ describe('ServicesStore', () => {
 			servicesStore.currentService = mockService;
 
 			let eventHandler!: (data: unknown) => void;
-			mockedServicesApi.subscribeToServices.mockImplementation((handler: (data: unknown) => void) => {
-				eventHandler = handler;
-				return Promise.resolve(vi.fn());
-			});
+			mockedServicesApi.subscribeToServices.mockImplementation(
+				(handler: (data: unknown) => void) => {
+					eventHandler = handler;
+					return Promise.resolve(vi.fn());
+				}
+			);
 
 			await servicesStore.subscribeToServices();
 
@@ -791,10 +802,12 @@ describe('ServicesStore', () => {
 			servicesStore.currentService = mockService;
 
 			let eventHandler!: (data: unknown) => void;
-			mockedServicesApi.subscribeToServices.mockImplementation((handler: (data: unknown) => void) => {
-				eventHandler = handler;
-				return Promise.resolve(vi.fn());
-			});
+			mockedServicesApi.subscribeToServices.mockImplementation(
+				(handler: (data: unknown) => void) => {
+					eventHandler = handler;
+					return Promise.resolve(vi.fn());
+				}
+			);
 
 			await servicesStore.subscribeToServices();
 
@@ -809,10 +822,12 @@ describe('ServicesStore', () => {
 			servicesStore.currentServiceSongs = [];
 
 			let eventHandler!: (data: unknown) => void;
-			mockedServicesApi.subscribeToServiceSongs.mockImplementation((serviceId: string, handler: (data: unknown) => void) => {
-				eventHandler = handler;
-				return Promise.resolve(vi.fn());
-			});
+			mockedServicesApi.subscribeToServiceSongs.mockImplementation(
+				(serviceId: string, handler: (data: unknown) => void) => {
+					eventHandler = handler;
+					return Promise.resolve(vi.fn());
+				}
+			);
 
 			await servicesStore.subscribeToServiceSongs('service-1');
 

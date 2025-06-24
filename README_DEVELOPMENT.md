@@ -153,12 +153,15 @@ worshipwise/
 ### Core Collections
 
 #### User Management
+
 - **Users** - Core authentication data (email, password, name, avatar)
+
   - This is the PocketBase auth collection
   - Contains basic user profile information
   - Used for login/authentication
 
 - **Churches** - Church organizations
+
   - Church name, location, timezone, settings
   - Foundation for multi-church support
 
@@ -168,6 +171,7 @@ worshipwise/
   - Replaces the old "profiles" pattern
 
 #### Content Management
+
 - **Songs** - Song catalog with metadata, keys, and file attachments
 - **Services** - Service planning with themes and dates
 - **Service Songs** - Junction table for song ordering in services
@@ -176,6 +180,7 @@ worshipwise/
 ### Data Model Clarification
 
 **User Profile vs Church Membership:**
+
 - "Profile" refers to user-specific data stored in the Users collection (name, email, avatar)
 - "Membership" refers to the user's role and permissions within a specific church
 - A user can have multiple memberships (one per church they belong to)

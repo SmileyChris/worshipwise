@@ -93,6 +93,7 @@ cd pocketbase && ./pocketbase migrate        # Run database migrations
 For detailed schema and security rules, see `plan/POCKETBASE_SETUP.md`.
 
 #### Terminology Clarification
+
 - **User Profile**: Refers to user account data (name, email, avatar) stored in the Users collection
 - **Church Membership**: Refers to the user's role and permissions within a specific church
 - **Profile Components/Routes**: UI elements for managing user account settings (not membership settings)

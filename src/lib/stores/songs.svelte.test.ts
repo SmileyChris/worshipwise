@@ -43,13 +43,13 @@ describe('SongsStore', () => {
 		tempo: 120,
 		duration_seconds: 240,
 		ccli_number: '12345',
-		copyright_year: 1779,
-		themes: ['worship', 'grace'],
+		copyright_info: 'Public Domain (1779)',
 		tags: ['classic', 'hymn'],
 		category: 'category-1',
 		labels: ['traditional'],
 		notes: 'Traditional hymn',
-		files: [],
+		created_by: 'user-1',
+		is_active: true,
 		created: '2024-01-01T00:00:00Z',
 		updated: '2024-01-01T00:00:00Z',
 		expand: {
@@ -66,10 +66,14 @@ describe('SongsStore', () => {
 	};
 
 	const mockSongUsage: SongUsage = {
-		songId: 'song-1',
-		lastUsed: '2024-01-01T00:00:00Z',
-		daysSince: 7,
-		usageCount: 5
+		id: 'usage-1',
+		church_id: 'church-1',
+		song_id: 'song-1',
+		service_id: 'service-1',
+		used_date: '2024-01-01T00:00:00Z',
+		worship_leader: 'user-1',
+		created: '2024-01-01T00:00:00Z',
+		updated: '2024-01-01T00:00:00Z'
 	};
 
 	const mockPaginatedResult = {
@@ -108,7 +112,9 @@ describe('SongsStore', () => {
 
 	describe('loadSongs', () => {
 		it('should load songs with usage information successfully', async () => {
-			const usageMap = new Map([['song-1', mockSongUsage]]);
+			const usageMap = new Map([
+				['song-1', { lastUsed: new Date('2024-01-01T00:00:00Z'), daysSince: 7 }]
+			]);
 			mockedSongsApi.getSongsPaginated.mockResolvedValue(mockPaginatedResult);
 			mockedSongsApi.getSongsUsageInfo.mockResolvedValue(usageMap);
 			mockedSongsApi.getSongs.mockResolvedValue([mockSong]);
@@ -118,7 +124,7 @@ describe('SongsStore', () => {
 			expect(songsStore.songs).toHaveLength(1);
 			expect(songsStore.songs[0]).toEqual({
 				...mockSong,
-				lastUsedDate: '2024-01-01T00:00:00Z',
+				lastUsedDate: new Date('2024-01-01T00:00:00Z'),
 				daysSinceLastUsed: 7,
 				usageStatus: 'recent'
 			});
@@ -226,6 +232,7 @@ describe('SongsStore', () => {
 			const createData: CreateSongData = {
 				title: 'New Song',
 				artist: 'Artist',
+				category: 'category-1',
 				key_signature: 'D',
 				tempo: 130
 			};
@@ -246,7 +253,8 @@ describe('SongsStore', () => {
 		it('should handle errors when creating song', async () => {
 			const createData: CreateSongData = {
 				title: 'New Song',
-				artist: 'Artist'
+				artist: 'Artist',
+				category: 'category-1'
 			};
 			const error = new Error('Validation failed');
 			mockedSongsApi.createSong.mockRejectedValue(error);

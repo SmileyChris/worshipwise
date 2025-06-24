@@ -22,7 +22,7 @@
 	// Get common timezones for better UX
 	const commonTimezones = [
 		'America/New_York',
-		'America/Chicago', 
+		'America/Chicago',
 		'America/Denver',
 		'America/Los_Angeles',
 		'America/Phoenix',
@@ -52,7 +52,9 @@
 
 		try {
 			// Generate slug from church name
-			const slug = formData.name.trim().toLowerCase()
+			const slug = formData.name
+				.trim()
+				.toLowerCase()
 				.replace(/[^a-z0-9]+/g, '-')
 				.replace(/^-+|-+$/g, '');
 
@@ -86,12 +88,7 @@
 <div class="mx-auto max-w-2xl space-y-6">
 	<!-- Header -->
 	<div class="flex items-center space-x-4">
-		<Button
-			onclick={handleCancel}
-			variant="outline"
-			size="sm"
-			class="flex items-center space-x-2"
-		>
+		<Button onclick={handleCancel} variant="outline" size="sm" class="flex items-center space-x-2">
 			<ArrowLeft class="h-4 w-4" />
 			<span>Back to Dashboard</span>
 		</Button>
@@ -121,13 +118,13 @@
 
 				<!-- Church Name -->
 				<div>
-					<label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-						<Building class="inline h-4 w-4 mr-1" />
+					<label for="name" class="mb-2 block text-sm font-medium text-gray-700">
+						<Building class="mr-1 inline h-4 w-4" />
 						Church Name *
 					</label>
 					<Input
 						id="name"
-						name="name" 
+						name="name"
 						bind:value={formData.name}
 						placeholder="e.g., Grace Community Church"
 						required
@@ -140,19 +137,17 @@
 
 				<!-- Location Information -->
 				<div class="border-t border-gray-200 pt-6">
-					<h3 class="text-lg font-medium text-gray-900 mb-4">
-						<MapPin class="inline h-4 w-4 mr-1" />
+					<h3 class="mb-4 text-lg font-medium text-gray-900">
+						<MapPin class="mr-1 inline h-4 w-4" />
 						Location Information
 					</h3>
-					<p class="text-sm text-gray-600 mb-4">
+					<p class="mb-4 text-sm text-gray-600">
 						Location details help with timezone-aware scheduling and seasonal song recommendations.
 					</p>
-					
+
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<div>
-							<label for="city" class="block text-sm font-medium text-gray-700 mb-2">
-								City
-							</label>
+							<label for="city" class="mb-2 block text-sm font-medium text-gray-700"> City </label>
 							<Input
 								id="city"
 								name="city"
@@ -163,7 +158,7 @@
 						</div>
 
 						<div>
-							<label for="state" class="block text-sm font-medium text-gray-700 mb-2">
+							<label for="state" class="mb-2 block text-sm font-medium text-gray-700">
 								State/Province
 							</label>
 							<Input
@@ -176,7 +171,7 @@
 						</div>
 
 						<div>
-							<label for="country" class="block text-sm font-medium text-gray-700 mb-2">
+							<label for="country" class="mb-2 block text-sm font-medium text-gray-700">
 								Country
 							</label>
 							<Input
@@ -189,8 +184,8 @@
 						</div>
 
 						<div>
-							<label for="timezone" class="block text-sm font-medium text-gray-700 mb-2">
-								<Clock class="inline h-4 w-4 mr-1" />
+							<label for="timezone" class="mb-2 block text-sm font-medium text-gray-700">
+								<Clock class="mr-1 inline h-4 w-4" />
 								Timezone *
 							</label>
 							<select
@@ -198,7 +193,7 @@
 								name="timezone"
 								bind:value={formData.timezone}
 								required
-								class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+								class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
 							>
 								{#each commonTimezones as tz}
 									<option value={tz}>
@@ -223,13 +218,11 @@
 							<span class="text-blue-400">ℹ️</span>
 						</div>
 						<div class="ml-3">
-							<h3 class="text-sm font-medium text-blue-800">
-								Church Administration
-							</h3>
+							<h3 class="text-sm font-medium text-blue-800">Church Administration</h3>
 							<div class="mt-2 text-sm text-blue-700">
 								<p>
-									You will be automatically assigned as an administrator of this church, 
-									giving you full permissions to manage members, services, and settings.
+									You will be automatically assigned as an administrator of this church, giving you
+									full permissions to manage members, services, and settings.
 								</p>
 							</div>
 						</div>
@@ -237,19 +230,14 @@
 				</div>
 
 				<!-- Form Actions -->
-				<div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-					<Button
-						type="button"
-						variant="secondary"
-						onclick={handleCancel}
-						disabled={loading}
-					>
+				<div class="flex justify-end space-x-3 border-t border-gray-200 pt-6">
+					<Button type="button" variant="secondary" onclick={handleCancel} disabled={loading}>
 						Cancel
 					</Button>
 					<Button
 						type="submit"
 						variant="primary"
-						loading={loading}
+						{loading}
 						disabled={!formData.name.trim() || loading}
 					>
 						{loading ? 'Creating Church...' : 'Create Church'}
