@@ -83,8 +83,8 @@ test.describe('Initial User Experience', () => {
 		await expect(step2).toHaveClass(/bg-primary/);
 
 		// Test admin form fields
-		await page.fill('[name="adminName"]', 'Pastor John');
-		await page.fill('[name="adminEmail"]', 'pastor@test.com');
+		await page.fill('[name="adminName"]', 'John Smith');
+		await page.fill('[name="adminEmail"]', 'admin@test.com');
 		await page.fill('[name="password"]', 'password123');
 		await page.fill('[name="confirmPassword"]', 'password123');
 

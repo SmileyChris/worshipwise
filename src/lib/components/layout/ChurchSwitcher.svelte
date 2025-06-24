@@ -1,12 +1,29 @@
 <script lang="ts">
 	import { auth } from '$lib/stores/auth.svelte';
-	import { ChevronDown, Church, Building, Settings, LogOut, Trash2 } from 'lucide-svelte';
+	import { ChevronDown, Church, Building, Settings, LogOut, Trash2, Plus } from 'lucide-svelte';
 	import type { Church as ChurchType } from '$lib/types/church';
+	import Modal from '$lib/components/ui/Modal.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import Select from '$lib/components/ui/Select.svelte';
+	import { ChurchesAPI } from '$lib/api/churches';
 
 	// Component state
 	let dropdownOpen = $state<boolean>(false);
 	let confirmLeave = $state<string | null>(null);
 	let confirmDelete = $state<string | null>(null);
+	let showAddChurchModal = $state<boolean>(false);
+
+	// Add church form state
+	let addChurchForm = $state({
+		name: '',
+		city: '',
+		state: '',
+		country: '',
+		timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+	});
+	let addChurchLoading = $state<boolean>(false);
+	let addChurchError = $state<string | null>(null);
 
 	function toggleDropdown() {
 		dropdownOpen = !dropdownOpen;
@@ -101,6 +118,61 @@
 	function canDeleteChurch(church: ChurchType): boolean {
 		// Only current church admin can delete
 		return auth.currentChurch?.id === church.id && auth.canManageChurch;
+	}
+
+	async function handleAddChurch(event: Event) {
+		event.preventDefault();
+
+		if (!addChurchForm.name.trim()) {
+			addChurchError = 'Church name is required';
+			return;
+		}
+
+		addChurchLoading = true;
+		addChurchError = null;
+
+		try {
+			const newChurch = await ChurchesAPI.createChurch({
+				name: addChurchForm.name.trim(),
+				city: addChurchForm.city.trim() || undefined,
+				state: addChurchForm.state.trim() || undefined,
+				country: addChurchForm.country.trim() || undefined,
+				timezone: addChurchForm.timezone
+			});
+
+			// Switch to the new church and refresh
+			await auth.switchChurch(newChurch.id);
+
+			// Reset form and close modal
+			addChurchForm = {
+				name: '',
+				city: '',
+				state: '',
+				country: '',
+				timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+			};
+			showAddChurchModal = false;
+
+			// Refresh the page to load new church data
+			window.location.reload();
+		} catch (error) {
+			console.error('Failed to create church:', error);
+			addChurchError = error instanceof Error ? error.message : 'Failed to create church';
+		} finally {
+			addChurchLoading = false;
+		}
+	}
+
+	function closeAddChurchModal() {
+		showAddChurchModal = false;
+		addChurchError = null;
+		addChurchForm = {
+			name: '',
+			city: '',
+			state: '',
+			country: '',
+			timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+		};
 	}
 </script>
 
@@ -217,6 +289,17 @@
 
 				<!-- Footer with actions -->
 				<div class="border-t border-gray-100 pt-2">
+					<button
+						onclick={() => {
+							showAddChurchModal = true;
+							closeDropdown();
+						}}
+						class="flex w-full items-center px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+						role="menuitem"
+					>
+						<Plus class="mr-3 h-4 w-4 text-gray-400" />
+						Add Church
+					</button>
 					<a
 						href="/admin/churches"
 						class="flex w-full items-center px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
@@ -247,4 +330,78 @@
 			</div>
 		{/if}
 	</div>
+
+	<!-- Add Church Modal -->
+	<Modal
+		open={showAddChurchModal}
+		onclose={closeAddChurchModal}
+		title="Add New Church"
+		subtitle="Create a new church to manage your worship services"
+	>
+		<form onsubmit={handleAddChurch} class="space-y-4">
+			{#if addChurchError}
+				<div class="rounded-md bg-red-50 p-4">
+					<p class="text-sm text-red-800">{addChurchError}</p>
+				</div>
+			{/if}
+
+			<Input
+				label="Church Name"
+				name="name"
+				bind:value={addChurchForm.name}
+				placeholder="Enter church name"
+				required
+			/>
+
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+				<Input
+					label="City"
+					name="city"
+					bind:value={addChurchForm.city}
+					placeholder="City (optional)"
+				/>
+				<Input
+					label="State/Province"
+					name="state"
+					bind:value={addChurchForm.state}
+					placeholder="State/Province (optional)"
+				/>
+			</div>
+
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+				<Input
+					label="Country"
+					name="country"
+					bind:value={addChurchForm.country}
+					placeholder="Country (optional)"
+				/>
+				<Input
+					label="Timezone"
+					name="timezone"
+					bind:value={addChurchForm.timezone}
+					placeholder="Timezone"
+					required
+				/>
+			</div>
+
+			<div class="flex justify-end gap-3 pt-4">
+				<Button
+					type="button"
+					variant="secondary"
+					onclick={closeAddChurchModal}
+					disabled={addChurchLoading}
+				>
+					Cancel
+				</Button>
+				<Button
+					type="submit"
+					variant="primary"
+					loading={addChurchLoading}
+					disabled={!addChurchForm.name.trim() || addChurchLoading}
+				>
+					{addChurchLoading ? 'Creating...' : 'Create Church'}
+				</Button>
+			</div>
+		</form>
+	</Modal>
 {/if}

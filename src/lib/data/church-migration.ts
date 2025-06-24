@@ -232,7 +232,7 @@ export class ChurchMigration {
 	private static mapUserRoleToChurchRole(userRole: string): ChurchRole {
 		switch (userRole) {
 			case 'admin':
-				return 'pastor';
+				return 'admin';
 			case 'leader':
 				return 'leader';
 			case 'musician':

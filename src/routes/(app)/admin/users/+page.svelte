@@ -8,7 +8,7 @@
 		reactivateUser,
 		deleteUser,
 		changeUserRole,
-		type UserWithProfile,
+		type UserWithMembership,
 		type UserListResponse
 	} from '$lib/api/admin';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -31,8 +31,8 @@
 	let perPage = $state(20);
 
 	// Modals and actions
-	let editingUser = $state<UserWithProfile | null>(null);
-	let deletingUser = $state<UserWithProfile | null>(null);
+	let editingUser = $state<UserWithMembership | null>(null);
+	let deletingUser = $state<UserWithMembership | null>(null);
 	let actionLoading = $state(false);
 
 	// Search debounce
@@ -85,10 +85,10 @@
 		loadUsers();
 	}
 
-	async function handleToggleActive(user: UserWithProfile) {
+	async function handleToggleActive(user: UserWithMembership) {
 		try {
 			actionLoading = true;
-			const isActive = user.profile?.is_active !== false;
+			const isActive = user.membership?.is_active !== false;
 
 			if (isActive) {
 				await deactivateUser(user.id);
@@ -106,7 +106,10 @@
 		}
 	}
 
-	async function handleRoleChange(user: UserWithProfile, newRole: 'musician' | 'leader' | 'admin') {
+	async function handleRoleChange(
+		user: UserWithMembership,
+		newRole: 'musician' | 'leader' | 'admin'
+	) {
 		try {
 			actionLoading = true;
 			await changeUserRole(user.id, newRole);
@@ -276,33 +279,35 @@
 												class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100"
 											>
 												<span class="text-sm font-medium text-blue-600">
-													{(user.profile?.name || user.name || user.email).charAt(0).toUpperCase()}
+													{(user.name || user.email).charAt(0).toUpperCase()}
 												</span>
 											</div>
 										</div>
 										<div class="ml-4">
 											<div class="text-sm font-medium text-gray-900">
-												{user.profile?.name || user.name || 'No name'}
+												{user.name || 'No name'}
 											</div>
 											<div class="text-sm text-gray-500">{user.email}</div>
-											{#if user.profile?.church_name}
-												<div class="text-xs text-gray-400">{user.profile.church_name}</div>
+											{#if user.membership?.expand?.church_id}
+												<div class="text-xs text-gray-400">
+													{user.membership.expand.church_id.name}
+												</div>
 											{/if}
 										</div>
 									</div>
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap">
-									{#if user.profile?.role}
-										<Badge color={getRoleBadgeColor(user.profile.role)}>
-											{user.profile.role}
+									{#if user.membership?.role}
+										<Badge color={getRoleBadgeColor(user.membership.role)}>
+											{user.membership.role}
 										</Badge>
 									{:else}
-										<Badge color="gray">No profile</Badge>
+										<Badge color="gray">No membership</Badge>
 									{/if}
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap">
 									<div class="flex items-center">
-										{#if user.profile?.is_active !== false}
+										{#if user.membership?.is_active !== false}
 											<Badge color="green">Active</Badge>
 										{:else}
 											<Badge color="red">Inactive</Badge>
@@ -329,10 +334,10 @@
 										</Button>
 
 										<!-- Role change dropdown -->
-										{#if user.profile}
+										{#if user.membership}
 											<Select
 												name="userRole"
-												value={user.profile.role}
+												value={user.membership.role}
 												onchange={(value) =>
 													handleRoleChange(user, value as 'musician' | 'leader' | 'admin')}
 												class="text-sm"
@@ -350,7 +355,7 @@
 											size="sm"
 											disabled={actionLoading}
 										>
-											{user.profile?.is_active !== false ? 'Deactivate' : 'Activate'}
+											{user.membership?.is_active !== false ? 'Deactivate' : 'Activate'}
 										</Button>
 
 										<Button
@@ -470,7 +475,7 @@
 	<ConfirmDialog
 		open={!!deletingUser}
 		title="Delete User"
-		message="Are you sure you want to delete {deletingUser.profile?.name ||
+		message="Are you sure you want to delete {deletingUser.name ||
 			deletingUser.email}? This action cannot be undone and will permanently remove all user data."
 		confirmLabel="Delete User"
 		onconfirm={handleDeleteUser}

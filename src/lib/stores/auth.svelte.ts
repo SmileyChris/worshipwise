@@ -1,22 +1,21 @@
 import { pb } from '$lib/api/client';
 import { goto } from '$app/navigation';
 import { browser } from '$app/environment';
-import type { User, Profile, LoginCredentials, RegisterData } from '$lib/types/auth';
-import type { Church } from '$lib/types/church';
+import type { User, LoginCredentials, RegisterData } from '$lib/types/auth';
+import type { Church, ChurchMembership } from '$lib/types/church';
 
 class AuthStore {
 	// Reactive state using Svelte 5 runes
 	user = $state<User | null>(null);
-	profile = $state<Profile | null>(null);
 	token = $state<string>('');
 	isValid = $state<boolean>(false);
 	loading = $state<boolean>(false);
 	error = $state<string | null>(null);
 
-	// Church context state
-	currentChurch = $state<Church | null>(null);
+	// Church context state - derived from membership
+	currentMembership = $state<ChurchMembership | null>(null);
 	availableChurches = $state<Church[]>([]);
-	churchMemberships = $state<Record<string, any>[]>([]);
+	churchMemberships = $state<ChurchMembership[]>([]);
 	churchLoading = $state<boolean>(false);
 
 	constructor() {
@@ -44,8 +43,7 @@ class AuthStore {
 					await this.loadProfile();
 					await this.loadUserChurches();
 				} else {
-					this.profile = null;
-					this.currentChurch = null;
+					this.currentMembership = null;
 					this.availableChurches = [];
 					this.churchMemberships = [];
 				}
@@ -53,7 +51,7 @@ class AuthStore {
 				console.log('Auth state changed:', {
 					isValid: this.isValid,
 					user: this.user?.email,
-					profile: this.profile?.name
+					membership: this.currentMembership?.role
 				});
 			});
 		}
@@ -93,11 +91,12 @@ class AuthStore {
 		this.error = null;
 
 		try {
-			// Create the user account (basic auth fields only)
+			// Create the user account with name
 			const user = await pb.collection('users').create({
 				email: data.email,
 				password: data.password,
-				passwordConfirm: data.passwordConfirm
+				passwordConfirm: data.passwordConfirm,
+				name: data.name
 			});
 
 			console.log('User account created:', user.email);
@@ -216,58 +215,13 @@ class AuthStore {
 	}
 
 	/**
-	 * Update profile information via church membership
-	 */
-	async updateProfileInfo(profileData: Partial<Profile>, userData?: Partial<User>): Promise<void> {
-		if (!this.user || !this.profile) return;
-
-		this.loading = true;
-		this.error = null;
-
-		try {
-			// Update user record if userData is provided
-			if (userData) {
-				const updatedUser = await pb.collection('users').update(this.user.id, userData);
-				this.user = updatedUser as unknown as User;
-			}
-
-			// Update church membership record with profile data
-			const membershipData: any = {};
-			if (profileData.preferred_keys) membershipData.preferred_keys = profileData.preferred_keys;
-			if (profileData.notification_preferences) membershipData.notification_preferences = profileData.notification_preferences;
-			if (profileData.role) membershipData.role = profileData.role;
-
-			if (Object.keys(membershipData).length > 0) {
-				const updatedMembership = await pb.collection('church_memberships').update(this.profile.id, membershipData);
-				
-				// Update local profile with new data
-				this.profile = {
-					...this.profile,
-					...profileData,
-					preferred_keys: updatedMembership.preferred_keys,
-					notification_preferences: updatedMembership.notification_preferences,
-					role: updatedMembership.role
-				};
-			}
-
-			console.log('Profile information updated successfully');
-		} catch (error: unknown) {
-			console.error('Profile info update failed:', error);
-			this.error = this.getErrorMessage(error);
-			throw error;
-		} finally {
-			this.loading = false;
-		}
-	}
-
-	/**
 	 * Load user profile data from church memberships
 	 */
 	async loadProfile(): Promise<void> {
 		if (!this.user) return;
 
 		try {
-			// Get the user's primary church membership (first active one)
+			// Get current membership (first active membership with church data)
 			const memberships = await pb.collection('church_memberships').getList(1, 1, {
 				filter: `user_id = "${this.user.id}" && status = "active" && is_active = true`,
 				expand: 'church_id',
@@ -275,24 +229,10 @@ class AuthStore {
 			});
 
 			if (memberships.items.length > 0) {
-				const membership = memberships.items[0];
-				// Create a profile-like object from membership data
-				this.profile = {
-					id: membership.id,
-					user_id: this.user.id,
-					name: this.user.name,
-					role: membership.role,
-					church_id: membership.church_id,
-					church_name: membership.expand?.church_id?.name,
-					preferred_keys: membership.preferred_keys,
-					notification_preferences: membership.notification_preferences,
-					is_active: membership.is_active,
-					created: membership.created,
-					updated: membership.updated
-				} as Profile;
+				this.currentMembership = memberships.items[0];
 			}
 		} catch (error) {
-			console.error('Failed to load profile from memberships:', error);
+			console.error('Failed to load current membership:', error);
 		}
 	}
 
@@ -300,20 +240,25 @@ class AuthStore {
 	 * Check if user has specific role
 	 */
 	hasRole(role: string): boolean {
-		return this.profile?.role === role;
+		return this.currentMembership?.role === role;
 	}
 
 	/**
 	 * Check if user has any of the specified roles
 	 */
 	hasAnyRole(roles: string[]): boolean {
-		return this.profile ? roles.includes(this.profile.role) : false;
+		return this.currentMembership ? roles.includes(this.currentMembership.role) : false;
 	}
 
 	/**
 	 * Get user's display name
 	 */
-	displayName = $derived(this.profile?.name || this.user?.name || this.user?.email || 'User');
+	displayName = $derived(this.user?.name || this.user?.email || 'User');
+
+	/**
+	 * Get current church from current membership
+	 */
+	currentChurch = $derived(this.currentMembership?.expand?.church_id || null);
 
 	/**
 	 * Check if user can manage songs (leader or admin)
@@ -334,33 +279,38 @@ class AuthStore {
 	 * Extract user-friendly error message
 	 */
 	getErrorMessage(error: unknown): string {
-		if (error?.response?.data) {
-			const data = error.response.data;
+		// Type guard for error with response property
+		if (error && typeof error === 'object' && 'response' in error) {
+			const errorWithResponse = error as { response?: { data?: any } };
+			if (errorWithResponse.response?.data) {
+				const data = errorWithResponse.response.data;
 
-			// Handle validation errors
-			if (data.data) {
-				const firstField = Object.keys(data.data)[0];
-				const firstError = data.data[firstField];
-				if (firstError?.message) {
-					return firstError.message;
+				// Handle validation errors
+				if (data.data) {
+					const firstField = Object.keys(data.data)[0];
+					const firstError = data.data[firstField];
+					if (firstError?.message) {
+						return firstError.message;
+					}
 				}
-			}
 
-			// Handle general errors
-			if (data.message) {
-				return data.message;
+				// Handle general errors
+				if (data.message) {
+					return data.message;
+				}
 			}
 		}
 
-		// Fallback to generic messages
-		if (error?.message) {
-			if (error.message.includes('invalid credentials')) {
+		// Type guard for error with message property
+		if (error && typeof error === 'object' && 'message' in error) {
+			const errorWithMessage = error as { message: string };
+			if (errorWithMessage.message.includes('invalid credentials')) {
 				return 'Invalid email or password';
 			}
-			if (error.message.includes('email')) {
+			if (errorWithMessage.message.includes('email')) {
 				return 'Please check your email address';
 			}
-			return error.message;
+			return errorWithMessage.message;
 		}
 
 		return 'An unexpected error occurred';
@@ -395,23 +345,9 @@ class AuthStore {
 				.map((m) => m.expand?.church_id)
 				.filter(Boolean) as unknown as Church[];
 
-			// Set current church from profile preference or first available
-			if (this.profile?.church_id) {
-				const currentChurch = this.availableChurches.find((c) => c.id === this.profile!.church_id);
-				if (currentChurch) {
-					this.currentChurch = currentChurch;
-				} else if (this.availableChurches.length > 0) {
-					// Profile has invalid church_id, use first available
-					this.currentChurch = this.availableChurches[0];
-					await this.updateProfileInfo({ church_id: this.currentChurch.id });
-				}
-			} else if (this.availableChurches.length > 0) {
-				// No preference set, default to first church
-				this.currentChurch = this.availableChurches[0];
-				// Update profile with default church if we have one
-				if (this.profile) {
-					await this.updateProfileInfo({ church_id: this.currentChurch.id });
-				}
+			// Set current membership - default to first one if none set
+			if (!this.currentMembership && memberships.length > 0) {
+				this.currentMembership = memberships[0];
 			}
 
 			console.log('Loaded user churches:', this.availableChurches.length);
@@ -426,16 +362,16 @@ class AuthStore {
 	 * Switch to a different church context
 	 */
 	async switchChurch(churchId: string): Promise<void> {
-		const targetChurch = this.availableChurches.find((c) => c.id === churchId);
-		if (!targetChurch || !this.profile) return;
+		// Find the membership for the target church
+		const targetMembership = this.churchMemberships.find((m) => m.church_id === churchId);
+		if (!targetMembership) return;
 
 		this.churchLoading = true;
 		try {
-			// Update user's profile with new church context
-			await this.updateProfileInfo({ church_id: churchId });
-			this.currentChurch = targetChurch;
+			// Set current membership to the target church membership
+			this.currentMembership = targetMembership;
 
-			console.log('Switched to church:', targetChurch.name);
+			console.log('Switched to church:', this.currentChurch?.name);
 		} catch (error) {
 			console.error('Failed to switch church:', error);
 			this.error = 'Failed to switch church context';
@@ -448,7 +384,7 @@ class AuthStore {
 	 * Leave a church (if not the only admin)
 	 */
 	async leaveChurch(churchId: string): Promise<void> {
-		if (!this.user || !this.profile) return;
+		if (!this.user) return;
 
 		this.churchLoading = true;
 		try {
@@ -457,7 +393,10 @@ class AuthStore {
 				filter: `church_id = "${churchId}" && role = "admin" && status = "active"`
 			});
 
-			if (adminMemberships.items.length === 1 && adminMemberships.items[0].user_id === this.user.id) {
+			if (
+				adminMemberships.items.length === 1 &&
+				adminMemberships.items[0].user_id === this.user.id
+			) {
 				throw new Error(
 					'Cannot leave church - you are the only administrator. Transfer admin role to another user or delete the church.'
 				);
@@ -476,7 +415,7 @@ class AuthStore {
 			console.log('Left church successfully');
 		} catch (error: unknown) {
 			console.error('Failed to leave church:', error);
-			this.error = error.message || 'Failed to leave church';
+			this.error = error instanceof Error ? error.message : 'Failed to leave church';
 			throw error;
 		} finally {
 			this.churchLoading = false;
@@ -487,10 +426,10 @@ class AuthStore {
 	 * Delete a church (only if user is admin)
 	 */
 	async deleteChurch(churchId: string): Promise<void> {
-		if (!this.user || !this.profile) return;
+		if (!this.user) return;
 
 		// Verify user is admin of this church
-		const membership = this.churchMemberships.find(m => m.church_id === churchId);
+		const membership = this.churchMemberships.find((m) => m.church_id === churchId);
 		if (!membership || membership.role !== 'admin') {
 			throw new Error('Only church administrators can delete churches');
 		}
@@ -506,7 +445,7 @@ class AuthStore {
 			console.log('Church deleted successfully');
 		} catch (error: unknown) {
 			console.error('Failed to delete church:', error);
-			this.error = error.message || 'Failed to delete church';
+			this.error = error instanceof Error ? error.message : 'Failed to delete church';
 			throw error;
 		} finally {
 			this.churchLoading = false;
@@ -518,10 +457,8 @@ class AuthStore {
 	 */
 	getCurrentChurchRole = $derived(() => {
 		if (!this.currentChurch?.id || !this.churchMemberships.length) return 'member';
-		
-		const membership = this.churchMemberships.find(
-			(m) => m.church_id === this.currentChurch!.id
-		);
+
+		const membership = this.churchMemberships.find((m) => m.church_id === this.currentChurch!.id);
 		return membership?.role || 'member';
 	});
 

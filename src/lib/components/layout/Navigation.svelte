@@ -115,7 +115,9 @@
 				<div class="hidden sm:flex sm:items-center sm:space-x-2">
 					<div class="text-sm">
 						<p class="font-medium text-gray-900">{auth.displayName}</p>
-						<p class="text-xs text-gray-500 capitalize">{auth.profile?.role}</p>
+						<p class="text-xs text-gray-500 capitalize">
+							{auth.currentMembership?.role || 'member'}
+						</p>
 					</div>
 				</div>
 
@@ -203,7 +205,9 @@
 				</div>
 				<div class="ml-3 flex-1">
 					<div class="text-base font-medium text-gray-800">{auth.displayName}</div>
-					<div class="text-sm text-gray-500 capitalize">{auth.profile?.role}</div>
+					<div class="text-sm text-gray-500 capitalize">
+						{auth.currentMembership?.role || 'member'}
+					</div>
 					{#if auth.currentChurch}
 						<div class="mt-1 text-xs text-gray-400">{auth.currentChurch.name}</div>
 					{/if}

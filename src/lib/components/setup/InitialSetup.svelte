@@ -301,7 +301,7 @@
 							type="email"
 							name="adminEmail"
 							bind:value={setupData.adminEmail}
-							placeholder="pastor@yourchurch.com"
+							placeholder="admin@yourchurch.com"
 							required
 							onkeydown={(e) => {
 								if (e.key === 'Enter') {

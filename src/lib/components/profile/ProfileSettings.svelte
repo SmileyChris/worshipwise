@@ -1,11 +1,7 @@
 <script lang="ts">
-	// Type imports
-	import type { Profile } from '$lib/types/auth';
-
 	// Component imports
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
-	import Select from '$lib/components/ui/Select.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 
 	// Store import
@@ -21,9 +17,7 @@
 
 	// Form state
 	let email = $state(auth.user?.email || '');
-	let name = $state(auth.profile?.name || '');
-	let churchName = $state(auth.profile?.church_name || '');
-	let role = $state(auth.profile?.role || 'musician');
+	let name = $state(auth.user?.name || '');
 	let currentPassword = $state('');
 	let newPassword = $state('');
 	let confirmPassword = $state('');
@@ -36,30 +30,10 @@
 	let profileSuccess = $state<string | null>(null);
 	let passwordSuccess = $state<string | null>(null);
 
-	// Role options
-	const roleOptions = [
-		{ value: 'musician', label: 'Musician' },
-		{ value: 'leader', label: 'Leader' },
-		{ value: 'admin', label: 'Admin' }
-	];
-
-	// Filter role options based on current user permissions
-	let availableRoleOptions = $derived.by(() => {
-		if (auth.isAdmin) {
-			return roleOptions; // Admin can choose any role
-		} else if (auth.hasRole('leader')) {
-			return roleOptions.filter((opt) => opt.value !== 'admin'); // Leaders can't become admin
-		} else {
-			return roleOptions.filter((opt) => opt.value === 'musician'); // Musicians can only be musicians
-		}
-	});
-
 	// Reset form to current values
 	function resetForm() {
 		email = auth.user?.email || '';
-		name = auth.profile?.name || '';
-		churchName = auth.profile?.church_name || '';
-		role = auth.profile?.role || 'musician';
+		name = auth.user?.name || '';
 		clearErrors();
 		clearSuccessMessages();
 	}
@@ -149,7 +123,7 @@
 			return;
 		}
 
-		if (!auth.user || !auth.profile) {
+		if (!auth.user) {
 			profileError = 'User not authenticated';
 			return;
 		}
@@ -157,18 +131,19 @@
 		isUpdatingProfile = true;
 
 		try {
-			// Prepare profile data
-			const profileData: Partial<Profile> = {
-				name: name.trim(),
-				church_name: churchName.trim() || undefined,
-				role: role as 'musician' | 'leader' | 'admin'
-			};
+			// Update user record directly (name and email are on the user)
+			if (name.trim() !== auth.user.name || email !== auth.user.email) {
+				const updatedUser = await pb.collection('users').update(auth.user.id, {
+					name: name.trim(),
+					email: email
+				});
 
-			// Prepare user data if email changed
-			const userData = email !== auth.user.email ? { email } : undefined;
+				// Update auth store user data
+				auth.user = updatedUser;
 
-			// Update using the auth store method
-			await auth.updateProfileInfo(profileData, userData);
+				// Reload profile to reflect changes
+				await auth.loadProfile();
+			}
 
 			profileSuccess = 'Profile updated successfully!';
 		} catch (error: unknown) {
@@ -238,7 +213,7 @@
 
 	// Reset form when user/profile changes
 	$effect(() => {
-		if (auth.user && auth.profile) {
+		if (auth.user) {
 			resetForm();
 		}
 	});
@@ -315,26 +290,6 @@
 					error={emailError}
 					autocomplete="email"
 					data-testid="profile-email-input"
-				/>
-			</div>
-
-			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-				<Input
-					label="Church Name"
-					name="churchName"
-					bind:value={churchName}
-					placeholder="Enter your church name (optional)"
-					autocomplete="organization"
-					data-testid="profile-church-input"
-				/>
-
-				<Select
-					label="Role"
-					name="role"
-					bind:value={role}
-					options={availableRoleOptions}
-					required
-					data-testid="profile-role-select"
 				/>
 			</div>
 

@@ -1,14 +1,15 @@
 import { pb } from './client';
-import type { User, Profile } from '$lib/types/auth';
+import type { User } from '$lib/types/auth';
+import type { ChurchMembership } from '$lib/types/church';
 
-export interface UserWithProfile {
+export interface UserWithMembership {
 	id: string;
 	email: string;
 	name: string;
 	verified: boolean;
 	created: string;
 	updated: string;
-	profile?: Profile;
+	membership?: ChurchMembership;
 }
 
 export interface UserListResponse {
@@ -16,7 +17,7 @@ export interface UserListResponse {
 	perPage: number;
 	totalPages: number;
 	totalItems: number;
-	items: UserWithProfile[];
+	items: UserWithMembership[];
 }
 
 export interface AdminStats {

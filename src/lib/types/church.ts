@@ -64,7 +64,7 @@ export interface ChurchMembership {
 	};
 }
 
-export type ChurchRole = 'member' | 'musician' | 'leader' | 'admin' | 'pastor';
+export type ChurchRole = 'member' | 'musician' | 'leader' | 'admin';
 
 export interface NotificationPreferences {
 	email_service_reminders: boolean;
@@ -170,7 +170,7 @@ export const PERMISSIONS = {
 // Helper functions
 export function getDefaultPermissions(role: ChurchRole): string[] {
 	switch (role) {
-		case 'pastor':
+		case 'admin':
 			return [
 				PERMISSIONS.SONGS_CREATE,
 				PERMISSIONS.SONGS_EDIT,
@@ -185,20 +185,6 @@ export function getDefaultPermissions(role: ChurchRole): string[] {
 				PERMISSIONS.USERS_REMOVE,
 				PERMISSIONS.CHURCH_SETTINGS,
 				PERMISSIONS.CHURCH_BILLING
-			];
-		case 'admin':
-			return [
-				PERMISSIONS.SONGS_CREATE,
-				PERMISSIONS.SONGS_EDIT,
-				PERMISSIONS.SONGS_DELETE,
-				PERMISSIONS.SONGS_VIEW,
-				PERMISSIONS.SERVICES_CREATE,
-				PERMISSIONS.SERVICES_EDIT,
-				PERMISSIONS.SERVICES_DELETE,
-				PERMISSIONS.SERVICES_VIEW,
-				PERMISSIONS.USERS_INVITE,
-				PERMISSIONS.USERS_MANAGE,
-				PERMISSIONS.CHURCH_SETTINGS
 			];
 		case 'leader':
 			return [
@@ -221,8 +207,6 @@ export function getDefaultPermissions(role: ChurchRole): string[] {
 
 export function getRoleDisplayName(role: ChurchRole): string {
 	switch (role) {
-		case 'pastor':
-			return 'Pastor/Senior Leader';
 		case 'admin':
 			return 'Administrator';
 		case 'leader':

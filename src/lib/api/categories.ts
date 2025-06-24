@@ -12,9 +12,11 @@ export class CategoriesAPI {
 			// Get current user's church context
 			const { auth } = await import('$lib/stores/auth.svelte');
 			const currentChurch = auth.currentChurch;
-			
+
 			if (!currentChurch) {
-				throw new Error('No church context available - please ensure you are logged in and have selected a church');
+				throw new Error(
+					'No church context available - please ensure you are logged in and have selected a church'
+				);
 			}
 
 			const records = await pb.collection(this.collection).getFullList({
@@ -55,9 +57,11 @@ export class CategoriesAPI {
 			// Get current user's church context
 			const { auth } = await import('$lib/stores/auth.svelte');
 			const currentChurch = auth.currentChurch;
-			
+
 			if (!currentChurch) {
-				throw new Error('No church context available - please ensure you are logged in and have selected a church');
+				throw new Error(
+					'No church context available - please ensure you are logged in and have selected a church'
+				);
 			}
 
 			const record = await pb.collection(this.collection).create({

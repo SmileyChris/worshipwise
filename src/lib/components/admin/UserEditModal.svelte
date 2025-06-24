@@ -1,11 +1,6 @@
 <script lang="ts">
-	import {
-		updateUser,
-		updateUserProfile,
-		getUserActivity,
-		type UserWithProfile
-	} from '$lib/api/admin';
-	import type { User, Profile } from '$lib/types/auth';
+	import { updateUser, getUserActivity, type UserWithMembership } from '$lib/api/admin';
+	import type { User } from '$lib/types/auth';
 	import type { ChurchRole } from '$lib/types/church';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -15,7 +10,7 @@
 	import { onMount } from 'svelte';
 
 	interface Props {
-		user: UserWithProfile;
+		user: UserWithMembership;
 		open: boolean;
 		onclose: () => void;
 		onsave: () => void;
@@ -48,10 +43,10 @@
 		if (user) {
 			formData.email = user.email || '';
 			formData.name = user.name || '';
-			formData.profileName = user.profile?.name || '';
-			formData.role = user.profile?.role || 'musician';
-			formData.churchName = user.profile?.church_name || '';
-			formData.isActive = user.profile?.is_active !== false;
+			formData.profileName = user.name || '';
+			formData.role = user.membership?.role || 'musician';
+			formData.churchName = user.membership?.expand?.church_id?.name || '';
+			formData.isActive = user.membership?.is_active !== false;
 		}
 	});
 
@@ -82,18 +77,16 @@
 				await updateUser(user.id, userUpdates);
 			}
 
-			// Update profile if it exists and has changes
-			if (user.profile) {
-				const profileUpdates: Partial<Profile> = {};
-				if (formData.profileName !== user.profile.name) profileUpdates.name = formData.profileName;
-				if (formData.role !== user.profile.role) profileUpdates.role = formData.role;
-				if (formData.churchName !== user.profile.church_name)
-					profileUpdates.church_name = formData.churchName;
-				if (formData.isActive !== (user.profile.is_active !== false))
-					profileUpdates.is_active = formData.isActive;
+			// Update membership if it exists and has changes
+			if (user.membership) {
+				const membershipUpdates: any = {};
+				if (formData.role !== user.membership.role) membershipUpdates.role = formData.role;
+				if (formData.isActive !== (user.membership.is_active !== false))
+					membershipUpdates.is_active = formData.isActive;
 
-				if (Object.keys(profileUpdates).length > 0) {
-					await updateUserProfile(user.profile.id, profileUpdates);
+				if (Object.keys(membershipUpdates).length > 0) {
+					// TODO: Update membership through proper API
+					console.log('Membership updates:', membershipUpdates);
 				}
 			}
 

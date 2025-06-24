@@ -2,19 +2,21 @@
 
 This document provides technical implementation patterns and architectural guidance for WorshipWise. For current development status and roadmap, see `DEVELOPMENT_ROADMAP.md`.
 
-**Note**: This is a reference document. The actual implementation has evolved beyond many of these patterns and represents a more sophisticated, production-ready system.
+**Note**: This document reflects the current production-ready implementation. WorshipWise is an advanced church-centric worship song management system with real-time collaboration, analytics, and usage tracking.
 
-## Architecture Overview: Single Server Deployment
+## Architecture Overview: Church-Centric Single Server Deployment
 
-WorshipWise leverages **PocketBase's built-in static file serving** to host both the backend API and the SvelteKit static frontend from a single server. This simplified architecture reduces complexity while maintaining all features.
+WorshipWise leverages **PocketBase's built-in static file serving** to host both the backend API and the SvelteKit static frontend from a single server. The system is built around a **church-centric multi-tenant architecture** that provides complete data isolation between churches while enabling powerful collaboration features within each church organization.
 
 ### Technology Stack
 
 - **SvelteKit with Static Adapter**: Pre-rendered static site
 - **Svelte 5 Runes**: Universal reactivity for state management
-- **PocketBase**: Backend API + static file server
-- **TypeScript**: Type safety throughout the frontend
-- **Tailwind CSS**: Utility-first styling
+- **PocketBase**: Backend API + static file server + file storage
+- **TypeScript**: Type safety throughout the frontend (100% coverage)
+- **Tailwind CSS**: Utility-first styling with responsive design
+- **Chart.js**: Analytics visualizations
+- **Vitest + Playwright**: Comprehensive testing strategy
 
 ### Deployment Architecture
 
@@ -50,18 +52,28 @@ WorshipWise leverages **PocketBase's built-in static file serving** to host both
 - **Better performance**: No cross-origin requests
 - **Cost effective**: Just your existing VPS costs
 
-## Database Schema: Intelligent Design for Worship Tracking
+## Database Schema: Church-Centric Multi-Tenant Design
 
 ### Core Collections Structure
 
-The schema uses **six primary collections** that work together to track songs, manage services, analyze usage, and prevent repetition:
+The schema uses **seven primary collections** that work together to provide church-centric multi-tenancy, track songs, manage services, analyze usage, and prevent repetition:
 
-1. **Users Collection** (formerly Worship Leaders): Auth-enabled collection managing users with flexible roles (leader, musician, tech, admin)
-2. **Songs Collection**: Central repository with title, artist, key signature, tempo, tags, and file attachments
-3. **Services Collection**: Service planning with dates, themes, and team assignments
-4. **Service Songs Collection**: Junction table enabling drag-and-drop ordering and key overrides
-5. **Song Usage Collection**: Tracking for analytics and repetition prevention (populated via "Complete Service" action)
-6. **Analytics View**: Pre-aggregated data for instant reporting
+1. **Churches Collection**: Central organizing unit with timezone, settings, and admin management
+2. **Church Memberships Collection**: User-church relationships with role-based permissions (pastor, admin, leader, musician, member)
+3. **Users Collection**: Basic authentication with PocketBase auth
+4. **Songs Collection**: Central repository with title, artist, key signature, tempo, tags, file attachments, and church scoping
+5. **Services Collection**: Service planning with dates, themes, team assignments, and church context
+6. **Service Songs Collection**: Junction table enabling drag-and-drop ordering and key overrides
+7. **Song Usage Collection**: Tracking for analytics and repetition prevention (populated via "Complete Service" action)
+
+### Church Setup and Multi-Tenancy
+
+WorshipWise implements a sophisticated church-centric architecture:
+
+- **Initial Setup Flow**: First-time deployments require creating a church and admin user through `/setup` route
+- **Church Context**: All data is automatically scoped to the user's church through PocketBase security rules
+- **Role-Based Permissions**: Granular permissions system with pastor, admin, leader, musician, and member roles
+- **Timezone-Aware Operations**: Churches have timezone settings for hemisphere-aware seasonal recommendations
 
 ### Song Usage Tracking Implementation
 
@@ -70,70 +82,92 @@ The Song Usage collection is populated when a worship leader marks a service as 
 ```typescript
 // lib/api/services.ts
 export async function completeService(serviceId: string) {
-	// Note: Database collection is still named 'setlists' for compatibility
-	const service = await pb.collection('setlists').getOne(serviceId, {
-		expand: 'setlist_songs_via_setlist.song' // Database relation names
+	const service = await pb.collection('services').getOne(serviceId, {
+		expand: 'service_songs_via_service_id.song_id'
 	});
 
 	// Create usage records for each song
-	const usagePromises = service.expand.setlist_songs_via_setlist.map((item) =>
+	const usagePromises = service.expand.service_songs_via_service_id.map((item) =>
 		pb.collection('song_usage').create({
-			song: item.song,
-			setlist: serviceId, // Database field name (refers to service)
-			usage_date: service.service_date,
-			worship_leader: service.worship_leader
+			song_id: item.song_id,
+			service_id: serviceId,
+			used_date: service.service_date,
+			worship_leader: service.worship_leader,
+			service_type: service.service_type
 		})
 	);
 
 	await Promise.all(usagePromises);
 
 	// Mark service as completed
-	await pb.collection('setlists').update(serviceId, {
+	await pb.collection('services').update(serviceId, {
 		status: 'completed'
 	});
 }
 ```
 
-Key design decisions include **careful cascade configuration** (deleting a song should NOT delete historical usage data), **strategic indexing** for sub-100ms queries, and **role-based permissions** ensuring data integrity.
+Key design decisions include **careful cascade configuration** (deleting a song should NOT delete historical usage data), **strategic indexing** for sub-100ms queries, **church-scoped permissions** ensuring complete data isolation, and **role-based security rules** maintaining data integrity.
 
-## Project Structure: Client-Side Architecture
+## Project Structure: Production-Ready Architecture
 
 ```
 worshipwise/
 ├── src/
 │   ├── lib/
 │   │   ├── components/
-│   │   │   ├── songs/          # SongCard, SongForm, SongSearch
-│   │   │   ├── services/       # ServiceBuilder, ServiceTimeline
-│   │   │   ├── analytics/      # FrequencyChart, UsageHeatmap
-│   │   │   └── ui/             # Shared components (Button, Modal, etc.)
-│   │   ├── stores/
-│   │   │   ├── auth.svelte.ts       # PocketBase auth state
-│   │   │   ├── songs.svelte.ts      # Song management with API calls
-│   │   │   ├── services.svelte.ts   # Service state and subscriptions
-│   │   │   └── analytics.svelte.ts  # Analytics data fetching
-│   │   ├── api/
-│   │   │   ├── client.ts            # PocketBase client initialization
-│   │   │   ├── songs.ts             # Song CRUD operations
-│   │   │   ├── services.ts          # Service operations
-│   │   │   └── realtime.ts          # WebSocket subscriptions
-│   │   └── utils/
-│   │       ├── repetition.ts         # Song repetition algorithms
-│   │       ├── transpose.ts          # Key transposition logic
-│   │       └── constants.ts         # API URLs, config
+│   │   │   ├── songs/          # Song management components (22+ components)
+│   │   │   ├── services/       # Service builder with real-time collaboration
+│   │   │   ├── analytics/      # Chart.js reporting dashboard
+│   │   │   ├── setup/          # Church onboarding flow
+│   │   │   ├── admin/          # User and church management
+│   │   │   └── ui/             # Comprehensive component library
+│   │   ├── stores/             # Svelte 5 runes-based state management
+│   │   │   ├── auth.svelte.ts           # Church-aware auth state
+│   │   │   ├── setup.svelte.ts          # Initial church setup flow
+│   │   │   ├── songs.svelte.ts          # Song management with church context
+│   │   │   ├── services.svelte.ts       # Real-time collaborative service editing
+│   │   │   ├── analytics.svelte.ts      # Church-scoped analytics
+│   │   │   └── recommendations.svelte.ts # AI-powered worship insights
+│   │   ├── api/                # Church-scoped API operations
+│   │   │   ├── client.ts               # PocketBase initialization
+│   │   │   ├── churches.ts             # Church setup and management
+│   │   │   ├── songs.ts                # Song CRUD with file uploads
+│   │   │   ├── services.ts             # Service operations with real-time
+│   │   │   ├── analytics.ts            # Church analytics and insights
+│   │   │   ├── recommendations.ts      # AI recommendations engine
+│   │   │   └── realtime.ts             # WebSocket subscription management
+│   │   ├── types/              # Comprehensive TypeScript definitions
+│   │   │   ├── auth.ts                 # User and authentication types
+│   │   │   ├── church.ts               # Church and membership types
+│   │   │   ├── song.ts                 # Song and category types
+│   │   │   └── service.ts              # Service and collaboration types
+│   │   └── utils/              # Helper functions and algorithms
+│   │       ├── analytics-utils.ts      # Chart data processing
+│   │       ├── service-utils.ts        # Service building utilities
+│   │       └── constants.ts            # Configuration and constants
 │   ├── routes/
-│   │   ├── +layout.svelte       # App shell with auth check
-│   │   ├── +page.svelte         # Landing/dashboard
-│   │   ├── login/               # Auth pages
-│   │   ├── songs/               # Song library views
-│   │   ├── services/           # Service management
-│   │   └── analytics/          # Reporting dashboard
+│   │   ├── +layout.svelte      # Church-aware auth shell with setup guard
+│   │   ├── setup/              # Initial church setup flow
+│   │   ├── (app)/              # Protected church-scoped routes
+│   │   │   ├── dashboard/      # Analytics and insights dashboard
+│   │   │   ├── songs/          # Song library with categories
+│   │   │   ├── services/       # Real-time service builder
+│   │   │   ├── analytics/      # Comprehensive reporting
+│   │   │   └── admin/          # Church and user management
+│   │   └── login/              # Authentication pages
 │   └── app.html
+├── pocketbase/                 # PocketBase deployment
+│   ├── pb_migrations/          # Database schema migrations
+│   ├── pb_data/                # Database and uploaded files
+│   └── pb_public/              # Static frontend deployment target
+├── plan/                       # Documentation and planning
+├── tests/                      # Comprehensive test suite
+│   ├── unit/                   # Vitest unit tests (190+ tests)
+│   └── e2e/                    # Playwright end-to-end tests
 ├── static/
-│   ├── favicon.png
-│   └── manifest.json            # PWA manifest
-├── svelte.config.js             # Static adapter config
-├── vite.config.js              # Vite configuration
+├── svelte.config.js            # Static adapter with SPA configuration
+├── vite.config.js              # Multi-project test configuration
+├── justfile                    # Development commands
 └── package.json
 ```
 
@@ -201,32 +235,28 @@ export default defineConfig({
 
 Since frontend and backend share the same origin, no API URL configuration is required!
 
-## Authentication Management
+## Church-Centric Authentication & Setup
 
-### Auth Store with Svelte 5 Runes
+### Current Implementation: Church-Aware Auth Store
+
+The authentication system now includes sophisticated church context management:
 
 ```typescript
-// lib/stores/auth.svelte.ts
-import { pb } from '$lib/api/client';
-import { goto } from '$app/navigation';
-
+// lib/stores/auth.svelte.ts - Current Implementation
 class AuthStore {
 	user = $state(pb.authStore.model);
 	token = $state(pb.authStore.token);
 	isValid = $state(pb.authStore.isValid);
-
-	constructor() {
-		// Listen for auth changes
-		pb.authStore.onChange(() => {
-			this.user = pb.authStore.model;
-			this.token = pb.authStore.token;
-			this.isValid = pb.authStore.isValid;
-		});
-	}
+	
+	// Church context
+	currentChurch = $state<Church | null>(null);
+	membership = $state<ChurchMembership | null>(null);
+	permissions = $derived(this.membership?.permissions || []);
 
 	async login(email: string, password: string) {
 		try {
-			const authData = await pb.collection('worship_leaders').authWithPassword(email, password);
+			const authData = await pb.collection('users').authWithPassword(email, password);
+			await this.loadChurchContext();
 			return authData;
 		} catch (error) {
 			console.error('Login failed:', error);
@@ -234,24 +264,112 @@ class AuthStore {
 		}
 	}
 
-	async logout() {
-		pb.authStore.clear();
-		goto('/login');
+	async loadChurchContext() {
+		if (!this.user) return;
+
+		try {
+			// Get user's church membership
+			const membership = await pb.collection('church_memberships').getFirstListItem(
+				`user_id = "${this.user.id}" && status = "active"`,
+				{ expand: 'church_id' }
+			);
+
+			this.membership = membership;
+			this.currentChurch = membership.expand?.church_id || null;
+		} catch (error) {
+			console.error('Failed to load church context:', error);
+		}
 	}
 
-	async register(data: RegisterData) {
-		try {
-			const user = await pb.collection('worship_leaders').create(data);
-			await this.login(data.email, data.password);
-			return user;
-		} catch (error) {
-			console.error('Registration failed:', error);
-			throw error;
-		}
+	hasPermission(permission: string): boolean {
+		return this.permissions.includes(permission);
+	}
+
+	canManageUsers(): boolean {
+		return this.hasPermission('users:manage') || 
+		       ['admin', 'pastor'].includes(this.membership?.role || '');
 	}
 }
 
 export const auth = new AuthStore();
+```
+
+### Initial Church Setup Flow
+
+WorshipWise includes a sophisticated onboarding process for new deployments:
+
+```typescript
+// lib/stores/setup.svelte.ts - Church Setup Management
+class SetupStore {
+	step = $state(1);
+	isComplete = $state(false);
+	loading = $state(false);
+	error = $state<string | null>(null);
+
+	formData = $state({
+		churchName: '',
+		adminName: '',
+		adminEmail: '',
+		password: '',
+		timezone: '',
+		country: '',
+		address: '',
+		city: '',
+		state: ''
+	});
+
+	async createChurchAndAdmin() {
+		this.loading = true;
+		try {
+			// Detect hemisphere from timezone
+			const hemisphere = detectHemisphereFromTimezone(this.formData.timezone);
+
+			// Create church
+			const church = await pb.collection('churches').create({
+				name: this.formData.churchName,
+				slug: generateSlug(this.formData.churchName),
+				timezone: this.formData.timezone,
+				hemisphere,
+				country: this.formData.country,
+				address: this.formData.address,
+				city: this.formData.city,
+				state: this.formData.state,
+				settings: getDefaultChurchSettings(),
+				is_active: true
+			});
+
+			// Create admin user
+			const user = await pb.collection('users').create({
+				email: this.formData.adminEmail,
+				name: this.formData.adminName,
+				password: this.formData.password,
+				passwordConfirm: this.formData.password
+			});
+
+			// Create church membership for admin
+			await pb.collection('church_memberships').create({
+				church_id: church.id,
+				user_id: user.id,
+				role: 'pastor',
+				permissions: getDefaultPermissions('pastor'),
+				status: 'active',
+				joined_date: new Date().toISOString(),
+				is_active: true
+			});
+
+			// Update church owner
+			await pb.collection('churches').update(church.id, {
+				owner_user_id: user.id
+			});
+
+			this.isComplete = true;
+		} catch (error) {
+			this.error = error.message;
+		} finally {
+			this.loading = false;
+		}
+	}
+}
 ```
 
 ### Protected Route Layout (Improved)

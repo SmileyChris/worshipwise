@@ -1,6 +1,7 @@
 import { vi } from 'vitest';
 import { mockPb } from './pb-mock';
-import type { User, Profile } from '$lib/types/auth';
+import type { User } from '$lib/types/auth';
+import type { ChurchMembership } from '$lib/types/church';
 
 /**
  * Helper functions for setting up authentication test scenarios
@@ -8,7 +9,7 @@ import type { User, Profile } from '$lib/types/auth';
 
 export interface MockAuthState {
 	user: User | null;
-	profile: Profile | null;
+	currentMembership: ChurchMembership | null;
 	token: string;
 	isValid: boolean;
 }
@@ -41,12 +42,13 @@ export function mockAuthenticatedUser(
 		emailVisibility: false
 	};
 
-	const mockProfile: Profile = {
-		id: 'test-profile-id',
+	const mockMembership: ChurchMembership = {
+		id: 'test-membership-id',
+		church_id: 'test-church-id',
 		user_id: userId,
-		name: options.profileName || options.name || 'Test User',
 		role: options.role || 'musician',
-		church_name: options.churchName || 'Test Church',
+		permissions: [],
+		status: 'active',
 		is_active: options.isActive !== false,
 		created: '2024-01-01T00:00:00Z',
 		updated: '2024-01-01T00:00:00Z'
@@ -54,7 +56,7 @@ export function mockAuthenticatedUser(
 
 	const mockState: MockAuthState = {
 		user: mockUser,
-		profile: mockProfile,
+		currentMembership: mockMembership,
 		token: 'mock-auth-token',
 		isValid: true
 	};
@@ -73,7 +75,7 @@ export function mockAuthenticatedUser(
 export function mockUnauthenticatedUser(): MockAuthState {
 	const mockState: MockAuthState = {
 		user: null,
-		profile: null,
+		currentMembership: null,
 		token: '',
 		isValid: false
 	};
@@ -97,28 +99,29 @@ export function mockSuccessfulLogin(user?: Partial<User>, profile?: Partial<Prof
 		...user
 	};
 
-	const mockProfile = {
-		id: 'profile1',
+	const mockMembership = {
+		id: 'membership1',
+		church_id: 'church1',
 		user_id: mockUser.id,
-		name: 'Test User',
 		role: 'musician' as const,
-		church_name: 'Test Church',
+		permissions: [],
+		status: 'active' as const,
 		is_active: true,
 		...profile
 	};
 
 	const usersCollection = mockPb.collection('users');
-	const profilesCollection = mockPb.collection('profiles');
+	const membershipsCollection = mockPb.collection('church_memberships');
 
 	usersCollection.authWithPassword = vi.fn().mockResolvedValue({
 		record: mockUser
 	});
 
-	profilesCollection.getList = vi.fn().mockResolvedValue({
-		items: [mockProfile]
+	membershipsCollection.getList = vi.fn().mockResolvedValue({
+		items: [mockMembership]
 	});
 
-	return { mockUser, mockProfile };
+	return { mockUser, mockMembership };
 }
 
 /**
@@ -151,26 +154,27 @@ export function mockSuccessfulRegistration(
 		...userData
 	};
 
-	const mockProfile = {
-		id: 'profile1',
+	const mockMembership = {
+		id: 'membership1',
+		church_id: 'church1',
 		user_id: mockUser.id,
-		name: 'New User',
 		role: 'musician' as const,
-		church_name: 'Test Church',
+		permissions: [],
+		status: 'active' as const,
 		is_active: true,
 		...profileData
 	};
 
 	const usersCollection = mockPb.collection('users');
-	const profilesCollection = mockPb.collection('profiles');
+	const membershipsCollection = mockPb.collection('church_memberships');
 
 	usersCollection.create = vi.fn().mockResolvedValue(mockUser);
 	usersCollection.authWithPassword = vi.fn().mockResolvedValue({
 		record: mockUser
 	});
-	profilesCollection.create = vi.fn().mockResolvedValue(mockProfile);
+	membershipsCollection.create = vi.fn().mockResolvedValue(mockMembership);
 
-	return { mockUser, mockProfile };
+	return { mockUser, mockMembership };
 }
 
 /**

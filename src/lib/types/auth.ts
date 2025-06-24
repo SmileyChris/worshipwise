@@ -9,20 +9,6 @@ export interface User {
 	emailVisibility: boolean;
 }
 
-export interface Profile {
-	id: string;
-	user_id: string;
-	name: string;
-	role: 'pastor' | 'admin' | 'leader' | 'musician' | 'member';
-	church_id?: string;
-	church_name?: string;
-	preferred_keys?: Record<string, unknown>;
-	notification_preferences?: Record<string, unknown>;
-	is_active?: boolean;
-	created: string;
-	updated: string;
-}
-
 export interface LoginCredentials {
 	email: string;
 	password: string;
