@@ -34,7 +34,7 @@ vi.mock('$lib/api/services', () => ({
 	}
 }));
 
-const mockedServicesApi = servicesApi as {
+const mockedServicesApi = servicesApi as unknown as {
 	getServices: MockedFunction<any>;
 	getUpcomingServices: MockedFunction<any>;
 	getTemplates: MockedFunction<any>;

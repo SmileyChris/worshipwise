@@ -21,7 +21,7 @@ vi.mock('$lib/api/recommendations', () => ({
 	}
 }));
 
-const mockedRecommendationsApi = recommendationsApi as {
+const mockedRecommendationsApi = recommendationsApi as unknown as {
 	getSongRecommendations: MockedFunction<any>;
 	getWorshipFlowSuggestions: MockedFunction<any>;
 	analyzeServiceBalance: MockedFunction<any>;

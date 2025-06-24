@@ -3,6 +3,7 @@ import { flushSync } from 'svelte';
 import { auth } from './auth.svelte';
 import { mockPb } from '../../../tests/helpers/pb-mock';
 import type { User, LoginCredentials, RegisterData } from '$lib/types/auth';
+import type { ChurchMembership } from '$lib/types/church';
 import { goto } from '$app/navigation';
 
 // Mock $app/navigation
@@ -485,11 +486,16 @@ describe('AuthStore', () => {
 		it('should update profile information successfully', async () => {
 			const mockUser = { id: 'user1', email: 'test@example.com' } as User;
 			const mockMembership = {
-				id: 'profile1',
+				id: 'membership1',
+				church_id: 'church1',
 				user_id: 'user1',
-				name: 'Old Name',
-				role: 'musician'
-			};
+				role: 'musician',
+				permissions: [],
+				status: 'active',
+				is_active: true,
+				created: '2024-01-01T00:00:00Z',
+				updated: '2024-01-01T00:00:00Z'
+			} as ChurchMembership;
 
 			auth.user = mockUser;
 			auth.currentMembership = mockMembership;
@@ -515,11 +521,16 @@ describe('AuthStore', () => {
 		it('should handle empty update gracefully', async () => {
 			const mockUser = { id: 'user1', email: 'test@example.com' } as User;
 			const mockMembership = {
-				id: 'profile1',
+				id: 'membership1',
+				church_id: 'church1',
 				user_id: 'user1',
-				name: 'Old Name',
-				role: 'musician'
-			};
+				role: 'musician',
+				permissions: [],
+				status: 'active',
+				is_active: true,
+				created: '2024-01-01T00:00:00Z',
+				updated: '2024-01-01T00:00:00Z'
+			} as ChurchMembership;
 
 			auth.user = mockUser;
 			auth.currentMembership = mockMembership;
@@ -541,7 +552,17 @@ describe('AuthStore', () => {
 
 		it('should handle profile info update errors', async () => {
 			const mockUser = { id: 'user1', email: 'test@example.com' } as User;
-			const mockMembership = { id: 'profile1', user_id: 'user1', name: 'Old Name' };
+			const mockMembership = { 
+				id: 'membership1', 
+				church_id: 'church1',
+				user_id: 'user1',
+				role: 'musician',
+				permissions: [],
+				status: 'active',
+				is_active: true,
+				created: '2024-01-01T00:00:00Z',
+				updated: '2024-01-01T00:00:00Z'
+			} as ChurchMembership;
 
 			auth.user = mockUser;
 			auth.currentMembership = mockMembership;
@@ -697,10 +718,17 @@ describe('AuthStore', () => {
 		});
 
 		it('should compute displayName correctly', () => {
-			// Profile name takes precedence
-			auth.currentMembership = { name: 'Profile Name' };
+			// User name takes precedence
 			auth.user = { name: 'User Name', email: 'test@example.com' } as User;
-			expect(auth.displayName).toBe('Profile Name');
+			expect(auth.displayName).toBe('User Name');
+			
+			// Falls back to email if no name
+			auth.user = { email: 'test@example.com' } as User;
+			expect(auth.displayName).toBe('test@example.com');
+			
+			// Falls back to 'User' if no name or email
+			auth.user = {} as User;
+			expect(auth.displayName).toBe('User');
 		});
 	});
 
