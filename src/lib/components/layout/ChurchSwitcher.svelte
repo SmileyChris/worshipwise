@@ -3,27 +3,10 @@
 	import { page } from '$app/stores';
 	import { ChevronDown, Church, Building, Settings, LogOut, Plus } from 'lucide-svelte';
 	import type { Church as ChurchType } from '$lib/types/church';
-	import Modal from '$lib/components/ui/Modal.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Select from '$lib/components/ui/Select.svelte';
-	import { ChurchesAPI } from '$lib/api/churches';
 
 	// Component state
 	let dropdownOpen = $state<boolean>(false);
 	let confirmLeave = $state<string | null>(null);
-	let showAddChurchModal = $state<boolean>(false);
-
-	// Add church form state
-	let addChurchForm = $state({
-		name: '',
-		city: '',
-		state: '',
-		country: '',
-		timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-	});
-	let addChurchLoading = $state<boolean>(false);
-	let addChurchError = $state<string | null>(null);
 
 	// Derived state
 	let isInAdminContext = $derived($page.url.pathname.startsWith('/admin'));
@@ -101,75 +84,19 @@
 		// TODO: Check if user is the only admin (would need additional API call)
 		return true;
 	}
-
-
-	async function handleAddChurch(event: Event) {
-		event.preventDefault();
-
-		if (!addChurchForm.name.trim()) {
-			addChurchError = 'Church name is required';
-			return;
-		}
-
-		addChurchLoading = true;
-		addChurchError = null;
-
-		try {
-			const newChurch = await ChurchesAPI.createChurch({
-				name: addChurchForm.name.trim(),
-				city: addChurchForm.city.trim() || undefined,
-				state: addChurchForm.state.trim() || undefined,
-				country: addChurchForm.country.trim() || undefined,
-				timezone: addChurchForm.timezone
-			});
-
-			// Switch to the new church and refresh
-			await auth.switchChurch(newChurch.id);
-
-			// Reset form and close modal
-			addChurchForm = {
-				name: '',
-				city: '',
-				state: '',
-				country: '',
-				timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-			};
-			showAddChurchModal = false;
-
-			// Refresh the page to load new church data
-			window.location.reload();
-		} catch (error) {
-			console.error('Failed to create church:', error);
-			addChurchError = error instanceof Error ? error.message : 'Failed to create church';
-		} finally {
-			addChurchLoading = false;
-		}
-	}
-
-	function closeAddChurchModal() {
-		showAddChurchModal = false;
-		addChurchError = null;
-		addChurchForm = {
-			name: '',
-			city: '',
-			state: '',
-			country: '',
-			timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-		};
-	}
 </script>
 
 {#if auth.currentChurch && auth.availableChurches.length > 0}
 	<div class="relative" id="church-switcher">
 		<button
 			onclick={toggleDropdown}
-			class="focus:ring-primary flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none {isInAdminContext
-				? 'bg-primary/10 text-primary hover:bg-primary/20'
-				: 'bg-white text-gray-700 hover:bg-gray-50'}"
+			class="flex h-16 items-center space-x-2 border-b-2 px-1 text-sm font-medium transition-colors focus:outline-none {isInAdminContext
+				? 'border-primary text-primary'
+				: 'border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-700'}"
 			aria-expanded={dropdownOpen}
 			aria-haspopup="true"
 		>
-			<Church class="text-primary h-4 w-4" />
+			<Church class="h-4 w-4 {isInAdminContext ? 'text-primary' : 'text-gray-500'}" />
 			<span class="max-w-32 truncate">{getChurchDisplayName(auth.currentChurch)}</span>
 			<ChevronDown
 				class="h-3 w-3 text-gray-400 {dropdownOpen ? 'rotate-180' : ''} transition-transform"
@@ -201,22 +128,19 @@
 							<!-- Main church button -->
 							<button
 								onclick={() => handleChurchSwitch(church.id)}
-								class="flex w-full items-center px-4 py-3 text-left transition-colors hover:bg-gray-50"
-								class:bg-primary={church.id === auth.currentChurch?.id}
+								class="flex w-full items-center px-4 py-3 text-left transition-colors hover:bg-primary hover:text-white group/item cursor-pointer"
 								role="menuitem"
 							>
 								<div class="min-w-0 flex-1">
 									<div class="flex items-center space-x-2">
-										<Building class="h-4 w-4 flex-shrink-0 text-gray-400" />
+										<Building class="h-4 w-4 flex-shrink-0 text-gray-400 group-hover/item:text-white" />
 										<div class="min-w-0 flex-1">
-											<p class="truncate text-sm font-medium text-gray-900">
+											<p class="truncate text-sm font-medium text-gray-900 group-hover/item:text-white">
 												{getChurchDisplayName(church)}
 											</p>
-											{#if church.city || church.timezone}
-												<p class="truncate text-xs text-gray-500">
-													{church.city || ''}{church.city && church.timezone
-														? ' • '
-														: ''}{church.timezone || ''}
+											{#if church.city}
+												<p class="truncate text-xs text-gray-500 group-hover/item:text-white/80">
+													{church.city}
 												</p>
 											{/if}
 										</div>
@@ -256,17 +180,15 @@
 
 				<!-- Footer with actions -->
 				<div class="border-t border-gray-100 pt-2">
-					<button
-						onclick={() => {
-							showAddChurchModal = true;
-							closeDropdown();
-						}}
-						class="flex w-full items-center px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+					<a
+						href="/churches/add"
+						class="flex w-full items-center px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 cursor-pointer"
+						onclick={closeDropdown}
 						role="menuitem"
 					>
 						<Plus class="mr-3 h-4 w-4 text-gray-400" />
 						Add Church
-					</button>
+					</a>
 					{#if auth.isAdmin}
 						<a
 							href="/admin"
@@ -292,78 +214,4 @@
 			</div>
 		{/if}
 	</div>
-
-	<!-- Add Church Modal -->
-	<Modal
-		open={showAddChurchModal}
-		onclose={closeAddChurchModal}
-		title="Add New Church"
-		subtitle="Create a new church to manage your worship services"
-	>
-		<form onsubmit={handleAddChurch} class="space-y-4">
-			{#if addChurchError}
-				<div class="rounded-md bg-red-50 p-4">
-					<p class="text-sm text-red-800">{addChurchError}</p>
-				</div>
-			{/if}
-
-			<Input
-				label="Church Name"
-				name="name"
-				bind:value={addChurchForm.name}
-				placeholder="Enter church name"
-				required
-			/>
-
-			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-				<Input
-					label="City"
-					name="city"
-					bind:value={addChurchForm.city}
-					placeholder="City (optional)"
-				/>
-				<Input
-					label="State/Province"
-					name="state"
-					bind:value={addChurchForm.state}
-					placeholder="State/Province (optional)"
-				/>
-			</div>
-
-			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-				<Input
-					label="Country"
-					name="country"
-					bind:value={addChurchForm.country}
-					placeholder="Country (optional)"
-				/>
-				<Input
-					label="Timezone"
-					name="timezone"
-					bind:value={addChurchForm.timezone}
-					placeholder="Timezone"
-					required
-				/>
-			</div>
-
-			<div class="flex justify-end gap-3 pt-4">
-				<Button
-					type="button"
-					variant="secondary"
-					onclick={closeAddChurchModal}
-					disabled={addChurchLoading}
-				>
-					Cancel
-				</Button>
-				<Button
-					type="submit"
-					variant="primary"
-					loading={addChurchLoading}
-					disabled={!addChurchForm.name.trim() || addChurchLoading}
-				>
-					{addChurchLoading ? 'Creating...' : 'Create Church'}
-				</Button>
-			</div>
-		</form>
-	</Modal>
 {/if}
