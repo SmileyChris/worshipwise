@@ -4,7 +4,8 @@ import {
 	type WorshipFlowSuggestion,
 	type ServiceBalanceAnalysis,
 	type SeasonalTrend,
-	type ComparativePeriod
+	type ComparativePeriod,
+	type WorshipInsights
 } from '$lib/api/recommendations';
 
 class RecommendationsStore {
@@ -18,7 +19,7 @@ class RecommendationsStore {
 	serviceBalanceAnalysis = $state<ServiceBalanceAnalysis | null>(null);
 	seasonalTrends = $state<SeasonalTrend[]>([]);
 	comparativePeriod = $state<ComparativePeriod | null>(null);
-	worshipInsights = $state<Record<string, unknown> | null>(null);
+	worshipInsights = $state<WorshipInsights | null>(null);
 
 	// Filter preferences
 	recommendationFilters = $state<{

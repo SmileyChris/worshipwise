@@ -27,12 +27,13 @@ describe('UserEditModal', () => {
 		created: '2024-01-01T00:00:00Z',
 		updated: '2024-01-01T00:00:00Z',
 		verified: true,
-		profile: {
-			id: 'profile1',
+		membership: {
+			id: 'membership1',
+			church_id: 'church1',
 			user_id: 'user1',
-			name: 'Test Profile Name',
 			role: 'musician',
-			church_name: '',
+			permissions: [],
+			status: 'active',
 			is_active: true,
 			created: '2024-01-01T00:00:00Z',
 			updated: '2024-01-01T00:00:00Z'
@@ -56,7 +57,7 @@ describe('UserEditModal', () => {
 		vi.clearAllMocks();
 		mockGetUserActivity.mockResolvedValue(mockUserActivity);
 		mockUpdateUser.mockResolvedValue({});
-		mockUpdateUserProfile.mockResolvedValue({});
+		mockUpdateUserMembership.mockResolvedValue({});
 	});
 
 	describe('Rendering', () => {
@@ -83,11 +84,11 @@ describe('UserEditModal', () => {
 			await waitFor(() => {
 				expect(screen.getByDisplayValue(mockUser.email)).toBeInTheDocument();
 				expect(screen.getByDisplayValue(mockUser.name || '')).toBeInTheDocument();
-				expect(screen.getByDisplayValue(mockUser.profile?.name || '')).toBeInTheDocument();
+				expect(screen.getByDisplayValue(mockUser.name || '')).toBeInTheDocument();
 			});
 
 			const roleSelect = screen.getByRole('combobox');
-			expect(roleSelect).toHaveValue(mockUser.profile?.role);
+			expect(roleSelect).toHaveValue(mockUser.membership?.role);
 		});
 
 		it('should display user activity stats', async () => {
@@ -139,17 +140,19 @@ describe('UserEditModal', () => {
 		it('should update profile information', async () => {
 			render(UserEditModal, mockProps);
 
-			const profileNameInput = screen.getByDisplayValue(mockUser.profile?.name || '');
+			const nameInput = screen.getByDisplayValue(mockUser.name || '');
 			const roleSelect = screen.getByRole('combobox');
 			const saveButton = screen.getByRole('button', { name: /save changes/i });
 
-			await fireEvent.input(profileNameInput, { target: { value: 'New Profile Name' } });
+			await fireEvent.input(nameInput, { target: { value: 'New Profile Name' } });
 			await fireEvent.change(roleSelect, { target: { value: 'leader' } });
 			await fireEvent.click(saveButton);
 
 			await waitFor(() => {
-				expect(updateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
-					name: 'New Profile Name',
+				expect(updateUser).toHaveBeenCalledWith(mockUser.id, {
+					name: 'New Profile Name'
+				});
+				expect(updateUserMembership).toHaveBeenCalledWith(mockUser.membership?.id, {
 					role: 'leader'
 				});
 			});
@@ -167,8 +170,8 @@ describe('UserEditModal', () => {
 			await fireEvent.click(saveButton);
 
 			await waitFor(() => {
-				expect(updateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
-					is_active: false
+				expect(updateUserMembership).toHaveBeenCalledWith(mockUser.membership?.id, {
+					status: 'suspended'
 				});
 			});
 		});
@@ -181,7 +184,7 @@ describe('UserEditModal', () => {
 
 			await waitFor(() => {
 				expect(updateUser).not.toHaveBeenCalled();
-				expect(updateUserProfile).not.toHaveBeenCalled();
+				expect(updateUserMembership).not.toHaveBeenCalled();
 				expect(mockProps.onsave).toHaveBeenCalled();
 			});
 		});
@@ -190,18 +193,16 @@ describe('UserEditModal', () => {
 			render(UserEditModal, mockProps);
 
 			const emailInput = screen.getByDisplayValue(mockUser.email);
-			const profileNameInput = screen.getByDisplayValue(mockUser.profile?.name || '');
+			const nameInput = screen.getByDisplayValue(mockUser.name || '');
 			const saveButton = screen.getByRole('button', { name: /save changes/i });
 
 			await fireEvent.input(emailInput, { target: { value: 'newemail@example.com' } });
-			await fireEvent.input(profileNameInput, { target: { value: 'New Profile Name' } });
+			await fireEvent.input(nameInput, { target: { value: 'New Profile Name' } });
 			await fireEvent.click(saveButton);
 
 			await waitFor(() => {
 				expect(updateUser).toHaveBeenCalledWith(mockUser.id, {
-					email: 'newemail@example.com'
-				});
-				expect(updateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
+					email: 'newemail@example.com',
 					name: 'New Profile Name'
 				});
 			});
@@ -377,7 +378,7 @@ describe('UserEditModal', () => {
 			await fireEvent.click(saveButton);
 
 			await waitFor(() => {
-				expect(updateUserProfile).toHaveBeenCalledWith(mockUser.profile?.id, {
+				expect(updateUserMembership).toHaveBeenCalledWith(mockUser.membership?.id, {
 					role: 'admin'
 				});
 			});
@@ -386,19 +387,19 @@ describe('UserEditModal', () => {
 
 	describe('User Without Profile', () => {
 		it('should handle user without profile gracefully', () => {
-			const userWithoutProfile: UserWithMembership = {
+			const userWithoutMembership: UserWithMembership = {
 				...mockUser,
-				profile: undefined
+				membership: undefined
 			};
 
 			render(UserEditModal, {
 				...mockProps,
-				user: userWithoutProfile
+				user: userWithoutMembership
 			});
 
 			// Should still render form, but profile fields should be empty
-			expect(screen.getByDisplayValue(userWithoutProfile.email)).toBeInTheDocument();
-			expect(screen.getByDisplayValue(userWithoutProfile.name || '')).toBeInTheDocument();
+			expect(screen.getByDisplayValue(userWithoutMembership.email)).toBeInTheDocument();
+			expect(screen.getByDisplayValue(userWithoutMembership.name || '')).toBeInTheDocument();
 
 			// Profile fields should have empty/default values
 			const profileInputs = screen.getAllByDisplayValue('');

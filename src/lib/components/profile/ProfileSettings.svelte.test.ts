@@ -4,13 +4,14 @@ import '@testing-library/jest-dom/vitest';
 import ProfileSettings from './ProfileSettings.svelte';
 import { auth } from '$lib/stores/auth.svelte';
 import type { User } from '$lib/types/auth';
+import type { ChurchMembership } from '$lib/types/church';
 
 // Mock the auth store
 vi.mock('$lib/stores/auth.svelte', () => ({
 	auth: {
 		user: null,
-		profile: null,
-		updateProfileInfo: vi.fn(),
+		currentMembership: null,
+		updateProfile: vi.fn(),
 		getErrorMessage: vi.fn(),
 		isAdmin: false,
 		hasRole: vi.fn().mockReturnValue(false)
@@ -47,11 +48,13 @@ describe('ProfileSettings', () => {
 		emailVisibility: false
 	};
 
-	const mockProfile: Profile = {
-		id: 'profile1',
+	const mockMembership: ChurchMembership = {
+		id: 'membership1',
+		church_id: 'church1',
 		user_id: 'user1',
-		name: 'Test User',
 		role: 'musician',
+		permissions: [],
+		status: 'active',
 		is_active: true,
 		created: '2024-01-01T00:00:00Z',
 		updated: '2024-01-01T00:00:00Z'
@@ -62,8 +65,8 @@ describe('ProfileSettings', () => {
 
 		// Reset auth store mocks
 		auth.user = mockUser;
-		auth.profile = mockProfile;
-		auth.updateProfileInfo = vi.fn().mockResolvedValue(undefined);
+		auth.currentMembership = mockMembership;
+		auth.updateProfile = vi.fn().mockResolvedValue(undefined);
 		auth.getErrorMessage = vi.fn().mockReturnValue('Mock error message');
 		auth.isAdmin = false;
 		auth.hasRole = vi.fn().mockReturnValue(false);
@@ -74,9 +77,9 @@ describe('ProfileSettings', () => {
 			render(ProfileSettings);
 
 			expect(screen.getByRole('heading', { name: 'Profile Information' })).toBeInTheDocument();
-			expect(screen.getByTestId('profile-name-input')).toHaveValue(mockProfile.name);
+			expect(screen.getByTestId('profile-name-input')).toHaveValue(mockUser.name);
 			expect(screen.getByTestId('profile-email-input')).toHaveValue(mockUser.email);
-			expect(screen.getByTestId('profile-role-select')).toHaveValue(mockProfile.role);
+			expect(screen.getByTestId('profile-role-select')).toHaveValue(mockMembership.role);
 		});
 
 		it('should validate name field', async () => {
@@ -128,15 +131,10 @@ describe('ProfileSettings', () => {
 
 			await fireEvent.click(updateButton);
 
-			expect(auth.updateProfileInfo).toHaveBeenCalledWith(
-				{
-					name: 'Updated Name',
-					role: 'musician'
-				},
-				{
-					email: 'updated@example.com'
-				}
-			);
+			expect(auth.updateProfile).toHaveBeenCalledWith({
+				name: 'Updated Name',
+				email: 'updated@example.com'
+			});
 		});
 
 		it('should not update user data if email unchanged', async () => {
@@ -149,7 +147,7 @@ describe('ProfileSettings', () => {
 			await fireEvent.input(nameInput, { target: { value: 'Updated Name' } });
 			await fireEvent.click(updateButton);
 
-			expect(auth.updateProfileInfo).toHaveBeenCalledWith(
+			expect(auth.updateProfile).toHaveBeenCalledWith(
 				{
 					name: 'Updated Name',
 					role: 'musician'
@@ -159,7 +157,7 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should display profile update success message', async () => {
-			auth.updateProfileInfo = vi.fn().mockResolvedValue(undefined);
+			auth.updateProfile = vi.fn().mockResolvedValue(undefined);
 
 			render(ProfileSettings);
 
@@ -176,7 +174,7 @@ describe('ProfileSettings', () => {
 
 		it('should display profile update error message', async () => {
 			const error = new Error('Update failed');
-			auth.updateProfileInfo = vi.fn().mockRejectedValue(error);
+			auth.updateProfile = vi.fn().mockRejectedValue(error);
 
 			render(ProfileSettings);
 
@@ -205,7 +203,7 @@ describe('ProfileSettings', () => {
 			// Reset form
 			await fireEvent.click(resetButton);
 
-			expect(nameInput).toHaveValue(mockProfile.name);
+			expect(nameInput).toHaveValue(mockUser.name);
 			expect(emailInput).toHaveValue(mockUser.email);
 		});
 	});
@@ -450,7 +448,7 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should show loading states during operations', async () => {
-			auth.updateProfileInfo = vi
+			auth.updateProfile = vi
 				.fn()
 				.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 

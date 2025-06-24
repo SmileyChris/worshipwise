@@ -47,6 +47,38 @@ export interface SeasonalTrend {
 	suggestedThemes: string[];
 }
 
+export interface WorshipInsights {
+	rotationHealth: {
+		score: number;
+		status: 'excellent' | 'good' | 'needs_attention' | 'critical';
+		insights: string[];
+		recommendations: string[];
+	};
+	diversityAnalysis: {
+		keyDiversity: number;
+		tempoDiversity: number;
+		artistDiversity: number;
+		recommendations: string[];
+	};
+	congregationEngagement: {
+		familiarSongs: number;
+		newSongIntroductionRate: number;
+		optimalRotationCandidates: number;
+		insights: string[];
+	};
+	seasonalReadiness: {
+		currentSeasonAlignment: number;
+		upcomingSeasonPreparation: number;
+		seasonalSuggestions: string[];
+		context?: {
+			hemisphere: 'northern' | 'southern';
+			timezone: string;
+			currentSeason: string;
+			upcomingSeason?: string;
+		};
+	};
+}
+
 export interface ComparativePeriod {
 	current: {
 		period: string;
@@ -552,31 +584,7 @@ class RecommendationsApi {
 	/**
 	 * Get AI-powered worship insights based on comprehensive analytics
 	 */
-	async getWorshipInsights(): Promise<{
-		rotationHealth: {
-			score: number;
-			status: 'excellent' | 'good' | 'needs_attention' | 'critical';
-			insights: string[];
-			recommendations: string[];
-		};
-		diversityAnalysis: {
-			keyDiversity: number;
-			tempoDiversity: number;
-			artistDiversity: number;
-			recommendations: string[];
-		};
-		congregationEngagement: {
-			familiarSongs: number;
-			newSongIntroductionRate: number;
-			optimalRotationCandidates: number;
-			insights: string[];
-		};
-		seasonalReadiness: {
-			currentSeasonAlignment: number;
-			upcomingSeasonPreparation: number;
-			seasonalSuggestions: string[];
-		};
-	}> {
+	async getWorshipInsights(): Promise<WorshipInsights> {
 		try {
 			// Get comprehensive usage data
 			const [allUsage, allSongs] = await Promise.all([

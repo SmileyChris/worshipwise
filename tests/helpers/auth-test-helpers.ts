@@ -353,7 +353,7 @@ export function createTestUser(
 	role: 'musician' | 'leader' | 'admin' = 'musician',
 	overrides: {
 		user?: Partial<User>;
-		profile?: Partial<ChurchMembership>;
+		membership?: Partial<ChurchMembership>;
 	} = {}
 ) {
 	const testUser: User = {
@@ -378,7 +378,7 @@ export function createTestUser(
 		is_active: true,
 		created: '2024-01-01T00:00:00Z',
 		updated: '2024-01-01T00:00:00Z',
-		...(overrides.ChurchMembership || {})
+		...(overrides.membership || {})
 	};
 
 	return { testUser, testChurchMembership };
