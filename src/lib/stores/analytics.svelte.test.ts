@@ -99,16 +99,16 @@ describe('AnalyticsStore', () => {
 
 	const mockUsageTrends: UsageTrend[] = [
 		{
-			period: '2024-W01',
+			date: '2024-01-07',
 			usageCount: 25,
-			uniqueSongs: 15,
-			avgServiceLength: 3200
+			serviceCount: 4,
+			avgDuration: 3200
 		},
 		{
-			period: '2024-W02',
+			date: '2024-01-14',
 			usageCount: 30,
-			uniqueSongs: 18,
-			avgServiceLength: 3400
+			serviceCount: 5,
+			avgDuration: 3400
 		}
 	];
 
@@ -116,9 +116,10 @@ describe('AnalyticsStore', () => {
 		{
 			leaderId: 'leader-1',
 			name: 'John Smith',
-			servicesLed: 20,
-			uniqueSongsUsed: 45,
-			avgServiceRating: 4.7
+			serviceCount: 20,
+			avgDuration: 3600,
+			favoriteKeys: ['C', 'G', 'D'],
+			uniqueSongs: 45
 		}
 	];
 

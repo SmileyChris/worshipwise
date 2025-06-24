@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { flushSync } from 'svelte';
 import { auth } from './auth.svelte';
 import { mockPb } from '../../../tests/helpers/pb-mock';
-import type { User, Profile, LoginCredentials, RegisterData } from '$lib/types/auth';
+import type { User, LoginCredentials, RegisterData } from '$lib/types/auth';
 import { goto } from '$app/navigation';
 
 // Mock $app/navigation
@@ -28,12 +28,11 @@ describe('AuthStore', () => {
 
 		// Reset auth store state completely
 		auth.user = null;
-		auth.profile = null;
+		auth.currentMembership = null;
 		auth.token = '';
 		auth.isValid = false;
 		auth.loading = false;
 		auth.error = null;
-		auth.currentChurch = null;
 		auth.availableChurches = [];
 		auth.churchLoading = false;
 	});
@@ -46,7 +45,7 @@ describe('AuthStore', () => {
 	describe('Initialization', () => {
 		it('should initialize with null user and empty state', () => {
 			expect(auth.user).toBeNull();
-			expect(auth.profile).toBeNull();
+			expect(auth.currentMembership).toBeNull();
 			expect(auth.token).toBe('');
 			expect(auth.isValid).toBe(false);
 			expect(auth.loading).toBe(false);
@@ -169,19 +168,21 @@ describe('AuthStore', () => {
 			};
 
 			const mockUser = { id: 'user1', email: 'newuser@example.com' };
-			const mockProfile = {
-				id: 'profile1',
+			const mockMembership = {
+				id: 'membership1',
+				church_id: 'church1',
 				user_id: 'user1',
-				name: 'New User',
-				role: 'musician'
+				role: 'musician',
+				permissions: [],
+				status: 'active'
 			};
 
 			const usersCollection = mockPb.collection('users');
-			const profilesCollection = mockPb.collection('profiles');
+			const membershipsCollection = mockPb.collection('church_memberships');
 
 			usersCollection.create = vi.fn().mockResolvedValue(mockUser);
 			usersCollection.authWithPassword = vi.fn().mockResolvedValue({ record: mockUser });
-			profilesCollection.create = vi.fn().mockResolvedValue(mockProfile);
+			membershipsCollection.create = vi.fn().mockResolvedValue(mockMembership);
 
 			await auth.register(registerData);
 
@@ -191,12 +192,12 @@ describe('AuthStore', () => {
 				passwordConfirm: registerData.passwordConfirm
 			});
 
-			expect(profilesCollection.create).toHaveBeenCalledWith({
+			// Note: In real implementation, church_id would come from setup context
+			expect(membershipsCollection.create).toHaveBeenCalledWith(expect.objectContaining({
 				user_id: mockUser.id,
-				name: registerData.name,
 				role: registerData.role,
-				is_active: true
-			});
+				status: 'active'
+			}));
 
 			expect(goto).toHaveBeenCalledWith('/dashboard');
 			expect(auth.loading).toBe(false);
@@ -237,18 +238,25 @@ describe('AuthStore', () => {
 			};
 
 			const mockUser = { id: 'user1', email: 'newuser@example.com' };
-			const mockProfile = { id: 'profile1', user_id: 'user1', name: 'New User', role: 'musician' };
+			const mockMembership = { 
+				id: 'membership1', 
+				church_id: 'church1',
+				user_id: 'user1', 
+				role: 'musician',
+				permissions: [],
+				status: 'active'
+			};
 
 			const usersCollection = mockPb.collection('users');
-			const profilesCollection = mockPb.collection('profiles');
+			const membershipsCollection = mockPb.collection('church_memberships');
 
 			usersCollection.create = vi.fn().mockResolvedValue(mockUser);
 			usersCollection.authWithPassword = vi.fn().mockResolvedValue({ record: mockUser });
-			profilesCollection.create = vi.fn().mockResolvedValue(mockProfile);
+			membershipsCollection.create = vi.fn().mockResolvedValue(mockMembership);
 
 			await auth.register(registerData);
 
-			expect(profilesCollection.create).toHaveBeenCalledWith({
+			expect(membershipsCollection.create).toHaveBeenCalledWith({
 				user_id: mockUser.id,
 				name: registerData.name,
 				role: 'musician', // Default role
@@ -280,53 +288,57 @@ describe('AuthStore', () => {
 	describe('Profile Loading', () => {
 		it('should load profile for authenticated user', async () => {
 			const mockUser = { id: 'user1', email: 'test@example.com' } as User;
-			const mockProfile = {
-				id: 'profile1',
+			const mockMembership = {
+				id: 'membership1',
+				church_id: 'church1',
 				user_id: 'user1',
-				name: 'Test User',
-				role: 'musician'
-			} as Profile;
+				role: 'musician',
+				permissions: [],
+				status: 'active'
+			};
 
 			auth.user = mockUser;
 
-			const profilesCollection = mockPb.collection('profiles');
-			profilesCollection.getList = vi.fn().mockResolvedValue({
-				items: [mockProfile]
+			const membershipsCollection = mockPb.collection('church_memberships');
+			membershipsCollection.getList = vi.fn().mockResolvedValue({
+				items: [mockMembership]
 			});
 
 			await auth.loadProfile();
 
-			expect(profilesCollection.getList).toHaveBeenCalledWith(1, 1, {
-				filter: `user_id = "${mockUser.id}"`
+			expect(membershipsCollection.getList).toHaveBeenCalledWith(1, 1, {
+				filter: `user_id = "${mockUser.id}" && status = "active" && is_active = true`,
+				expand: 'church_id',
+				sort: '-created'
 			});
-			expect(auth.profile).toEqual(mockProfile);
+			expect(auth.currentMembership).toEqual(mockMembership);
 		});
 
 		it('should handle missing profile gracefully', async () => {
 			const mockUser = { id: 'user1', email: 'test@example.com' } as User;
 			auth.user = mockUser;
 
-			const profilesCollection = mockPb.collection('profiles');
-			profilesCollection.getList = vi.fn().mockResolvedValue({
+			const membershipsCollection = mockPb.collection('church_memberships');
+			membershipsCollection.getList = vi.fn().mockResolvedValue({
 				items: []
 			});
 
 			await auth.loadProfile();
 
-			expect(auth.profile).toBeNull();
+			expect(auth.currentMembership).toBeNull();
 		});
 
 		it('should handle profile loading errors', async () => {
 			const mockUser = { id: 'user1', email: 'test@example.com' } as User;
 			auth.user = mockUser;
 
-			const profilesCollection = mockPb.collection('profiles');
-			profilesCollection.getList = vi.fn().mockRejectedValue(new Error('Network error'));
+			const membershipsCollection = mockPb.collection('church_memberships');
+			membershipsCollection.getList = vi.fn().mockRejectedValue(new Error('Network error'));
 
 			await auth.loadProfile();
 
-			expect(console.error).toHaveBeenCalledWith('Failed to load profile:', expect.any(Error));
-			expect(auth.profile).toBeNull();
+			expect(console.error).toHaveBeenCalledWith('Failed to load current membership:', expect.any(Error));
+			expect(auth.currentMembership).toBeNull();
 		});
 	});
 
@@ -472,77 +484,74 @@ describe('AuthStore', () => {
 
 		it('should update profile information successfully', async () => {
 			const mockUser = { id: 'user1', email: 'test@example.com' } as User;
-			const mockProfile = {
+			const mockMembership = {
 				id: 'profile1',
 				user_id: 'user1',
 				name: 'Old Name',
 				role: 'musician'
-			} as Profile;
+			};
 
 			auth.user = mockUser;
-			auth.profile = mockProfile;
+			auth.currentMembership = mockMembership;
 
 			const profileData = { name: 'New Name', role: 'leader' as const };
 			const userData = { email: 'newemail@example.com' };
 
 			const updatedUser = { ...mockUser, ...userData };
-			const updatedProfile = { ...mockProfile, ...profileData };
+			const updatedProfile = { ...mockMembership, ...profileData };
 
 			const usersCollection = mockPb.collection('users');
-			const profilesCollection = mockPb.collection('profiles');
+			const membershipsCollection = mockPb.collection('church_memberships');
 
 			usersCollection.update = vi.fn().mockResolvedValue(updatedUser);
-			profilesCollection.update = vi.fn().mockResolvedValue(updatedProfile);
+			membershipsCollection.update = vi.fn().mockResolvedValue(updatedProfile);
 
-			await auth.updateProfileInfo(profileData, userData);
+			await auth.updateProfile(userData);
 
 			expect(usersCollection.update).toHaveBeenCalledWith(mockUser.id, userData);
-			expect(profilesCollection.update).toHaveBeenCalledWith(mockProfile.id, profileData);
 			expect(auth.user).toEqual(updatedUser);
-			expect(auth.profile).toEqual(updatedProfile);
 		});
 
-		it('should update only profile when no user data provided', async () => {
+		it('should handle empty update gracefully', async () => {
 			const mockUser = { id: 'user1', email: 'test@example.com' } as User;
-			const mockProfile = {
+			const mockMembership = {
 				id: 'profile1',
 				user_id: 'user1',
 				name: 'Old Name',
 				role: 'musician'
-			} as Profile;
+			};
 
 			auth.user = mockUser;
-			auth.profile = mockProfile;
+			auth.currentMembership = mockMembership;
 
 			const profileData = { name: 'New Name' };
-			const updatedProfile = { ...mockProfile, ...profileData };
+			const updatedProfile = { ...mockMembership, ...profileData };
 
 			const usersCollection = mockPb.collection('users');
-			const profilesCollection = mockPb.collection('profiles');
+			const membershipsCollection = mockPb.collection('church_memberships');
 
 			usersCollection.update = vi.fn();
-			profilesCollection.update = vi.fn().mockResolvedValue(updatedProfile);
+			membershipsCollection.update = vi.fn().mockResolvedValue(updatedProfile);
 
-			await auth.updateProfileInfo(profileData);
+			await auth.updateProfile({});
 
-			expect(usersCollection.update).not.toHaveBeenCalled();
-			expect(profilesCollection.update).toHaveBeenCalledWith(mockProfile.id, profileData);
-			expect(auth.profile).toEqual(updatedProfile);
+			// Empty update should still call the API
+			expect(usersCollection.update).toHaveBeenCalledWith(mockUser.id, {});
 		});
 
 		it('should handle profile info update errors', async () => {
 			const mockUser = { id: 'user1', email: 'test@example.com' } as User;
-			const mockProfile = { id: 'profile1', user_id: 'user1', name: 'Old Name' } as Profile;
+			const mockMembership = { id: 'profile1', user_id: 'user1', name: 'Old Name' };
 
 			auth.user = mockUser;
-			auth.profile = mockProfile;
+			auth.currentMembership = mockMembership;
 
 			const mockError = new Error('Update failed');
 
-			const profilesCollection = mockPb.collection('profiles');
-			profilesCollection.update = vi.fn().mockRejectedValue(mockError);
+			const usersCollection = mockPb.collection('users');
+			usersCollection.update = vi.fn().mockRejectedValue(mockError);
 
-			await expect(auth.updateProfileInfo({ name: 'New Name' })).rejects.toThrow();
+			await expect(auth.updateProfile({ name: 'New Name' })).rejects.toThrow();
 			expect(auth.loading).toBe(false);
 			expect(auth.error).toBe('Update failed');
 		});
@@ -623,7 +632,7 @@ describe('AuthStore', () => {
 		});
 
 		it('should check if user has specific role', () => {
-			auth.profile = { role: 'leader' } as Profile;
+			auth.currentMembership = { role: 'leader' } as any;
 
 			expect(auth.hasRole('leader')).toBe(true);
 			expect(auth.hasRole('admin')).toBe(false);
@@ -631,7 +640,7 @@ describe('AuthStore', () => {
 		});
 
 		it('should check if user has any of specified roles', () => {
-			auth.profile = { role: 'leader' } as Profile;
+			auth.currentMembership = { role: 'leader' } as any;
 
 			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true);
 			expect(auth.hasAnyRole(['admin', 'musician'])).toBe(false);
@@ -639,7 +648,7 @@ describe('AuthStore', () => {
 		});
 
 		it('should return false for role checks when no profile', () => {
-			auth.profile = null;
+			auth.currentMembership = null;
 
 			expect(auth.hasRole('leader')).toBe(false);
 			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(false);
@@ -647,49 +656,49 @@ describe('AuthStore', () => {
 
 		it('should compute canManageSongs correctly', () => {
 			// Leader can manage songs
-			auth.profile = { role: 'leader' } as Profile;
+			auth.currentMembership = { role: 'leader' } as any;
 			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true);
 
 			// Admin can manage songs
-			auth.profile = { role: 'admin' } as Profile;
+			auth.currentMembership = { role: 'admin' } as any;
 			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true);
 
 			// Musician cannot manage songs
-			auth.profile = { role: 'musician' } as Profile;
+			auth.currentMembership = { role: 'musician' } as any;
 			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(false);
 		});
 
 		it('should compute canManageServices correctly', () => {
 			// Leader can manage services
-			auth.profile = { role: 'leader' } as Profile;
+			auth.currentMembership = { role: 'leader' } as any;
 			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true);
 
 			// Admin can manage services
-			auth.profile = { role: 'admin' } as Profile;
+			auth.currentMembership = { role: 'admin' } as any;
 			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true);
 
 			// Musician cannot manage services
-			auth.profile = { role: 'musician' } as Profile;
+			auth.currentMembership = { role: 'musician' } as any;
 			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(false);
 		});
 
 		it('should compute isAdmin correctly', () => {
 			// Test admin role
-			auth.profile = { role: 'admin' } as Profile;
+			auth.currentMembership = { role: 'admin' } as any;
 			expect(auth.hasRole('admin')).toBe(true);
 
 			// Test leader role
-			auth.profile = { role: 'leader' } as Profile;
+			auth.currentMembership = { role: 'leader' } as any;
 			expect(auth.hasRole('admin')).toBe(false);
 
 			// Test musician role
-			auth.profile = { role: 'musician' } as Profile;
+			auth.currentMembership = { role: 'musician' } as any;
 			expect(auth.hasRole('admin')).toBe(false);
 		});
 
 		it('should compute displayName correctly', () => {
 			// Profile name takes precedence
-			auth.profile = { name: 'Profile Name' } as Profile;
+			auth.currentMembership = { name: 'Profile Name' };
 			auth.user = { name: 'User Name', email: 'test@example.com' } as User;
 			expect(auth.displayName).toBe('Profile Name');
 		});

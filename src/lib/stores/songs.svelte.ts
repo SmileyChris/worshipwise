@@ -395,7 +395,7 @@ class SongsStore {
 						updated: ''
 					};
 					categoryMap.set(categoryId, {
-						category: category as Record<string, unknown>,
+						category: category as unknown as Record<string, unknown>,
 						songs: []
 					});
 				}

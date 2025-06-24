@@ -299,3 +299,7 @@ See `plan/POCKETBASE_SETUP.md` for detailed configuration.
 - ALWAYS prefer editing an existing file to creating a new one
 - NEVER proactively create documentation files (\*.md) or README files unless explicitly requested
 - Follow the established patterns and conventions in the codebase
+
+## Development Memories
+
+- After making feature changes or improvements, create or fix tests
