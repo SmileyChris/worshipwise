@@ -7,7 +7,7 @@ import type {
 	UpdateSongData,
 	SongFilterOptions,
 	SongStats,
-	SongUsageInfo
+	SongUsage
 } from '$lib/types/song';
 
 // Mock the songs API
@@ -56,12 +56,16 @@ describe('SongsStore', () => {
 			category: {
 				id: 'category-1',
 				name: 'Hymns',
-				description: 'Traditional hymns'
+				description: 'Traditional hymns',
+				sort_order: 1,
+				is_active: true,
+				created: '2024-01-01T00:00:00Z',
+				updated: '2024-01-01T00:00:00Z'
 			}
 		}
 	};
 
-	const mockSongUsage: SongUsageInfo = {
+	const mockSongUsage: SongUsage = {
 		songId: 'song-1',
 		lastUsed: '2024-01-01T00:00:00Z',
 		daysSince: 7,
@@ -220,7 +224,6 @@ describe('SongsStore', () => {
 	describe('createSong', () => {
 		it('should create song successfully', async () => {
 			const createData: CreateSongData = {
-				church_id: 'church-1',
 				title: 'New Song',
 				artist: 'Artist',
 				key_signature: 'D',
@@ -242,7 +245,6 @@ describe('SongsStore', () => {
 
 		it('should handle errors when creating song', async () => {
 			const createData: CreateSongData = {
-				church_id: 'church-1',
 				title: 'New Song',
 				artist: 'Artist'
 			};
