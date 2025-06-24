@@ -23,7 +23,7 @@ vi.mock('$lib/api/analytics', () => ({
 	}
 }));
 
-const mockedAnalyticsApi = analyticsApi as {
+const mockedAnalyticsApi = analyticsApi as unknown as {
 	getOverview: MockedFunction<any>;
 	getSongUsageStats: MockedFunction<any>;
 	getServiceTypeStats: MockedFunction<any>;
@@ -38,16 +38,12 @@ const mockedAnalyticsApi = analyticsApi as {
 
 describe('AnalyticsStore', () => {
 	const mockOverview: AnalyticsOverview = {
-		totalServices: 52,
 		totalSongs: 120,
-		uniqueSongsUsed: 80,
+		totalServices: 52,
+		totalUsages: 312,
 		avgSongsPerService: 6.2,
-		totalServiceTime: 156000,
-		avgServiceTime: 3000,
-		dateRange: {
-			from: '2024-01-01',
-			to: '2024-12-31'
-		}
+		avgServiceDuration: 3000,
+		activeWorshipLeaders: 8
 	};
 
 	const mockSongUsageStats: SongUsageStats[] = [
@@ -58,7 +54,7 @@ describe('AnalyticsStore', () => {
 			usageCount: 15,
 			lastUsed: '2024-01-15T10:00:00Z',
 			daysSinceLastUse: 7,
-			avgRating: 4.8
+			avgPosition: 2.5
 		},
 		{
 			songId: 'song-2',
@@ -67,7 +63,7 @@ describe('AnalyticsStore', () => {
 			usageCount: 10,
 			lastUsed: '2024-01-01T10:00:00Z',
 			daysSinceLastUse: 65,
-			avgRating: 4.6
+			avgPosition: 3.2
 		}
 	];
 
@@ -75,14 +71,16 @@ describe('AnalyticsStore', () => {
 		{
 			serviceType: 'Sunday Morning',
 			count: 30,
-			percentage: 60,
-			avgDuration: 3600
+			avgDuration: 3600,
+			avgSongs: 6,
+			popularSongs: ['Amazing Grace', 'How Great Thou Art']
 		},
 		{
 			serviceType: 'Evening Service',
 			count: 20,
-			percentage: 40,
-			avgDuration: 2700
+			avgDuration: 2700,
+			avgSongs: 5,
+			popularSongs: ['How Great Thou Art']
 		}
 	];
 
@@ -90,14 +88,12 @@ describe('AnalyticsStore', () => {
 		{
 			key: 'C',
 			count: 40,
-			percentage: 35,
-			avgTempo: 120
+			percentage: 35
 		},
 		{
 			key: 'G',
 			count: 30,
-			percentage: 26,
-			avgTempo: 115
+			percentage: 26
 		}
 	];
 

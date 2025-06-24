@@ -24,10 +24,10 @@ vi.mock('$lib/stores/setup.svelte', () => ({
 }));
 
 const mockedGoto = goto as MockedFunction<typeof goto>;
-const mockedChurchesAPI = ChurchesAPI as {
+const mockedChurchesAPI = ChurchesAPI as unknown as {
 	initialSetup: MockedFunction<any>;
 };
-const mockedSetupStore = setupStore as {
+const mockedSetupStore = setupStore as unknown as {
 	markSetupCompleted: MockedFunction<any>;
 };
 

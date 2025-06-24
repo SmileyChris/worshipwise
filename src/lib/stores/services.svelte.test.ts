@@ -747,7 +747,7 @@ describe('ServicesStore', () => {
 	describe('real-time subscriptions', () => {
 		it('should subscribe to services and handle create events', async () => {
 			const unsubscribe = vi.fn();
-			let eventHandler: (data: unknown) => void;
+			let eventHandler!: (data: unknown) => void;
 
 			mockedServicesApi.subscribeToServices.mockImplementation((handler) => {
 				eventHandler = handler;
@@ -770,8 +770,8 @@ describe('ServicesStore', () => {
 			servicesStore.services = [mockService];
 			servicesStore.currentService = mockService;
 
-			let eventHandler: (data: unknown) => void;
-			mockedServicesApi.subscribeToServices.mockImplementation((handler) => {
+			let eventHandler!: (data: unknown) => void;
+			mockedServicesApi.subscribeToServices.mockImplementation((handler: (data: unknown) => void) => {
 				eventHandler = handler;
 				return Promise.resolve(vi.fn());
 			});
@@ -790,8 +790,8 @@ describe('ServicesStore', () => {
 			servicesStore.services = [mockService];
 			servicesStore.currentService = mockService;
 
-			let eventHandler: (data: unknown) => void;
-			mockedServicesApi.subscribeToServices.mockImplementation((handler) => {
+			let eventHandler!: (data: unknown) => void;
+			mockedServicesApi.subscribeToServices.mockImplementation((handler: (data: unknown) => void) => {
 				eventHandler = handler;
 				return Promise.resolve(vi.fn());
 			});
@@ -808,8 +808,8 @@ describe('ServicesStore', () => {
 		it('should subscribe to service songs and handle events', async () => {
 			servicesStore.currentServiceSongs = [];
 
-			let eventHandler: (data: unknown) => void;
-			mockedServicesApi.subscribeToServiceSongs.mockImplementation((serviceId, handler) => {
+			let eventHandler!: (data: unknown) => void;
+			mockedServicesApi.subscribeToServiceSongs.mockImplementation((serviceId: string, handler: (data: unknown) => void) => {
 				eventHandler = handler;
 				return Promise.resolve(vi.fn());
 			});

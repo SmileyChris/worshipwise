@@ -9,7 +9,7 @@ vi.mock('$lib/api/churches', () => ({
 	}
 }));
 
-const mockedChurchesAPI = ChurchesAPI as {
+const mockedChurchesAPI = ChurchesAPI as unknown as {
 	hasChurches: MockedFunction<any>;
 };
 

@@ -23,7 +23,7 @@ vi.mock('$lib/api/songs', () => ({
 	}
 }));
 
-const mockedSongsApi = songsApi as {
+const mockedSongsApi = songsApi as unknown as {
 	getSongsPaginated: MockedFunction<any>;
 	getSongs: MockedFunction<any>;
 	getSongsUsageInfo: MockedFunction<any>;
@@ -638,7 +638,7 @@ describe('SongsStore', () => {
 			const unsubscribe = vi.fn();
 			let eventHandler: (data: unknown) => void;
 
-			mockedSongsApi.subscribe.mockImplementation((handler) => {
+			mockedSongsApi.subscribe.mockImplementation((handler: (data: unknown) => void) => {
 				eventHandler = handler;
 				return Promise.resolve(unsubscribe);
 			});
@@ -661,7 +661,7 @@ describe('SongsStore', () => {
 			songsStore.songs = [mockSong];
 
 			let eventHandler: (data: unknown) => void;
-			mockedSongsApi.subscribe.mockImplementation((handler) => {
+			mockedSongsApi.subscribe.mockImplementation((handler: (data: unknown) => void) => {
 				eventHandler = handler;
 				return Promise.resolve(vi.fn());
 			});
@@ -679,7 +679,7 @@ describe('SongsStore', () => {
 			songsStore.totalItems = 1;
 
 			let eventHandler: (data: unknown) => void;
-			mockedSongsApi.subscribe.mockImplementation((handler) => {
+			mockedSongsApi.subscribe.mockImplementation((handler: (data: unknown) => void) => {
 				eventHandler = handler;
 				return Promise.resolve(vi.fn());
 			});
