@@ -91,7 +91,7 @@ export function mockUnauthenticatedUser(): MockAuthState {
 /**
  * Mock successful login operation
  */
-export function mockSuccessfulLogin(user?: Partial<User>, profile?: Partial<Profile>) {
+export function mockSuccessfulLogin(user?: Partial<User>) {
 	const mockUser = {
 		id: 'user1',
 		email: 'test@example.com',
@@ -107,7 +107,8 @@ export function mockSuccessfulLogin(user?: Partial<User>, profile?: Partial<Prof
 		permissions: [],
 		status: 'active' as const,
 		is_active: true,
-		...profile
+		created: '2024-01-01T00:00:00Z',
+		updated: '2024-01-01T00:00:00Z'
 	};
 
 	const usersCollection = mockPb.collection('users');
@@ -145,7 +146,7 @@ export function mockFailedLogin(errorMessage = 'Invalid credentials') {
  */
 export function mockSuccessfulRegistration(
 	userData?: Partial<User>,
-	profileData?: Partial<Profile>
+	profileData?: Partial<ChurchMembership>
 ) {
 	const mockUser = {
 		id: 'user1',
@@ -200,9 +201,9 @@ export function mockFailedRegistration(errorMessage = 'Registration failed', fie
 /**
  * Mock successful profile update operation
  */
-export function mockSuccessfulProfileUpdate(
+export function mockSuccessfulChurchMembershipUpdate(
 	userUpdates?: Partial<User>,
-	profileUpdates?: Partial<Profile>
+	profileUpdates?: Partial<ChurchMembership>
 ) {
 	const usersCollection = mockPb.collection('users');
 	const profilesCollection = mockPb.collection('profiles');
@@ -232,7 +233,7 @@ export function mockSuccessfulProfileUpdate(
 /**
  * Mock failed profile update operation
  */
-export function mockFailedProfileUpdate(errorMessage = 'Update failed') {
+export function mockFailedChurchMembershipUpdate(errorMessage = 'Update failed') {
 	const mockError = {
 		response: {
 			data: { message: errorMessage }
@@ -352,7 +353,7 @@ export function createTestUser(
 	role: 'musician' | 'leader' | 'admin' = 'musician',
 	overrides: {
 		user?: Partial<User>;
-		profile?: Partial<Profile>;
+		profile?: Partial<ChurchMembership>;
 	} = {}
 ) {
 	const testUser: User = {
@@ -367,19 +368,20 @@ export function createTestUser(
 		...overrides.user
 	};
 
-	const testProfile: Profile = {
+	const testChurchMembership: ChurchMembership = {
 		id: 'test-profile-id',
+		church_id: 'test-church-id',
 		user_id: testUser.id,
-		name: 'Test User',
 		role,
-		church_name: 'Test Church',
+		permissions: [],
+		status: 'active',
 		is_active: true,
 		created: '2024-01-01T00:00:00Z',
 		updated: '2024-01-01T00:00:00Z',
-		...overrides.profile
+		...overrides.ChurchMembership
 	};
 
-	return { testUser, testProfile };
+	return { testUser, testChurchMembership };
 }
 
 /**

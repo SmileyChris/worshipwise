@@ -229,7 +229,7 @@ class AuthStore {
 			});
 
 			if (memberships.items.length > 0) {
-				this.currentMembership = memberships.items[0];
+				this.currentMembership = memberships.items[0] as unknown as ChurchMembership;
 			}
 		} catch (error) {
 			console.error('Failed to load current membership:', error);
@@ -338,7 +338,7 @@ class AuthStore {
 			});
 
 			// Store memberships for role access
-			this.churchMemberships = memberships;
+			this.churchMemberships = memberships as unknown as ChurchMembership[];
 
 			// Extract churches from memberships
 			this.availableChurches = memberships
@@ -347,7 +347,7 @@ class AuthStore {
 
 			// Set current membership - default to first one if none set
 			if (!this.currentMembership && memberships.length > 0) {
-				this.currentMembership = memberships[0];
+				this.currentMembership = memberships[0] as unknown as ChurchMembership;
 			}
 
 			console.log('Loaded user churches:', this.availableChurches.length);

@@ -1,3 +1,5 @@
+import type { ChurchMembership } from './church';
+
 export interface User {
 	id: string;
 	email: string;
@@ -30,6 +32,17 @@ export interface PasswordResetConfirm {
 	token: string;
 	password: string;
 	passwordConfirm: string;
+}
+
+// Combined user with membership for admin functions
+export interface UserWithMembership {
+	id: string;
+	email: string;
+	name: string;
+	verified: boolean;
+	created: string;
+	updated: string;
+	membership?: ChurchMembership;
 }
 
 export interface AuthStore {

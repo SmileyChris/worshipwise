@@ -394,6 +394,7 @@ describe('Service Utils', () => {
 	describe('generateServicePDFData', () => {
 		const mockService = {
 			id: 'service1',
+			church_id: 'church1',
 			title: 'Sunday Service',
 			service_date: '2024-01-01',
 			service_type: 'Sunday Morning',
@@ -427,6 +428,7 @@ describe('Service Utils', () => {
 		it('should handle missing data gracefully', () => {
 			const minimalService = {
 				id: 'service2',
+				church_id: 'church1',
 				title: 'Service',
 				service_date: '2024-01-01',
 				worship_leader: 'user1',

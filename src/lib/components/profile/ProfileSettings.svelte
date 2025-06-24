@@ -7,6 +7,7 @@
 	// Store import
 	import { auth } from '$lib/stores/auth.svelte';
 	import { pb } from '$lib/api/client';
+	import type { User } from '$lib/types/auth';
 
 	// Props interface
 	interface Props {
@@ -139,7 +140,7 @@
 				});
 
 				// Update auth store user data
-				auth.user = updatedUser;
+				auth.user = updatedUser as unknown as User;
 
 				// Reload profile to reflect changes
 				await auth.loadProfile();

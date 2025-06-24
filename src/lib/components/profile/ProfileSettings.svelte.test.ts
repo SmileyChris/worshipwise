@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import '@testing-library/jest-dom/vitest';
 import ProfileSettings from './ProfileSettings.svelte';
 import { auth } from '$lib/stores/auth.svelte';
-import type { User, Profile } from '$lib/types/auth';
+import type { User } from '$lib/types/auth';
 
 // Mock the auth store
 vi.mock('$lib/stores/auth.svelte', () => ({

@@ -28,6 +28,7 @@ describe('Analytics Utils', () => {
 		const mockSongs = [
 			{
 				id: '1',
+				church_id: 'church1',
 				title: 'Song 1',
 				category: 'worship',
 				created_by: 'user1',
@@ -37,6 +38,7 @@ describe('Analytics Utils', () => {
 			},
 			{
 				id: '2',
+				church_id: 'church1',
 				title: 'Song 2',
 				category: 'worship',
 				created_by: 'user1',

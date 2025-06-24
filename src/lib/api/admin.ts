@@ -1,16 +1,10 @@
 import { pb } from './client';
-import type { User } from '$lib/types/auth';
+import type { User, UserWithMembership } from '$lib/types/auth';
 import type { ChurchMembership } from '$lib/types/church';
 
-export interface UserWithMembership {
-	id: string;
-	email: string;
-	name: string;
-	verified: boolean;
-	created: string;
-	updated: string;
-	membership?: ChurchMembership;
-}
+// Re-export types for convenience
+export type { UserWithMembership };
+
 
 export interface UserListResponse {
 	page: number;
@@ -103,12 +97,12 @@ export async function getUsers(
 				: [];
 
 		// Combine users with their profiles
-		const usersWithProfiles: UserWithProfile[] = users.items.map(
+		const usersWithMemberships: UserWithMembership[] = users.items.map(
 			(user) =>
 				({
 					...user,
-					profile: profiles.find((p) => p.user_id === user.id)
-				}) as unknown as UserWithProfile
+					membership: profiles.find((p) => p.user_id === user.id)
+				}) as unknown as UserWithMembership
 		);
 
 		return {
@@ -116,7 +110,7 @@ export async function getUsers(
 			perPage: users.perPage,
 			totalPages: users.totalPages,
 			totalItems: users.totalItems,
-			items: usersWithProfiles
+			items: usersWithMemberships
 		};
 	} catch (error) {
 		console.error('Failed to get users:', error);
@@ -162,13 +156,13 @@ export async function getUsersByRole(
 					})
 				: [];
 
-		// Combine users with profiles
-		const usersWithProfiles: UserWithProfile[] = users.map(
+		// Combine users with memberships
+		const usersWithMemberships: UserWithMembership[] = users.map(
 			(user) =>
 				({
 					...user,
-					profile: profiles.items.find((p) => p.user_id === user.id)
-				}) as unknown as UserWithProfile
+					membership: profiles.items.find((p) => p.user_id === user.id)
+				}) as unknown as UserWithMembership
 		);
 
 		return {
@@ -176,7 +170,7 @@ export async function getUsersByRole(
 			perPage: profiles.perPage,
 			totalPages: profiles.totalPages,
 			totalItems: profiles.totalItems,
-			items: usersWithProfiles
+			items: usersWithMemberships
 		};
 	} catch (error) {
 		console.error('Failed to get users by role:', error);
@@ -198,17 +192,17 @@ export async function updateUser(userId: string, userData: Partial<User>): Promi
 }
 
 /**
- * Update user profile information
+ * Update user membership information
  */
-export async function updateUserProfile(
-	profileId: string,
-	profileData: Partial<Profile>
-): Promise<Profile> {
+export async function updateUserMembership(
+	membershipId: string,
+	membershipData: Partial<ChurchMembership>
+): Promise<ChurchMembership> {
 	try {
-		const updatedProfile = await pb.collection('profiles').update(profileId, profileData);
-		return updatedProfile as unknown as Profile;
+		const updatedMembership = await pb.collection('church_memberships').update(membershipId, membershipData);
+		return updatedMembership as unknown as ChurchMembership;
 	} catch (error) {
-		console.error('Failed to update user profile:', error);
+		console.error('Failed to update user membership:', error);
 		throw error;
 	}
 }

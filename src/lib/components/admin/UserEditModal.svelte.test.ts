@@ -2,25 +2,25 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import '@testing-library/jest-dom/vitest';
 import UserEditModal from './UserEditModal.svelte';
-import type { UserWithProfile } from '$lib/api/admin';
+import type { UserWithMembership } from '$lib/types/auth';
 
 // Mock the admin API
 vi.mock('$lib/api/admin', () => ({
 	updateUser: vi.fn(),
-	updateUserProfile: vi.fn(),
+	updateUserMembership: vi.fn(),
 	getUserActivity: vi.fn()
 }));
 
 // Import the mocked functions with proper types
-import { updateUser, updateUserProfile, getUserActivity } from '$lib/api/admin';
+import { updateUser, updateUserMembership, getUserActivity } from '$lib/api/admin';
 
 // Type the mocked functions
 const mockUpdateUser = updateUser as ReturnType<typeof vi.fn>;
-const mockUpdateUserProfile = updateUserProfile as ReturnType<typeof vi.fn>;
+const mockUpdateUserMembership = updateUserMembership as ReturnType<typeof vi.fn>;
 const mockGetUserActivity = getUserActivity as ReturnType<typeof vi.fn>;
 
 describe('UserEditModal', () => {
-	const mockUser: UserWithProfile = {
+	const mockUser: UserWithMembership = {
 		id: 'user1',
 		email: 'test@example.com',
 		name: 'Test User',
@@ -386,7 +386,7 @@ describe('UserEditModal', () => {
 
 	describe('User Without Profile', () => {
 		it('should handle user without profile gracefully', () => {
-			const userWithoutProfile: UserWithProfile = {
+			const userWithoutProfile: UserWithMembership = {
 				...mockUser,
 				profile: undefined
 			};

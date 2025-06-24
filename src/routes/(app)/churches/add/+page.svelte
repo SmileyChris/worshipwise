@@ -51,8 +51,14 @@
 		error = null;
 
 		try {
+			// Generate slug from church name
+			const slug = formData.name.trim().toLowerCase()
+				.replace(/[^a-z0-9]+/g, '-')
+				.replace(/^-+|-+$/g, '');
+
 			const newChurch = await ChurchesAPI.createChurch({
 				name: formData.name.trim(),
+				slug,
 				city: formData.city.trim() || undefined,
 				state: formData.state.trim() || undefined,
 				country: formData.country.trim() || undefined,

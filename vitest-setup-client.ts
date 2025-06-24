@@ -32,6 +32,9 @@ Element.prototype.animate = vi.fn().mockReturnValue({
 // Force browser environment for @testing-library/svelte
 globalThis.window = globalThis.window || {};
 
+// Mock fetch globally for API tests
+globalThis.fetch = vi.fn();
+
 // Mock SvelteKit modules for client tests
 vi.mock('$app/environment', () => ({
 	browser: true,

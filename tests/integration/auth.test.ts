@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mockPb } from '../helpers/pb-mock';
-import type { User, Profile } from '$lib/types/auth';
+import type { User } from '$lib/types/auth';
 
 /**
  * Auth API Integration Tests

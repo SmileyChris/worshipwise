@@ -56,7 +56,7 @@ just dev                      # Start both servers with smart detection
 just setup                    # Complete setup (PocketBase, npm install, Playwright)
 just build                    # Build for production
 just test                     # Run tests
-just --keep-going check      # Type checking and code quality checks
+just check                   # Type checking and code quality checks
 ```
 
 ### Direct npm scripts:
