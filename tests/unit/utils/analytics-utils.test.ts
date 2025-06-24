@@ -51,6 +51,7 @@ describe('Analytics Utils', () => {
 		const mockServices = [
 			{
 				id: '1',
+				church_id: 'church1',
 				title: 'Service 1',
 				service_date: '2024-01-07',
 				status: 'completed' as const,
@@ -62,6 +63,7 @@ describe('Analytics Utils', () => {
 			},
 			{
 				id: '2',
+				church_id: 'church1',
 				title: 'Service 2',
 				service_date: '2024-01-14',
 				status: 'completed' as const,
@@ -73,6 +75,7 @@ describe('Analytics Utils', () => {
 			},
 			{
 				id: '3',
+				church_id: 'church1',
 				title: 'Service 3',
 				service_date: '2024-01-17',
 				status: 'draft' as const,

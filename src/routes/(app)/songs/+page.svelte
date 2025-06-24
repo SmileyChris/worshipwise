@@ -77,7 +77,7 @@
 	async function loadCategoriesData() {
 		categoriesLoading = true;
 		try {
-			categoriesData = await songsStore.getSongsByCategory() as Map<string, { category: Category; songs: Song[] }>;
+			categoriesData = await songsStore.getSongsByCategory() as unknown as Map<string, { category: Category; songs: Song[] }>;
 		} catch (error) {
 			console.error('Failed to load categories data:', error);
 		} finally {

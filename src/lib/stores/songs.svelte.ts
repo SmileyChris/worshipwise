@@ -385,8 +385,16 @@ class SongsStore {
 				const categoryInfo = song.expand?.category;
 
 				if (!categoryMap.has(categoryId)) {
+					const category = categoryInfo as unknown as Category || { 
+						id: categoryId, 
+						name: 'Unknown Category',
+						sort_order: 0,
+						is_active: true,
+						created: '',
+						updated: ''
+					};
 					categoryMap.set(categoryId, {
-						category: categoryInfo || { id: categoryId, name: 'Unknown Category' },
+						category,
 						songs: []
 					});
 				}
