@@ -14,7 +14,7 @@
 	let step = $state<number>(1);
 
 	// Element references
-	let adminNameInput: Input;
+	let adminNameInput = $state<Input>();
 
 	// Form data
 	let setupData = $state<InitialChurchSetup>({
