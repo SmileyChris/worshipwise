@@ -1,51 +1,20 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { InitialChurchSetup } from '$lib/types/church';
-
-// Use vi.hoisted to define mocks before imports
-const { mockPb, mockCollection } = vi.hoisted(() => {
-	const mockCollection = {
-		getFullList: vi.fn(),
-		getFirstListItem: vi.fn(),
-		getOne: vi.fn(),
-		create: vi.fn(),
-		update: vi.fn(),
-		delete: vi.fn(),
-		authWithPassword: vi.fn()
-	};
-
-	const mockPb = {
-		collection: vi.fn(() => mockCollection),
-		authStore: {
-			model: { id: 'user1' },
-			token: 'test-token',
-			isValid: true,
-			clear: vi.fn(),
-			save: vi.fn(),
-			onChange: vi.fn()
-		},
-		autoCancellation: vi.fn()
-	};
-
-	return { mockPb, mockCollection };
-});
-
-// Mock the client module 
-vi.mock('./client', () => ({
-	pb: mockPb
-}));
-
-// Import after mocking
+import { mockPb } from '$tests/helpers/pb-mock';
 import { ChurchesAPI } from './churches';
 
 describe('Churches API - Simple Tests', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		mockPb.reset();
 		mockPb.authStore.model = { id: 'user1' };
 	});
 
 	describe('hasChurches', () => {
 		it('should return true when churches exist', async () => {
-			mockCollection.getFirstListItem.mockResolvedValue({ setup_required: false });
+			mockPb
+				.collection('setup_status')
+				.getFirstListItem.mockResolvedValue({ setup_required: false });
 
 			const result = await ChurchesAPI.hasChurches();
 
@@ -54,10 +23,10 @@ describe('Churches API - Simple Tests', () => {
 		});
 
 		it('should return false when no churches exist', async () => {
-			const notFoundError = new Error('Not found');
+			const notFoundError: any = new Error('Not found');
 			notFoundError.status = 404;
-			mockCollection.getFirstListItem.mockRejectedValue(notFoundError);
-			mockCollection.getFullList.mockRejectedValue(notFoundError);
+			mockPb.collection('setup_status').getFirstListItem.mockRejectedValue(notFoundError);
+			mockPb.collection('churches').getFullList.mockRejectedValue(notFoundError);
 
 			const result = await ChurchesAPI.hasChurches();
 
@@ -72,25 +41,32 @@ describe('Churches API - Simple Tests', () => {
 				timezone: 'America/New_York',
 				adminName: 'Admin',
 				adminEmail: 'admin@test.com',
-				adminPassword: 'password123'
+				password: 'password123',
+				confirmPassword: 'password123'
 			};
 
 			const createdUser = { id: 'user-1', email: 'admin@test.com', name: 'Admin' };
 			const createdChurch = { id: 'church-1', name: 'Test Church', timezone: 'America/New_York' };
-			const createdMembership = { id: 'membership-1', role: 'admin', user_id: 'user-1', church_id: 'church-1' };
+			const createdMembership = {
+				id: 'membership-1',
+				role: 'admin',
+				user_id: 'user-1',
+				church_id: 'church-1'
+			};
 
-			// Mock responses in sequence
-			mockCollection.create
-				.mockResolvedValueOnce(createdUser)        // User creation
-				.mockResolvedValueOnce(createdChurch)      // Church creation  
-				.mockResolvedValueOnce(createdMembership); // Membership creation
-			
-			mockCollection.authWithPassword.mockResolvedValue({ record: createdUser, token: 'test-token' });
-			mockCollection.update.mockResolvedValue(createdUser);
-			
-			const notFoundError = new Error('Not found');
+			// Mock responses for different collections
+			mockPb.collection('users').create.mockResolvedValueOnce(createdUser); // User creation
+			mockPb.collection('churches').create.mockResolvedValueOnce(createdChurch); // Church creation
+			mockPb.collection('church_memberships').create.mockResolvedValueOnce(createdMembership); // Membership creation
+
+			mockPb
+				.collection('users')
+				.authWithPassword.mockResolvedValue({ record: createdUser, token: 'test-token' });
+			mockPb.collection('setup_status').update.mockResolvedValue(createdUser);
+
+			const notFoundError: any = new Error('Not found');
 			notFoundError.status = 404;
-			mockCollection.getFirstListItem.mockRejectedValue(notFoundError);
+			mockPb.collection('setup_status').getFirstListItem.mockRejectedValue(notFoundError);
 
 			const result = await ChurchesAPI.initialSetup(setupData);
 
@@ -109,7 +85,7 @@ describe('Churches API - Simple Tests', () => {
 				expand: { church_id: church }
 			};
 
-			mockCollection.getFullList.mockResolvedValue([membershipWithExpand]);
+			mockPb.collection('church_memberships').getFullList.mockResolvedValue([membershipWithExpand]);
 
 			const result = await ChurchesAPI.getUserChurches();
 
@@ -122,7 +98,7 @@ describe('Churches API - Simple Tests', () => {
 		it('should update church data', async () => {
 			const updatedChurch = { id: 'church1', name: 'Updated Church' };
 
-			mockCollection.update.mockResolvedValue(updatedChurch);
+			mockPb.collection('churches').update.mockResolvedValue(updatedChurch);
 
 			const result = await ChurchesAPI.updateChurch('church1', { name: 'Updated Church' });
 
@@ -139,7 +115,7 @@ describe('Churches API - Simple Tests', () => {
 				{ id: 'membership-3', church_id: 'church1', role: 'musician' }
 			];
 
-			mockCollection.getFullList.mockResolvedValue(members);
+			mockPb.collection('church_memberships').getFullList.mockResolvedValue(members);
 
 			const result = await ChurchesAPI.getChurchMembers('church1');
 

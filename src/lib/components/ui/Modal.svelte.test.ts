@@ -25,10 +25,10 @@ describe('Modal Component - Basic Tests', () => {
 	});
 
 	it('should render title when provided', () => {
-		render(Modal, { 
-			open: true, 
+		render(Modal, {
+			open: true,
 			title: 'Test Modal',
-			onclose: mockOnClose 
+			onclose: mockOnClose
 		});
 
 		expect(screen.getByText('Test Modal')).toBeInTheDocument();
@@ -36,11 +36,11 @@ describe('Modal Component - Basic Tests', () => {
 	});
 
 	it('should render subtitle when provided', () => {
-		render(Modal, { 
-			open: true, 
+		render(Modal, {
+			open: true,
 			title: 'Test Modal',
 			subtitle: 'Test subtitle',
-			onclose: mockOnClose 
+			onclose: mockOnClose
 		});
 
 		expect(screen.getByText('Test subtitle')).toBeInTheDocument();
@@ -55,10 +55,10 @@ describe('Modal Component - Basic Tests', () => {
 	});
 
 	it('should hide close button when showCloseButton is false', () => {
-		render(Modal, { 
-			open: true, 
+		render(Modal, {
+			open: true,
 			showCloseButton: false,
-			onclose: mockOnClose 
+			onclose: mockOnClose
 		});
 
 		// Should not have any buttons

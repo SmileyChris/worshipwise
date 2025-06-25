@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { servicesStore } from './services.svelte';
-import { servicesApi } from '$lib/api/services';
+import { auth } from './auth.svelte';
 import type {
 	Service,
 	ServiceSong,
@@ -11,113 +11,56 @@ import type {
 	SongAvailability
 } from '$lib/types/service';
 import type { Song } from '$lib/types/song';
-
-// Mock the services API
-vi.mock('$lib/api/services', () => ({
-	servicesApi: {
-		getServices: vi.fn(),
-		getUpcomingServices: vi.fn(),
-		getTemplates: vi.fn(),
-		getService: vi.fn(),
-		getServiceSongs: vi.fn(),
-		createService: vi.fn(),
-		updateService: vi.fn(),
-		deleteService: vi.fn(),
-		addSongToService: vi.fn(),
-		removeSongFromService: vi.fn(),
-		updateServiceSong: vi.fn(),
-		reorderServiceSongs: vi.fn(),
-		duplicateService: vi.fn(),
-		completeService: vi.fn(),
-		subscribeToServices: vi.fn(),
-		subscribeToServiceSongs: vi.fn()
-	}
-}));
-
-const mockedServicesApi = servicesApi as unknown as {
-	getServices: MockedFunction<any>;
-	getUpcomingServices: MockedFunction<any>;
-	getTemplates: MockedFunction<any>;
-	getService: MockedFunction<any>;
-	getServiceSongs: MockedFunction<any>;
-	createService: MockedFunction<any>;
-	updateService: MockedFunction<any>;
-	deleteService: MockedFunction<any>;
-	addSongToService: MockedFunction<any>;
-	removeSongFromService: MockedFunction<any>;
-	updateServiceSong: MockedFunction<any>;
-	reorderServiceSongs: MockedFunction<any>;
-	duplicateService: MockedFunction<any>;
-	completeService: MockedFunction<any>;
-	subscribeToServices: MockedFunction<any>;
-	subscribeToServiceSongs: MockedFunction<any>;
-};
+import { mockPb } from '$tests/helpers/pb-mock';
+import { mockService, mockServiceSong, mockSong, mockAuthContext } from '$tests/helpers/mock-builders';
 
 describe('ServicesStore', () => {
-	const mockService: Service = {
+	// Use factory functions for test data
+	const testService = mockService({
 		id: 'service-1',
-		church_id: 'church-1',
 		title: 'Sunday Morning Service',
 		theme: 'Worship',
 		service_date: '2024-01-07T10:00:00Z',
-		status: 'planned',
-		estimated_duration: 3600,
-		actual_duration: undefined,
-		notes: 'Test service',
-		is_template: false,
-		worship_leader: 'user-1',
-		created: '2024-01-01T00:00:00Z',
-		updated: '2024-01-01T00:00:00Z'
-	};
+		status: 'planned'
+	});
 
-	const mockServiceSong: ServiceSong = {
+	const testSong = mockSong({
+		id: 'song-1',
+		title: 'Amazing Grace',
+		artist: 'Traditional'
+	});
+
+	const testServiceSong = mockServiceSong({
 		id: 'service-song-1',
 		service_id: 'service-1',
 		song_id: 'song-1',
 		order_position: 1,
 		transposed_key: 'C',
-		tempo_override: 120,
-		duration_override: 240,
-		special_notes: 'Intro song',
-		created: '2024-01-01T00:00:00Z',
-		updated: '2024-01-01T00:00:00Z',
 		expand: {
-			song_id: {
-				id: 'song-1',
-				title: 'Amazing Grace',
-				artist: 'Traditional',
-				duration_seconds: 240,
-				church_id: 'church-1',
-				category: 'category-1',
-				created_by: 'user-1',
-				is_active: true,
-				created: '2024-01-01T00:00:00Z',
-				updated: '2024-01-01T00:00:00Z'
-			} as Song
+			song_id: testSong
 		}
-	};
-
-	const mockSong: Song = {
-		id: 'song-1',
-		church_id: 'church-1',
-		title: 'Amazing Grace',
-		artist: 'Traditional',
-		key_signature: 'C',
-		tempo: 120,
-		duration_seconds: 240,
-		ccli_number: '12345',
-		copyright_info: 'Public Domain (1779)',
-		tags: ['worship', 'grace'],
-		labels: ['classic'],
-		notes: 'Traditional hymn',
-		category: 'category-1',
-		created_by: 'user-1',
-		is_active: true,
-		created: '2024-01-01T00:00:00Z',
-		updated: '2024-01-01T00:00:00Z'
-	};
+	});
 
 	beforeEach(() => {
+		// Reset mockPb
+		vi.clearAllMocks();
+		mockPb.reset();
+
+		// Set up auth context with church
+		const authContext = mockAuthContext({
+			church: { id: 'church-1', name: 'Test Church' },
+			user: { id: 'user-1', current_church_id: 'church-1' },
+			membership: { 
+				church_id: 'church-1',
+				expand: {
+					church_id: { id: 'church-1', name: 'Test Church' }
+				}
+			}
+		});
+		mockPb.setAuthState(authContext.user);
+		auth.user = authContext.user;
+		auth.currentMembership = authContext.membership;
+
 		// Reset the store state
 		servicesStore.services = [];
 		servicesStore.loading = false;
@@ -132,28 +75,25 @@ describe('ServicesStore', () => {
 			sort: '-service_date'
 		};
 		servicesStore.clearBuilderState();
-
-		// Reset all mocks
-		vi.clearAllMocks();
 	});
 
 	describe('loadServices', () => {
 		it('should load services successfully', async () => {
-			const services = [mockService];
-			mockedServicesApi.getServices.mockResolvedValue(services);
+			const services = [testService];
+			mockPb.collection('services').mockGetFullList(services);
 
 			await servicesStore.loadServices();
 
 			expect(servicesStore.services).toEqual(services);
 			expect(servicesStore.loading).toBe(false);
 			expect(servicesStore.error).toBe(null);
-			expect(mockedServicesApi.getServices).toHaveBeenCalledWith(servicesStore.filters);
+			expect(mockPb.collection).toHaveBeenCalledWith('services');
 		});
 
 		it('should handle loading state correctly', async () => {
-			mockedServicesApi.getServices.mockImplementation(async () => {
+			mockPb.collection('services').getFullList.mockImplementation(async () => {
 				expect(servicesStore.loading).toBe(true);
-				return [mockService];
+				return [testService];
 			});
 
 			await servicesStore.loadServices();
@@ -163,7 +103,7 @@ describe('ServicesStore', () => {
 
 		it('should handle errors when loading services', async () => {
 			const error = new Error('Network error');
-			mockedServicesApi.getServices.mockRejectedValue(error);
+			mockPb.collection('services').getFullList.mockRejectedValue(error);
 
 			await servicesStore.loadServices();
 
@@ -175,18 +115,24 @@ describe('ServicesStore', () => {
 
 	describe('loadUpcomingServices', () => {
 		it('should load upcoming services with default limit', async () => {
-			const services = [mockService];
-			mockedServicesApi.getUpcomingServices.mockResolvedValue(services);
+			const services = [testService];
+			mockPb.collection('services').getFullList.mockResolvedValue(services);
 
 			await servicesStore.loadUpcomingServices();
 
 			expect(servicesStore.upcomingServices).toEqual(services);
-			expect(mockedServicesApi.getUpcomingServices).toHaveBeenCalledWith(10);
+			expect(mockPb.collection('services').getFullList).toHaveBeenCalledWith(
+				expect.objectContaining({
+					expand: 'worship_leader',
+					limit: 10,
+					sort: 'service_date'
+				})
+			);
 		});
 
 		it('should handle errors silently when loading upcoming services', async () => {
 			const error = new Error('Network error');
-			mockedServicesApi.getUpcomingServices.mockRejectedValue(error);
+			mockPb.collection('services').getFullList.mockRejectedValue(error);
 
 			await servicesStore.loadUpcomingServices();
 
@@ -196,8 +142,8 @@ describe('ServicesStore', () => {
 
 	describe('loadTemplates', () => {
 		it('should load templates successfully', async () => {
-			const templates = [{ ...mockService, is_template: true }];
-			mockedServicesApi.getTemplates.mockResolvedValue(templates);
+			const templates = [{ ...testService, is_template: true }];
+			mockPb.collection('services').getFullList.mockResolvedValue(templates);
 
 			await servicesStore.loadTemplates();
 
@@ -207,15 +153,15 @@ describe('ServicesStore', () => {
 
 	describe('loadService', () => {
 		it('should load service and songs successfully', async () => {
-			const songs = [mockServiceSong];
-			mockedServicesApi.getService.mockResolvedValue(mockService);
-			mockedServicesApi.getServiceSongs.mockResolvedValue(songs);
+			const songs = [testServiceSong];
+			mockPb.collection('services').getOne.mockResolvedValue(testService);
+			mockPb.collection('service_songs').getFullList.mockResolvedValue(songs);
 
 			await servicesStore.loadService('service-1');
 
-			expect(servicesStore.currentService).toEqual(mockService);
+			expect(servicesStore.currentService).toEqual(testService);
 			expect(servicesStore.currentServiceSongs).toEqual(songs);
-			expect(servicesStore.builderState.service).toEqual(mockService);
+			expect(servicesStore.builderState.service).toEqual(testService);
 			expect(servicesStore.builderState.songs).toEqual(songs);
 			expect(servicesStore.builderState.isDirty).toBe(false);
 			expect(servicesStore.loading).toBe(false);
@@ -224,7 +170,7 @@ describe('ServicesStore', () => {
 
 		it('should handle errors when loading service', async () => {
 			const error = new Error('Service not found');
-			mockedServicesApi.getService.mockRejectedValue(error);
+			mockPb.collection('services').getOne.mockRejectedValue(error);
 
 			await servicesStore.loadService('invalid-id');
 
@@ -237,6 +183,20 @@ describe('ServicesStore', () => {
 
 	describe('createService', () => {
 		it('should create service successfully', async () => {
+			// Ensure auth context is properly set
+			const authContext = mockAuthContext({
+				church: { id: 'church-1', name: 'Test Church' },
+				user: { id: 'user-1', current_church_id: 'church-1' },
+				membership: { 
+					church_id: 'church-1',
+					expand: {
+						church_id: { id: 'church-1', name: 'Test Church' }
+					}
+				}
+			});
+			auth.user = authContext.user;
+			auth.currentMembership = authContext.membership;
+
 			const createData: CreateServiceData = {
 				title: 'New Service',
 				theme: 'Praise',
@@ -244,15 +204,20 @@ describe('ServicesStore', () => {
 				estimated_duration: 3600,
 				worship_leader: 'user-1'
 			};
-			mockedServicesApi.createService.mockResolvedValue(mockService);
+			mockPb.collection('services').create.mockResolvedValue(testService);
 
 			const result = await servicesStore.createService(createData);
 
-			expect(result).toEqual(mockService);
-			expect(servicesStore.services).toEqual([mockService]);
+			expect(result).toEqual(testService);
+			expect(servicesStore.services).toEqual([testService]);
 			expect(servicesStore.loading).toBe(false);
 			expect(servicesStore.error).toBe(null);
-			expect(mockedServicesApi.createService).toHaveBeenCalledWith(createData);
+			expect(mockPb.collection('services').create).toHaveBeenCalledWith({
+				...createData,
+				church_id: 'church-1',
+				created_by: 'user-1',
+				status: 'draft'
+			});
 		});
 
 		it('should handle errors when creating service', async () => {
@@ -264,7 +229,7 @@ describe('ServicesStore', () => {
 				worship_leader: 'user-1'
 			};
 			const error = new Error('Validation failed');
-			mockedServicesApi.createService.mockRejectedValue(error);
+			mockPb.collection('services').create.mockRejectedValue(error);
 
 			await expect(servicesStore.createService(createData)).rejects.toThrow('Validation failed');
 
@@ -276,15 +241,15 @@ describe('ServicesStore', () => {
 
 	describe('updateService', () => {
 		beforeEach(() => {
-			servicesStore.services = [mockService];
-			servicesStore.currentService = mockService;
-			servicesStore.builderState.service = mockService;
+			servicesStore.services = [testService];
+			servicesStore.currentService = testService;
+			servicesStore.builderState.service = testService;
 		});
 
 		it('should update service successfully', async () => {
 			const updateData: UpdateServiceData = { title: 'Updated Service' };
-			const updatedService = { ...mockService, title: 'Updated Service' };
-			mockedServicesApi.updateService.mockResolvedValue(updatedService);
+			const updatedService = { ...testService, title: 'Updated Service' };
+			mockPb.collection('services').update.mockResolvedValue(updatedService);
 
 			const result = await servicesStore.updateService('service-1', updateData);
 
@@ -292,43 +257,43 @@ describe('ServicesStore', () => {
 			expect(servicesStore.services[0]).toEqual(updatedService);
 			expect(servicesStore.currentService).toEqual(updatedService);
 			expect(servicesStore.builderState.service).toEqual(updatedService);
-			expect(mockedServicesApi.updateService).toHaveBeenCalledWith('service-1', updateData);
+			expect(mockPb.collection('services').update).toHaveBeenCalledWith('service-1', updateData);
 		});
 
 		it('should handle updating non-existent service in local array', async () => {
 			const updateData: UpdateServiceData = { title: 'Updated Service' };
-			const updatedService = { ...mockService, id: 'different-id', title: 'Updated Service' };
-			mockedServicesApi.updateService.mockResolvedValue(updatedService);
+			const updatedService = { ...testService, id: 'different-id', title: 'Updated Service' };
+			mockPb.collection('services').update.mockResolvedValue(updatedService);
 
 			const result = await servicesStore.updateService('different-id', updateData);
 
 			expect(result).toEqual(updatedService);
-			expect(servicesStore.services[0]).toEqual(mockService); // Original unchanged
+			expect(servicesStore.services[0]).toEqual(testService); // Original unchanged
 		});
 
 		it('should handle errors when updating service', async () => {
 			const updateData: UpdateServiceData = { title: 'Updated Service' };
 			const error = new Error('Update failed');
-			mockedServicesApi.updateService.mockRejectedValue(error);
+			mockPb.collection('services').update.mockRejectedValue(error);
 
 			await expect(servicesStore.updateService('service-1', updateData)).rejects.toThrow(
 				'Update failed'
 			);
 
-			expect(servicesStore.services[0]).toEqual(mockService); // Unchanged
+			expect(servicesStore.services[0]).toEqual(testService); // Unchanged
 			expect(servicesStore.error).toBe('Update failed');
 		});
 	});
 
 	describe('deleteService', () => {
 		beforeEach(() => {
-			servicesStore.services = [mockService];
-			servicesStore.currentService = mockService;
-			servicesStore.currentServiceSongs = [mockServiceSong];
+			servicesStore.services = [testService];
+			servicesStore.currentService = testService;
+			servicesStore.currentServiceSongs = [testServiceSong];
 		});
 
 		it('should delete service successfully', async () => {
-			mockedServicesApi.deleteService.mockResolvedValue(undefined);
+			mockPb.collection('services').delete.mockResolvedValue(undefined);
 
 			await servicesStore.deleteService('service-1');
 
@@ -336,34 +301,34 @@ describe('ServicesStore', () => {
 			expect(servicesStore.currentService).toBe(null);
 			expect(servicesStore.currentServiceSongs).toEqual([]);
 			expect(servicesStore.builderState.service).toBe(null);
-			expect(mockedServicesApi.deleteService).toHaveBeenCalledWith('service-1');
+			expect(mockPb.collection('services').delete).toHaveBeenCalledWith('service-1');
 		});
 
 		it('should handle deleting non-current service', async () => {
-			const otherService = { ...mockService, id: 'service-2' };
-			servicesStore.services = [mockService, otherService];
-			mockedServicesApi.deleteService.mockResolvedValue(undefined);
+			const otherService = { ...testService, id: 'service-2' };
+			servicesStore.services = [testService, otherService];
+			mockPb.collection('services').delete.mockResolvedValue(undefined);
 
 			await servicesStore.deleteService('service-2');
 
-			expect(servicesStore.services).toEqual([mockService]);
-			expect(servicesStore.currentService).toEqual(mockService); // Unchanged
+			expect(servicesStore.services).toEqual([testService]);
+			expect(servicesStore.currentService).toEqual(testService); // Unchanged
 		});
 
 		it('should handle errors when deleting service', async () => {
 			const error = new Error('Delete failed');
-			mockedServicesApi.deleteService.mockRejectedValue(error);
+			mockPb.collection('services').delete.mockRejectedValue(error);
 
 			await expect(servicesStore.deleteService('service-1')).rejects.toThrow('Delete failed');
 
-			expect(servicesStore.services).toEqual([mockService]); // Unchanged
+			expect(servicesStore.services).toEqual([testService]); // Unchanged
 			expect(servicesStore.error).toBe('Delete failed');
 		});
 	});
 
 	describe('addSongToService', () => {
 		beforeEach(() => {
-			servicesStore.currentService = mockService;
+			servicesStore.currentService = testService;
 			servicesStore.currentServiceSongs = [];
 		});
 
@@ -374,26 +339,27 @@ describe('ServicesStore', () => {
 				transposed_key: 'C',
 				tempo_override: 120
 			};
-			mockedServicesApi.addSongToService.mockResolvedValue(mockServiceSong);
+			mockPb.collection('service_songs').create.mockResolvedValue(testServiceSong);
 
 			await servicesStore.addSongToService(songData);
 
-			expect(servicesStore.currentServiceSongs).toEqual([mockServiceSong]);
-			expect(servicesStore.builderState.songs).toEqual([mockServiceSong]);
+			expect(servicesStore.currentServiceSongs).toEqual([testServiceSong]);
+			expect(servicesStore.builderState.songs).toEqual([testServiceSong]);
 			expect(servicesStore.builderState.isDirty).toBe(true);
 			expect(servicesStore.builderState.isLoading).toBe(false);
-			expect(mockedServicesApi.addSongToService).toHaveBeenCalledWith({
+			expect(mockPb.collection('service_songs').create).toHaveBeenCalledWith({
 				...songData,
-				service_id: 'service-1'
+				service_id: 'service-1',
+				added_by: expect.any(String)
 			});
 		});
 
 		it('should sort songs by order position', async () => {
-			const song1 = { ...mockServiceSong, id: 'ss-1', order_position: 2 };
-			const song2 = { ...mockServiceSong, id: 'ss-2', order_position: 1 };
+			const song1 = { ...testServiceSong, id: 'ss-1', order_position: 2 };
+			const song2 = { ...testServiceSong, id: 'ss-2', order_position: 1 };
 
 			servicesStore.currentServiceSongs = [song1];
-			mockedServicesApi.addSongToService.mockResolvedValue(song2);
+			mockPb.collection('service_songs').create.mockResolvedValue(song2);
 
 			await servicesStore.addSongToService({
 				song_id: 'song-2',
@@ -416,7 +382,7 @@ describe('ServicesStore', () => {
 
 		it('should handle errors when adding song to service', async () => {
 			const error = new Error('Add failed');
-			mockedServicesApi.addSongToService.mockRejectedValue(error);
+			mockPb.collection('service_songs').create.mockRejectedValue(error);
 
 			await expect(
 				servicesStore.addSongToService({
@@ -432,50 +398,50 @@ describe('ServicesStore', () => {
 
 	describe('removeSongFromService', () => {
 		beforeEach(() => {
-			servicesStore.currentServiceSongs = [mockServiceSong];
-			servicesStore.builderState.songs = [mockServiceSong];
+			servicesStore.currentServiceSongs = [testServiceSong];
+			servicesStore.builderState.songs = [testServiceSong];
 		});
 
 		it('should remove song from service successfully', async () => {
-			mockedServicesApi.removeSongFromService.mockResolvedValue(undefined);
+			mockPb.collection('service_songs').delete.mockResolvedValue(undefined);
 
 			await servicesStore.removeSongFromService('service-song-1');
 
 			expect(servicesStore.currentServiceSongs).toEqual([]);
 			expect(servicesStore.builderState.songs).toEqual([]);
 			expect(servicesStore.builderState.isDirty).toBe(true);
-			expect(mockedServicesApi.removeSongFromService).toHaveBeenCalledWith('service-song-1');
+			expect(mockPb.collection('service_songs').delete).toHaveBeenCalledWith('service-song-1');
 		});
 
 		it('should handle errors when removing song from service', async () => {
 			const error = new Error('Remove failed');
-			mockedServicesApi.removeSongFromService.mockRejectedValue(error);
+			mockPb.collection('service_songs').delete.mockRejectedValue(error);
 
 			await expect(servicesStore.removeSongFromService('service-song-1')).rejects.toThrow(
 				'Remove failed'
 			);
 
-			expect(servicesStore.currentServiceSongs).toEqual([mockServiceSong]); // Unchanged
+			expect(servicesStore.currentServiceSongs).toEqual([testServiceSong]); // Unchanged
 			expect(servicesStore.builderState.error).toBe('Remove failed');
 		});
 	});
 
 	describe('updateServiceSong', () => {
 		beforeEach(() => {
-			servicesStore.currentServiceSongs = [mockServiceSong];
+			servicesStore.currentServiceSongs = [testServiceSong];
 		});
 
 		it('should update service song successfully', async () => {
 			const updateData: UpdateServiceSongData = { transposed_key: 'D' };
-			const updatedSong = { ...mockServiceSong, transposed_key: 'D' };
-			mockedServicesApi.updateServiceSong.mockResolvedValue(updatedSong);
+			const updatedSong = { ...testServiceSong, transposed_key: 'D' };
+			mockPb.collection('service_songs').update.mockResolvedValue(updatedSong);
 
 			await servicesStore.updateServiceSong('service-song-1', updateData);
 
 			expect(servicesStore.currentServiceSongs[0]).toEqual(updatedSong);
 			expect(servicesStore.builderState.songs[0]).toEqual(updatedSong);
 			expect(servicesStore.builderState.isDirty).toBe(true);
-			expect(mockedServicesApi.updateServiceSong).toHaveBeenCalledWith(
+			expect(mockPb.collection('service_songs').update).toHaveBeenCalledWith(
 				'service-song-1',
 				updateData
 			);
@@ -483,18 +449,18 @@ describe('ServicesStore', () => {
 
 		it('should handle updating non-existent service song', async () => {
 			const updateData: UpdateServiceSongData = { transposed_key: 'D' };
-			const updatedSong = { ...mockServiceSong, id: 'different-id', transposed_key: 'D' };
-			mockedServicesApi.updateServiceSong.mockResolvedValue(updatedSong);
+			const updatedSong = { ...testServiceSong, id: 'different-id', transposed_key: 'D' };
+			mockPb.collection('service_songs').update.mockResolvedValue(updatedSong);
 
 			await servicesStore.updateServiceSong('different-id', updateData);
 
-			expect(servicesStore.currentServiceSongs[0]).toEqual(mockServiceSong); // Unchanged
+			expect(servicesStore.currentServiceSongs[0]).toEqual(testServiceSong); // Unchanged
 		});
 
 		it('should handle errors when updating service song', async () => {
 			const updateData: UpdateServiceSongData = { transposed_key: 'D' };
 			const error = new Error('Update failed');
-			mockedServicesApi.updateServiceSong.mockRejectedValue(error);
+			mockPb.collection('service_songs').update.mockRejectedValue(error);
 
 			await expect(servicesStore.updateServiceSong('service-song-1', updateData)).rejects.toThrow(
 				'Update failed'
@@ -506,9 +472,9 @@ describe('ServicesStore', () => {
 
 	describe('reorderServiceSongs', () => {
 		beforeEach(() => {
-			servicesStore.currentService = mockService;
-			const song1 = { ...mockServiceSong, id: 'ss-1', order_position: 1 };
-			const song2 = { ...mockServiceSong, id: 'ss-2', order_position: 2 };
+			servicesStore.currentService = testService;
+			const song1 = { ...testServiceSong, id: 'ss-1', order_position: 1 };
+			const song2 = { ...testServiceSong, id: 'ss-2', order_position: 2 };
 			servicesStore.currentServiceSongs = [song1, song2];
 		});
 
@@ -517,7 +483,7 @@ describe('ServicesStore', () => {
 				{ id: 'ss-2', position: 1 },
 				{ id: 'ss-1', position: 2 }
 			];
-			mockedServicesApi.reorderServiceSongs.mockResolvedValue(undefined);
+			mockPb.collection('service_songs').update.mockResolvedValue(undefined);
 
 			await servicesStore.reorderServiceSongs(songOrder);
 
@@ -526,7 +492,15 @@ describe('ServicesStore', () => {
 			expect(servicesStore.currentServiceSongs[1].order_position).toBe(2);
 			expect(servicesStore.currentServiceSongs[1].id).toBe('ss-1');
 			expect(servicesStore.builderState.isDirty).toBe(true);
-			expect(mockedServicesApi.reorderServiceSongs).toHaveBeenCalledWith('service-1', songOrder);
+			expect(mockPb.collection('service_songs').update).toHaveBeenCalledWith(
+				'ss-2',
+				{ order_position: 1 }
+			);
+			expect(mockPb.collection('service_songs').update).toHaveBeenCalledWith(
+				'ss-1',
+				{ order_position: 2 }
+			);
+			expect(mockPb.collection('service_songs').update).toHaveBeenCalledTimes(2);
 		});
 
 		it('should do nothing when no current service', async () => {
@@ -534,13 +508,13 @@ describe('ServicesStore', () => {
 
 			await servicesStore.reorderServiceSongs([]);
 
-			expect(mockedServicesApi.reorderServiceSongs).not.toHaveBeenCalled();
+			expect(mockPb.collection('service_songs').update).not.toHaveBeenCalled();
 		});
 
 		it('should handle errors when reordering songs', async () => {
 			const songOrder = [{ id: 'ss-1', position: 1 }];
 			const error = new Error('Reorder failed');
-			mockedServicesApi.reorderServiceSongs.mockRejectedValue(error);
+			mockPb.collection('service_songs').update.mockRejectedValue(error);
 
 			await expect(servicesStore.reorderServiceSongs(songOrder)).rejects.toThrow('Reorder failed');
 
@@ -550,20 +524,34 @@ describe('ServicesStore', () => {
 
 	describe('duplicateService', () => {
 		it('should duplicate service successfully', async () => {
-			const newData = { name: 'Duplicated Service' };
-			const duplicatedService = { ...mockService, id: 'service-2', name: 'Duplicated Service' };
-			mockedServicesApi.duplicateService.mockResolvedValue(duplicatedService);
+			// Ensure auth context is properly set
+			const authContext = mockAuthContext({
+				church: { id: 'church-1', name: 'Test Church' },
+				user: { id: 'user-1', current_church_id: 'church-1' },
+				membership: { 
+					church_id: 'church-1',
+					expand: {
+						church_id: { id: 'church-1', name: 'Test Church' }
+					}
+				}
+			});
+			auth.user = authContext.user;
+			auth.currentMembership = authContext.membership;
+
+			const newData = { title: 'Duplicated Service', service_date: new Date().toISOString() };
+			const duplicatedService = { ...testService, id: 'service-2', name: 'Duplicated Service' };
+			mockPb.collection('services').create.mockResolvedValue(duplicatedService);
 
 			const result = await servicesStore.duplicateService('service-1', newData);
 
 			expect(result).toEqual(duplicatedService);
 			expect(servicesStore.services).toEqual([duplicatedService]);
-			expect(mockedServicesApi.duplicateService).toHaveBeenCalledWith('service-1', newData);
+			expect(mockPb.collection('services').create).toHaveBeenCalledWith('service-1', newData);
 		});
 
 		it('should handle errors when duplicating service', async () => {
 			const error = new Error('Duplicate failed');
-			mockedServicesApi.duplicateService.mockRejectedValue(error);
+			mockPb.collection('services').create.mockRejectedValue(error);
 
 			await expect(servicesStore.duplicateService('service-1')).rejects.toThrow('Duplicate failed');
 
@@ -573,25 +561,40 @@ describe('ServicesStore', () => {
 
 	describe('completeService', () => {
 		beforeEach(() => {
-			servicesStore.services = [mockService];
-			servicesStore.currentService = mockService;
+			servicesStore.services = [testService];
+			servicesStore.currentService = testService;
 		});
 
 		it('should complete service successfully', async () => {
-			const completedService = { ...mockService, status: 'completed', actual_duration: 3500 };
-			mockedServicesApi.completeService.mockResolvedValue(completedService);
+			// Ensure auth context is properly set
+			const authContext = mockAuthContext({
+				church: { id: 'church-1', name: 'Test Church' },
+				user: { id: 'user-1', current_church_id: 'church-1' },
+				membership: { 
+					church_id: 'church-1',
+					expand: {
+						church_id: { id: 'church-1', name: 'Test Church' }
+					}
+				}
+			});
+			auth.user = authContext.user;
+			auth.currentMembership = authContext.membership;
+
+			const completedService = { ...testService, status: 'completed', actual_duration: 3500 };
+			mockPb.collection('services').update.mockResolvedValue(completedService);
+			mockPb.collection('song_usage').create.mockResolvedValue({});
 
 			await servicesStore.completeService('service-1', 3500);
 
 			expect(servicesStore.services[0]).toEqual(completedService);
 			expect(servicesStore.currentService).toEqual(completedService);
 			expect(servicesStore.builderState.service).toEqual(completedService);
-			expect(mockedServicesApi.completeService).toHaveBeenCalledWith('service-1', 3500);
+			expect(mockPb.collection('services').update).toHaveBeenCalledWith('service-1', 3500);
 		});
 
 		it('should handle errors when completing service', async () => {
 			const error = new Error('Complete failed');
-			mockedServicesApi.completeService.mockRejectedValue(error);
+			mockPb.collection('services').update.mockRejectedValue(error);
 
 			await expect(servicesStore.completeService('service-1')).rejects.toThrow('Complete failed');
 
@@ -622,7 +625,7 @@ describe('ServicesStore', () => {
 	describe('filtering and search', () => {
 		it('should apply filters and reload services', async () => {
 			const newFilters = { search: 'test', status: 'planned' as const };
-			mockedServicesApi.getServices.mockResolvedValue([mockService]);
+			mockPb.collection('services').getFullList.mockResolvedValue([testService]);
 
 			await servicesStore.applyFilters(newFilters);
 
@@ -631,12 +634,18 @@ describe('ServicesStore', () => {
 				status: 'planned',
 				sort: '-service_date'
 			});
-			expect(mockedServicesApi.getServices).toHaveBeenCalledWith(servicesStore.filters);
+			expect(mockPb.collection('services').getFullList).toHaveBeenCalledWith(
+				expect.objectContaining({
+					expand: expect.any(String),
+					filter: expect.stringContaining('test'),
+					sort: '-service_date'
+				})
+			);
 		});
 
 		it('should clear filters and reload services', async () => {
 			servicesStore.filters = { search: 'test', status: 'planned', sort: 'name' };
-			mockedServicesApi.getServices.mockResolvedValue([mockService]);
+			mockPb.collection('services').getFullList.mockResolvedValue([testService]);
 
 			await servicesStore.clearFilters();
 
@@ -645,25 +654,36 @@ describe('ServicesStore', () => {
 				status: undefined,
 				sort: '-service_date'
 			});
-			expect(mockedServicesApi.getServices).toHaveBeenCalledWith(servicesStore.filters);
+			expect(mockPb.collection('services').getFullList).toHaveBeenCalledWith(
+				expect.objectContaining({
+					expand: expect.any(String),
+					sort: '-service_date'
+				})
+			);
 		});
 
 		it('should search services', async () => {
-			mockedServicesApi.getServices.mockResolvedValue([mockService]);
+			mockPb.collection('services').getFullList.mockResolvedValue([testService]);
 
 			await servicesStore.searchServices('worship');
 
 			expect(servicesStore.filters.search).toBe('worship');
-			expect(mockedServicesApi.getServices).toHaveBeenCalledWith(servicesStore.filters);
+			expect(mockPb.collection('services').getFullList).toHaveBeenCalledWith(
+				expect.objectContaining({
+					expand: expect.any(String),
+					filter: expect.stringContaining('worship'),
+					sort: '-service_date'
+				})
+			);
 		});
 	});
 
 	describe('builder state management', () => {
 		it('should clear builder state', () => {
-			servicesStore.builderState.service = mockService;
-			servicesStore.builderState.songs = [mockServiceSong];
+			servicesStore.builderState.service = testService;
+			servicesStore.builderState.songs = [testServiceSong];
 			servicesStore.builderState.isDirty = true;
-			servicesStore.builderState.draggedSong = mockSong;
+			servicesStore.builderState.draggedSong = testSong;
 			servicesStore.builderState.selectedSongs = ['song-1'];
 
 			servicesStore.clearBuilderState();
@@ -680,8 +700,8 @@ describe('ServicesStore', () => {
 		});
 
 		it('should set and clear dragged song', () => {
-			servicesStore.setDraggedSong(mockSong);
-			expect(servicesStore.builderState.draggedSong).toEqual(mockSong);
+			servicesStore.setDraggedSong(testSong);
+			expect(servicesStore.builderState.draggedSong).toEqual(testSong);
 
 			servicesStore.clearDraggedSong();
 			expect(servicesStore.builderState.draggedSong).toBe(null);
@@ -718,11 +738,11 @@ describe('ServicesStore', () => {
 	describe('derived values', () => {
 		it('should calculate current service duration', () => {
 			servicesStore.currentServiceSongs = [
-				{ ...mockServiceSong, duration_override: 300 },
+				{ ...testServiceSong, duration_override: 300 },
 				{
-					...mockServiceSong,
+					...testServiceSong,
 					id: 'ss-2',
-					duration_override: null,
+					duration_override: undefined,
 					expand: { song_id: { duration_seconds: 240 } as Song }
 				}
 			];
@@ -745,7 +765,7 @@ describe('ServicesStore', () => {
 		});
 
 		it('should handle unknown error types', async () => {
-			mockedServicesApi.getServices.mockRejectedValue('String error');
+			mockPb.collection('services').getFullList.mockRejectedValue('String error');
 
 			await servicesStore.loadServices();
 
@@ -756,40 +776,40 @@ describe('ServicesStore', () => {
 	describe('real-time subscriptions', () => {
 		it('should subscribe to services and handle create events', async () => {
 			const unsubscribe = vi.fn();
-			let eventHandler!: (data: unknown) => void;
+			let eventHandler: (data: unknown) => void;
 
-			mockedServicesApi.subscribeToServices.mockImplementation((handler) => {
+			mockPb.collection('services').subscribe.mockImplementation(async (topic: string, handler: any) => {
 				eventHandler = handler;
-				return Promise.resolve(unsubscribe);
+				return unsubscribe;
 			});
 
 			const result = await servicesStore.subscribeToServices();
 
 			expect(result).toBe(unsubscribe);
-			expect(mockedServicesApi.subscribeToServices).toHaveBeenCalled();
+			expect(mockPb.collection('services').subscribe).toHaveBeenCalled();
 
 			// Test create event
-			const newService = { ...mockService, id: 'service-2' };
+			const newService = { ...testService, id: 'service-2' };
 			eventHandler!({ action: 'create', record: newService });
 
 			expect(servicesStore.services).toEqual([newService]);
 		});
 
 		it('should handle service update events', async () => {
-			servicesStore.services = [mockService];
-			servicesStore.currentService = mockService;
+			servicesStore.services = [testService];
+			servicesStore.currentService = testService;
 
-			let eventHandler!: (data: unknown) => void;
-			mockedServicesApi.subscribeToServices.mockImplementation(
-				(handler: (data: unknown) => void) => {
+			let eventHandler: (data: unknown) => void;
+			mockPb
+				.collection('services')
+				.subscribe.mockImplementation(async (topic: string, handler: (data: unknown) => void) => {
 					eventHandler = handler;
-					return Promise.resolve(vi.fn());
-				}
-			);
+					return vi.fn();
+				});
 
 			await servicesStore.subscribeToServices();
 
-			const updatedService = { ...mockService, name: 'Updated' };
+			const updatedService = { ...testService, name: 'Updated' };
 			eventHandler!({ action: 'update', record: updatedService });
 
 			expect(servicesStore.services[0]).toEqual(updatedService);
@@ -798,16 +818,16 @@ describe('ServicesStore', () => {
 		});
 
 		it('should handle service delete events', async () => {
-			servicesStore.services = [mockService];
-			servicesStore.currentService = mockService;
+			servicesStore.services = [testService];
+			servicesStore.currentService = testService;
 
-			let eventHandler!: (data: unknown) => void;
-			mockedServicesApi.subscribeToServices.mockImplementation(
-				(handler: (data: unknown) => void) => {
+			let eventHandler: (data: unknown) => void;
+			mockPb
+				.collection('services')
+				.subscribe.mockImplementation(async (topic: string, handler: (data: unknown) => void) => {
 					eventHandler = handler;
-					return Promise.resolve(vi.fn());
-				}
-			);
+					return vi.fn();
+				});
 
 			await servicesStore.subscribeToServices();
 
@@ -822,22 +842,22 @@ describe('ServicesStore', () => {
 			servicesStore.currentServiceSongs = [];
 
 			let eventHandler!: (data: unknown) => void;
-			mockedServicesApi.subscribeToServiceSongs.mockImplementation(
-				(serviceId: string, handler: (data: unknown) => void) => {
+			mockPb
+				.collection('service_songs')
+				.subscribe.mockImplementation((serviceId: string, handler: (data: unknown) => void) => {
 					eventHandler = handler;
 					return Promise.resolve(vi.fn());
-				}
-			);
+				});
 
 			await servicesStore.subscribeToServiceSongs('service-1');
 
 			// Test create event
-			eventHandler!({ action: 'create', record: mockServiceSong });
-			expect(servicesStore.currentServiceSongs).toEqual([mockServiceSong]);
-			expect(servicesStore.builderState.songs).toEqual([mockServiceSong]);
+			eventHandler!({ action: 'create', record: testServiceSong });
+			expect(servicesStore.currentServiceSongs).toEqual([testServiceSong]);
+			expect(servicesStore.builderState.songs).toEqual([testServiceSong]);
 
 			// Test update event
-			const updatedSong = { ...mockServiceSong, key_signature: 'D' };
+			const updatedSong = { ...testServiceSong, key_signature: 'D' };
 			eventHandler!({ action: 'update', record: updatedSong });
 			expect(servicesStore.currentServiceSongs[0]).toEqual(updatedSong);
 

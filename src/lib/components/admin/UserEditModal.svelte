@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { updateUser, getUserActivity, type UserWithMembership } from '$lib/api/admin';
 	import type { User } from '$lib/types/auth';
-	import type { ChurchRole } from '$lib/types/church';
+	import type { ChurchRole, ChurchMembership } from '$lib/types/church';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
@@ -79,7 +79,7 @@
 
 			// Update membership if it exists and has changes
 			if (user.membership) {
-				const membershipUpdates: any = {};
+				const membershipUpdates: Partial<ChurchMembership> = {};
 				if (formData.role !== user.membership.role) membershipUpdates.role = formData.role;
 				if (formData.isActive !== (user.membership.is_active !== false))
 					membershipUpdates.is_active = formData.isActive;

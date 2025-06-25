@@ -16,7 +16,7 @@ import { describe, it, expect } from 'vitest';
 // Note: Svelte store and component tests are run separately in the client environment
 // They cannot be imported in server tests due to browser-specific dependencies
 // - auth.svelte.test runs AuthStore tests
-// - AuthForm.svelte.test runs auth form component tests  
+// - AuthForm.svelte.test runs auth form component tests
 // - ProfileSettings.svelte.test runs profile component tests
 // - UserEditModal.svelte.test runs admin component tests
 import '../integration/auth.test';

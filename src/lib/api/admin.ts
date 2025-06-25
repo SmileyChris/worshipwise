@@ -35,7 +35,7 @@ export async function getAdminStats(): Promise<AdminStats> {
 		if (!currentUser?.current_church_id) {
 			throw new Error('No current church selected');
 		}
-		
+
 		// Get church memberships with role breakdown for the current church
 		const memberships = await pb.collection('church_memberships').getFullList({
 			filter: `church_id = "${currentUser.current_church_id}"`,
@@ -77,6 +77,7 @@ export async function getAdminStats(): Promise<AdminStats> {
 export async function getUsers(
 	page: number = 1,
 	perPage: number = 20,
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	filter: string = '',
 	sort: string = '-created'
 ): Promise<UserListResponse> {
@@ -97,10 +98,13 @@ export async function getUsers(
 		// Extract users from memberships
 		const usersWithMemberships: UserWithMembership[] = memberships.items
 			.filter((m) => m.expand?.user_id)
-			.map((membership) => ({
-				...membership.expand!.user_id,
-				membership: membership
-			}) as unknown as UserWithMembership);
+			.map(
+				(membership) =>
+					({
+						...membership.expand!.user_id,
+						membership: membership
+					}) as unknown as UserWithMembership
+			);
 
 		return {
 			page: memberships.page,
@@ -156,10 +160,13 @@ export async function searchUsers(
 		// Combine users with memberships
 		const usersWithMemberships: UserWithMembership[] = memberships.items
 			.filter((m) => m.expand?.user_id)
-			.map((membership) => ({
-				...membership.expand!.user_id,
-				membership: membership
-			}) as unknown as UserWithMembership);
+			.map(
+				(membership) =>
+					({
+						...membership.expand!.user_id,
+						membership: membership
+					}) as unknown as UserWithMembership
+			);
 
 		return {
 			page: memberships.page,
@@ -188,7 +195,7 @@ export async function getUsersByRole(
 		if (!currentUser?.current_church_id) {
 			throw new Error('No current church selected');
 		}
-		
+
 		const memberships = await pb.collection('church_memberships').getList(page, perPage, {
 			filter: `church_id = "${currentUser.current_church_id}" && role = "${role}"`,
 			sort: '-created'
@@ -267,7 +274,7 @@ export async function deactivateUser(userId: string): Promise<void> {
 		if (!currentUser?.current_church_id) {
 			throw new Error('No current church selected');
 		}
-		
+
 		const memberships = await pb.collection('church_memberships').getList(1, 1, {
 			filter: `user_id = "${userId}" && church_id = "${currentUser.current_church_id}"`
 		});
@@ -294,7 +301,7 @@ export async function reactivateUser(userId: string): Promise<void> {
 		if (!currentUser?.current_church_id) {
 			throw new Error('No current church selected');
 		}
-		
+
 		const memberships = await pb.collection('church_memberships').getList(1, 1, {
 			filter: `user_id = "${userId}" && church_id = "${currentUser.current_church_id}"`
 		});
@@ -346,7 +353,7 @@ export async function changeUserRole(
 		if (!currentUser?.current_church_id) {
 			throw new Error('No current church selected');
 		}
-		
+
 		const memberships = await pb.collection('church_memberships').getList(1, 1, {
 			filter: `user_id = "${userId}" && church_id = "${currentUser.current_church_id}"`
 		});

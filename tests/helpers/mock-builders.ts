@@ -1,6 +1,7 @@
 import type { User } from '$lib/types/auth';
 import type { Church, ChurchMembership } from '$lib/types/church';
-import type { Song, Service, ServiceSong } from '$lib/types/song';
+import type { Song } from '$lib/types/song';
+import type { Service, ServiceSong } from '$lib/types/service';
 
 // Simple factory functions with sensible defaults
 let userIdCounter = 0;
@@ -32,11 +33,14 @@ export function mockChurch(overrides: Partial<Church> = {}): Church {
 	const id = overrides.id || `church-${++churchIdCounter}`;
 	const name = overrides.name || 'Test Church';
 	const timezone = overrides.timezone || 'America/New_York';
-	
+
 	// Auto-detect hemisphere from timezone if not provided
-	const hemisphere = overrides.hemisphere || 
-		(timezone.includes('Australia') || timezone.includes('Pacific/Auckland') ? 'southern' : 'northern');
-	
+	const hemisphere =
+		overrides.hemisphere ||
+		(timezone.includes('Australia') || timezone.includes('Pacific/Auckland')
+			? 'southern'
+			: 'northern');
+
 	return {
 		id,
 		name,
@@ -58,7 +62,8 @@ export function mockChurch(overrides: Partial<Church> = {}): Church {
 			week_start: 'sunday',
 			repetition_window_days: 30,
 			allow_member_song_creation: true,
-			auto_approve_members: false
+			auto_approve_members: false,
+			default_key_signatures: ['C', 'G', 'D', 'A', 'E']
 		},
 		owner_user_id: overrides.owner_user_id || 'user-1',
 		billing_email: overrides.billing_email || 'billing@test.com',
@@ -75,16 +80,20 @@ function getDefaultPermissions(role: string): string[] {
 		case 'admin':
 		case 'pastor':
 			return [
-				'songs:create', 'songs:edit', 'songs:delete',
-				'services:create', 'services:edit', 'services:delete',
-				'users:invite', 'users:manage', 'users:remove',
-				'church:settings', 'church:billing'
+				'songs:create',
+				'songs:edit',
+				'songs:delete',
+				'services:create',
+				'services:edit',
+				'services:delete',
+				'users:invite',
+				'users:manage',
+				'users:remove',
+				'church:settings',
+				'church:billing'
 			];
 		case 'leader':
-			return [
-				'songs:create', 'songs:edit',
-				'services:create', 'services:edit', 'services:delete'
-			];
+			return ['songs:create', 'songs:edit', 'services:create', 'services:edit', 'services:delete'];
 		case 'musician':
 			return ['services:view', 'songs:view'];
 		default:
@@ -96,7 +105,7 @@ function getDefaultPermissions(role: string): string[] {
 export function mockMembership(overrides: Partial<ChurchMembership> = {}): ChurchMembership {
 	const id = overrides.id || `membership-${++membershipIdCounter}`;
 	const role = overrides.role || 'member';
-	
+
 	return {
 		id,
 		church_id: overrides.church_id || 'church-1',
@@ -106,8 +115,10 @@ export function mockMembership(overrides: Partial<ChurchMembership> = {}): Churc
 		status: overrides.status || 'active',
 		preferred_keys: overrides.preferred_keys || [],
 		notification_preferences: overrides.notification_preferences || {
-			email_notifications: true,
-			push_notifications: false
+			email_service_reminders: true,
+			email_new_songs: true,
+			email_member_activity: false,
+			email_weekly_digest: true
 		},
 		joined_date: overrides.joined_date || new Date().toISOString(),
 		is_active: overrides.is_active ?? true,
@@ -120,7 +131,7 @@ export function mockMembership(overrides: Partial<ChurchMembership> = {}): Churc
 // Song Mock Factory
 export function mockSong(overrides: Partial<Song> = {}): Song {
 	const id = overrides.id || `song-${++songIdCounter}`;
-	
+
 	return {
 		id,
 		church_id: overrides.church_id || 'church-1',
@@ -133,6 +144,7 @@ export function mockSong(overrides: Partial<Song> = {}): Song {
 		ccli_number: overrides.ccli_number || '12345',
 		copyright_info: overrides.copyright_info || 'Public Domain',
 		notes: overrides.notes || 'Classic hymn',
+		category: overrides.category || 'hymns',
 		created_by: overrides.created_by || 'user-1',
 		is_active: overrides.is_active ?? true,
 		created: overrides.created || new Date().toISOString(),
@@ -144,7 +156,7 @@ export function mockSong(overrides: Partial<Song> = {}): Song {
 // Service Mock Factory
 export function mockService(overrides: Partial<Service> = {}): Service {
 	const id = overrides.id || `service-${++serviceIdCounter}`;
-	
+
 	return {
 		id,
 		church_id: overrides.church_id || 'church-1',
@@ -157,7 +169,6 @@ export function mockService(overrides: Partial<Service> = {}): Service {
 		team_members: overrides.team_members || [],
 		status: overrides.status || 'planned',
 		estimated_duration: overrides.estimated_duration || 3600,
-		created_by: overrides.created_by || 'user-1',
 		is_template: overrides.is_template || false,
 		created: overrides.created || new Date().toISOString(),
 		updated: overrides.updated || new Date().toISOString(),
@@ -168,7 +179,7 @@ export function mockService(overrides: Partial<Service> = {}): Service {
 // Service Song Mock Factory
 export function mockServiceSong(overrides: Partial<ServiceSong> = {}): ServiceSong {
 	const id = overrides.id || `servicesong-${++serviceSongIdCounter}`;
-	
+
 	return {
 		id,
 		service_id: overrides.service_id || 'service-1',
@@ -179,7 +190,6 @@ export function mockServiceSong(overrides: Partial<ServiceSong> = {}): ServiceSo
 		transition_notes: overrides.transition_notes || '',
 		section_type: overrides.section_type || 'Worship',
 		duration_override: overrides.duration_override,
-		added_by: overrides.added_by || 'user-1',
 		created: overrides.created || new Date().toISOString(),
 		updated: overrides.updated || new Date().toISOString(),
 		...overrides
@@ -199,14 +209,34 @@ export function createMany<T>(
 }
 
 // Convenience functions for common patterns
-export const mockAdmin = (overrides: Partial<ChurchMembership> = {}) => 
+export const mockAdmin = (overrides: Partial<ChurchMembership> = {}) =>
 	mockMembership({ ...overrides, role: 'admin' });
 
-export const mockLeader = (overrides: Partial<ChurchMembership> = {}) => 
+export const mockLeader = (overrides: Partial<ChurchMembership> = {}) =>
 	mockMembership({ ...overrides, role: 'leader' });
 
-export const mockMusician = (overrides: Partial<ChurchMembership> = {}) => 
+export const mockMusician = (overrides: Partial<ChurchMembership> = {}) =>
 	mockMembership({ ...overrides, role: 'musician' });
+
+// Auth Context Helper
+export function mockAuthContext(overrides: {
+	user?: Partial<User>;
+	church?: Partial<Church>;
+	membership?: Partial<ChurchMembership>;
+} = {}) {
+	const church = mockChurch(overrides.church);
+	const user = mockUser({ 
+		current_church_id: church.id,
+		...overrides.user 
+	});
+	const membership = mockMembership({ 
+		user_id: user.id,
+		church_id: church.id,
+		...overrides.membership 
+	});
+
+	return { user, church, membership };
+}
 
 // Reset counters for test isolation
 export function resetMockCounters() {

@@ -717,7 +717,7 @@ describe('AuthStore', () => {
 		it('should compute displayName correctly', () => {
 			// Reset user first
 			auth.user = null;
-			
+
 			// User name takes precedence
 			auth.user = { name: 'User Name', email: 'test@example.com' } as User;
 			expect(auth.displayName).toBe('User Name');
@@ -729,7 +729,7 @@ describe('AuthStore', () => {
 			// Falls back to 'User' if no name or email
 			auth.user = { name: '', email: '' } as User;
 			expect(auth.displayName).toBe('User');
-			
+
 			// Also test null user
 			auth.user = null;
 			expect(auth.displayName).toBe('User');

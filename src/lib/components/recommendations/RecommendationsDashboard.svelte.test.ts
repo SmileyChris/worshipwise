@@ -35,7 +35,7 @@ vi.mock('$lib/stores/recommendations.svelte', () => ({
 describe('RecommendationsDashboard - Basic Rendering', () => {
 	it('should render the dashboard', () => {
 		render(RecommendationsDashboard);
-		
+
 		expect(screen.getByText('Worship Insights')).toBeInTheDocument();
 	});
 });

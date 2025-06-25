@@ -4,8 +4,7 @@ import type {
 	CreateSongData,
 	UpdateSongData,
 	SongFilterOptions,
-	SongStats,
-	Category
+	SongStats
 } from '$lib/types/song';
 
 class SongsStore {

@@ -281,21 +281,22 @@ class AuthStore {
 	getErrorMessage(error: unknown): string {
 		// Type guard for error with response property
 		if (error && typeof error === 'object' && 'response' in error) {
-			const errorWithResponse = error as { response?: { data?: any } };
+			const errorWithResponse = error as { response?: { data?: unknown } };
 			if (errorWithResponse.response?.data) {
-				const data = errorWithResponse.response.data;
+				const data = errorWithResponse.response.data as Record<string, unknown>;
 
 				// Handle validation errors
-				if (data.data) {
-					const firstField = Object.keys(data.data)[0];
-					const firstError = data.data[firstField];
+				if (data.data && typeof data.data === 'object') {
+					const validationData = data.data as Record<string, unknown>;
+					const firstField = Object.keys(validationData)[0];
+					const firstError = validationData[firstField] as { message?: string } | undefined;
 					if (firstError?.message) {
 						return firstError.message;
 					}
 				}
 
 				// Handle general errors
-				if (data.message) {
+				if (typeof data.message === 'string') {
 					return data.message;
 				}
 			}

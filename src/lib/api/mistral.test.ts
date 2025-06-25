@@ -67,7 +67,7 @@ describe('Mistral API Client', () => {
 				]
 			};
 
-			globalThis.fetch.mockResolvedValueOnce({
+			(globalThis.fetch as any).mockResolvedValueOnce({
 				ok: true,
 				json: async () => mockResponse
 			});
@@ -85,7 +85,7 @@ describe('Mistral API Client', () => {
 		});
 
 		it('should handle API errors gracefully', async () => {
-			globalThis.fetch.mockResolvedValueOnce({
+			(globalThis.fetch as any).mockResolvedValueOnce({
 				ok: false,
 				status: 401,
 				json: async () => ({
@@ -104,7 +104,7 @@ describe('Mistral API Client', () => {
 		});
 
 		it('should handle network errors', async () => {
-			globalThis.fetch.mockRejectedValueOnce(new Error('Network error'));
+			(globalThis.fetch as any).mockRejectedValueOnce(new Error('Network error'));
 
 			const client = createMistralClient('test-api-key');
 

@@ -27,7 +27,7 @@ export class MockPocketBase {
 	};
 	autoCancellation = vi.fn().mockName('pb.autoCancellation').mockReturnThis();
 
-	private services = new Map<string, MockRecordService>();
+	protected services = new Map<string, MockRecordService>();
 
 	constructor() {
 		this.collection.mockImplementation((name: string) => {
@@ -63,11 +63,21 @@ export class MockPocketBase {
 			service.requestPasswordReset.mockClear();
 			service.confirmPasswordReset.mockClear();
 			service.authWithOAuth2.mockClear();
+			service.getOneSongs.mockClear();
+			service.updateSong.mockClear();
 			// Reset mock implementations to defaults
 			service.getFullList.mockResolvedValue([]);
-			service.getList.mockResolvedValue({ items: [], totalItems: 0, totalPages: 0, page: 1, perPage: 30 });
+			service.getList.mockResolvedValue({
+				items: [],
+				totalItems: 0,
+				totalPages: 0,
+				page: 1,
+				perPage: 30
+			});
 			service.getOne.mockResolvedValue({});
 			service.getFirstListItem.mockResolvedValue({});
+			service.getOneSongs.mockResolvedValue([]);
+			service.updateSong.mockResolvedValue({});
 		});
 		this.authStore.model = null;
 		this.authStore.token = '';
@@ -97,6 +107,9 @@ export class MockRecordService {
 	authWithOAuth2: Mock;
 	requestPasswordReset: Mock;
 	confirmPasswordReset: Mock;
+	// Service-specific methods
+	getOneSongs: Mock;
+	updateSong: Mock;
 
 	constructor(
 		private collectionName: string,
@@ -109,23 +122,56 @@ export class MockRecordService {
 			.mockName(`${collectionName}.getList`)
 			.mockResolvedValue({ items: [], totalItems: 0, totalPages: 0, page: 1, perPage: 30 });
 		this.getOne = vi.fn().mockName(`${collectionName}.getOne`).mockResolvedValue({});
-		this.getFirstListItem = vi.fn().mockName(`${collectionName}.getFirstListItem`).mockResolvedValue({});
+		this.getFirstListItem = vi
+			.fn()
+			.mockName(`${collectionName}.getFirstListItem`)
+			.mockResolvedValue({});
 		this.create = vi.fn().mockName(`${collectionName}.create`).mockResolvedValue({});
 		this.update = vi.fn().mockName(`${collectionName}.update`).mockResolvedValue({});
 		this.delete = vi.fn().mockName(`${collectionName}.delete`).mockResolvedValue(true);
-		this.getFileUrl = vi.fn((recordId: string, filename: string, options?: any) => {
-			const base = 'http://localhost:8090';
-			return `${base}/api/files/${this.collectionName}/${recordId}/${filename}`;
-		}).mockName(`${collectionName}.getFileUrl`);
-		this.subscribe = vi.fn().mockName(`${collectionName}.subscribe`).mockResolvedValue(() => {});
+		this.getFileUrl = vi
+			.fn((recordId: string, filename: string, options?: any) => {
+				const base = 'http://localhost:8090';
+				return `${base}/api/files/${this.collectionName}/${recordId}/${filename}`;
+			})
+			.mockName(`${collectionName}.getFileUrl`);
+		this.subscribe = vi
+			.fn()
+			.mockName(`${collectionName}.subscribe`)
+			.mockResolvedValue(() => {});
 		this.unsubscribe = vi.fn().mockName(`${collectionName}.unsubscribe`).mockResolvedValue(true);
 
 		// Auth methods
-		this.authWithPassword = vi.fn().mockName(`${collectionName}.authWithPassword`).mockResolvedValue({ record: {}, token: 'mock-token' });
-		this.authRefresh = vi.fn().mockName(`${collectionName}.authRefresh`).mockResolvedValue({ record: {}, token: 'mock-token' });
-		this.authWithOAuth2 = vi.fn().mockName(`${collectionName}.authWithOAuth2`).mockResolvedValue({ record: {}, token: 'mock-token', meta: {} });
-		this.requestPasswordReset = vi.fn().mockName(`${collectionName}.requestPasswordReset`).mockResolvedValue({});
-		this.confirmPasswordReset = vi.fn().mockName(`${collectionName}.confirmPasswordReset`).mockResolvedValue({});
+		this.authWithPassword = vi
+			.fn()
+			.mockName(`${collectionName}.authWithPassword`)
+			.mockResolvedValue({ record: {}, token: 'mock-token' });
+		this.authRefresh = vi
+			.fn()
+			.mockName(`${collectionName}.authRefresh`)
+			.mockResolvedValue({ record: {}, token: 'mock-token' });
+		this.authWithOAuth2 = vi
+			.fn()
+			.mockName(`${collectionName}.authWithOAuth2`)
+			.mockResolvedValue({ record: {}, token: 'mock-token', meta: {} });
+		this.requestPasswordReset = vi
+			.fn()
+			.mockName(`${collectionName}.requestPasswordReset`)
+			.mockResolvedValue({});
+		this.confirmPasswordReset = vi
+			.fn()
+			.mockName(`${collectionName}.confirmPasswordReset`)
+			.mockResolvedValue({});
+
+		// Service-specific methods
+		this.getOneSongs = vi
+			.fn()
+			.mockName(`${collectionName}.getOneSongs`)
+			.mockResolvedValue([]);
+		this.updateSong = vi
+			.fn()
+			.mockName(`${collectionName}.updateSong`)
+			.mockResolvedValue({});
 	}
 
 	// Helper methods for setting up mock responses
@@ -242,7 +288,7 @@ export function createPbError(
 
 // Common error scenarios
 export const pbErrors = {
-	notFound: () => createPbError(404, 'The requested resource wasn\'t found.'),
+	notFound: () => createPbError(404, "The requested resource wasn't found."),
 	unauthorized: () => createPbError(401, 'The request requires valid authentication.'),
 	forbidden: () => createPbError(403, 'You are not allowed to perform this request.'),
 	badRequest: (message = 'Invalid request data.') => createPbError(400, message),

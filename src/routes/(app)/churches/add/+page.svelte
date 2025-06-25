@@ -5,7 +5,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
-	import { Building, ArrowLeft, Globe, MapPin, Clock } from 'lucide-svelte';
+	import { Building, ArrowLeft, MapPin, Clock } from 'lucide-svelte';
 
 	// Form state
 	let formData = $state({
@@ -195,7 +195,7 @@
 								required
 								class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
 							>
-								{#each commonTimezones as tz}
+								{#each commonTimezones as tz (tz)}
 									<option value={tz}>
 										{tz.replace('_', ' ')}
 									</option>

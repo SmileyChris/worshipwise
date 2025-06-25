@@ -5,6 +5,7 @@ import ProfileSettings from './ProfileSettings.svelte';
 import { auth } from '$lib/stores/auth.svelte';
 import type { User } from '$lib/types/auth';
 import type { ChurchMembership } from '$lib/types/church';
+import { mockPb } from '$tests/helpers/pb-mock';
 
 // Mock the auth store
 vi.mock('$lib/stores/auth.svelte', () => ({
@@ -17,24 +18,6 @@ vi.mock('$lib/stores/auth.svelte', () => ({
 		hasRole: vi.fn().mockReturnValue(false)
 	}
 }));
-
-// Mock PocketBase client
-vi.mock('$lib/api/client', () => ({
-	pb: {
-		collection: vi.fn(),
-		authStore: {
-			model: null,
-			token: '',
-			isValid: false,
-			clear: vi.fn(),
-			save: vi.fn(),
-			onChange: vi.fn()
-		}
-	}
-}));
-
-// Import mock after declaration
-import { pb } from '$lib/api/client';
 
 describe('ProfileSettings', () => {
 	const mockUser: User = {
@@ -62,6 +45,7 @@ describe('ProfileSettings', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		mockPb.reset();
 
 		// Reset auth store mocks
 		auth.user = mockUser;
@@ -78,12 +62,8 @@ describe('ProfileSettings', () => {
 		auth.loadProfile = vi.fn().mockResolvedValue(undefined);
 
 		// Setup pb mocks
-		const mockUpdate = vi.fn().mockResolvedValue(mockUser);
-		const mockAuthWithPassword = vi.fn().mockResolvedValue({ record: mockUser });
-		pb.collection = vi.fn().mockImplementation((collection: string) => ({
-			update: mockUpdate,
-			authWithPassword: mockAuthWithPassword
-		}));
+		mockPb.collection('users').mockUpdate(mockUser);
+		mockPb.collection('users').authWithPassword.mockResolvedValue({ record: mockUser });
 	});
 
 	describe('Profile Information Form', () => {
@@ -146,8 +126,8 @@ describe('ProfileSettings', () => {
 			await fireEvent.click(updateButton);
 
 			await waitFor(() => {
-				expect(pb.collection).toHaveBeenCalledWith('users');
-				const usersCollection = pb.collection('users');
+				expect(mockPb.collection).toHaveBeenCalledWith('users');
+				const usersCollection = mockPb.collection('users');
 				expect(usersCollection.update).toHaveBeenCalledWith(mockUser.id, {
 					name: 'Updated Name',
 					email: 'updated@example.com'
@@ -166,7 +146,7 @@ describe('ProfileSettings', () => {
 			await fireEvent.click(updateButton);
 
 			await waitFor(() => {
-				const usersCollection = pb.collection('users');
+				const usersCollection = mockPb.collection('users');
 				expect(usersCollection.update).toHaveBeenCalledWith(mockUser.id, {
 					name: 'Updated Name',
 					email: mockUser.email // Email remains unchanged
@@ -193,10 +173,7 @@ describe('ProfileSettings', () => {
 		it('should display profile update error message', async () => {
 			// Mock the PocketBase update to fail
 			const error = new Error('Update failed');
-			const usersCollection = {
-				update: vi.fn().mockRejectedValue(error)
-			};
-			(pb.collection as any).mockReturnValue(usersCollection);
+			mockPb.collection('users').update.mockRejectedValue(error);
 
 			render(ProfileSettings);
 
@@ -297,11 +274,8 @@ describe('ProfileSettings', () => {
 
 		it('should change password successfully', async () => {
 			// Mock successful password verification and update
-			const usersCollection = {
-				authWithPassword: vi.fn().mockResolvedValue({ record: mockUser }),
-				update: vi.fn().mockResolvedValue(mockUser)
-			};
-			(pb.collection as any).mockReturnValue(usersCollection);
+			mockPb.collection('users').authWithPassword.mockResolvedValue({ record: mockUser });
+			mockPb.collection('users').mockUpdate(mockUser);
 
 			render(ProfileSettings);
 
@@ -321,6 +295,7 @@ describe('ProfileSettings', () => {
 			await fireEvent.click(changePasswordButton);
 
 			await waitFor(() => {
+				const usersCollection = mockPb.collection('users');
 				expect(usersCollection.authWithPassword).toHaveBeenCalledWith(
 					mockUser.email,
 					'currentpassword'
@@ -333,11 +308,8 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should display password change success message', async () => {
-			const usersCollection = {
-				authWithPassword: vi.fn().mockResolvedValue({ record: mockUser }),
-				update: vi.fn().mockResolvedValue(mockUser)
-			};
-			(pb.collection as any).mockReturnValue(usersCollection);
+			mockPb.collection('users').authWithPassword.mockResolvedValue({ record: mockUser });
+			mockPb.collection('users').mockUpdate(mockUser);
 
 			render(ProfileSettings);
 
@@ -362,12 +334,9 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should handle incorrect current password', async () => {
-			const usersCollection = {
-				authWithPassword: vi.fn().mockRejectedValue({
-					response: { status: 400 }
-				})
-			};
-			(pb.collection as any).mockReturnValue(usersCollection);
+			mockPb.collection('users').authWithPassword.mockRejectedValue({
+				response: { status: 400 }
+			});
 
 			render(ProfileSettings);
 
@@ -387,11 +356,8 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should handle password change errors', async () => {
-			const usersCollection = {
-				authWithPassword: vi.fn().mockResolvedValue({ record: mockUser }),
-				update: vi.fn().mockRejectedValue(new Error('Update failed'))
-			};
-			(pb.collection as any).mockReturnValue(usersCollection);
+			mockPb.collection('users').authWithPassword.mockResolvedValue({ record: mockUser });
+			mockPb.collection('users').update.mockRejectedValue(new Error('Update failed'));
 
 			render(ProfileSettings);
 
@@ -411,7 +377,6 @@ describe('ProfileSettings', () => {
 		});
 	});
 
-
 	describe('Form State Management', () => {
 		it('should disable submit buttons when forms are invalid', () => {
 			render(ProfileSettings);
@@ -426,10 +391,9 @@ describe('ProfileSettings', () => {
 
 		it('should show loading states during operations', async () => {
 			// Mock PocketBase update to delay for loading state test
-			const usersCollection = {
-				update: vi.fn().mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)))
-			};
-			(pb.collection as any).mockReturnValue(usersCollection);
+			mockPb
+				.collection('users')
+				.update.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
 			render(ProfileSettings);
 

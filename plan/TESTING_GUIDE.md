@@ -1173,19 +1173,19 @@ import { mockUser, mockChurch, mockMembership } from '../../../tests/helpers/moc
 
 // Object-based approach - more concise and readable
 const user = mockUser({
-  email: 'test@example.com',
-  name: 'Test User'
+	email: 'test@example.com',
+	name: 'Test User'
 });
 
 const church = mockChurch({
-  name: 'Test Church',
-  timezone: 'America/New_York'
+	name: 'Test Church',
+	timezone: 'America/New_York'
 });
 
 const membership = mockMembership({
-  user_id: user.id,
-  church_id: church.id,
-  role: 'admin'
+	user_id: user.id,
+	church_id: church.id,
+	role: 'admin'
 });
 ```
 
@@ -1197,20 +1197,18 @@ Realistic error responses matching PocketBase structure:
 import { pbErrors } from '../../../tests/helpers/pb-mock';
 
 // Standard error types
-setupMockPb()
-  .collection('songs')
-  .fails(pbErrors.notFound());
+setupMockPb().collection('songs').fails(pbErrors.notFound());
 
-setupMockPb()
-  .collection('users')
-  .fails(pbErrors.unauthorized());
+setupMockPb().collection('users').fails(pbErrors.unauthorized());
 
 // Validation errors with field details
 setupMockPb()
-  .collection('users')
-  .fails(pbErrors.validation({
-    email: { code: 'validation_invalid_email', message: 'Invalid email format' }
-  }));
+	.collection('users')
+	.fails(
+		pbErrors.validation({
+			email: { code: 'validation_invalid_email', message: 'Invalid email format' }
+		})
+	);
 ```
 
 #### **Fluent Mock Setup**
@@ -1221,17 +1219,14 @@ Chainable operations for cleaner test setup:
 import { setupMockPb } from '../../../tests/helpers/pb-mock';
 
 // Setup authentication and collections
-setupMockPb()
-  .withAuth(mockUser())
-  .collection('songs')
-  .returnsMany([song1, song2, song3]);
+setupMockPb().withAuth(mockUser()).collection('songs').returnsMany([song1, song2, song3]);
 
 // Setup multiple operations
 setupMockPb()
-  .collection('church_memberships')
-  .returnsOne(membership)
-  .onCreate(newMembership)
-  .onUpdate(updatedMembership);
+	.collection('church_memberships')
+	.returnsOne(membership)
+	.onCreate(newMembership)
+	.onUpdate(updatedMembership);
 ```
 
 #### **Helper Functions**
@@ -1239,16 +1234,22 @@ setupMockPb()
 Convenient shortcuts for common patterns:
 
 ```typescript
-import { createMany, mockAdmin, mockLeader, mockMusician, resetMockCounters } from '../../../tests/helpers/mock-builders';
+import {
+	createMany,
+	mockAdmin,
+	mockLeader,
+	mockMusician,
+	resetMockCounters
+} from '../../../tests/helpers/mock-builders';
 
 beforeEach(() => {
-  resetMockCounters(); // Consistent IDs across tests
+	resetMockCounters(); // Consistent IDs across tests
 });
 
 // Create multiple items with variations
 const songs = createMany(mockSong, 5, (i) => ({
-  title: `Song ${i + 1}`,
-  key_signature: ['C', 'D', 'E', 'F', 'G'][i]
+	title: `Song ${i + 1}`,
+	key_signature: ['C', 'D', 'E', 'F', 'G'][i]
 }));
 
 // Role-specific shortcuts
@@ -1260,30 +1261,25 @@ const musicianMembership = mockMusician({ user_id: 'user-3' });
 #### **Migration Example**
 
 **Before (verbose builder pattern):**
-```typescript
-const user = mockUser()
-  .withEmail('admin@test.com')
-  .withName('Admin')
-  .build();
 
-const membership = mockMembership()
-  .asAdmin()
-  .forUser(user.id)
-  .forChurch('church-1')
-  .build();
+```typescript
+const user = mockUser().withEmail('admin@test.com').withName('Admin').build();
+
+const membership = mockMembership().asAdmin().forUser(user.id).forChurch('church-1').build();
 ```
 
 **After (concise factory approach):**
+
 ```typescript
 const user = mockUser({
-  email: 'admin@test.com',
-  name: 'Admin'
+	email: 'admin@test.com',
+	name: 'Admin'
 });
 
 const membership = mockMembership({
-  role: 'admin',
-  user_id: user.id,
-  church_id: 'church-1'
+	role: 'admin',
+	user_id: user.id,
+	church_id: 'church-1'
 });
 ```
 

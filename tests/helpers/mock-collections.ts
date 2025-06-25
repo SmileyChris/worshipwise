@@ -1,6 +1,5 @@
 import { vi } from 'vitest';
-import { MockRecordService, MockRecord } from './pb-mock';
-import type { MockPocketBase } from './pb-mock';
+import { MockRecordService, type MockRecord, MockPocketBase } from './pb-mock';
 
 /**
  * Collection-specific mock services that implement realistic filtering behavior
@@ -11,20 +10,20 @@ function parseFilter(filter: string): Record<string, any> {
 	const conditions: Record<string, any> = {};
 	// Simple parser for common patterns
 	const patterns = [
-		/(\w+)\s*=\s*"([^"]+)"/g,  // field = "value"
-		/(\w+)\s*~\s*"([^"]+)"/g,  // field ~ "value" (contains)
+		/(\w+)\s*=\s*"([^"]+)"/g, // field = "value"
+		/(\w+)\s*~\s*"([^"]+)"/g, // field ~ "value" (contains)
 		/(\w+)\s*\?\~\s*"([^"]+)"/g, // field ?~ "value" (array contains)
-		/(\w+)\s*!=\s*(\w+)/g,     // field != value
-		/(\w+)\s*>=?\s*(\d+)/g,    // field >= number
-		/(\w+)\s*<=?\s*(\d+)/g,    // field <= number
+		/(\w+)\s*!=\s*(\w+)/g, // field != value
+		/(\w+)\s*>=?\s*(\d+)/g, // field >= number
+		/(\w+)\s*<=?\s*(\d+)/g // field <= number
 	];
-	
+
 	// Extract basic conditions (simplified)
 	const match = filter.match(/(\w+)\s*=\s*"([^"]+)"/);
 	if (match) {
 		conditions[match[1]] = match[2];
 	}
-	
+
 	return conditions;
 }
 
@@ -42,12 +41,12 @@ export class MockChurchMembershipsService extends MockRecordService {
 			if (options?.filter) {
 				const conditions = parseFilter(options.filter);
 				const allRecords = await originalGetFullList();
-				
+
 				// Filter by church_id
 				if (conditions.church_id) {
 					return allRecords.filter((r: any) => r.church_id === conditions.church_id);
 				}
-				
+
 				// Filter by user_id
 				if (conditions.user_id) {
 					return allRecords.filter((r: any) => r.user_id === conditions.user_id);
@@ -60,11 +59,11 @@ export class MockChurchMembershipsService extends MockRecordService {
 		const originalGetList = this.getList;
 		this.getList.mockImplementation(async (page?: number, perPage?: number, options?: any) => {
 			const result = await originalGetList(page, perPage, options);
-			
+
 			if (options?.filter) {
 				const conditions = parseFilter(options.filter);
 				let filtered = result.items;
-				
+
 				// Apply filters
 				if (conditions.church_id) {
 					filtered = filtered.filter((r: any) => r.church_id === conditions.church_id);
@@ -72,7 +71,7 @@ export class MockChurchMembershipsService extends MockRecordService {
 				if (conditions.role) {
 					filtered = filtered.filter((r: any) => r.role === conditions.role);
 				}
-				
+
 				// Handle expand
 				if (options.expand && filtered.length > 0) {
 					filtered = filtered.map((item: any) => ({
@@ -80,7 +79,7 @@ export class MockChurchMembershipsService extends MockRecordService {
 						expand: this.createExpandedRelations(item, options.expand)
 					}));
 				}
-				
+
 				return {
 					...result,
 					items: filtered,
@@ -88,16 +87,16 @@ export class MockChurchMembershipsService extends MockRecordService {
 					totalPages: Math.ceil(filtered.length / (perPage || 30))
 				};
 			}
-			
+
 			return result;
 		});
 	}
 
 	private createExpandedRelations(record: any, expand: string): any {
 		const relations: any = {};
-		const expandFields = expand.split(',').map(f => f.trim());
-		
-		expandFields.forEach(field => {
+		const expandFields = expand.split(',').map((f) => f.trim());
+
+		expandFields.forEach((field) => {
 			if (field === 'user_id' && record.user_id) {
 				relations.user_id = {
 					id: record.user_id,
@@ -114,7 +113,7 @@ export class MockChurchMembershipsService extends MockRecordService {
 				};
 			}
 		});
-		
+
 		return relations;
 	}
 }
@@ -131,24 +130,24 @@ export class MockSongsService extends MockRecordService {
 		const originalGetFullList = this.getFullList;
 		this.getFullList.mockImplementation(async (options?: any) => {
 			const allRecords = await originalGetFullList();
-			
+
 			if (options?.filter) {
 				const conditions = parseFilter(options.filter);
 				let filtered = allRecords;
-				
+
 				// Always filter by church_id
 				if (conditions.church_id) {
 					filtered = filtered.filter((r: any) => r.church_id === conditions.church_id);
 				}
-				
+
 				// Filter by active status
 				if (conditions.is_active !== undefined) {
 					filtered = filtered.filter((r: any) => r.is_active === (conditions.is_active === 'true'));
 				}
-				
+
 				return filtered;
 			}
-			
+
 			return allRecords;
 		});
 	}
@@ -166,21 +165,21 @@ export class MockServicesService extends MockRecordService {
 		const originalGetList = this.getList;
 		this.getList.mockImplementation(async (page?: number, perPage?: number, options?: any) => {
 			const result = await originalGetList(page, perPage, options);
-			
+
 			if (options?.filter) {
 				const conditions = parseFilter(options.filter);
 				let filtered = result.items;
-				
+
 				// Filter by church_id
 				if (conditions.church_id) {
 					filtered = filtered.filter((r: any) => r.church_id === conditions.church_id);
 				}
-				
+
 				// Filter by status
 				if (conditions.status) {
 					filtered = filtered.filter((r: any) => r.status === conditions.status);
 				}
-				
+
 				// Sort by service_date if specified
 				if (options.sort?.includes('service_date')) {
 					const desc = options.sort.startsWith('-');
@@ -190,7 +189,7 @@ export class MockServicesService extends MockRecordService {
 						return desc ? dateB - dateA : dateA - dateB;
 					});
 				}
-				
+
 				return {
 					...result,
 					items: filtered,
@@ -198,7 +197,7 @@ export class MockServicesService extends MockRecordService {
 					totalPages: Math.ceil(filtered.length / (perPage || 30))
 				};
 			}
-			
+
 			return result;
 		});
 	}
@@ -216,20 +215,20 @@ export class MockServiceSongsService extends MockRecordService {
 		const originalGetFullList = this.getFullList;
 		this.getFullList.mockImplementation(async (options?: any) => {
 			let records = await originalGetFullList();
-			
+
 			if (options?.filter) {
 				const conditions = parseFilter(options.filter);
-				
+
 				// Filter by service_id
 				if (conditions.service_id) {
 					records = records.filter((r: any) => r.service_id === conditions.service_id);
 				}
-				
+
 				// Sort by order_position
 				if (options.sort?.includes('order_position')) {
 					records.sort((a: any, b: any) => a.order_position - b.order_position);
 				}
-				
+
 				// Handle expand for song details
 				if (options.expand?.includes('song_id')) {
 					records = records.map((record: any) => ({
@@ -247,7 +246,7 @@ export class MockServiceSongsService extends MockRecordService {
 					}));
 				}
 			}
-			
+
 			return records;
 		});
 	}
@@ -276,7 +275,7 @@ export function createMockCollectionService(
 export class EnhancedMockPocketBase extends MockPocketBase {
 	constructor() {
 		super();
-		
+
 		// Override collection method to use specialized services
 		this.collection.mockImplementation((name: string) => {
 			if (!this.services.has(name)) {

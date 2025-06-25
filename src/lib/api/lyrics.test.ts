@@ -41,7 +41,7 @@ Was blind but now I see`;
 
 		it('should handle search failures gracefully', async () => {
 			// Mock all search engines to fail
-			globalThis.fetch.mockRejectedValue(new Error('Network error'));
+			(globalThis.fetch as any).mockRejectedValue(new Error('Network error'));
 
 			const client = createLyricsSearchClient();
 			const result = await client.searchLyrics('Test Song', 'Test Artist');
@@ -51,7 +51,7 @@ Was blind but now I see`;
 
 		it('should return null when no lyrics found', async () => {
 			// Mock empty responses
-			globalThis.fetch.mockResolvedValue({
+			(globalThis.fetch as any).mockResolvedValue({
 				ok: true,
 				json: async () => ({})
 			});
@@ -73,7 +73,7 @@ And grace my fears relieved`,
 				AbstractURL: 'https://example.com'
 			};
 
-			globalThis.fetch.mockResolvedValue({
+			(globalThis.fetch as any).mockResolvedValue({
 				ok: true,
 				json: async () => mockResponse
 			});
