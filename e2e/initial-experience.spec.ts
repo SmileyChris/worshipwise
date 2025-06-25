@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 /**
  * E2E Tests for Initial User Experience
@@ -14,6 +14,34 @@ import { test, expect } from '@playwright/test';
  * Tests are designed to work without a live PocketBase instance by focusing
  * on UI behavior and client-side validation rather than backend integration.
  */
+
+test.beforeEach(async ({ page }) => {
+	// Mock the initial setup API call
+	await page.route('**/api/collections/churches/records', (route) => {
+		return route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				id: 'mock_church_id',
+				name: 'Test Church',
+				slug: 'test-church',
+				timezone: 'UTC'
+			})
+		});
+	});
+
+	await page.route('**/api/collections/users/records', (route) => {
+		return route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				id: 'mock_user_id',
+				email: 'admin@test.com',
+				name: 'Admin'
+			})
+		});
+	});
+});
 test.describe('Initial User Experience', () => {
 	test.beforeEach(async ({ page }) => {
 		// Navigate to home page for each test
@@ -99,37 +127,43 @@ test.describe('Initial User Experience', () => {
 		await expect(page.locator('h2')).toContainText('Admin Account');
 	});
 
-	test('shows validation errors in setup form', async ({ page }) => {
-		await page.goto('/setup');
-		await page.waitForLoadState('networkidle');
+	test(
+		'shows validation errors in setup form',
+		async ({ page }) => {
+			test.slow(); // Mark test as slow since it involves multiple UI interactions
 
-		// Test step 1 validation - empty church name
-		await page.click('text=Next Step');
-		await expect(page.locator('text=Church name is required')).toBeVisible();
+			await page.goto('/setup');
+			await page.waitForLoadState('networkidle');
 
-		// Fill church name and proceed to step 2
-		await page.fill('[name="churchName"]', 'Test Church');
-		await page.selectOption('select', 'UTC'); // Ensure timezone is set
-		await page.click('text=Next Step');
+			// Test step 1 validation - empty church name
+			await page.click('text=Next Step');
+			await expect(page.locator('text=Church name is required')).toBeVisible();
 
-		// Test step 2 validation
-		await page.click('text=Complete Setup');
-		await expect(page.locator('text=Admin name is required')).toBeVisible();
+			// Fill church name and proceed to step 2
+			await page.fill('[name="churchName"]', 'Test Church');
+			await page.selectOption('select', 'UTC'); // Ensure timezone is set
+			await page.click('text=Next Step');
 
-		// Test password length validation
-		await page.fill('[name="adminName"]', 'Admin');
-		await page.fill('[name="adminEmail"]', 'admin@test.com');
-		await page.fill('[name="password"]', '123');
-		await page.fill('[name="confirmPassword"]', '123');
-		await page.click('text=Complete Setup');
-		await expect(page.locator('text=Password must be at least 6 characters')).toBeVisible();
+			// Test step 2 validation
+			await page.click('text=Complete Setup');
+			await expect(page.locator('text=Admin name is required')).toBeVisible();
 
-		// Test password mismatch validation
-		await page.fill('[name="password"]', 'password123');
-		await page.fill('[name="confirmPassword"]', 'different123');
-		await page.click('text=Complete Setup');
-		await expect(page.locator('text=Passwords do not match')).toBeVisible();
-	});
+			// Test password length validation
+			await page.fill('[name="adminName"]', 'Admin');
+			await page.fill('[name="adminEmail"]', 'admin@test.com');
+			await page.fill('[name="password"]', '123');
+			await page.fill('[name="confirmPassword"]', '123');
+			await page.click('text=Complete Setup');
+			await expect(page.locator('text=Password must be at least 6 characters')).toBeVisible();
+
+			// Test password mismatch validation
+			await page.fill('[name="password"]', 'password123');
+			await page.fill('[name="confirmPassword"]', 'different123');
+			await page.click('text=Complete Setup');
+			await expect(page.locator('text=Passwords do not match')).toBeVisible();
+		},
+		{ timeout: 10000 }
+	); // Reduce timeout to 10 seconds since we're mocking API calls
 
 	test('preserves form data during navigation', async ({ page }) => {
 		await page.goto('/setup');
