@@ -63,7 +63,6 @@ describe('LyricsAnalyzer Component', () => {
 				title: 'Amazing Grace',
 				artist: 'John Newton',
 				lyrics: 'Amazing grace how sweet the sound',
-				church: mockChurch,
 				onAnalysisComplete: vi.fn()
 			}
 		});
@@ -76,7 +75,6 @@ describe('LyricsAnalyzer Component', () => {
 		render(LyricsAnalyzer, {
 			props: {
 				title: 'Amazing Grace',
-				church: mockChurchWithoutAPI,
 				onAnalysisComplete: vi.fn()
 			}
 		});
@@ -89,7 +87,6 @@ describe('LyricsAnalyzer Component', () => {
 		render(LyricsAnalyzer, {
 			props: {
 				title: '',
-				church: mockChurch,
 				onAnalysisComplete: vi.fn()
 			}
 		});
@@ -102,7 +99,6 @@ describe('LyricsAnalyzer Component', () => {
 		render(LyricsAnalyzer, {
 			props: {
 				title: 'Amazing Grace',
-				church: mockChurch,
 				onAnalysisComplete: vi.fn(),
 				disabled: true
 			}

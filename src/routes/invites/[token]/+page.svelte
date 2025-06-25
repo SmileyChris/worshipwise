@@ -160,7 +160,7 @@
 					</div>
 				</div>
 			</Card>
-		{:else if expirationInfo.isExpired}
+		{:else if expirationInfo().isExpired}
 			<!-- Expired state -->
 			<Card class="text-center">
 				<div class="p-8">
@@ -263,7 +263,7 @@
 									Invitation expires
 								</h3>
 								<p class="text-sm text-gray-600">
-									In {expirationInfo.daysRemaining} days ({expirationInfo.expiresAt.toLocaleDateString()})
+									In {expirationInfo().daysRemaining} days ({expirationInfo().expiresAt.toLocaleDateString()})
 								</p>
 							</div>
 						</div>

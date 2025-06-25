@@ -74,6 +74,11 @@
 		}
 	}
 
+	function handleButtonSubmit() {
+		const event = new Event('submit');
+		handleSubmit(event);
+	}
+
 	function getDefaultPermissions(role: 'musician' | 'leader' | 'admin'): string[] {
 		switch (role) {
 			case 'admin':
@@ -212,7 +217,7 @@
 			<Button onclick={handleClose} variant="outline" disabled={loading}>
 				Cancel
 			</Button>
-			<Button onclick={handleSubmit} disabled={!canSubmit} {loading}>
+			<Button onclick={handleButtonSubmit} disabled={!canSubmit} {loading}>
 				{#if loading}
 					Sending...
 				{:else}

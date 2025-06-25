@@ -225,7 +225,6 @@ export function mockAuthContext(overrides: {
 } = {}): AuthContext {
 	const church = mockChurch(overrides.church);
 	const user = mockUser({ 
-		current_church_id: church.id,
 		...overrides.user 
 	});
 	const membership = mockMembership({ 

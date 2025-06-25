@@ -52,12 +52,9 @@ describe('ServicesStore', () => {
 		// Create auth context for dependency injection
 		authContext = mockAuthContext({
 			church: { id: 'church-1', name: 'Test Church' },
-			user: { id: 'user-1', current_church_id: 'church-1' },
+			user: { id: 'user-1' },
 			membership: { 
-				church_id: 'church-1',
-				expand: {
-					church_id: { id: 'church-1', name: 'Test Church' }
-				}
+				church_id: 'church-1'
 			}
 		});
 

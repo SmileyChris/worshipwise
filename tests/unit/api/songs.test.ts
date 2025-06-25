@@ -1,24 +1,39 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockPb } from '../../helpers/pb-mock';
 import { createMockSong, createMockUser } from '../../helpers/test-utils';
-import { songsApi } from '$lib/api/songs';
+import { mockChurch } from '../../helpers/mock-builders';
+import { SongsAPI } from '$lib/api/songs';
 
 // Mock the client module
 vi.mock('$lib/api/client', () => ({
 	pb: mockPb
 }));
 
-// Mock the auth store
-vi.mock('$lib/stores/auth.svelte', () => ({
-	auth: {
-		currentChurch: { id: 'church_test123', name: 'Test Church' },
-		user: { id: 'user123', email: 'test@example.com' }
-	}
-}));
-
 describe('Songs API', () => {
+	let songsApi: SongsAPI;
+
 	beforeEach(() => {
 		mockPb.reset();
+		
+		// Create API instance with mock auth context
+		const authContext = {
+			user: { 
+				id: 'user123', 
+				email: 'test@example.com',
+				name: 'Test User',
+				created: new Date().toISOString(),
+				updated: new Date().toISOString(),
+				verified: true,
+				avatar: '',
+				emailVisibility: true
+			},
+			currentChurch: mockChurch({ id: 'church_test123', name: 'Test Church' }),
+			currentMembership: null,
+			isAuthenticated: true,
+			token: 'test-token',
+			isValid: true
+		};
+		songsApi = new SongsAPI(authContext);
 	});
 
 	describe('getSongs', () => {

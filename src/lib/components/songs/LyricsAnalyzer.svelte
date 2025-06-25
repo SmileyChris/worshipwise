@@ -419,7 +419,7 @@
 				</div>
 				<div class="flex flex-wrap gap-2">
 					{#each suggestedLabels as label (label)}
-						<Badge variant="outline" class="text-xs">
+						<Badge variant="default" class="text-xs">
 							+ {label}
 						</Badge>
 					{/each}

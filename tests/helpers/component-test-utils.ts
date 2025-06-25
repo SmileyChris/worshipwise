@@ -1,15 +1,15 @@
 import { render } from '@testing-library/svelte';
-import type { ComponentProps, SvelteComponent } from 'svelte';
+import type { ComponentProps, SvelteComponent, Component } from 'svelte';
 import { mockAuthContext, mockUser, mockChurch, mockMembership } from './mock-builders';
 import ContextProvider from './ContextProvider.svelte';
 
 /**
  * Renders a Svelte component with all necessary stores in context
  */
-export function renderWithContext<T extends SvelteComponent>(
-	Component: new (...args: any[]) => T,
+export function renderWithContext<T extends Record<string, any>>(
+	Component: Component<T>,
 	options: {
-		props?: ComponentProps<T>;
+		props?: T;
 		authUser?: any;
 		currentChurch?: any;
 		memberships?: any[];
@@ -58,9 +58,9 @@ export function renderWithContext<T extends SvelteComponent>(
 /**
  * Simplified render for components that just need basic auth context
  */
-export function renderWithBasicAuth<T extends SvelteComponent>(
-	Component: new (...args: any[]) => T,
-	props: ComponentProps<T> = {} as ComponentProps<T>
+export function renderWithBasicAuth<T extends Record<string, any>>(
+	Component: Component<T>,
+	props: T = {} as T
 ) {
 	return renderWithContext(Component, { props });
 }

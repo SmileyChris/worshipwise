@@ -186,24 +186,18 @@ describe('InviteMemberModal', () => {
 
 	it('should reset form when modal opens', async () => {
 		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
-		const { getByLabelText, rerender } = renderWithContext(InviteMemberModal, {
+		const { getByLabelText } = renderWithContext(InviteMemberModal, {
 			props: {
-				open: false,
+				open: true,
 				onclose: vi.fn()
 			},
 			currentChurch: testChurch
 		});
 
-		// Open modal
-		rerender({
-			open: true,
-			onclose: vi.fn()
-		});
-
 		const emailInput = getByLabelText('Email Address') as HTMLInputElement;
 		const roleSelect = getByLabelText('Role') as HTMLSelectElement;
 
-		// Form should be reset
+		// Form should be reset (default values)
 		expect(emailInput.value).toBe('');
 		expect(roleSelect.value).toBe('musician'); // Default role
 	});

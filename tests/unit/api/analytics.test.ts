@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockPb } from '../../helpers/pb-mock';
-import { analyticsApi } from '$lib/api/analytics';
+import { mockChurch } from '../../helpers/mock-builders';
+import { AnalyticsAPI } from '$lib/api/analytics';
 
 // Mock the client module
 vi.mock('$lib/api/client', () => ({
@@ -8,8 +9,30 @@ vi.mock('$lib/api/client', () => ({
 }));
 
 describe('Analytics API - Basic Tests', () => {
+	let analyticsApi: AnalyticsAPI;
+
 	beforeEach(() => {
 		mockPb.reset();
+		
+		// Create API instance with mock auth context
+		const authContext = {
+			user: { 
+				id: 'user123', 
+				email: 'test@example.com',
+				name: 'Test User',
+				created: new Date().toISOString(),
+				updated: new Date().toISOString(),
+				verified: true,
+				avatar: '',
+				emailVisibility: true
+			},
+			currentChurch: mockChurch({ id: 'church_test123', name: 'Test Church' }),
+			currentMembership: null,
+			isAuthenticated: true,
+			token: 'test-token',
+			isValid: true
+		};
+		analyticsApi = new AnalyticsAPI(authContext);
 	});
 
 	describe('getOverview', () => {

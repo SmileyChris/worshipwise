@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import '@testing-library/jest-dom/vitest';
 import ProfileSettings from './ProfileSettings.svelte';
-import { auth } from '$lib/stores/auth.svelte';
+import { getAuthStore } from '$lib/context/stores.svelte';
 import type { User } from '$lib/types/auth';
 import type { ChurchMembership } from '$lib/types/church';
 import { mockPb } from '$tests/helpers/pb-mock';
@@ -46,20 +46,6 @@ describe('ProfileSettings', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockPb.reset();
-
-		// Reset auth store mocks
-		auth.user = mockUser;
-		auth.currentMembership = mockMembership;
-		auth.updateProfile = vi.fn().mockResolvedValue(undefined);
-		auth.getErrorMessage = vi.fn().mockImplementation((error) => {
-			if (error instanceof Error) {
-				return error.message;
-			}
-			return 'Mock error message';
-		});
-		auth.isAdmin = false;
-		auth.hasRole = vi.fn().mockReturnValue(false);
-		auth.loadProfile = vi.fn().mockResolvedValue(undefined);
 
 		// Setup pb mocks
 		mockPb.collection('users').mockUpdate(mockUser);
@@ -155,7 +141,8 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should display profile update success message', async () => {
-			auth.updateProfile = vi.fn().mockResolvedValue(undefined);
+			// Mock successful update
+			mockPb.collection('users').update.mockResolvedValue(mockUser);
 
 			render(ProfileSettings);
 
