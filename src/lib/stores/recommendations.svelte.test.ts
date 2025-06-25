@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { recommendationsStore } from './recommendations.svelte';
+import { auth } from './auth.svelte';
 import type {
 	SongRecommendation,
 	WorshipFlowSuggestion,
@@ -8,6 +9,7 @@ import type {
 	ComparativePeriod
 } from '$lib/api/recommendations';
 import { mockPb } from '$tests/helpers/pb-mock';
+import { mockAuthContext } from '$tests/helpers/mock-builders';
 
 describe('RecommendationsStore', () => {
 	const mockSongRecommendations: SongRecommendation[] = [
@@ -157,6 +159,21 @@ describe('RecommendationsStore', () => {
 		// Reset mockPb
 		vi.clearAllMocks();
 		mockPb.reset();
+
+		// Set up auth context with church
+		const authContext = mockAuthContext({
+			church: { id: 'church-1', name: 'Test Church' },
+			user: { id: 'user-1', current_church_id: 'church-1' },
+			membership: { 
+				church_id: 'church-1',
+				expand: {
+					church_id: { id: 'church-1', name: 'Test Church' }
+				}
+			}
+		});
+		mockPb.setAuthState(authContext.user);
+		auth.user = authContext.user;
+		auth.currentMembership = authContext.membership;
 
 		// Reset the store state
 		recommendationsStore.loading = false;
