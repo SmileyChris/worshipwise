@@ -65,6 +65,7 @@ export class MockPocketBase {
 			service.authWithOAuth2.mockClear();
 			service.getOneSongs.mockClear();
 			service.updateSong.mockClear();
+			service.getFullListUsageInfo.mockClear();
 			// Reset mock implementations to defaults
 			service.getFullList.mockResolvedValue([]);
 			service.getList.mockResolvedValue({
@@ -78,6 +79,7 @@ export class MockPocketBase {
 			service.getFirstListItem.mockResolvedValue({});
 			service.getOneSongs.mockResolvedValue([]);
 			service.updateSong.mockResolvedValue({});
+			service.getFullListUsageInfo.mockResolvedValue([]);
 		});
 		this.authStore.model = null;
 		this.authStore.token = '';
@@ -110,6 +112,8 @@ export class MockRecordService {
 	// Service-specific methods
 	getOneSongs: Mock;
 	updateSong: Mock;
+	// Song-specific methods
+	getFullListUsageInfo: Mock;
 
 	constructor(
 		private collectionName: string,
@@ -172,6 +176,12 @@ export class MockRecordService {
 			.fn()
 			.mockName(`${collectionName}.updateSong`)
 			.mockResolvedValue({});
+		
+		// Song-specific methods
+		this.getFullListUsageInfo = vi
+			.fn()
+			.mockName(`${collectionName}.getFullListUsageInfo`)
+			.mockResolvedValue([]);
 	}
 
 	// Helper methods for setting up mock responses

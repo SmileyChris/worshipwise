@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { songsStore } from './songs.svelte';
+import { auth } from './auth.svelte';
 import type {
 	Song,
 	CreateSongData,
@@ -9,7 +10,7 @@ import type {
 	SongUsage
 } from '$lib/types/song';
 import { mockPb } from '$tests/helpers/pb-mock';
-import { mockSong } from '$tests/helpers/mock-builders';
+import { mockSong, mockAuthContext } from '$tests/helpers/mock-builders';
 
 describe('SongsStore', () => {
 	// Use factory functions for test data
@@ -43,6 +44,21 @@ describe('SongsStore', () => {
 		// Reset mockPb
 		vi.clearAllMocks();
 		mockPb.reset();
+
+		// Set up auth context with church
+		const authContext = mockAuthContext({
+			church: { id: 'church-1', name: 'Test Church' },
+			user: { id: 'user-1', current_church_id: 'church-1' },
+			membership: { 
+				church_id: 'church-1',
+				expand: {
+					church_id: { id: 'church-1', name: 'Test Church' }
+				}
+			}
+		});
+		mockPb.setAuthState(authContext.user);
+		auth.user = authContext.user;
+		auth.currentMembership = authContext.membership;
 
 		// Reset the store state
 		songsStore.songs = [];
