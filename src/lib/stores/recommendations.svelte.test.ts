@@ -6,10 +6,25 @@ import type {
 	WorshipFlowSuggestion,
 	ServiceBalanceAnalysis,
 	SeasonalTrend,
-	ComparativePeriod
+	ComparativePeriod,
+	WorshipInsights
 } from '$lib/api/recommendations';
 import { mockPb } from '$tests/helpers/pb-mock';
 import { mockAuthContext } from '$tests/helpers/mock-builders';
+
+// Mock the recommendations API
+vi.mock('$lib/api/recommendations', () => ({
+	recommendationsApi: {
+		getSongRecommendations: vi.fn(),
+		getWorshipFlowSuggestions: vi.fn(),
+		analyzeServiceBalance: vi.fn(),
+		getSeasonalTrends: vi.fn(),
+		getComparativePeriodAnalysis: vi.fn(),
+		getWorshipInsights: vi.fn()
+	}
+}));
+
+import { recommendationsApi } from '$lib/api/recommendations';
 
 describe('RecommendationsStore', () => {
 	const mockSongRecommendations: SongRecommendation[] = [
@@ -148,11 +163,36 @@ describe('RecommendationsStore', () => {
 		insights: ['More songs used this period', 'Higher song diversity']
 	};
 
-	const mockWorshipInsights = {
-		rotationHealth: 0.8,
-		diversityScore: 0.7,
-		seasonalAlignment: 0.9,
-		recommendations: ['Introduce more contemporary songs', 'Improve key transitions']
+	const mockWorshipInsights: WorshipInsights = {
+		rotationHealth: {
+			score: 80,
+			status: 'good',
+			insights: ['Most songs are in healthy rotation'],
+			recommendations: ['Consider retiring unused songs']
+		},
+		diversityAnalysis: {
+			keyDiversity: 70,
+			tempoDiversity: 75,
+			artistDiversity: 65,
+			recommendations: ['Expand key variety for better musical flow']
+		},
+		congregationEngagement: {
+			familiarSongs: 30,
+			newSongIntroductionRate: 5,
+			optimalRotationCandidates: 15,
+			insights: ['Good balance of familiar and new songs']
+		},
+		seasonalReadiness: {
+			currentSeasonAlignment: 85,
+			upcomingSeasonPreparation: 70,
+			seasonalSuggestions: ['Add more Christmas songs'],
+			context: {
+				hemisphere: 'northern',
+				timezone: 'America/New_York',
+				currentSeason: 'Winter',
+				upcomingSeason: 'Spring'
+			}
+		}
 	};
 
 	beforeEach(() => {
@@ -192,20 +232,20 @@ describe('RecommendationsStore', () => {
 
 	describe('loadSongRecommendations', () => {
 		it('should load song recommendations successfully', async () => {
-			mockPb.collection('songs').getFullList.mockResolvedValue(mockSongRecommendations);
+			vi.mocked(recommendationsApi.getSongRecommendations).mockResolvedValue(mockSongRecommendations);
 
 			await recommendationsStore.loadSongRecommendations();
 
 			expect(recommendationsStore.songRecommendations).toEqual(mockSongRecommendations);
 			expect(recommendationsStore.loading).toBe(false);
 			expect(recommendationsStore.error).toBe(null);
-			expect(mockPb.collection('songs').getFullList).toHaveBeenCalledWith(
+			expect(recommendationsApi.getSongRecommendations).toHaveBeenCalledWith(
 				recommendationsStore.recommendationFilters
 			);
 		});
 
 		it('should handle loading state correctly', async () => {
-			mockPb.collection('songs').getFullList.mockImplementation(async () => {
+			vi.mocked(recommendationsApi.getSongRecommendations).mockImplementation(async () => {
 				expect(recommendationsStore.loading).toBe(true);
 				return mockSongRecommendations;
 			});
@@ -217,7 +257,7 @@ describe('RecommendationsStore', () => {
 
 		it('should handle errors when loading recommendations', async () => {
 			const error = new Error('Network error');
-			mockPb.collection('songs').getFullList.mockRejectedValue(error);
+			vi.mocked(recommendationsApi.getSongRecommendations).mockRejectedValue(error);
 
 			await recommendationsStore.loadSongRecommendations();
 
@@ -227,7 +267,7 @@ describe('RecommendationsStore', () => {
 		});
 
 		it('should handle non-Error exceptions', async () => {
-			mockPb.collection('songs').getFullList.mockRejectedValue('String error');
+			vi.mocked(recommendationsApi.getSongRecommendations).mockRejectedValue('String error');
 
 			await recommendationsStore.loadSongRecommendations();
 
@@ -237,19 +277,19 @@ describe('RecommendationsStore', () => {
 
 	describe('loadWorshipFlowSuggestions', () => {
 		it('should load flow suggestions successfully', async () => {
-			mockPb.collection('services').getFullList.mockResolvedValue(mockFlowSuggestions);
+			vi.mocked(recommendationsApi.getWorshipFlowSuggestions).mockResolvedValue(mockFlowSuggestions);
 
 			await recommendationsStore.loadWorshipFlowSuggestions('service-1');
 
 			expect(recommendationsStore.worshipFlowSuggestions).toEqual(mockFlowSuggestions);
 			expect(recommendationsStore.loading).toBe(false);
 			expect(recommendationsStore.error).toBe(null);
-			expect(mockPb.collection('services').getFullList).toHaveBeenCalledWith('service-1');
+			expect(recommendationsApi.getWorshipFlowSuggestions).toHaveBeenCalledWith('service-1');
 		});
 
 		it('should handle errors when loading flow suggestions', async () => {
 			const error = new Error('API error');
-			mockPb.collection('services').getFullList.mockRejectedValue(error);
+			vi.mocked(recommendationsApi.getWorshipFlowSuggestions).mockRejectedValue(error);
 
 			await recommendationsStore.loadWorshipFlowSuggestions('service-1');
 
@@ -259,19 +299,19 @@ describe('RecommendationsStore', () => {
 
 	describe('analyzeServiceBalance', () => {
 		it('should analyze service balance successfully', async () => {
-			mockPb.collection('song_usage').getFullList.mockResolvedValue(mockServiceBalance);
+			vi.mocked(recommendationsApi.analyzeServiceBalance).mockResolvedValue(mockServiceBalance);
 
 			await recommendationsStore.analyzeServiceBalance('service-1');
 
 			expect(recommendationsStore.serviceBalanceAnalysis).toEqual(mockServiceBalance);
 			expect(recommendationsStore.loading).toBe(false);
 			expect(recommendationsStore.error).toBe(null);
-			expect(mockPb.collection('song_usage').getFullList).toHaveBeenCalledWith('service-1');
+			expect(recommendationsApi.analyzeServiceBalance).toHaveBeenCalledWith('service-1');
 		});
 
 		it('should handle errors when analyzing service balance', async () => {
 			const error = new Error('Analysis failed');
-			mockPb.collection('song_usage').getFullList.mockRejectedValue(error);
+			vi.mocked(recommendationsApi.analyzeServiceBalance).mockRejectedValue(error);
 
 			await recommendationsStore.analyzeServiceBalance('service-1');
 
@@ -281,17 +321,17 @@ describe('RecommendationsStore', () => {
 
 	describe('loadSeasonalTrends', () => {
 		it('should load seasonal trends successfully', async () => {
-			mockPb.collection('song_usage').getFullList.mockResolvedValue(mockSeasonalTrends);
+			vi.mocked(recommendationsApi.getSeasonalTrends).mockResolvedValue(mockSeasonalTrends);
 
 			await recommendationsStore.loadSeasonalTrends(2024);
 
 			expect(recommendationsStore.seasonalTrends).toEqual(mockSeasonalTrends);
-			expect(mockPb.collection('song_usage').getFullList).toHaveBeenCalledWith(2024);
+			expect(recommendationsApi.getSeasonalTrends).toHaveBeenCalledWith(2024);
 		});
 
 		it('should handle errors when loading seasonal trends', async () => {
 			const error = new Error('Trends error');
-			mockPb.collection('song_usage').getFullList.mockRejectedValue(error);
+			vi.mocked(recommendationsApi.getSeasonalTrends).mockRejectedValue(error);
 
 			await recommendationsStore.loadSeasonalTrends(2024);
 
@@ -303,17 +343,17 @@ describe('RecommendationsStore', () => {
 		it('should load comparative analysis successfully', async () => {
 			const startDate = new Date('2024-01-01');
 			const endDate = new Date('2024-01-31');
-			mockPb.collection('song_usage').getFullList.mockResolvedValue(mockComparativePeriod);
+			vi.mocked(recommendationsApi.getComparativePeriodAnalysis).mockResolvedValue(mockComparativePeriod);
 
 			await recommendationsStore.loadComparativePeriodAnalysis(startDate, endDate);
 
 			expect(recommendationsStore.comparativePeriod).toEqual(mockComparativePeriod);
-			expect(mockPb.collection('song_usage').getFullList).toHaveBeenCalledWith(startDate, endDate);
+			expect(recommendationsApi.getComparativePeriodAnalysis).toHaveBeenCalledWith(startDate, endDate);
 		});
 
 		it('should handle errors when loading comparative analysis', async () => {
 			const error = new Error('Comparison failed');
-			mockPb.collection('song_usage').getFullList.mockRejectedValue(error);
+			vi.mocked(recommendationsApi.getComparativePeriodAnalysis).mockRejectedValue(error);
 
 			await recommendationsStore.loadComparativePeriodAnalysis(
 				new Date('2024-01-01'),
@@ -326,17 +366,17 @@ describe('RecommendationsStore', () => {
 
 	describe('loadWorshipInsights', () => {
 		it('should load worship insights successfully', async () => {
-			mockPb.collection('song_usage').getFullList.mockResolvedValue(mockWorshipInsights);
+			vi.mocked(recommendationsApi.getWorshipInsights).mockResolvedValue(mockWorshipInsights);
 
 			await recommendationsStore.loadWorshipInsights();
 
 			expect(recommendationsStore.worshipInsights).toEqual(mockWorshipInsights);
-			expect(mockPb.collection('song_usage').getFullList).toHaveBeenCalled();
+			expect(recommendationsApi.getWorshipInsights).toHaveBeenCalled();
 		});
 
 		it('should handle errors when loading worship insights', async () => {
 			const error = new Error('Insights error');
-			mockPb.collection('song_usage').getFullList.mockRejectedValue(error);
+			vi.mocked(recommendationsApi.getWorshipInsights).mockRejectedValue(error);
 
 			await recommendationsStore.loadWorshipInsights();
 
@@ -358,12 +398,12 @@ describe('RecommendationsStore', () => {
 		});
 
 		it('should get personalized recommendations', async () => {
-			mockPb.collection('songs').getFullList.mockResolvedValue(mockSongRecommendations);
+			vi.mocked(recommendationsApi.getSongRecommendations).mockResolvedValue(mockSongRecommendations);
 
 			await recommendationsStore.getPersonalizedRecommendations('leader-1');
 
 			expect(recommendationsStore.recommendationFilters.worshipLeaderId).toBe('leader-1');
-			expect(mockPb.collection('songs').getFullList).toHaveBeenCalledWith(
+			expect(recommendationsApi.getSongRecommendations).toHaveBeenCalledWith(
 				expect.objectContaining({ worshipLeaderId: 'leader-1' })
 			);
 		});

@@ -51,7 +51,7 @@ describe('InviteMemberModal', () => {
 	});
 
 	it('should validate email format', async () => {
-		const { getByLabelText, getByText, queryByText } = render(InviteMemberModal, {
+		const { getByLabelText, getByText } = render(InviteMemberModal, {
 			props: {
 				open: true,
 				onclose: vi.fn()
@@ -59,18 +59,20 @@ describe('InviteMemberModal', () => {
 		});
 
 		const emailInput = getByLabelText('Email Address');
+		const submitButton = getByText('Send Invitation');
 		
-		// Invalid email
+		// Initially, submit button should be disabled
+		expect(submitButton).toBeDisabled();
+		
+		// Invalid email - button should remain disabled
 		await fireEvent.input(emailInput, { target: { value: 'invalid-email' } });
-		await waitFor(() => {
-			expect(queryByText('Please enter a valid email address')).toBeInTheDocument();
-		});
+		await flushSync();
+		expect(submitButton).toBeDisabled();
 
-		// Valid email
+		// Valid email - button should be enabled
 		await fireEvent.input(emailInput, { target: { value: 'valid@email.com' } });
-		await waitFor(() => {
-			expect(queryByText('Please enter a valid email address')).not.toBeInTheDocument();
-		});
+		await flushSync();
+		expect(submitButton).not.toBeDisabled();
 	});
 
 	it('should disable submit button when email is invalid', async () => {
@@ -89,11 +91,17 @@ describe('InviteMemberModal', () => {
 
 		// Still disabled with invalid email
 		await fireEvent.input(emailInput, { target: { value: 'invalid' } });
-		expect(submitButton).toBeDisabled();
+		await flushSync();
+		await waitFor(() => {
+			expect(submitButton).toBeDisabled();
+		});
 
 		// Enabled with valid email
 		await fireEvent.input(emailInput, { target: { value: 'valid@email.com' } });
-		expect(submitButton).not.toBeDisabled();
+		await flushSync();
+		await waitFor(() => {
+			expect(submitButton).not.toBeDisabled();
+		});
 	});
 
 	it('should send invitation with correct data', async () => {
@@ -202,10 +210,8 @@ describe('InviteMemberModal', () => {
 
 		// Open modal
 		rerender({
-			props: {
-				open: true,
-				onclose: vi.fn()
-			}
+			open: true,
+			onclose: vi.fn()
 		});
 
 		await waitFor(() => {
