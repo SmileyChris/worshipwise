@@ -60,6 +60,8 @@ npm run format               # Format code with Prettier
 npm run lint                 # Run ESLint and Prettier checks
 
 # Testing
+just test                    # Run all tests (unit + E2E)
+just test -- --run file.test.ts  # Run specific test file
 npm run test:unit            # Run unit tests with Vitest
 npm run test:unit:ui         # Run unit tests with UI
 npm run test                 # Run both unit and E2E tests

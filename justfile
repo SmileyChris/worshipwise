@@ -18,9 +18,13 @@ setup:
 build:
     npm run build
 
-# Test
-test:
-    npm run test
+# Test commands
+test *args:
+    @if [ -z "{{args}}" ]; then \
+        npm run test; \
+    else \
+        npm run test:unit -- {{args}}; \
+    fi
 
 # Code quality
 check:

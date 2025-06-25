@@ -55,7 +55,8 @@ just dev
 just dev                      # Start both servers with smart detection
 just setup                    # Complete setup (PocketBase, npm install, Playwright)
 just build                    # Build for production
-just test                     # Run tests
+just test                     # Run all tests (unit + E2E)
+just test -- --run file.test.ts  # Run specific test file
 just check                   # Type checking and code quality checks
 ```
 
