@@ -91,7 +91,7 @@ export async function getUsers(
 	perPage: number = 20,
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	filter: string = '',
-	sort: string = '-created'
+	sort: string = '-joined_date'
 ): Promise<UserListResponse> {
 	try {
 		// Get current user
@@ -246,7 +246,7 @@ export async function getUsersByRole(
 
 		const memberships = await pb.collection('church_memberships').getList(page, perPage, {
 			filter: `church_id = "${currentChurchId}" && role = "${role}"`,
-			sort: '-created'
+			sort: '-joined_date'
 		});
 
 		// Get users for these memberships

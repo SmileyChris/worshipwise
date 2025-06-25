@@ -1,198 +1,379 @@
 # WorshipWise Database Schema
 
-This document defines the complete database schema for WorshipWise, a church worship song management system built with PocketBase.
+This document provides a comprehensive overview of the WorshipWise database schema, including all collections, fields, relationships, and security rules.
+
+**Last Updated**: June 2025  
+**PocketBase Version**: 0.23+  
+**Migration**: `20250622_initial_worshipwise.js` (consolidated)
 
 ## Overview
 
-The schema follows a church-centric multi-tenant architecture where all data is organized around church organizations. Users belong to churches through memberships with role-based permissions.
+WorshipWise uses a church-centric multi-tenant architecture where all data is organized around church organizations. Users can belong to multiple churches with different roles and permissions.
 
 ## Collections
 
 ### 1. Churches
 
-The foundational collection for multi-tenant church organizations.
+**Purpose**: Core organizational entity for multi-tenant data isolation  
+**Type**: Base Collection
 
-| Field               | Type     | Required | Constraints                      | Description                                |
-| ------------------- | -------- | -------- | -------------------------------- | ------------------------------------------ |
-| name                | text     | ✓        | max 200                          | Church name                                |
-| slug                | text     | ✓        | unique, max 100                  | URL-friendly identifier                    |
-| description         | text     |          | max 1000                         | Church description                         |
-| address             | text     |          | max 500                          | Street address                             |
-| city                | text     |          | max 100                          | City                                       |
-| state               | text     |          | max 100                          | State/Province                             |
-| country             | text     |          | max 100                          | Country                                    |
-| timezone            | text     | ✓        | max 100                          | Church timezone (e.g., "America/New_York") |
-| hemisphere          | select   | ✓        | northern/southern                | For seasonal recommendations               |
-| subscription_type   | select   | ✓        | free/basic/premium               | Subscription tier                          |
-| subscription_status | select   | ✓        | active/trial/suspended/cancelled | Account status                             |
-| max_users           | number   | ✓        | min 1                            | User limit based on subscription           |
-| max_songs           | number   | ✓        | min 1                            | Song library limit                         |
-| max_storage_mb      | number   | ✓        | min 1                            | File storage limit in MB                   |
-| settings            | json     | ✓        |                                  | Church-specific settings                   |
-| owner_user_id       | relation | ✓        | users                            | Primary church owner                       |
-| billing_email       | email    |          |                                  | Billing contact email                      |
-| is_active           | bool     | ✓        | default true                     | Active status                              |
+#### Fields:
+- `id` - Auto-generated unique identifier
+- `name` (text, required) - Church name
+- `slug` (text, required, unique) - URL-friendly identifier
+- `description` (text) - Church description
+- `city` (text) - City location
+- `state` (text) - State/Province
+- `country` (text) - Country
+- `timezone` (text, required) - IANA timezone (e.g., "America/New_York")
+- `hemisphere` (select) - "northern" or "southern" (auto-detected from timezone)
+- `worship_style` (select) - "traditional", "contemporary", "blended"
+- `denomination` (text) - Denominational affiliation
+- `website` (url) - Church website
+- `primary_admin` (relation to users, required) - Primary administrator
+- `subscription_type` (select, required) - "free", "basic", "pro", "enterprise"
+- `subscription_expires` (date) - Subscription expiration date
+- `member_limit` (number) - Maximum members allowed
+- `mistral_api_key` (text, max: 200) - Church-specific Mistral API key for AI features
+- `created` - Auto-generated timestamp
+- `updated` - Auto-generated timestamp
+
+#### Rules:
+- List/View: `@request.auth.id != ''`
+- Create: `@request.auth.id != ''`
+- Update: Member must be admin of the church
+- Delete: Member must be admin of the church
 
 ### 2. Church Memberships
 
-Junction table connecting users to churches with role-based permissions.
+**Purpose**: Junction table managing user-church relationships with roles  
+**Type**: Base Collection
 
-| Field                    | Type     | Required | Constraints                         | Description                      |
-| ------------------------ | -------- | -------- | ----------------------------------- | -------------------------------- |
-| church_id                | relation | ✓        | churches, cascade delete            | Church reference                 |
-| user_id                  | relation | ✓        | users, cascade delete               | User reference                   |
-| role                     | select   | ✓        | member/musician/leader/admin/pastor | User's role                      |
-| permissions              | json     | ✓        |                                     | Role-specific permissions        |
-| status                   | select   | ✓        | active/pending/suspended            | Membership status                |
-| preferred_keys           | json     |          |                                     | User's preferred musical keys    |
-| notification_preferences | json     |          |                                     | Email/push notification settings |
-| invited_by               | relation |          | users                               | Who invited this user            |
-| invited_date             | date     |          |                                     | When invitation was sent         |
-| joined_date              | date     |          |                                     | When user accepted               |
-| is_active                | bool     | ✓        | default true                        | Active status                    |
+#### Fields:
+- `id` - Auto-generated unique identifier
+- `church_id` (relation to churches, required) - Church reference
+- `user_id` (relation to users, required) - User reference
+- `role` (select, required) - "musician", "leader", "admin"
+- `permissions` (json, required) - Granular permissions object
+- `status` (select, required) - "active", "pending", "suspended"
+- `preferred_keys` (json) - Array of preferred musical keys
+- `notification_preferences` (json) - Notification settings
+- `invited_by` (relation to users) - Who invited this member
+- `invited_date` (date) - When invitation was sent
+- `joined_date` (date) - When user joined the church
+- `is_active` (bool) - Active status flag
+- `created` - Auto-generated timestamp
+- `updated` - Auto-generated timestamp
 
-**Unique Index**: church_id + user_id (one membership per user per church)
+#### Indexes:
+- Unique composite index on `(church_id, user_id)`
+
+#### Rules:
+- List/View: Authenticated users
+- Create: Authenticated users
+- Update: Church admins or self
+- Delete: Church admins
 
 ### 3. Church Invitations
 
-Pending invitations to join churches.
+**Purpose**: Manage pending invitations to join churches  
+**Type**: Base Collection
 
-| Field       | Type     | Required | Constraints                         | Description              |
-| ----------- | -------- | -------- | ----------------------------------- | ------------------------ |
-| church_id   | relation | ✓        | churches, cascade delete            | Church reference         |
-| email       | email    | ✓        |                                     | Invitee's email address  |
-| role        | select   | ✓        | member/musician/leader/admin/pastor | Invited role             |
-| permissions | json     | ✓        |                                     | Granted permissions      |
-| invited_by  | relation | ✓        | users                               | Who sent the invitation  |
-| token       | text     | ✓        | unique, max 100                     | Invitation token         |
-| expires_at  | date     | ✓        |                                     | Expiration timestamp     |
-| used_at     | date     |          |                                     | When invitation was used |
-| used_by     | relation |          | users                               | Who used the invitation  |
-| is_active   | bool     | ✓        | default true                        | Active status            |
+#### Fields:
+- `id` - Auto-generated unique identifier
+- `church_id` (relation to churches, required) - Target church
+- `email` (email, required) - Invitee email address
+- `role` (select, required) - "musician", "leader", "admin"
+- `permissions` (json, required) - Proposed permissions
+- `invited_by` (relation to users, required) - Inviting user
+- `token` (text, required, unique) - Invitation token
+- `expires_at` (date, required) - Expiration timestamp
+- `used_at` (date) - When invitation was accepted
+- `used_by` (relation to users) - User who accepted
+- `is_active` (bool) - Active status
+- `created` - Auto-generated timestamp
+- `updated` - Auto-generated timestamp
+
+#### Indexes:
+- Unique index on `token`
+
+#### Rules:
+- All operations require authentication
 
 ### 4. Songs
 
-Central repository for worship songs with comprehensive metadata.
+**Purpose**: Central song repository with metadata and attachments  
+**Type**: Base Collection
 
-| Field            | Type     | Required | Constraints                                                                                              | Description                           |
-| ---------------- | -------- | -------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| title            | text     | ✓        | max 200                                                                                                  | Song title                            |
-| artist           | text     |          | max 100                                                                                                  | Artist/composer                       |
-| key_signature    | select   |          | C,C#,Db,D,D#,Eb,E,F,F#,Gb,G,G#,Ab,A,A#,Bb,B,Am,A#m,Bbm,Bm,Cm,C#m,Dbm,Dm,D#m,Ebm,Em,Fm,F#m,Gbm,Gm,G#m,Abm | Original key                          |
-| tempo            | number   |          | 60-200                                                                                                   | BPM                                   |
-| duration_seconds | number   |          | 30-1800                                                                                                  | Song length in seconds                |
-| tags             | json     |          |                                                                                                          | Flexible tagging (genre, theme, etc.) |
-| lyrics           | editor   |          |                                                                                                          | Full lyrics with formatting           |
-| chord_chart      | file     |          | max 1, 10MB                                                                                              | PDF/image chord chart                 |
-| audio_file       | file     |          | max 1, 50MB                                                                                              | MP3/audio reference                   |
-| sheet_music      | file     |          | max 3, 10MB each                                                                                         | Sheet music PDFs                      |
-| ccli_number      | text     |          | max 20                                                                                                   | CCLI licensing number                 |
-| copyright_info   | text     |          | max 500                                                                                                  | Copyright information                 |
-| notes            | editor   |          |                                                                                                          | Additional notes                      |
-| created_by       | relation | ✓        | users                                                                                                    | User who added the song               |
-| is_active        | bool     |          | default true                                                                                             | Active/archived status                |
-| lyrics_analysis  | json     |          |                                                                                                          | AI-generated lyrics analysis          |
+#### Fields:
+- `id` - Auto-generated unique identifier
+- `church_id` (relation to churches, required) - Owning church
+- `title` (text, required) - Song title
+- `artist` (text) - Artist/composer
+- `category` (relation to categories, required) - Song category
+- `labels` (relation to labels, multiple) - Associated labels
+- `key_signature` (select) - Musical key (C, C#, D, etc.)
+- `tempo` (number) - BPM (60-300)
+- `time_signature` (text) - Time signature (e.g., "4/4")
+- `genre` (text) - Musical genre
+- `duration_seconds` (number) - Song duration
+- `lyrics` (text) - Song lyrics
+- `notes` (text) - Performance notes
+- `tags` (json) - Searchable tags array
+- `chord_chart` (file) - Chord chart attachment
+- `sheet_music` (file, multiple) - Sheet music files
+- `audio_file` (file) - Reference audio
+- `youtube_link` (url) - YouTube reference
+- `ccli_number` (text) - CCLI license number
+- `copyright_info` (text) - Copyright information
+- `lyrics_analysis` (json) - AI-generated lyrics analysis
+- `created_by` (relation to users, required) - Creator
+- `created` - Auto-generated timestamp
+- `updated` - Auto-generated timestamp
+
+#### Rules:
+- List/View: Authenticated users in the church
+- Create: Leaders and admins
+- Update: Leaders, admins, or creator
+- Delete: Admins only
 
 ### 5. Services
 
-Service planning and worship service management.
+**Purpose**: Worship service planning and management  
+**Type**: Base Collection
 
-| Field              | Type     | Required | Constraints                                                                 | Description                |
-| ------------------ | -------- | -------- | --------------------------------------------------------------------------- | -------------------------- |
-| title              | text     | ✓        | max 200                                                                     | Service title              |
-| service_date       | date     | ✓        |                                                                             | Service date               |
-| service_type       | select   |          | Sunday Morning/Sunday Evening/Wednesday Night/Special Event/Rehearsal/Other | Type of service            |
-| theme              | text     |          | max 300                                                                     | Service theme/topic        |
-| notes              | editor   |          |                                                                             | Service planning notes     |
-| worship_leader     | relation | ✓        | users                                                                       | Primary worship leader     |
-| team_members       | relation |          | users, max 10                                                               | Team members               |
-| status             | select   | ✓        | draft/planned/in_progress/completed/archived                                | Service status             |
-| estimated_duration | number   |          | 300-7200                                                                    | Planned duration (seconds) |
-| actual_duration    | number   |          | 300-7200                                                                    | Actual duration (seconds)  |
-| created_by         | relation | ✓        | users                                                                       | Who created the service    |
-| is_template        | bool     |          | default false                                                               | Template for reuse         |
+#### Fields:
+- `id` - Auto-generated unique identifier
+- `church_id` (relation to churches, required) - Church reference
+- `title` (text, required) - Service title
+- `description` (text) - Service description
+- `service_date` (date, required) - Service date
+- `service_time` (text) - Service time
+- `service_type` (select) - Type of service
+- `theme` (text) - Service theme
+- `scripture_reference` (text) - Biblical references
+- `worship_leader` (relation to users, required) - Service leader
+- `team_members` (relation to users, multiple) - Team members
+- `notes` (text) - Service notes
+- `status` (select, required) - "draft", "scheduled", "completed", "cancelled"
+- `is_template` (bool) - Template flag
+- `created_by` (relation to users, required) - Creator
+- `total_duration` (number) - Calculated duration
+- `actual_attendance` (number) - Attendance count
+- `completed_at` (date) - Completion timestamp
+- `created` - Auto-generated timestamp
+- `updated` - Auto-generated timestamp
+
+#### Rules:
+- List/View: Church members
+- Create: Leaders and admins
+- Update: Leaders, admins, or worship leader
+- Delete: Admins or worship leader
 
 ### 6. Service Songs
 
-Junction table for songs in services with performance-specific details.
+**Purpose**: Junction table for songs in services with ordering  
+**Type**: Base Collection
 
-| Field             | Type     | Required | Constraints                                         | Description             |
-| ----------------- | -------- | -------- | --------------------------------------------------- | ----------------------- |
-| service_id        | relation | ✓        | services, cascade delete                            | Service reference       |
-| song_id           | relation | ✓        | songs, cascade delete                               | Song reference          |
-| order_position    | number   | ✓        | 1-50                                                | Song order in service   |
-| transposed_key    | select   |          | same as key_signature                               | Performance key         |
-| tempo_override    | number   |          | 60-200                                              | Performance tempo       |
-| transition_notes  | text     |          | max 500                                             | Transition instructions |
-| section_type      | select   |          | Opening/Worship/Offering/Communion/Response/Closing | Service section         |
-| duration_override | number   |          | 30-1800                                             | Performance duration    |
-| added_by          | relation | ✓        | users                                               | Who added to service    |
+#### Fields:
+- `id` - Auto-generated unique identifier
+- `service_id` (relation to services, required) - Parent service
+- `song_id` (relation to songs, required) - Song reference
+- `position` (number, required) - Order in service (1-50)
+- `key_override` (select) - Service-specific key
+- `notes` (text) - Performance notes
+- `duration_override` (number) - Custom duration
+- `added_by` (relation to users, required) - Who added the song
+- `created` - Auto-generated timestamp
+- `updated` - Auto-generated timestamp
 
-**Unique Index**: service_id + order_position (one song per position)
+#### Indexes:
+- Composite index on `(service_id, position)`
+
+#### Rules:
+- List/View: Church members
+- Create/Update/Delete: Service worship leader or admins
 
 ### 7. Song Usage
 
-Historical tracking of song usage for analytics.
+**Purpose**: Track historical song usage for analytics  
+**Type**: Base Collection
 
-| Field               | Type     | Required | Constraints                  | Description         |
-| ------------------- | -------- | -------- | ---------------------------- | ------------------- |
-| song_id             | relation | ✓        | songs, cascade delete        | Song reference      |
-| service_id          | relation | ✓        | services, cascade delete     | Service reference   |
-| used_date           | date     | ✓        |                              | Date of usage       |
-| used_key            | select   |          | same as key_signature        | Key used            |
-| position_in_service | number   |          | 1-50                         | Position in service |
-| worship_leader      | relation | ✓        | users                        | Who led worship     |
-| service_type        | select   |          | same as service service_type | Type of service     |
+#### Fields:
+- `id` - Auto-generated unique identifier
+- `song_id` (relation to songs, required) - Song reference
+- `service_id` (relation to services, required) - Service reference
+- `used_date` (date, required) - Date of usage
+- `used_key` (select) - Key used in service
+- `position_in_service` (number) - Position (1-50)
+- `worship_leader` (relation to users, required) - Service leader
+- `service_type` (select) - Type of service
+- `created` - Auto-generated timestamp
+- `updated` - Auto-generated timestamp
 
-## Access Rules
+#### Rules:
+- List/View: Authenticated users
+- Create: Authenticated users (auto-created when service completed)
+- Update/Delete: Admins only
 
-All collections require authentication. Specific rules:
+### 8. Categories
 
-- **Churches**: Users can only access churches they belong to
-- **Songs/Services**: Scoped to user's church through memberships
-- **Memberships**: Users can view their own, admins can manage all
-- **Invitations**: Only church admins/pastors can create
+**Purpose**: Song categorization system  
+**Type**: Base Collection
 
-## Indexes
+#### Fields:
+- `id` - Auto-generated unique identifier
+- `name` (text, required) - Category name
+- `description` (text) - Category description
+- `color` (text) - Hex color code (#RRGGBB)
+- `sort_order` (number, required) - Display order
+- `is_active` (bool, required) - Active status
+- `created` - Auto-generated timestamp
+- `updated` - Auto-generated timestamp
 
-1. **church_memberships**: Unique index on (church_id, user_id)
-2. **service_songs**: Unique index on (service_id, order_position)
-3. **churches**: Unique index on slug
-4. **church_invitations**: Unique index on token
+#### Default Categories:
+1. Hymns and Te Reo
+2. Contemporary
+3. Seasonal (youth suggestions)
+4. Christmas Songs
+5. Possible New Songs
+6. Modern (archive list)
+
+#### Rules:
+- List/View: Authenticated users
+- Create/Update/Delete: Admins only
+
+### 9. Labels
+
+**Purpose**: Flexible tagging system for songs  
+**Type**: Base Collection
+
+#### Fields:
+- `id` - Auto-generated unique identifier
+- `name` (text, required) - Label name
+- `description` (text) - Label description
+- `color` (text) - Hex color code
+- `created_by` (relation to users, required) - Creator
+- `is_active` (bool, required) - Active status
+- `created` - Auto-generated timestamp
+- `updated` - Auto-generated timestamp
+
+#### Rules:
+- List/View: Authenticated users
+- Create: Leaders and admins
+- Update/Delete: Admins or creator
+
+### 10. Users (Auth Collection)
+
+**Purpose**: User authentication and basic profile  
+**Type**: Auth Collection (built-in PocketBase)
+
+#### Fields:
+- `id` - Auto-generated unique identifier
+- `email` (email, required, unique) - Login email
+- `username` (text, unique) - Username
+- `name` (text) - Display name
+- `avatar` (file) - Profile picture
+- `verified` (bool) - Email verification status
+- `emailVisibility` (bool) - Email privacy setting
+- `created` - Auto-generated timestamp
+- `updated` - Auto-generated timestamp
+
+**Note**: Users do NOT have a `current_church_id` field. The current church context is determined through their active church membership.
+
+## Views
+
+### Setup Status View
+
+**Purpose**: Check if initial church setup is required  
+**Query**: Checks if any churches exist in the system
+
+```sql
+CREATE VIEW IF NOT EXISTS setup_status AS
+SELECT 
+    CASE 
+        WHEN COUNT(*) > 0 THEN 1 
+        ELSE 0 
+    END as has_churches
+FROM churches;
+```
 
 ## Relationships
 
 ```
-Churches ──┬──< Church Memberships >──── Users
-           │
-           ├──< Church Invitations
-           │
-           └──< Songs ──< Service Songs >──── Services
-                  │                              │
-                  └──────< Song Usage >──────────┘
+churches (1) ────┬─── (many) church_memberships
+                 ├─── (many) church_invitations
+                 ├─── (many) songs
+                 ├─── (many) services
+                 └─── (1) primary_admin → users
+
+users (1) ───────┬─── (many) church_memberships
+                 ├─── (many) songs (created_by)
+                 ├─── (many) services (worship_leader)
+                 ├─── (many) service_songs (added_by)
+                 └─── (many) song_usage (worship_leader)
+
+categories (1) ────── (many) songs
+
+labels (many) ─────── (many) songs
+
+songs (1) ────────┬─── (many) service_songs
+                  └─── (many) song_usage
+
+services (1) ─────┬─── (many) service_songs
+                  └─── (many) song_usage
+
+church_memberships ├─── (1) church_id → churches
+                   └─── (1) user_id → users
+
+service_songs ────┬─── (1) service_id → services
+                  └─── (1) song_id → songs
+
+song_usage ───────┬─── (1) song_id → songs
+                  ├─── (1) service_id → services
+                  └─── (1) worship_leader → users
 ```
 
-## Migration Strategy
+## Security Model
 
-To reset and recreate the database:
+### Role-Based Access Control
 
-1. Stop PocketBase
-2. Delete `pocketbase/pb_data/data.db`
-3. Delete all files in `pocketbase/pb_migrations/`
-4. Create a single new migration with the complete schema
-5. Start PocketBase and run migrations
+1. **Admin**: Full access to church data, user management, settings
+2. **Leader**: Create/edit songs and services, view analytics
+3. **Musician**: View songs and services, limited editing
 
-## Default Values
+### Data Isolation
 
-- All boolean fields default to `true` for `is_active` fields
-- JSON fields default to `{}` or `[]` as appropriate
-- Status fields default to initial states (e.g., "draft" for services)
-- Numeric limits default to subscription-appropriate values
+- All data is scoped to churches through `church_id` fields
+- Users can only access data from churches they belong to
+- Church membership determines access level
 
-## Security Considerations
+### API Rules
 
-1. All collections require authentication
-2. Data is scoped to churches through membership checks
-3. Role-based permissions control access levels
-4. Cascade deletes maintain referential integrity
-5. File uploads have size limits to prevent abuse
+- Authentication required for all operations
+- Role-based permissions enforced at collection level
+- Church membership validated for data access
+
+## Migration Notes
+
+1. **Single Consolidated Migration**: All collections created in `20250622_initial_worshipwise.js`
+2. **Auto-detected Hemisphere**: Calculated from timezone if not specified
+3. **Default Permissions**: Set based on role during membership creation
+4. **Cascade Deletes**: Properly configured for data integrity
+
+## Performance Considerations
+
+1. **Indexes**: Created on frequently queried fields
+2. **Composite Indexes**: For multi-field queries
+3. **JSON Fields**: Used for flexible, schema-less data
+4. **File Storage**: Handled by PocketBase's built-in file system
+
+## AI Integration
+
+The `mistral_api_key` field in the churches collection enables AI features:
+- Lyrics analysis for worship insights
+- Automatic label suggestions based on themes
+- Seasonal appropriateness recommendations
+- Biblical reference extraction
+
+If no church-specific key is set, the system falls back to the global `PUBLIC_MISTRAL_API_KEY` environment variable.

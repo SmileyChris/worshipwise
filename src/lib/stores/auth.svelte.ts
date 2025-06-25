@@ -225,7 +225,7 @@ class AuthStore {
 			const memberships = await pb.collection('church_memberships').getList(1, 1, {
 				filter: `user_id = "${this.user.id}" && status = "active" && is_active = true`,
 				expand: 'church_id',
-				sort: '-created'
+				sort: '-joined_date'
 			});
 
 			if (memberships.items.length > 0) {
