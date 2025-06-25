@@ -113,11 +113,7 @@ export class ChurchesAPI {
 				is_active: true
 			});
 
-			// Update user with current church
-			await pb.collection('users').update(user.id, {
-				current_church_id: church.id
-			});
-
+			// User's current church is determined by their active membership, not a field on the user
 			return { church: church as unknown as Church, user: user as unknown as User };
 		} catch (error) {
 			console.error('Initial setup failed:', error);

@@ -266,6 +266,17 @@
 
 								<!-- Actions -->
 								<div class="flex space-x-2">
+									{#if details.isCurrentUserAdmin}
+										<Button
+											size="sm"
+											variant="ghost"
+											href="/admin/churches/{church.id}/settings"
+											title="Church settings"
+										>
+											<Settings class="h-3 w-3" />
+										</Button>
+									{/if}
+
 									{#if !isCurrentChurch}
 										<Button
 											size="sm"

@@ -39,8 +39,8 @@ export class ChurchMigration {
 			// 5. Update all existing collections with church_id
 			await this.updateCollectionsWithChurchId(defaultChurch.id);
 
-			// 6. Update users with current_church_id
-			await this.updateUsersWithCurrentChurch(users, defaultChurch.id);
+			// 6. NOTE: Users don't have current_church_id - it's determined by their active membership
+			// await this.updateUsersWithCurrentChurch(users, defaultChurch.id);
 
 			// 7. Clean up legacy fields (optional)
 			await this.cleanupLegacyFields();
@@ -163,20 +163,22 @@ export class ChurchMigration {
 
 	/**
 	 * Update users with current_church_id
+	 * NOTE: This method is deprecated - users don't have current_church_id
+	 * The current church is determined by their active membership
 	 */
-	private static async updateUsersWithCurrentChurch(
-		users: Record<string, unknown>[],
-		churchId: string
-	): Promise<void> {
-		const updatePromises = users.map((user) =>
-			pb.collection('users').update((user as { id: string }).id, {
-				current_church_id: churchId
-			})
-		);
+	// private static async updateUsersWithCurrentChurch(
+	// 	users: Record<string, unknown>[],
+	// 	churchId: string
+	// ): Promise<void> {
+	// 	const updatePromises = users.map((user) =>
+	// 		pb.collection('users').update((user as { id: string }).id, {
+	// 			current_church_id: churchId
+	// 		})
+	// 	);
 
-		await Promise.all(updatePromises);
-		console.log(`✅ Updated ${users.length} users with current church`);
-	}
+	// 	await Promise.all(updatePromises);
+	// 	console.log(`✅ Updated ${users.length} users with current church`);
+	// }
 
 	/**
 	 * Clean up legacy fields that are no longer needed

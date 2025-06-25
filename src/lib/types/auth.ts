@@ -9,7 +9,6 @@ export interface User {
 	verified: boolean;
 	avatar: string;
 	emailVisibility: boolean;
-	current_church_id?: string;
 }
 
 export interface LoginCredentials {

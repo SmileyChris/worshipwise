@@ -28,17 +28,17 @@ WorshipWise is a sophisticated worship song tracking system built with SvelteKit
 
 _Note: Plan documents have been reorganized to reflect the project's advanced maturity state_
 
-- **Current development status**: `plan/DEVELOPMENT_ROADMAP.md` (42% complete, Sprint 5 finished)
+- **Current development status**: @plan/DEVELOPMENT_ROADMAP.md (42% complete, Sprint 5 finished)
 - **Active implementation guides** (currently in use):
-  - Component patterns: `plan/COMPONENT_GUIDE.md` (22+ components implemented)
-  - Testing strategy: `plan/TESTING_GUIDE.md` (multi-project Vitest setup ready)
-  - PocketBase setup: `plan/POCKETBASE_SETUP.md`
-  - Svelte 5 patterns: `plan/SVELTE.md` and `plan/PB_SVELTE.md`
+  - Component patterns: @plan/COMPONENT_GUIDE.md (22+ components implemented)
+  - Testing strategy: @plan/TESTING_GUIDE.md (multi-project Vitest setup ready)
+  - PocketBase setup: @plan/POCKETBASE_SETUP.md
+  - Svelte 5 patterns: @plan/SVELTE.md and @plan/PB_SVELTE.md
 - **Reference/historical** (architectural guidance):
   - Implementation reference: `plan/PLAN.md` (architectural patterns and examples)
 - **Future planning** (not yet implemented):
-  - Advanced features: `plan/DYNAMIC_SONG_AVAILABILITY.md` (Sprint 8-10)
-  - Alternative deployment: `plan/CLOUDFLARE_MIGRATION_PLAN.md` (optional migration)
+  - Advanced features: @plan/DYNAMIC_SONG_AVAILABILITY.md (Sprint 8-10)
+  - Alternative deployment: @plan/CLOUDFLARE_MIGRATION_PLAN.md (optional migration)
 
 ## Development Commands
 

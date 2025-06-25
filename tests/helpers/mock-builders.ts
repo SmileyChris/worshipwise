@@ -23,7 +23,6 @@ export function mockUser(overrides: Partial<User> = {}): User {
 		verified: overrides.verified ?? true,
 		avatar: overrides.avatar || '',
 		emailVisibility: overrides.emailVisibility || false,
-		current_church_id: overrides.current_church_id || 'church-1',
 		...overrides
 	};
 }

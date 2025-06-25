@@ -954,12 +954,15 @@ class RecommendationsApi {
 		try {
 			// Try to get current user's church settings
 			const user = pb.authStore.model;
-			if (user?.current_church_id) {
-				const church = await pb.collection('churches').getOne(user.current_church_id, {
-					fields: 'timezone,hemisphere,country'
-				});
+			if (user?.id) {
+				// Get current user's active church membership
+				const membership = await pb.collection('church_memberships').getFirstListItem(
+					`user_id = "${user.id}" && status = "active" && is_active = true`,
+					{ expand: 'church_id', fields: 'church_id,expand.church_id.timezone,expand.church_id.hemisphere,expand.church_id.country' }
+				).catch(() => null);
 
-				if (church) {
+				if (membership?.expand?.church_id) {
+					const church = membership.expand.church_id;
 					return {
 						hemisphere: church.hemisphere || this.detectHemisphereFromTimezone(church.timezone),
 						timezone: church.timezone || 'UTC',

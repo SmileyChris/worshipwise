@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { auth } from '$lib/stores/auth.svelte';
-	import type { Song, CreateSongData, UpdateSongData, LyricsAnalysis } from '$lib/types/song';
+	import type { Song, CreateSongData, UpdateSongData, LyricsAnalysis, Label } from '$lib/types/song';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
@@ -271,6 +271,15 @@
 			// For now, we just store the analysis
 		}
 	}
+
+	function handleLabelsCreated(labels: Label[]) {
+		// Add the newly created label IDs to the selected labels
+		const newLabelIds = labels.map(label => label.id);
+		selectedLabelIds = [...selectedLabelIds, ...newLabelIds];
+		
+		// The LabelSelector component should automatically update to show these new labels
+		// since it fetches labels from the API
+	}
 </script>
 
 <Card class="mx-auto max-w-2xl">
@@ -419,16 +428,14 @@
 		</div>
 
 		<!-- AI Lyrics Analysis -->
-		{#if auth.currentChurch}
-			<LyricsAnalyzer
-				{title}
-				{artist}
-				{lyrics}
-				church={auth.currentChurch}
-				onAnalysisComplete={handleAnalysisComplete}
-				disabled={loading}
-			/>
-		{/if}
+		<LyricsAnalyzer
+			{title}
+			{artist}
+			{lyrics}
+			onAnalysisComplete={handleAnalysisComplete}
+			onLabelsCreated={handleLabelsCreated}
+			disabled={loading}
+		/>
 
 		<!-- File Uploads -->
 		<div class="space-y-4">
