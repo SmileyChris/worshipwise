@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockPb } from '../../helpers/pb-mock';
-import { createMockSong, createMockUser } from '../../helpers/test-utils';
-import { mockChurch } from '../../helpers/mock-builders';
+import { createMockSong, createMockUser, createMockAuthContext } from '../../helpers/test-utils';
 import { SongsAPI } from '$lib/api/songs';
 
 // Mock the client module
@@ -16,23 +15,7 @@ describe('Songs API', () => {
 		mockPb.reset();
 		
 		// Create API instance with mock auth context
-		const authContext = {
-			user: { 
-				id: 'user123', 
-				email: 'test@example.com',
-				name: 'Test User',
-				created: new Date().toISOString(),
-				updated: new Date().toISOString(),
-				verified: true,
-				avatar: '',
-				emailVisibility: true
-			},
-			currentChurch: mockChurch({ id: 'church_test123', name: 'Test Church' }),
-			currentMembership: null,
-			isAuthenticated: true,
-			token: 'test-token',
-			isValid: true
-		};
+		const authContext = createMockAuthContext();
 		songsApi = new SongsAPI(authContext);
 	});
 

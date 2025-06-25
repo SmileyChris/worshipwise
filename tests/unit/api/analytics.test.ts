@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockPb } from '../../helpers/pb-mock';
-import { mockChurch } from '../../helpers/mock-builders';
+import { createMockAuthContext } from '../../helpers/test-utils';
 import { AnalyticsAPI } from '$lib/api/analytics';
 
 // Mock the client module
@@ -15,23 +15,7 @@ describe('Analytics API - Basic Tests', () => {
 		mockPb.reset();
 		
 		// Create API instance with mock auth context
-		const authContext = {
-			user: { 
-				id: 'user123', 
-				email: 'test@example.com',
-				name: 'Test User',
-				created: new Date().toISOString(),
-				updated: new Date().toISOString(),
-				verified: true,
-				avatar: '',
-				emailVisibility: true
-			},
-			currentChurch: mockChurch({ id: 'church_test123', name: 'Test Church' }),
-			currentMembership: null,
-			isAuthenticated: true,
-			token: 'test-token',
-			isValid: true
-		};
+		const authContext = createMockAuthContext();
 		analyticsApi = new AnalyticsAPI(authContext);
 	});
 

@@ -148,3 +148,36 @@ export const setupTestEnvironment = () => {
 export const cleanupTestEnvironment = () => {
 	vi.clearAllMocks();
 };
+
+// Auth context utilities for API unit tests
+export const createMockAuthContext = (overrides: {
+	user?: Partial<any>;
+	church?: Partial<any>;
+} = {}) => {
+	const mockUser = {
+		id: 'user123',
+		email: 'test@example.com',
+		name: 'Test User',
+		created: new Date().toISOString(),
+		updated: new Date().toISOString(),
+		verified: true,
+		avatar: '',
+		emailVisibility: true,
+		...overrides.user
+	};
+
+	const mockChurchData = {
+		id: 'church_test123',
+		name: 'Test Church',
+		...overrides.church
+	};
+
+	return {
+		user: mockUser,
+		currentChurch: mockChurchData,
+		currentMembership: null,
+		isAuthenticated: true,
+		token: 'test-token',
+		isValid: true
+	};
+};

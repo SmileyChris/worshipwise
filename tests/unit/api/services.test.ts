@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockPb } from '../../helpers/pb-mock';
-import { createMockService, createMockServiceSong, createMockUser } from '../../helpers/test-utils';
-import { mockChurch } from '../../helpers/mock-builders';
+import { createMockService, createMockServiceSong, createMockUser, createMockAuthContext } from '../../helpers/test-utils';
 import { ServicesAPI } from '$lib/api/services';
 
 // Mock the client module
@@ -25,23 +24,9 @@ describe('Services API', () => {
 		mockPb.authStore.model = createMockUser({ id: 'user_1', name: 'Test User' }) as any;
 		
 		// Create API instance with mock auth context
-		const authContext = {
-			user: { 
-				id: 'user_1', 
-				email: 'test@example.com',
-				name: 'Test User',
-				created: new Date().toISOString(),
-				updated: new Date().toISOString(),
-				verified: true,
-				avatar: '',
-				emailVisibility: true
-			},
-			currentChurch: mockChurch({ id: 'church_test123', name: 'Test Church' }),
-			currentMembership: null,
-			isAuthenticated: true,
-			token: 'test-token',
-			isValid: true
-		};
+		const authContext = createMockAuthContext({
+			user: { id: 'user_1', name: 'Test User' }
+		});
 		servicesApi = new ServicesAPI(authContext);
 	});
 
