@@ -1,5 +1,5 @@
 import { pb } from './client';
-import { PUBLIC_MISTRAL_API_KEY } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 import type { Church } from '$lib/types/church';
 
 /**
@@ -14,7 +14,7 @@ import type { Church } from '$lib/types/church';
 export async function getMistralApiKey(churchId: string | undefined): Promise<string | null> {
 	// If no church ID provided, use global key only
 	if (!churchId) {
-		return PUBLIC_MISTRAL_API_KEY || null;
+		return env.PUBLIC_MISTRAL_API_KEY || null;
 	}
 
 	try {
@@ -22,11 +22,11 @@ export async function getMistralApiKey(churchId: string | undefined): Promise<st
 		const church = await pb.collection('churches').getOne<Church & { mistral_api_key?: string }>(churchId);
 		
 		// Return church-specific key if available, otherwise global key
-		return church.mistral_api_key || PUBLIC_MISTRAL_API_KEY || null;
+		return church.mistral_api_key || env.PUBLIC_MISTRAL_API_KEY || null;
 	} catch (error) {
 		console.error('Failed to fetch church settings:', error);
 		// Fall back to global key if church fetch fails
-		return PUBLIC_MISTRAL_API_KEY || null;
+		return env.PUBLIC_MISTRAL_API_KEY || null;
 	}
 }
 
