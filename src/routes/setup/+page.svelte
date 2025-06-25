@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { setupStore } from '$lib/stores/setup.svelte';
+	import { getSetupStore } from '$lib/context/stores.svelte';
 	import InitialSetup from '$lib/components/setup/InitialSetup.svelte';
+
+	const setupStore = getSetupStore();
 
 	onMount(async () => {
 		// Check if setup is actually required

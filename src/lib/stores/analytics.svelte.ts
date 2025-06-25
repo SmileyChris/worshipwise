@@ -385,5 +385,11 @@ class AnalyticsStore {
 	}
 }
 
-// Export singleton instance
-export const analyticsStore = new AnalyticsStore();
+// Export the class type for tests
+export type { AnalyticsStore };
+
+// Factory function for creating new store instances
+export function createAnalyticsStore(): AnalyticsStore {
+	return new AnalyticsStore();
+}
+

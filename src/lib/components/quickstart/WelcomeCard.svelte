@@ -1,9 +1,9 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
-	import { quickstartStore } from '$lib/stores/quickstart.svelte';
+	import { getQuickstartStore } from '$lib/context/stores.svelte';
 	import { BarChart3, Music, Settings, Users } from 'lucide-svelte';
 
-	const store = quickstartStore;
+	const store = getQuickstartStore();
 
 	function handleOpenWizard() {
 		store.showSetupWizard = true;

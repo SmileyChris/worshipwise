@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { flushSync } from 'svelte';
-import { auth } from './auth.svelte';
+import { createAuthStore, type AuthStore } from './auth.svelte';
+import type { AuthContext } from '$lib/types/auth';
 import { mockPb } from '../../../tests/helpers/pb-mock';
 import type { User, LoginCredentials, RegisterData } from '$lib/types/auth';
 import type { ChurchMembership } from '$lib/types/church';
@@ -21,21 +22,16 @@ const originalConsoleLog = console.log;
 const originalConsoleError = console.error;
 
 describe('AuthStore', () => {
+	let auth: AuthStore;
+
 	beforeEach(() => {
+		// Create fresh store instance for each test
+		auth = createAuthStore();
+		
 		mockPb.reset();
 		(goto as any).mockClear();
 		console.log = vi.fn();
 		console.error = vi.fn();
-
-		// Reset auth store state completely
-		auth.user = null;
-		auth.currentMembership = null;
-		auth.token = '';
-		auth.isValid = false;
-		auth.loading = false;
-		auth.error = null;
-		auth.availableChurches = [];
-		auth.churchLoading = false;
 	});
 
 	afterEach(() => {

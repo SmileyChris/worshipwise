@@ -1,4 +1,4 @@
-import type { User } from '$lib/types/auth';
+import type { User, AuthContext } from '$lib/types/auth';
 import type { Church, ChurchMembership } from '$lib/types/church';
 import type { Song } from '$lib/types/song';
 import type { Service, ServiceSong } from '$lib/types/service';
@@ -222,7 +222,7 @@ export function mockAuthContext(overrides: {
 	user?: Partial<User>;
 	church?: Partial<Church>;
 	membership?: Partial<ChurchMembership>;
-} = {}) {
+} = {}): AuthContext {
 	const church = mockChurch(overrides.church);
 	const user = mockUser({ 
 		current_church_id: church.id,
@@ -234,7 +234,15 @@ export function mockAuthContext(overrides: {
 		...overrides.membership 
 	});
 
-	return { user, church, membership };
+	// Return proper AuthContext format
+	return {
+		user,
+		currentMembership: membership,
+		currentChurch: church,
+		isAuthenticated: true,
+		token: 'test-token',
+		isValid: true
+	};
 }
 
 // Reset counters for test isolation

@@ -1,4 +1,6 @@
-import { servicesApi } from '$lib/api/services';
+import { createServicesAPI } from '$lib/api/services';
+import type { ServicesAPI } from '$lib/api/services';
+import type { AuthContext } from '$lib/types/auth';
 import type {
 	Service,
 	ServiceSong,
@@ -13,6 +15,7 @@ import type {
 import type { Song } from '$lib/types/song';
 
 class ServicesStore {
+	private servicesApi: ServicesAPI;
 	// Reactive state using Svelte 5 runes
 	services = $state<Service[]>([]);
 	loading = $state<boolean>(false);
@@ -56,6 +59,10 @@ class ServicesStore {
 
 	hasUnsavedChanges = $derived(this.builderState.isDirty);
 
+	constructor(authContext: AuthContext) {
+		this.servicesApi = createServicesAPI(authContext);
+	}
+
 	/**
 	 * Load services with current filters
 	 */
@@ -64,7 +71,7 @@ class ServicesStore {
 		this.error = null;
 
 		try {
-			this.services = await servicesApi.getServices(this.filters);
+			this.services = await this.servicesApi.getServices(this.filters);
 		} catch (error: unknown) {
 			console.error('Failed to load services:', error);
 			this.error = this.getErrorMessage(error);
@@ -78,7 +85,7 @@ class ServicesStore {
 	 */
 	async loadUpcomingServices(limit = 10): Promise<void> {
 		try {
-			this.upcomingServices = await servicesApi.getUpcomingServices(limit);
+			this.upcomingServices = await this.servicesApi.getUpcomingServices(limit);
 		} catch (error: unknown) {
 			console.error('Failed to load upcoming services:', error);
 		}
@@ -89,7 +96,7 @@ class ServicesStore {
 	 */
 	async loadTemplates(): Promise<void> {
 		try {
-			this.templates = await servicesApi.getTemplates();
+			this.templates = await this.servicesApi.getTemplates();
 		} catch (error: unknown) {
 			console.error('Failed to load templates:', error);
 		}
@@ -104,8 +111,8 @@ class ServicesStore {
 
 		try {
 			const [service, songs] = await Promise.all([
-				servicesApi.getService(id),
-				servicesApi.getServiceSongs(id)
+				this.servicesApi.getService(id),
+				this.servicesApi.getServiceSongs(id)
 			]);
 
 			this.currentService = service;
@@ -131,7 +138,7 @@ class ServicesStore {
 		this.error = null;
 
 		try {
-			const newService = await servicesApi.createService(data);
+			const newService = await this.servicesApi.createService(data);
 
 			// Add to local array
 			this.services = [newService, ...this.services];
@@ -154,7 +161,7 @@ class ServicesStore {
 		this.error = null;
 
 		try {
-			const updatedService = await servicesApi.updateService(id, data);
+			const updatedService = await this.servicesApi.updateService(id, data);
 
 			// Update in local array
 			const index = this.services.findIndex((service) => service.id === id);
@@ -186,7 +193,7 @@ class ServicesStore {
 		this.error = null;
 
 		try {
-			await servicesApi.deleteService(id);
+			await this.servicesApi.deleteService(id);
 
 			// Remove from local array
 			this.services = this.services.filter((service) => service.id !== id);
@@ -218,7 +225,7 @@ class ServicesStore {
 		this.builderState.error = null;
 
 		try {
-			const serviceSong = await servicesApi.addSongToService({
+			const serviceSong = await this.servicesApi.addSongToService({
 				...songData,
 				service_id: this.currentService.id
 			});
@@ -248,7 +255,7 @@ class ServicesStore {
 		this.builderState.error = null;
 
 		try {
-			await servicesApi.removeSongFromService(serviceSongId);
+			await this.servicesApi.removeSongFromService(serviceSongId);
 
 			// Remove from local array
 			this.currentServiceSongs = this.currentServiceSongs.filter(
@@ -275,7 +282,7 @@ class ServicesStore {
 		this.builderState.error = null;
 
 		try {
-			const updatedSong = await servicesApi.updateServiceSong(id, data);
+			const updatedSong = await this.servicesApi.updateServiceSong(id, data);
 
 			// Update in local array
 			const index = this.currentServiceSongs.findIndex((song) => song.id === id);
@@ -305,7 +312,7 @@ class ServicesStore {
 		this.builderState.error = null;
 
 		try {
-			await servicesApi.reorderServiceSongs(this.currentService.id, songOrder);
+			await this.servicesApi.reorderServiceSongs(this.currentService.id, songOrder);
 
 			// Update local positions
 			songOrder.forEach(({ id, position }) => {
@@ -338,7 +345,7 @@ class ServicesStore {
 		this.error = null;
 
 		try {
-			const duplicatedService = await servicesApi.duplicateService(id, newData);
+			const duplicatedService = await this.servicesApi.duplicateService(id, newData);
 
 			// Add to local array
 			this.services = [duplicatedService, ...this.services];
@@ -361,7 +368,7 @@ class ServicesStore {
 		this.error = null;
 
 		try {
-			const completedService = await servicesApi.completeService(id, actualDuration);
+			const completedService = await this.servicesApi.completeService(id, actualDuration);
 
 			// Update in local array
 			const index = this.services.findIndex((service) => service.id === id);
@@ -524,7 +531,7 @@ class ServicesStore {
 	 * Subscribe to real-time updates for services
 	 */
 	async subscribeToServices(): Promise<() => void> {
-		return await servicesApi.subscribeToServices((data: unknown) => {
+		return await this.servicesApi.subscribeToServices((data: unknown) => {
 			console.log('Real-time service update:', data);
 
 			// Type-safe access to event data
@@ -563,7 +570,7 @@ class ServicesStore {
 	 * Subscribe to real-time updates for service songs
 	 */
 	async subscribeToServiceSongs(serviceId: string): Promise<() => void> {
-		return await servicesApi.subscribeToServiceSongs(serviceId, (data: unknown) => {
+		return await this.servicesApi.subscribeToServiceSongs(serviceId, (data: unknown) => {
 			console.log('Real-time service song update:', data);
 
 			// Type-safe access to event data
@@ -594,5 +601,11 @@ class ServicesStore {
 	}
 }
 
-// Export singleton instance
-export const servicesStore = new ServicesStore();
+// Export the class type for tests
+export type { ServicesStore };
+
+// Factory function for creating new store instances
+export function createServicesStore(authContext: AuthContext): ServicesStore {
+	return new ServicesStore(authContext);
+}
+

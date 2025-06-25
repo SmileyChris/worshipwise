@@ -42,4 +42,11 @@ class SetupStore {
 	}
 }
 
-export const setupStore = new SetupStore();
+// Export the class type for tests
+export type { SetupStore };
+
+// Factory function for creating new store instances
+export function createSetupStore(): SetupStore {
+	return new SetupStore();
+}
+

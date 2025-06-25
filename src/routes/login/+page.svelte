@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import AuthForm from '$lib/components/auth/AuthForm.svelte';
 	import type { LoginCredentials } from '$lib/types/auth';
+
+	const auth = getAuthStore();
 
 	// Get return URL and invite flag from query params
 	let returnUrl = $derived($page.url.searchParams.get('return') || '/dashboard');

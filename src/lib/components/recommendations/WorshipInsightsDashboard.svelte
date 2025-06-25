@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { recommendationsStore } from '$lib/stores/recommendations.svelte';
+	import { getRecommendationsStore } from '$lib/context/stores.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -16,6 +16,8 @@
 		RefreshCw,
 		Lightbulb
 	} from 'lucide-svelte';
+
+	const recommendationsStore = getRecommendationsStore();
 
 	onMount(async () => {
 		await recommendationsStore.loadWorshipInsights();

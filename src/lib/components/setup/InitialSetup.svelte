@@ -2,12 +2,15 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { ChurchesAPI } from '$lib/api/churches';
-	import { setupStore } from '$lib/stores/setup.svelte';
+	import { createSetupStore } from '$lib/stores/setup.svelte';
 	import type { InitialChurchSetup } from '$lib/types/church';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import { Clock } from 'lucide-svelte';
+
+	// Initialize setup store
+	const setupStore = createSetupStore();
 
 	let loading = $state<boolean>(false);
 	let error = $state<string | null>(null);

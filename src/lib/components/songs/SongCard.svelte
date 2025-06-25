@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Song } from '$lib/types/song';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import CategoryBadge from '$lib/components/ui/CategoryBadge.svelte';
@@ -16,6 +16,8 @@
 		isEditingService?: boolean;
 		class?: string;
 	}
+
+	const auth = getAuthStore();
 
 	let {
 		song,

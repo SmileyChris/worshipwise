@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import { pb } from '$lib/api/client';
 	import { isValidMistralAPIKey } from '$lib/api/mistral';
 	import { env } from '$env/dynamic/public';
@@ -11,6 +11,8 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import { Settings, Key, AlertCircle, Check, X } from 'lucide-svelte';
 	import type { Church } from '$lib/types/church';
+
+	const auth = getAuthStore();
 
 	let church = $state<Church & { mistral_api_key?: string } | null>(null);
 	let loading = $state(true);

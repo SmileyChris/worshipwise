@@ -1,4 +1,4 @@
-import type { ChurchMembership } from './church';
+import type { Church, ChurchMembership } from './church';
 
 export interface User {
 	id: string;
@@ -49,4 +49,28 @@ export interface AuthStore {
 	user: User | null;
 	token: string;
 	isValid: boolean;
+}
+
+/**
+ * Dependency injection interface for auth context
+ * Used to break circular dependencies between stores and APIs
+ */
+export interface AuthContext {
+	/** Current authenticated user */
+	readonly user: User | null;
+	
+	/** Current church membership information */
+	readonly currentMembership: ChurchMembership | null;
+	
+	/** Current church (derived from membership) */
+	readonly currentChurch: Church | null;
+	
+	/** Whether user is authenticated */
+	readonly isAuthenticated: boolean;
+	
+	/** Current auth token */
+	readonly token: string;
+	
+	/** Whether auth state is valid */
+	readonly isValid: boolean;
 }

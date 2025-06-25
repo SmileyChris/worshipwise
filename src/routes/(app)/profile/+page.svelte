@@ -1,8 +1,10 @@
 <script lang="ts">
 	import ProfileSettings from '$lib/components/profile/ProfileSettings.svelte';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+
+	const auth = getAuthStore();
 
 	// Redirect to login if not authenticated
 	onMount(() => {

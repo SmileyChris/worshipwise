@@ -2,16 +2,24 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import { pb } from '$lib/api/client';
 	import { isValidMistralAPIKey } from '$lib/api/mistral';
-	import { PUBLIC_MISTRAL_API_KEY } from '$env/static/public';
+	// Import available environment variables - fallback if not defined
+	let PUBLIC_MISTRAL_API_KEY: string | undefined;
+	try {
+		PUBLIC_MISTRAL_API_KEY = import.meta.env.PUBLIC_MISTRAL_API_KEY;
+	} catch {
+		PUBLIC_MISTRAL_API_KEY = undefined;
+	}
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import { Settings, Key, AlertCircle, Check, X } from 'lucide-svelte';
 	import type { Church } from '$lib/types/church';
+
+	const auth = getAuthStore();
 
 	let church = $state<Church & { mistral_api_key?: string } | null>(null);
 	let loading = $state(true);

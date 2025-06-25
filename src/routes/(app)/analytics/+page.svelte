@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { analyticsStore } from '$lib/stores/analytics.svelte';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAnalyticsStore, getAuthStore } from '$lib/context/stores.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import UsageTrendChart from '$lib/components/analytics/UsageTrendChart.svelte';
 	import KeyUsageChart from '$lib/components/analytics/KeyUsageChart.svelte';
 	import ServiceTypeChart from '$lib/components/analytics/ServiceTypeChart.svelte';
+
+	const analyticsStore = getAnalyticsStore();
+	const auth = getAuthStore();
 
 	// Date range state
 	let dateFrom = $state('');

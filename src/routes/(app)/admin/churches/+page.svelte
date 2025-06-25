@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import { pb } from '$lib/api/client';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -17,6 +17,8 @@
 		UserPlus,
 		Crown
 	} from 'lucide-svelte';
+
+	const auth = getAuthStore();
 
 	let loading = $state<boolean>(false);
 	let error = $state<string | null>(null);

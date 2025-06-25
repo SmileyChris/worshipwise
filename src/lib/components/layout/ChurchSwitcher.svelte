@@ -1,8 +1,11 @@
 <script lang="ts">
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import { page } from '$app/stores';
+
 	import { ChevronDown, Church, Building, Settings, LogOut, Plus, Mail } from 'lucide-svelte';
 	import type { Church as ChurchType } from '$lib/types/church';
+
+	const auth = getAuthStore();
 
 	// Component state
 	let dropdownOpen = $state<boolean>(false);

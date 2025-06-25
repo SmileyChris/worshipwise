@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -10,6 +10,8 @@
 	interface Props {
 		data: PageData;
 	}
+
+	const auth = getAuthStore();
 
 	let { data }: Props = $props();
 	let song = $derived(data.song);

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest';
-import { setupStore } from './setup.svelte';
+import { createSetupStore, type SetupStore } from './setup.svelte';
 import { ChurchesAPI } from '$lib/api/churches';
 
 // Mock the ChurchesAPI
@@ -14,11 +14,11 @@ const mockedChurchesAPI = ChurchesAPI as unknown as {
 };
 
 describe('SetupStore', () => {
+	let setupStore: SetupStore;
+
 	beforeEach(() => {
-		// Reset the store state
-		setupStore.setupRequired = null;
-		setupStore.loading = false;
-		setupStore.error = null;
+		// Create fresh store instance for each test
+		setupStore = createSetupStore();
 
 		// Reset all mocks
 		vi.clearAllMocks();

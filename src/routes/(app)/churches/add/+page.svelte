@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import { ChurchesAPI } from '$lib/api/churches';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import { Building, ArrowLeft, MapPin, Clock } from 'lucide-svelte';
+
+	const auth = getAuthStore();
 
 	// Form state
 	let formData = $state({

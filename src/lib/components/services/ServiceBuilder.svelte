@@ -1,12 +1,14 @@
 <script lang="ts">
 	import type { ServiceSong, CreateServiceSongData } from '$lib/types/service';
 	import type { Song } from '$lib/types/song';
-	import { servicesStore } from '$lib/stores/services.svelte';
-	import { songsStore } from '$lib/stores/songs.svelte';
+	import { getServicesStore, getSongsStore } from '$lib/context/stores.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import { onMount } from 'svelte';
 	import { flip } from 'svelte/animate';
+
+	const servicesStore = getServicesStore();
+	const songsStore = getSongsStore();
 
 	interface Props {
 		serviceId: string;

@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { recommendationsStore } from '$lib/stores/recommendations.svelte';
-	import { servicesStore } from '$lib/stores/services.svelte';
+	import { getRecommendationsStore, getServicesStore } from '$lib/context/stores.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import { BarChart3, AlertCircle, CheckCircle, Zap, Clock, Heart } from 'lucide-svelte';
+
+	const recommendationsStore = getRecommendationsStore();
+	const servicesStore = getServicesStore();
 
 	let selectedServiceId = $state<string>('');
 

@@ -1,8 +1,11 @@
 import { pb } from './client';
 import type { Category } from '$lib/types/song';
+import type { AuthContext } from '$lib/types/auth';
 
 export class CategoriesAPI {
 	private collection = 'categories';
+
+	constructor(private authContext?: AuthContext) {}
 
 	/**
 	 * Get all active categories
@@ -10,7 +13,8 @@ export class CategoriesAPI {
 	async getCategories(): Promise<Category[]> {
 		try {
 			// Get current user's church context
-			const { auth } = await import('$lib/stores/auth.svelte');
+			const { getAuthStore } = await import('$lib/context/stores.svelte');
+			const auth = getAuthStore();
 			const currentChurch = auth.currentChurch;
 
 			if (!currentChurch) {
@@ -55,7 +59,8 @@ export class CategoriesAPI {
 	}): Promise<Category> {
 		try {
 			// Get current user's church context
-			const { auth } = await import('$lib/stores/auth.svelte');
+			const { getAuthStore } = await import('$lib/context/stores.svelte');
+			const auth = getAuthStore();
 			const currentChurch = auth.currentChurch;
 
 			if (!currentChurch) {
@@ -117,5 +122,12 @@ export class CategoriesAPI {
 	}
 }
 
-// Export singleton instance
+// Legacy import removed - using dependency injection
+
+// Factory function for creating API instances
+export function createCategoriesAPI(authContext?: AuthContext): CategoriesAPI {
+	return new CategoriesAPI(authContext);
+}
+
+// Export singleton instance for backward compatibility
 export const categoriesApi = new CategoriesAPI();

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest';
-import { analyticsStore } from './analytics.svelte';
+import { createAnalyticsStore, type AnalyticsStore } from './analytics.svelte';
 import {
 	analyticsApi,
 	type AnalyticsOverview,
@@ -123,19 +123,11 @@ describe('AnalyticsStore', () => {
 		}
 	];
 
+	let analyticsStore: AnalyticsStore;
+
 	beforeEach(() => {
-		// Reset the store state
-		analyticsStore.loading = false;
-		analyticsStore.error = null;
-		analyticsStore.overview = null;
-		analyticsStore.songUsageStats = [];
-		analyticsStore.serviceTypeStats = [];
-		analyticsStore.keyUsageStats = [];
-		analyticsStore.usageTrends = [];
-		analyticsStore.worshipLeaderStats = [];
-		analyticsStore.dateRange = { from: null, to: null };
-		analyticsStore.trendInterval = 'week';
-		analyticsStore.exportLoading = false;
+		// Create fresh store instance for each test
+		analyticsStore = createAnalyticsStore();
 
 		// Reset all mocks
 		vi.clearAllMocks();

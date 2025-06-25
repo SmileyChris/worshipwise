@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { auth } from '$lib/stores/auth.svelte';
-	import { songsStore } from '$lib/stores/songs.svelte';
-	import { servicesStore } from '$lib/stores/services.svelte';
+	import { getAuthStore, getSongsStore, getServicesStore } from '$lib/context/stores.svelte';
 	import type { Song, Category } from '$lib/types/song';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -15,6 +13,10 @@
 	import SongForm from '$lib/components/songs/SongForm.svelte';
 	import CategorySelect from '$lib/components/ui/CategorySelect.svelte';
 	import LabelSelector from '$lib/components/ui/LabelSelector.svelte';
+
+	const auth = getAuthStore();
+	const songsStore = getSongsStore();
+	const servicesStore = getServicesStore();
 
 	// Modal state
 	let showSongForm = $state(false);

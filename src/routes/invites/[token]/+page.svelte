@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import { ChurchesAPI } from '$lib/api/churches';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import { Building, Calendar, Mail, UserPlus, CheckCircle, XCircle, AlertCircle } from 'lucide-svelte';
 	import type { PageData } from './$types';
+
+	const auth = getAuthStore();
 
 	let { data }: { data: PageData } = $props();
 

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { recommendationsStore } from './recommendations.svelte';
-import { auth } from './auth.svelte';
+import { createRecommendationsStore, type RecommendationsStore } from './recommendations.svelte';
 import type {
 	SongRecommendation,
 	WorshipFlowSuggestion,
@@ -195,39 +194,15 @@ describe('RecommendationsStore', () => {
 		}
 	};
 
+	let recommendationsStore: RecommendationsStore;
+
 	beforeEach(() => {
 		// Reset mockPb
 		vi.clearAllMocks();
 		mockPb.reset();
 
-		// Set up auth context with church
-		const authContext = mockAuthContext({
-			church: { id: 'church-1', name: 'Test Church' },
-			user: { id: 'user-1', current_church_id: 'church-1' },
-			membership: { 
-				church_id: 'church-1',
-				expand: {
-					church_id: { id: 'church-1', name: 'Test Church' }
-				}
-			}
-		});
-		mockPb.setAuthState(authContext.user);
-		auth.user = authContext.user;
-		auth.currentMembership = authContext.membership;
-
-		// Reset the store state
-		recommendationsStore.loading = false;
-		recommendationsStore.error = null;
-		recommendationsStore.songRecommendations = [];
-		recommendationsStore.worshipFlowSuggestions = [];
-		recommendationsStore.serviceBalanceAnalysis = null;
-		recommendationsStore.seasonalTrends = [];
-		recommendationsStore.comparativePeriod = null;
-		recommendationsStore.worshipInsights = null;
-		recommendationsStore.recommendationFilters = {
-			excludeRecentDays: 28,
-			limit: 10
-		};
+		// Create fresh store instance for each test
+		recommendationsStore = createRecommendationsStore();
 	});
 
 	describe('loadSongRecommendations', () => {

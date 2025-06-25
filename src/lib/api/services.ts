@@ -1,5 +1,5 @@
 import { pb } from './client';
-import { auth } from '$lib/stores/auth.svelte';
+import type { AuthContext } from '$lib/types/auth';
 import type {
 	Service,
 	CreateServiceData,
@@ -13,6 +13,8 @@ import type {
 export class ServicesAPI {
 	private collection = 'services';
 	private serviceSongsCollection = 'service_songs';
+	
+	constructor(private authContext: AuthContext) {}
 
 	/**
 	 * Get all services with optional filtering
@@ -114,14 +116,14 @@ export class ServicesAPI {
 	async createService(data: CreateServiceData): Promise<Service> {
 		try {
 			// Ensure user has a current church
-			if (!auth.currentChurch?.id) {
+			if (!this.authContext.currentChurch?.id) {
 				throw new Error('No church selected. Please select a church to create services.');
 			}
 
 			const serviceData = {
 				...data,
-				church_id: auth.currentChurch.id, // REQUIRED for church-scoped data
-				created_by: pb.authStore.model?.id || ''
+				church_id: this.authContext.currentChurch.id, // REQUIRED for church-scoped data
+				created_by: this.authContext.user?.id || ''
 			};
 
 			// Only add status if not already provided and not a template
@@ -176,7 +178,7 @@ export class ServicesAPI {
 				...songDataWithoutServiceId,
 				service_id: service_id,
 				order_position: data.order_position || nextPosition,
-				added_by: pb.authStore.model?.id || ''
+				added_by: this.authContext.user?.id || ''
 			};
 
 			const record = await pb.collection(this.serviceSongsCollection).create(serviceSongData);
@@ -314,14 +316,14 @@ export class ServicesAPI {
 			const songs = await this.getServiceSongs(serviceId);
 
 			// Ensure we have church context
-			if (!auth.currentChurch?.id) {
+			if (!this.authContext.currentChurch?.id) {
 				throw new Error('No church context available for tracking usage');
 			}
 
 			// Create usage records for each song
 			const usagePromises = songs.map((song) =>
 				pb.collection('song_usage').create({
-					church_id: auth.currentChurch!.id, // REQUIRED for church-scoped data
+					church_id: this.authContext.currentChurch!.id, // REQUIRED for church-scoped data
 					song_id: song.song_id,
 					service_id: serviceId,
 					used_date: service.service_date,
@@ -395,5 +397,9 @@ export class ServicesAPI {
 	}
 }
 
-// Export singleton instance
-export const servicesApi = new ServicesAPI();
+// Legacy import removed - using dependency injection
+
+// Factory function for creating API instances
+export function createServicesAPI(authContext: AuthContext): ServicesAPI {
+	return new ServicesAPI(authContext);
+}

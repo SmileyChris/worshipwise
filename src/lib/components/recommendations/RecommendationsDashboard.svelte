@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { recommendationsStore } from '$lib/stores/recommendations.svelte';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getRecommendationsStore, getAuthStore } from '$lib/context/stores.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -10,6 +9,9 @@
 	import ServiceBalanceAnalysis from './ServiceBalanceAnalysis.svelte';
 	import WorshipInsightsDashboard from './WorshipInsightsDashboard.svelte';
 	import { Lightbulb, TrendingUp, Music, Calendar, BarChart3, Brain } from 'lucide-svelte';
+
+	const recommendationsStore = getRecommendationsStore();
+	const auth = getAuthStore();
 
 	let activeTab = $state<'overview' | 'songs' | 'flow' | 'balance' | 'trends' | 'insights'>(
 		'overview'

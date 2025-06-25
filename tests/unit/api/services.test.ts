@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockPb } from '../../helpers/pb-mock';
 import { createMockService, createMockServiceSong, createMockUser } from '../../helpers/test-utils';
-import { servicesApi } from '$lib/api/services';
+import { ServicesAPI } from '$lib/api/services';
 
 // Mock the client module
 vi.mock('$lib/api/client', () => ({

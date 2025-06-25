@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { quickstartStore } from '$lib/stores/quickstart.svelte.js';
+	import { getQuickstartStore } from '$lib/context/stores.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import { AlertCircle, RefreshCw, Settings } from 'lucide-svelte';
 
-	const store = quickstartStore;
+	const store = getQuickstartStore();
 
 	async function handleRefreshStatus() {
 		await store.checkSystemStatus();

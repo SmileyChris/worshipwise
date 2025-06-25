@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { songsStore } from './songs.svelte';
-import { auth } from './auth.svelte';
+import { createSongsStore, type SongsStore } from './songs.svelte';
+import type { AuthContext } from '$lib/types/auth';
 import type {
 	Song,
 	CreateSongData,
@@ -13,6 +13,9 @@ import { mockPb } from '$tests/helpers/pb-mock';
 import { mockSong, mockAuthContext } from '$tests/helpers/mock-builders';
 
 describe('SongsStore', () => {
+	let songsStore: SongsStore;
+	let authContext: AuthContext;
+
 	// Use factory functions for test data
 	const testSong = mockSong({
 		id: 'song-1',
@@ -45,8 +48,8 @@ describe('SongsStore', () => {
 		vi.clearAllMocks();
 		mockPb.reset();
 
-		// Set up auth context with church
-		const authContext = mockAuthContext({
+		// Create auth context for dependency injection
+		authContext = mockAuthContext({
 			church: { id: 'church-1', name: 'Test Church' },
 			user: { id: 'user-1', current_church_id: 'church-1' },
 			membership: { 
@@ -56,40 +59,25 @@ describe('SongsStore', () => {
 				}
 			}
 		});
-		mockPb.setAuthState(authContext.user);
-		auth.user = authContext.user;
-		auth.currentMembership = authContext.membership;
 
-		// Reset the store state
-		songsStore.songs = [];
-		songsStore.loading = false;
-		songsStore.error = null;
-		songsStore.currentPage = 1;
-		songsStore.totalPages = 1;
-		songsStore.totalItems = 0;
-		songsStore.perPage = 20;
-		songsStore.filters = {
-			search: '',
-			key: '',
-			tags: [],
-			sort: 'title'
-		};
-		songsStore.stats = {
-			totalSongs: 0,
-			availableSongs: 0,
-			recentlyUsed: 0
-		};
-		songsStore.selectedSong = null;
+		// Create fresh store instance with test auth context
+		songsStore = createSongsStore(authContext);
+		
+		// Set up PocketBase mock state
+		mockPb.setAuthState(authContext.user);
 	});
 
 	describe('loadSongs', () => {
 		it('should load songs with usage information successfully', async () => {
-			const usageMap = new Map([
-				['song-1', { lastUsed: new Date('2024-01-01T00:00:00Z'), daysSince: 7 }]
-			]);
+			// Mock the songs paginated result
 			mockPb.collection('songs').getList.mockResolvedValue(mockPaginatedResult);
-			mockPb.collection('songs').getFullListUsageInfo.mockResolvedValue(usageMap);
-			mockPb.collection('songs').getFullList.mockResolvedValue([testSong]);
+			
+			// Mock the song_usage collection to return usage data
+			const mockUsageRecord = {
+				song_id: 'song-1',
+				used_date: '2024-01-01T00:00:00Z'
+			};
+			mockPb.collection('song_usage').getFullList.mockResolvedValue([mockUsageRecord]);
 
 			await songsStore.loadSongs();
 
@@ -97,8 +85,8 @@ describe('SongsStore', () => {
 			expect(songsStore.songs[0]).toEqual({
 				...testSong,
 				lastUsedDate: new Date('2024-01-01T00:00:00Z'),
-				daysSinceLastUsed: 7,
-				usageStatus: 'recent'
+				daysSinceLastUsed: expect.any(Number),
+				usageStatus: expect.any(String)
 			});
 			expect(songsStore.totalPages).toBe(1);
 			expect(songsStore.totalItems).toBe(1);
@@ -108,10 +96,9 @@ describe('SongsStore', () => {
 		});
 
 		it('should handle songs without usage information', async () => {
-			const usageMap = new Map();
 			mockPb.collection('songs').getList.mockResolvedValue(mockPaginatedResult);
-			mockPb.collection('songs').getFullListUsageInfo.mockResolvedValue(usageMap);
-			mockPb.collection('songs').getFullList.mockResolvedValue([testSong]);
+			// Mock empty usage data
+			mockPb.collection('song_usage').getFullList.mockResolvedValue([]);
 
 			await songsStore.loadSongs();
 
@@ -126,8 +113,7 @@ describe('SongsStore', () => {
 		it('should reset page when resetPage is true', async () => {
 			songsStore.currentPage = 3;
 			mockPb.collection('songs').getList.mockResolvedValue(mockPaginatedResult);
-			mockPb.collection('songs').getFullListUsageInfo.mockResolvedValue(new Map());
-			mockPb.collection('songs').getFullList.mockResolvedValue([]);
+			mockPb.collection('song_usage').getFullList.mockResolvedValue([]);
 
 			await songsStore.loadSongs(true);
 
@@ -139,8 +125,7 @@ describe('SongsStore', () => {
 				expect(songsStore.loading).toBe(true);
 				return mockPaginatedResult;
 			});
-			mockPb.collection('songs').getFullListUsageInfo.mockResolvedValue(new Map());
-			mockPb.collection('songs').getFullList.mockResolvedValue([]);
+			mockPb.collection('song_usage').getFullList.mockResolvedValue([]);
 
 			await songsStore.loadSongs();
 
@@ -164,16 +149,14 @@ describe('SongsStore', () => {
 			songsStore.filters = { search: 'test', key: 'C', tags: ['hymn'], sort: 'title' };
 
 			mockPb.collection('songs').getList.mockResolvedValue(mockPaginatedResult);
-			mockPb.collection('songs').getFullListUsageInfo.mockResolvedValue(new Map());
-			mockPb.collection('songs').getFullList.mockResolvedValue([]);
+			mockPb.collection('song_usage').getFullList.mockResolvedValue([]);
 
 			await songsStore.loadSongs();
 
 			expect(mockPb.collection('songs').getList).toHaveBeenCalledWith(2, 10, {
-				search: 'test',
-				key: 'C',
-				tags: ['hymn'],
-				sort: 'title'
+				filter: expect.stringContaining('church_id = "church-1"'),
+				sort: 'title',
+				expand: 'created_by,category,labels'
 			});
 		});
 	});
@@ -210,15 +193,14 @@ describe('SongsStore', () => {
 			};
 			mockPb.collection('songs').create.mockResolvedValue(testSong);
 			mockPb.collection('songs').getList.mockResolvedValue(mockPaginatedResult);
-			mockPb.collection('songs').getFullListUsageInfo.mockResolvedValue(new Map());
-			mockPb.collection('songs').getFullList.mockResolvedValue([testSong]);
+			mockPb.collection('song_usage').getFullList.mockResolvedValue([]);
 
 			const result = await songsStore.createSong(createData);
 
 			expect(result).toEqual(testSong);
 			expect(songsStore.loading).toBe(false);
 			expect(songsStore.error).toBe(null);
-			expect(mockPb.collection('songs').create).toHaveBeenCalledWith(createData);
+			expect(mockPb.collection('songs').create).toHaveBeenCalledWith(expect.any(FormData));
 			expect(mockPb.collection('songs').getList).toHaveBeenCalled(); // loadSongs called
 		});
 
@@ -296,12 +278,12 @@ describe('SongsStore', () => {
 			expect(songsStore.totalItems).toBe(0);
 			expect(songsStore.loading).toBe(false);
 			expect(songsStore.error).toBe(null);
-			expect(mockPb.collection('songs').delete).toHaveBeenCalledWith('song-1');
+			expect(mockPb.collection('songs').update).toHaveBeenCalledWith('song-1', { is_active: false });
 		});
 
 		it('should handle errors when deleting song', async () => {
 			const error = new Error('Delete failed');
-			mockPb.collection('songs').delete.mockRejectedValue(error);
+			mockPb.collection('songs').update.mockRejectedValue(error);
 
 			await expect(songsStore.deleteSong('song-1')).rejects.toThrow('Delete failed');
 
@@ -314,7 +296,7 @@ describe('SongsStore', () => {
 	describe('search and filtering', () => {
 		it('should search songs', async () => {
 			mockPb.collection('songs').getList.mockResolvedValue(mockPaginatedResult);
-			mockPb.collection('songs').getFullListUsageInfo.mockResolvedValue(new Map());
+			mockPb.collection('song_usage').getFullList.mockResolvedValue([]);
 			mockPb.collection('songs').getFullList.mockResolvedValue([]);
 
 			await songsStore.searchSongs('Amazing');
@@ -324,14 +306,17 @@ describe('SongsStore', () => {
 			expect(mockPb.collection('songs').getList).toHaveBeenCalledWith(
 				1,
 				20,
-				expect.objectContaining({ search: 'Amazing' })
+				expect.objectContaining({
+					filter: expect.stringContaining('Amazing'),
+					expand: 'created_by,category,labels'
+				})
 			);
 		});
 
 		it('should apply filters', async () => {
 			const newFilters: Partial<SongFilterOptions> = { key: 'C', tags: ['hymn'] };
 			mockPb.collection('songs').getList.mockResolvedValue(mockPaginatedResult);
-			mockPb.collection('songs').getFullListUsageInfo.mockResolvedValue(new Map());
+			mockPb.collection('song_usage').getFullList.mockResolvedValue([]);
 			mockPb.collection('songs').getFullList.mockResolvedValue([]);
 
 			await songsStore.applyFilters(newFilters);
@@ -348,7 +333,7 @@ describe('SongsStore', () => {
 		it('should clear filters', async () => {
 			songsStore.filters = { search: 'test', key: 'C', tags: ['hymn'], sort: 'artist' };
 			mockPb.collection('songs').getList.mockResolvedValue(mockPaginatedResult);
-			mockPb.collection('songs').getFullListUsageInfo.mockResolvedValue(new Map());
+			mockPb.collection('song_usage').getFullList.mockResolvedValue([]);
 			mockPb.collection('songs').getFullList.mockResolvedValue([]);
 
 			await songsStore.clearFilters();
@@ -370,7 +355,7 @@ describe('SongsStore', () => {
 			// Mock API response that updates current page
 			const mockResult = { ...mockPaginatedResult, page: 2, totalPages: 5 };
 			mockPb.collection('songs').getList.mockResolvedValue(mockResult);
-			mockPb.collection('songs').getFullListUsageInfo.mockResolvedValue(new Map());
+			mockPb.collection('song_usage').getFullList.mockResolvedValue([]);
 			mockPb.collection('songs').getFullList.mockResolvedValue([]);
 		});
 
@@ -381,7 +366,10 @@ describe('SongsStore', () => {
 			await songsStore.nextPage();
 
 			expect(songsStore.currentPage).toBe(3);
-			expect(mockPb.collection('songs').getList).toHaveBeenCalledWith(3, 20, songsStore.filters);
+			expect(mockPb.collection('songs').getList).toHaveBeenCalledWith(3, 20, expect.objectContaining({
+				filter: expect.stringContaining('church_id'),
+				expand: 'created_by,category,labels'
+			}));
 		});
 
 		it('should navigate to previous page', async () => {
@@ -391,7 +379,10 @@ describe('SongsStore', () => {
 			await songsStore.prevPage();
 
 			expect(songsStore.currentPage).toBe(1);
-			expect(mockPb.collection('songs').getList).toHaveBeenCalledWith(1, 20, songsStore.filters);
+			expect(mockPb.collection('songs').getList).toHaveBeenCalledWith(1, 20, expect.objectContaining({
+				filter: expect.stringContaining('church_id'),
+				expand: 'created_by,category,labels'
+			}));
 		});
 
 		it('should go to specific page', async () => {
@@ -401,7 +392,10 @@ describe('SongsStore', () => {
 			await songsStore.goToPage(4);
 
 			expect(songsStore.currentPage).toBe(4);
-			expect(mockPb.collection('songs').getList).toHaveBeenCalledWith(4, 20, songsStore.filters);
+			expect(mockPb.collection('songs').getList).toHaveBeenCalledWith(4, 20, expect.objectContaining({
+				filter: expect.stringContaining('church_id'),
+				expand: 'created_by,category,labels'
+			}));
 		});
 
 		it('should not go to invalid page numbers', async () => {
@@ -616,11 +610,11 @@ describe('SongsStore', () => {
 	describe('real-time subscriptions', () => {
 		it('should subscribe to updates and handle create events', async () => {
 			const unsubscribe = vi.fn();
-			let eventHandler: (data: unknown) => void;
+			let eventHandler: ((data: unknown) => void) | undefined;
 
 			mockPb
 				.collection('songs')
-				.subscribe.mockImplementation((handler: (data: unknown) => void) => {
+				.subscribe.mockImplementation((topic: string, handler: (data: unknown) => void) => {
 					eventHandler = handler;
 					return Promise.resolve(unsubscribe);
 				});
@@ -628,7 +622,10 @@ describe('SongsStore', () => {
 			const result = await songsStore.subscribeToUpdates();
 
 			expect(result).toBe(unsubscribe);
-			expect(mockPb.collection('songs').subscribe).toHaveBeenCalled();
+			expect(mockPb.collection('songs').subscribe).toHaveBeenCalledWith('*', expect.any(Function));
+
+			// Ensure eventHandler was captured
+			expect(eventHandler).toBeDefined();
 
 			// Test create event
 			songsStore.totalItems = 5;
@@ -642,15 +639,18 @@ describe('SongsStore', () => {
 		it('should handle update events', async () => {
 			songsStore.songs = [testSong];
 
-			let eventHandler: (data: unknown) => void;
+			let eventHandler: ((data: unknown) => void) | undefined;
 			mockPb
 				.collection('songs')
-				.subscribe.mockImplementation((handler: (data: unknown) => void) => {
+				.subscribe.mockImplementation((topic: string, handler: (data: unknown) => void) => {
 					eventHandler = handler;
 					return Promise.resolve(vi.fn());
 				});
 
 			await songsStore.subscribeToUpdates();
+
+			// Ensure eventHandler was captured
+			expect(eventHandler).toBeDefined();
 
 			const updatedSong = { ...testSong, title: 'Updated Title' };
 			eventHandler!({ action: 'update', record: updatedSong });
@@ -662,15 +662,18 @@ describe('SongsStore', () => {
 			songsStore.songs = [testSong];
 			songsStore.totalItems = 1;
 
-			let eventHandler: (data: unknown) => void;
+			let eventHandler: ((data: unknown) => void) | undefined;
 			mockPb
 				.collection('songs')
-				.subscribe.mockImplementation((handler: (data: unknown) => void) => {
+				.subscribe.mockImplementation((topic: string, handler: (data: unknown) => void) => {
 					eventHandler = handler;
 					return Promise.resolve(vi.fn());
 				});
 
 			await songsStore.subscribeToUpdates();
+
+			// Ensure eventHandler was captured
+			expect(eventHandler).toBeDefined();
 
 			eventHandler!({ action: 'delete', record: { id: 'song-1' } });
 

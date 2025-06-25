@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { auth } from '$lib/stores/auth.svelte';
-	import { setupStore } from '$lib/stores/setup.svelte';
+	import { initializeStores } from '$lib/context/stores.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
@@ -8,6 +7,10 @@
 	import '../app.css';
 
 	let { children } = $props();
+
+	// Initialize all stores and set them in context
+	const stores = initializeStores();
+	const { auth, setup: setupStore } = stores;
 
 	// Public routes that don't require authentication
 	const publicRoutes = [

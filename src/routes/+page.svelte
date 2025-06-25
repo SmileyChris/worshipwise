@@ -3,12 +3,14 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import AuthForm from '$lib/components/auth/AuthForm.svelte';
-	import { auth } from '$lib/stores/auth.svelte';
-	import { setupStore } from '$lib/stores/setup.svelte';
+	import { getAuthStore, getSetupStore } from '$lib/context/stores.svelte';
 	import { onMount } from 'svelte';
 	import type { LoginCredentials } from '$lib/types/auth';
 
 	let showSetupRedirect = $state(false);
+
+	const auth = getAuthStore();
+	const setupStore = getSetupStore();
 
 	// Check if setup is required and redirect authenticated users
 	onMount(async () => {

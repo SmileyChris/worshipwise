@@ -3,11 +3,13 @@
 	import { createLyricsSearchClient, validateLyricsContent } from '$lib/api/lyrics';
 	import { labelsApi } from '$lib/api/labels';
 	import type { LyricsAnalysis, Label } from '$lib/types/song';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import { onMount } from 'svelte';
+
+	const auth = getAuthStore();
 
 	interface Props {
 		title: string;

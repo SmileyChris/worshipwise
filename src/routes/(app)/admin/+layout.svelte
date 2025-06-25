@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 
 	let { children } = $props();
+
+	const auth = getAuthStore();
 
 	// Redirect if not admin
 	$effect(() => {

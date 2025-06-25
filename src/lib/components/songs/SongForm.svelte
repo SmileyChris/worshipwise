@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import type { Song, CreateSongData, UpdateSongData, LyricsAnalysis, Label } from '$lib/types/song';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
@@ -10,6 +10,8 @@
 	import CategorySelect from '$lib/components/ui/CategorySelect.svelte';
 	import LabelSelector from '$lib/components/ui/LabelSelector.svelte';
 	import LyricsAnalyzer from './LyricsAnalyzer.svelte';
+
+	const auth = getAuthStore();
 
 	interface Props {
 		song?: Song | null;

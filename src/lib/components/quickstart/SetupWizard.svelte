@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { quickstartStore } from '$lib/stores/quickstart.svelte.js';
+	import { getQuickstartStore } from '$lib/context/stores.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import { Check, X, Clock, AlertCircle } from 'lucide-svelte';
 
 	let { open = $bindable(false) } = $props();
 
-	const store = quickstartStore;
+	const store = getQuickstartStore();
 
 	// Modal state management - derived from prop
 	let modalOpen = $derived(open);

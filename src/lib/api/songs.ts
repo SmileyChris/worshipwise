@@ -1,9 +1,11 @@
 import { pb } from './client';
-import { auth } from '$lib/stores/auth.svelte';
+import type { AuthContext } from '$lib/types/auth';
 import type { Song, CreateSongData, UpdateSongData, SongFilterOptions } from '$lib/types/song';
 
 export class SongsAPI {
 	private collection = 'songs';
+	
+	constructor(private authContext: AuthContext) {}
 
 	/**
 	 * Get all active songs with optional filtering
@@ -11,11 +13,11 @@ export class SongsAPI {
 	async getSongs(options: SongFilterOptions = {}): Promise<Song[]> {
 		try {
 			// Ensure user has a current church
-			if (!auth.currentChurch?.id) {
+			if (!this.authContext.currentChurch?.id) {
 				throw new Error('No church selected. Please select a church to view songs.');
 			}
 
-			let filter = `is_active = true && church_id = "${auth.currentChurch.id}"`;
+			let filter = `is_active = true && church_id = "${this.authContext.currentChurch.id}"`;
 			const filterParts: string[] = [];
 
 			// Add search filter
@@ -85,7 +87,7 @@ export class SongsAPI {
 
 		try {
 			// Ensure user has a current church
-			if (!auth.currentChurch?.id) {
+			if (!this.authContext.currentChurch?.id) {
 				throw new Error('No church selected. Please select a church to view songs.');
 			}
 
@@ -98,7 +100,7 @@ export class SongsAPI {
 			const recentSongIds = recentUsage.map((u) => u.song_id);
 
 			// Build filter to exclude recently used songs
-			let filterQuery = `is_active = true && church_id = "${auth.currentChurch.id}"`;
+			let filterQuery = `is_active = true && church_id = "${this.authContext.currentChurch.id}"`;
 			if (recentSongIds.length > 0) {
 				const excludeFilter = recentSongIds.map((id) => `id != "${id}"`).join(' && ');
 				filterQuery += ` && (${excludeFilter})`;
@@ -149,11 +151,11 @@ export class SongsAPI {
 	}> {
 		try {
 			// Ensure user has a current church
-			if (!auth.currentChurch?.id) {
+			if (!this.authContext.currentChurch?.id) {
 				throw new Error('No church selected. Please select a church to view songs.');
 			}
 
-			let filter = `is_active = true && church_id = "${auth.currentChurch.id}"`;
+			let filter = `is_active = true && church_id = "${this.authContext.currentChurch.id}"`;
 			const filterParts: string[] = [];
 
 			// Apply same filtering logic as getSongs
@@ -213,7 +215,7 @@ export class SongsAPI {
 	async createSong(data: CreateSongData): Promise<Song> {
 		try {
 			// Ensure user has a current church
-			if (!auth.currentChurch?.id) {
+			if (!this.authContext.currentChurch?.id) {
 				throw new Error('No church selected. Please select a church to add songs.');
 			}
 
@@ -221,7 +223,7 @@ export class SongsAPI {
 			const formData = new FormData();
 
 			// Add church context - REQUIRED for church-scoped data
-			formData.append('church_id', auth.currentChurch.id);
+			formData.append('church_id', this.authContext.currentChurch.id);
 
 			// Add text fields
 			formData.append('title', data.title);
@@ -260,7 +262,7 @@ export class SongsAPI {
 			}
 
 			// Add metadata
-			formData.append('created_by', pb.authStore.model?.id || '');
+			formData.append('created_by', this.authContext.user?.id || '');
 			formData.append('is_active', 'true');
 
 			const record = await pb.collection(this.collection).create(formData);
@@ -523,5 +525,39 @@ export class SongsAPI {
 	}
 }
 
-// Export singleton instance
-export const songsApi = new SongsAPI();
+// Legacy import removed - using dependency injection
+
+// Factory function for creating API instances
+export function createSongsAPI(authContext: AuthContext): SongsAPI {
+	return new SongsAPI(authContext);
+}
+
+// Import for legacy proxy (will be removed in future migration)
+import { getAuthStore } from '$lib/context/stores.svelte';
+
+// Dynamic accessor that always uses current auth state
+class SongsAPIProxy {
+	private get api() {
+		const auth = getAuthStore();
+		return new SongsAPI(auth.getAuthContext());
+	}
+	
+	getSongs = (options?: SongFilterOptions) => this.api.getSongs(options);
+	getAvailableSongs = (weeksToCheck?: number) => this.api.getAvailableSongs(weeksToCheck);
+	getSong = (id: string) => this.api.getSong(id);
+	getSongsPaginated = (page: number, perPage: number, options?: SongFilterOptions) => 
+		this.api.getSongsPaginated(page, perPage, options);
+	createSong = (data: CreateSongData) => this.api.createSong(data);
+	updateSong = (id: string, data: UpdateSongData) => this.api.updateSong(id, data);
+	deleteSong = (id: string) => this.api.deleteSong(id);
+	searchSongs = (query: string) => this.api.searchSongs(query);
+	getSongLastUsage = (songId: string) => this.api.getSongLastUsage(songId);
+	getSongsUsageInfo = (songIds: string[]) => this.api.getSongsUsageInfo(songIds);
+	getSongUsageHistory = (songId: string) => this.api.getSongUsageHistory(songId);
+	getPopularSongs = (limit?: number) => this.api.getPopularSongs(limit);
+	getPersonalPopularSongs = (userId: string, limit?: number) => this.api.getPersonalPopularSongs(userId, limit);
+	subscribe = (callback: (data: unknown) => void) => this.api.subscribe(callback);
+}
+
+// Export singleton instance for backward compatibility
+export const songsApi = new SongsAPIProxy();

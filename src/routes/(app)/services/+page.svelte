@@ -1,12 +1,14 @@
 <script lang="ts">
-	import { auth } from '$lib/stores/auth.svelte';
-	import { servicesStore } from '$lib/stores/services.svelte';
+	import { getAuthStore, getServicesStore } from '$lib/context/stores.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import ServiceBuilder from '$lib/components/services/ServiceBuilder.svelte';
 	import { onMount } from 'svelte';
+
+	const auth = getAuthStore();
+	const servicesStore = getServicesStore();
 
 	let showCreateModal = $state(false);
 	let showBuilder = $state(false);

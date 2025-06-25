@@ -1,7 +1,7 @@
 import { SystemAPI } from '$lib/api/system.js';
 import { importSampleData, createDefaultCategories } from '$lib/data/sample-data.js';
-import { songsApi } from '$lib/api/songs.js';
-import { categoriesApi } from '$lib/api/categories.js';
+import { createSongsAPI } from '$lib/api/songs.js';
+import { createCategoriesAPI } from '$lib/api/categories.js';
 import type { SystemStatus, SetupStep } from '$lib/types/quickstart.js';
 
 class QuickstartStore {
@@ -140,12 +140,17 @@ class QuickstartStore {
 
 	private async importSampleData() {
 		// This requires a logged-in user, so we'll check if auth is available
-		const { auth } = await import('$lib/stores/auth.svelte.js');
+		const { createAuthStore } = await import('$lib/stores/auth.svelte.js');
+		const auth = createAuthStore();
 		const currentUser = auth.user;
 
 		if (!currentUser) {
 			throw new Error('Must be logged in to import sample data');
 		}
+
+		const authContext = auth.getAuthContext();
+		const songsApi = createSongsAPI(authContext);
+		const categoriesApi = createCategoriesAPI(authContext);
 
 		await importSampleData(songsApi, categoriesApi);
 		this.updateStepStatus('sample-data', 'completed');
@@ -153,12 +158,16 @@ class QuickstartStore {
 
 	private async createDefaultCategories() {
 		// This requires a logged-in user (admin check removed for setup flow)
-		const { auth } = await import('$lib/stores/auth.svelte.js');
+		const { createAuthStore } = await import('$lib/stores/auth.svelte.js');
+		const auth = createAuthStore();
 		const currentUser = auth.user;
 
 		if (!currentUser) {
 			throw new Error('Must be logged in to create categories');
 		}
+
+		const authContext = auth.getAuthContext();
+		const categoriesApi = createCategoriesAPI(authContext);
 
 		await createDefaultCategories(categoriesApi);
 		this.updateStepStatus('default-categories', 'completed');
@@ -189,8 +198,14 @@ class QuickstartStore {
 
 		// Reload data to show newly created songs and categories
 		try {
-			// Import the songs store and reload songs
-			const { songsStore } = await import('$lib/stores/songs.svelte.js');
+			// Import the auth and songs stores and reload songs
+			const { createAuthStore } = await import('$lib/stores/auth.svelte.js');
+			const { createSongsStore } = await import('$lib/stores/songs.svelte.js');
+			
+			const auth = createAuthStore();
+			const authContext = auth.getAuthContext();
+			const songsStore = createSongsStore(authContext);
+			
 			await songsStore.loadSongs(true); // Reset to first page
 
 			// Trigger a custom event that components can listen to for data refresh
@@ -225,4 +240,10 @@ class QuickstartStore {
 	}
 }
 
-export const quickstartStore = new QuickstartStore();
+// Export the class type for tests
+export type { QuickstartStore };
+
+// Factory function for creating new store instances
+export function createQuickstartStore(): QuickstartStore {
+	return new QuickstartStore();
+}

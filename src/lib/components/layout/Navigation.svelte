@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { page as pageStore } from '$app/stores';
-	import { auth } from '$lib/stores/auth.svelte';
-	import { quickstartStore } from '$lib/stores/quickstart.svelte';
+	import { getAuthStore, getQuickstartStore } from '$lib/context/stores.svelte';
 	import ChurchSwitcher from './ChurchSwitcher.svelte';
+
+	const auth = getAuthStore();
+	const quickstartStore = getQuickstartStore();
 
 	// User menu dropdown state
 	let userMenuOpen = $state(false);

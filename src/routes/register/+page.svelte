@@ -1,9 +1,11 @@
 <script lang="ts">
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import AuthForm from '$lib/components/auth/AuthForm.svelte';
 	import type { RegisterData } from '$lib/types/auth';
+
+	const auth = getAuthStore();
 
 	// Redirect if already logged in
 	onMount(() => {

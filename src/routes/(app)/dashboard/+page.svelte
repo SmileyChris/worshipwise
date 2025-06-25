@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { songsStore } from '$lib/stores/songs.svelte';
-	import { quickstartStore } from '$lib/stores/quickstart.svelte';
+	import { getSongsStore, getQuickstartStore } from '$lib/context/stores.svelte';
 	import WelcomeCard from '$lib/components/quickstart/WelcomeCard.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import { Music, Clock, TrendingUp, Users } from 'lucide-svelte';
 
-	const songs = songsStore;
-	const quickstart = quickstartStore;
+	const songs = getSongsStore();
+	const quickstart = getQuickstartStore();
 
 	// Load recent songs for dashboard
 	$effect(() => {

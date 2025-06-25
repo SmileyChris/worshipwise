@@ -1,23 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/svelte';
+import { screen, fireEvent } from '@testing-library/svelte';
 import '@testing-library/jest-dom/vitest';
 import ChurchSwitcher from './ChurchSwitcher.svelte';
-
-vi.mock('$lib/stores/auth.svelte', () => ({
-	auth: {
-		user: { id: 'user1', email: 'test@example.com' },
-		currentChurch: { id: 'church1', name: 'Test Church' },
-		availableChurches: [{ id: 'church1', name: 'Test Church' }],
-		churchMemberships: [],
-		switchChurch: vi.fn(),
-		leaveChurch: vi.fn(),
-		error: null,
-		pendingInvites: [],
-		pendingInvitesCount: 0,
-		hasPendingInvites: false,
-		invitesLoading: false
-	}
-}));
+import { renderWithContext } from '../../../../tests/helpers/component-test-utils';
+import { mockUser, mockChurch, mockMembership } from '../../../../tests/helpers/mock-builders';
 
 vi.mock('$app/stores', () => ({
 	page: {
@@ -38,14 +24,20 @@ describe('ChurchSwitcher - Basic Tests', () => {
 	});
 
 	it('should render when user has a church', () => {
-		render(ChurchSwitcher);
+		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
+		renderWithContext(ChurchSwitcher, {
+			currentChurch: testChurch
+		});
 
 		expect(screen.getByRole('button')).toBeInTheDocument();
 		expect(screen.getByText('Test Church')).toBeInTheDocument();
 	});
 
 	it('should have proper aria attributes', () => {
-		render(ChurchSwitcher);
+		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
+		renderWithContext(ChurchSwitcher, {
+			currentChurch: testChurch
+		});
 
 		const button = screen.getByRole('button');
 		expect(button).toHaveAttribute('aria-expanded', 'false');
@@ -53,7 +45,10 @@ describe('ChurchSwitcher - Basic Tests', () => {
 	});
 
 	it('should show church icon', () => {
-		render(ChurchSwitcher);
+		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
+		renderWithContext(ChurchSwitcher, {
+			currentChurch: testChurch
+		});
 
 		// Check for the Church icon SVG
 		const svg = screen.getByRole('button').querySelector('svg');
@@ -67,10 +62,8 @@ describe('ChurchSwitcher - Invitation Features', () => {
 	});
 
 	it('should show notification badge when user has pending invites', async () => {
-		const { auth } = vi.mocked(await import('$lib/stores/auth.svelte'));
-		auth.hasPendingInvites = true;
-		auth.pendingInvitesCount = 2;
-		auth.pendingInvites = [
+		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
+		const pendingInvites = [
 			{
 				id: 'invite1',
 				token: 'token1',
@@ -91,7 +84,10 @@ describe('ChurchSwitcher - Invitation Features', () => {
 			}
 		];
 
-		render(ChurchSwitcher);
+		renderWithContext(ChurchSwitcher, {
+			currentChurch: testChurch,
+			pendingInvites
+		});
 
 		// Should show pulsing notification badge
 		const pulsingBadge = screen.getByRole('button').querySelector('.animate-ping');
@@ -99,12 +95,12 @@ describe('ChurchSwitcher - Invitation Features', () => {
 	});
 
 	it('should not show notification badge when no pending invites', async () => {
-		const { auth } = vi.mocked(await import('$lib/stores/auth.svelte'));
-		auth.hasPendingInvites = false;
-		auth.pendingInvitesCount = 0;
-		auth.pendingInvites = [];
+		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
 
-		render(ChurchSwitcher);
+		renderWithContext(ChurchSwitcher, {
+			currentChurch: testChurch,
+			pendingInvites: []
+		});
 
 		// Should not show pulsing notification badge
 		const pulsingBadge = screen.getByRole('button').querySelector('.animate-ping');
@@ -112,10 +108,8 @@ describe('ChurchSwitcher - Invitation Features', () => {
 	});
 
 	it('should show invitations section in dropdown when there are pending invites', async () => {
-		const { auth } = vi.mocked(await import('$lib/stores/auth.svelte'));
-		auth.hasPendingInvites = true;
-		auth.pendingInvitesCount = 2;
-		auth.pendingInvites = [
+		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
+		const pendingInvites = [
 			{
 				id: 'invite1',
 				token: 'token1',
@@ -136,7 +130,10 @@ describe('ChurchSwitcher - Invitation Features', () => {
 			}
 		];
 
-		render(ChurchSwitcher);
+		renderWithContext(ChurchSwitcher, {
+			currentChurch: testChurch,
+			pendingInvites
+		});
 
 		// Open dropdown
 		const button = screen.getByRole('button');
@@ -151,10 +148,8 @@ describe('ChurchSwitcher - Invitation Features', () => {
 	});
 
 	it('should limit displayed invitations to 3 and show "View all" link', async () => {
-		const { auth } = vi.mocked(await import('$lib/stores/auth.svelte'));
-		auth.hasPendingInvites = true;
-		auth.pendingInvitesCount = 5;
-		auth.pendingInvites = [
+		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
+		const pendingInvites = [
 			{
 				id: 'invite1',
 				token: 'token1',
@@ -187,7 +182,10 @@ describe('ChurchSwitcher - Invitation Features', () => {
 			}
 		];
 
-		render(ChurchSwitcher);
+		renderWithContext(ChurchSwitcher, {
+			currentChurch: testChurch,
+			pendingInvites
+		});
 
 		// Open dropdown
 		const button = screen.getByRole('button');
@@ -205,12 +203,12 @@ describe('ChurchSwitcher - Invitation Features', () => {
 	});
 
 	it('should not show invitations section when no pending invites', async () => {
-		const { auth } = vi.mocked(await import('$lib/stores/auth.svelte'));
-		auth.hasPendingInvites = false;
-		auth.pendingInvitesCount = 0;
-		auth.pendingInvites = [];
+		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
 
-		render(ChurchSwitcher);
+		renderWithContext(ChurchSwitcher, {
+			currentChurch: testChurch,
+			pendingInvites: []
+		});
 
 		// Open dropdown
 		const button = screen.getByRole('button');
@@ -221,10 +219,8 @@ describe('ChurchSwitcher - Invitation Features', () => {
 	});
 
 	it('should have correct links for invitations', async () => {
-		const { auth } = vi.mocked(await import('$lib/stores/auth.svelte'));
-		auth.hasPendingInvites = true;
-		auth.pendingInvitesCount = 1;
-		auth.pendingInvites = [
+		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
+		const pendingInvites = [
 			{
 				id: 'invite1',
 				token: 'test-token-123',
@@ -235,7 +231,10 @@ describe('ChurchSwitcher - Invitation Features', () => {
 			}
 		];
 
-		render(ChurchSwitcher);
+		renderWithContext(ChurchSwitcher, {
+			currentChurch: testChurch,
+			pendingInvites
+		});
 
 		// Open dropdown
 		const button = screen.getByRole('button');
@@ -247,10 +246,8 @@ describe('ChurchSwitcher - Invitation Features', () => {
 	});
 
 	it('should handle missing church name in invitation', async () => {
-		const { auth } = vi.mocked(await import('$lib/stores/auth.svelte'));
-		auth.hasPendingInvites = true;
-		auth.pendingInvitesCount = 1;
-		auth.pendingInvites = [
+		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
+		const pendingInvites = [
 			{
 				id: 'invite1',
 				token: 'token1',
@@ -259,7 +256,10 @@ describe('ChurchSwitcher - Invitation Features', () => {
 			}
 		];
 
-		render(ChurchSwitcher);
+		renderWithContext(ChurchSwitcher, {
+			currentChurch: testChurch,
+			pendingInvites
+		});
 
 		// Open dropdown
 		const button = screen.getByRole('button');

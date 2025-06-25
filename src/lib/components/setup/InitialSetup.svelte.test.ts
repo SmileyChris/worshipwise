@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { goto } from '$app/navigation';
 import InitialSetup from './InitialSetup.svelte';
 import { ChurchesAPI } from '$lib/api/churches';
-import { setupStore } from '$lib/stores/setup.svelte';
+import { createSetupStore } from '$lib/stores/setup.svelte';
 
 // Mock dependencies
 vi.mock('$app/navigation', () => ({
@@ -18,17 +18,18 @@ vi.mock('$lib/api/churches', () => ({
 }));
 
 vi.mock('$lib/stores/setup.svelte', () => ({
-	setupStore: {
+	createSetupStore: vi.fn(() => ({
 		markSetupCompleted: vi.fn()
-	}
+	}))
 }));
 
 const mockedGoto = goto as MockedFunction<typeof goto>;
 const mockedChurchesAPI = ChurchesAPI as unknown as {
 	initialSetup: MockedFunction<any>;
 };
-const mockedSetupStore = setupStore as unknown as {
-	markSetupCompleted: MockedFunction<any>;
+const mockedCreateSetupStore = createSetupStore as MockedFunction<any>;
+const mockedSetupStore = {
+	markSetupCompleted: vi.fn()
 };
 
 describe('InitialSetup', () => {
@@ -36,6 +37,8 @@ describe('InitialSetup', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// Make sure createSetupStore returns our mocked store
+		mockedCreateSetupStore.mockReturnValue(mockedSetupStore);
 	});
 
 	describe('Step 1 - Church Information', () => {

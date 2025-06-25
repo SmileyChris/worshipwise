@@ -19,8 +19,10 @@
 	import UserEditModal from '$lib/components/admin/UserEditModal.svelte';
 	import ConfirmDialog from '$lib/components/admin/ConfirmDialog.svelte';
 	import InviteMemberModal from '$lib/components/admin/InviteMemberModal.svelte';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import { Trash2, UserPlus } from 'lucide-svelte';
+
+	const auth = getAuthStore();
 
 	// State
 	let users = $state<UserListResponse | null>(null);

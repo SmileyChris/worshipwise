@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { servicesStore } from './services.svelte';
-import { auth } from './auth.svelte';
+import { createServicesStore, type ServicesStore } from './services.svelte';
+import type { AuthContext } from '$lib/types/auth';
 import type {
 	Service,
 	ServiceSong,
@@ -15,6 +15,9 @@ import { mockPb } from '$tests/helpers/pb-mock';
 import { mockService, mockServiceSong, mockSong, mockAuthContext } from '$tests/helpers/mock-builders';
 
 describe('ServicesStore', () => {
+	let servicesStore: ServicesStore;
+	let authContext: AuthContext;
+
 	// Use factory functions for test data
 	const testService = mockService({
 		id: 'service-1',
@@ -46,8 +49,8 @@ describe('ServicesStore', () => {
 		vi.clearAllMocks();
 		mockPb.reset();
 
-		// Set up auth context with church
-		const authContext = mockAuthContext({
+		// Create auth context for dependency injection
+		authContext = mockAuthContext({
 			church: { id: 'church-1', name: 'Test Church' },
 			user: { id: 'user-1', current_church_id: 'church-1' },
 			membership: { 
@@ -57,24 +60,9 @@ describe('ServicesStore', () => {
 				}
 			}
 		});
-		mockPb.setAuthState(authContext.user);
-		auth.user = authContext.user;
-		auth.currentMembership = authContext.membership;
 
-		// Reset the store state
-		servicesStore.services = [];
-		servicesStore.loading = false;
-		servicesStore.error = null;
-		servicesStore.currentService = null;
-		servicesStore.currentServiceSongs = [];
-		servicesStore.templates = [];
-		servicesStore.upcomingServices = [];
-		servicesStore.filters = {
-			search: '',
-			status: undefined,
-			sort: '-service_date'
-		};
-		servicesStore.clearBuilderState();
+		// Create fresh store instance with auth context
+		servicesStore = createServicesStore(authContext);
 	});
 
 	describe('loadServices', () => {
@@ -183,19 +171,7 @@ describe('ServicesStore', () => {
 
 	describe('createService', () => {
 		it('should create service successfully', async () => {
-			// Ensure auth context is properly set
-			const authContext = mockAuthContext({
-				church: { id: 'church-1', name: 'Test Church' },
-				user: { id: 'user-1', current_church_id: 'church-1' },
-				membership: { 
-					church_id: 'church-1',
-					expand: {
-						church_id: { id: 'church-1', name: 'Test Church' }
-					}
-				}
-			});
-			auth.user = authContext.user;
-			auth.currentMembership = authContext.membership;
+			// Auth context is already set in beforeEach
 
 			const createData: CreateServiceData = {
 				title: 'New Service',
@@ -524,19 +500,7 @@ describe('ServicesStore', () => {
 
 	describe('duplicateService', () => {
 		it('should duplicate service successfully', async () => {
-			// Ensure auth context is properly set
-			const authContext = mockAuthContext({
-				church: { id: 'church-1', name: 'Test Church' },
-				user: { id: 'user-1', current_church_id: 'church-1' },
-				membership: { 
-					church_id: 'church-1',
-					expand: {
-						church_id: { id: 'church-1', name: 'Test Church' }
-					}
-				}
-			});
-			auth.user = authContext.user;
-			auth.currentMembership = authContext.membership;
+			// Auth context is already set in beforeEach
 
 			const newData = { title: 'Duplicated Service', service_date: new Date().toISOString() };
 			const duplicatedService = { ...testService, id: 'service-2', name: 'Duplicated Service' };
@@ -546,7 +510,14 @@ describe('ServicesStore', () => {
 
 			expect(result).toEqual(duplicatedService);
 			expect(servicesStore.services).toEqual([duplicatedService]);
-			expect(mockPb.collection('services').create).toHaveBeenCalledWith('service-1', newData);
+			expect(mockPb.collection('services').create).toHaveBeenCalledWith(
+			expect.objectContaining({
+				title: expect.stringContaining('Duplicated Service'),
+				church_id: 'church-1',
+				created_by: 'user-1',
+				status: 'draft'
+			})
+		);
 		});
 
 		it('should handle errors when duplicating service', async () => {
@@ -566,19 +537,7 @@ describe('ServicesStore', () => {
 		});
 
 		it('should complete service successfully', async () => {
-			// Ensure auth context is properly set
-			const authContext = mockAuthContext({
-				church: { id: 'church-1', name: 'Test Church' },
-				user: { id: 'user-1', current_church_id: 'church-1' },
-				membership: { 
-					church_id: 'church-1',
-					expand: {
-						church_id: { id: 'church-1', name: 'Test Church' }
-					}
-				}
-			});
-			auth.user = authContext.user;
-			auth.currentMembership = authContext.membership;
+			// Auth context is already set in beforeEach
 
 			const completedService = { ...testService, status: 'completed', actual_duration: 3500 };
 			mockPb.collection('services').update.mockResolvedValue(completedService);
@@ -589,7 +548,10 @@ describe('ServicesStore', () => {
 			expect(servicesStore.services[0]).toEqual(completedService);
 			expect(servicesStore.currentService).toEqual(completedService);
 			expect(servicesStore.builderState.service).toEqual(completedService);
-			expect(mockPb.collection('services').update).toHaveBeenCalledWith('service-1', 3500);
+			expect(mockPb.collection('services').update).toHaveBeenCalledWith('service-1', {
+			status: 'completed',
+			actual_duration: 3500
+		});
 		});
 
 		it('should handle errors when completing service', async () => {

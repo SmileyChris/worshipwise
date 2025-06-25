@@ -260,4 +260,11 @@ class RecommendationsStore {
 	}
 }
 
-export const recommendationsStore = new RecommendationsStore();
+// Export the class type for tests
+export type { RecommendationsStore };
+
+// Factory function for creating new store instances
+export function createRecommendationsStore(): RecommendationsStore {
+	return new RecommendationsStore();
+}
+

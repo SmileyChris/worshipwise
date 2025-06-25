@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { auth } from '$lib/stores/auth.svelte';
-	import { quickstartStore } from '$lib/stores/quickstart.svelte';
+	import { getAuthStore, getQuickstartStore } from '$lib/context/stores.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import Navigation from '$lib/components/layout/Navigation.svelte';
@@ -9,6 +8,9 @@
 	import ErrorBoundary from '$lib/components/quickstart/ErrorBoundary.svelte';
 
 	let { children } = $props();
+
+	const auth = getAuthStore();
+	const quickstartStore = getQuickstartStore();
 
 	let connectionError = $state(null);
 

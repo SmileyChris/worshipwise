@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ChurchesAPI } from '$lib/api/churches';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
@@ -14,6 +14,8 @@
 	}
 
 	let { open, onclose, onsuccess }: Props = $props();
+
+	const auth = getAuthStore();
 
 	// Form state
 	let email = $state('');

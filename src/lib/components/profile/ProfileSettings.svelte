@@ -5,7 +5,7 @@
 	import Card from '$lib/components/ui/Card.svelte';
 
 	// Store import
-	import { auth } from '$lib/stores/auth.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import { pb } from '$lib/api/client';
 	import type { User } from '$lib/types/auth';
 
@@ -15,6 +15,8 @@
 	}
 
 	let { class: className = '' }: Props = $props();
+
+	const auth = getAuthStore();
 
 	// Form state
 	let email = $state(auth.user?.email || '');
