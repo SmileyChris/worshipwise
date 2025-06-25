@@ -18,8 +18,9 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import UserEditModal from '$lib/components/admin/UserEditModal.svelte';
 	import ConfirmDialog from '$lib/components/admin/ConfirmDialog.svelte';
+	import InviteMemberModal from '$lib/components/admin/InviteMemberModal.svelte';
 	import { auth } from '$lib/stores/auth.svelte';
-	import { Trash2 } from 'lucide-svelte';
+	import { Trash2, UserPlus } from 'lucide-svelte';
 
 	// State
 	let users = $state<UserListResponse | null>(null);
@@ -36,6 +37,7 @@
 	let editingUser = $state<UserWithMembership | null>(null);
 	let deletingUser = $state<UserWithMembership | null>(null);
 	let deletingChurch = $state(false);
+	let showInviteModal = $state(false);
 	let actionLoading = $state(false);
 
 	// Search debounce
@@ -198,6 +200,12 @@
 			<p class="text-sm text-gray-500">
 				{users ? `${users.totalItems} total users` : 'Loading users...'}
 			</p>
+		</div>
+		<div>
+			<Button onclick={() => (showInviteModal = true)} size="sm">
+				<UserPlus class="mr-2 h-4 w-4" />
+				Invite Member
+			</Button>
 		</div>
 	</div>
 
@@ -545,3 +553,13 @@
 		danger={true}
 	/>
 {/if}
+
+<!-- Invite Member Modal -->
+<InviteMemberModal
+	open={showInviteModal}
+	onclose={() => (showInviteModal = false)}
+	onsuccess={() => {
+		// Optionally reload users list to show pending invites
+		loadUsers();
+	}}
+/>

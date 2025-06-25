@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { auth } from '$lib/stores/auth.svelte';
 	import { page } from '$app/stores';
-	import { ChevronDown, Church, Building, Settings, LogOut, Plus } from 'lucide-svelte';
+	import { ChevronDown, Church, Building, Settings, LogOut, Plus, Mail } from 'lucide-svelte';
 	import type { Church as ChurchType } from '$lib/types/church';
 
 	// Component state
@@ -97,6 +97,12 @@
 		>
 			<Church class="h-4 w-4 {isInAdminContext ? 'text-primary' : 'text-gray-500'}" />
 			<span class="max-w-32 truncate">{getChurchDisplayName(auth.currentChurch)}</span>
+			{#if auth.hasPendingInvites}
+				<span class="relative flex h-2 w-2">
+					<span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+					<span class="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+				</span>
+			{/if}
 			<ChevronDown
 				class="h-3 w-3 text-gray-400 {dropdownOpen ? 'rotate-180' : ''} transition-transform"
 			/>
@@ -179,6 +185,44 @@
 						</div>
 					{/each}
 				</div>
+
+				<!-- Pending invitations section -->
+				{#if auth.hasPendingInvites}
+					<div class="border-t border-gray-100 py-1">
+						<div class="px-4 py-2">
+							<p class="text-xs font-medium tracking-wider text-gray-500 uppercase">
+								Invitations ({auth.pendingInvitesCount})
+							</p>
+						</div>
+						{#each auth.pendingInvites.slice(0, 3) as invite (invite.id)}
+							<a
+								href="/invites/{invite.token}"
+								class="flex w-full cursor-pointer items-center px-4 py-2 text-sm transition-colors hover:bg-blue-50"
+								onclick={closeDropdown}
+								role="menuitem"
+							>
+								<Mail class="mr-3 h-4 w-4 text-blue-500" />
+								<div class="min-w-0 flex-1">
+									<p class="truncate font-medium text-gray-900">
+										{invite.expand?.church_id?.name || 'Unknown Church'}
+									</p>
+									<p class="truncate text-xs text-gray-500">
+										Invited as {invite.role}
+									</p>
+								</div>
+							</a>
+						{/each}
+						{#if auth.pendingInvitesCount > 3}
+							<a
+								href="/invites"
+								class="block px-4 py-2 text-center text-xs text-blue-600 hover:text-blue-800"
+								onclick={closeDropdown}
+							>
+								View all invitations
+							</a>
+						{/if}
+					</div>
+				{/if}
 
 				<!-- Footer with actions -->
 				<div class="border-t border-gray-100 pt-2">

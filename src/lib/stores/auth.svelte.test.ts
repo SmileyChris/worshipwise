@@ -304,7 +304,7 @@ describe('AuthStore', () => {
 			expect(membershipsCollection.getList).toHaveBeenCalledWith(1, 1, {
 				filter: `user_id = "${mockUser.id}" && status = "active" && is_active = true`,
 				expand: 'church_id',
-				sort: '-created'
+				sort: '-joined_date'
 			});
 			expect(auth.currentMembership).toEqual(mockMembership);
 		});
@@ -741,6 +741,138 @@ describe('AuthStore', () => {
 			auth.error = 'Some error';
 			auth.clearError();
 			expect(auth.error).toBeNull();
+		});
+	});
+
+	describe('Invitation Management', () => {
+		beforeEach(() => {
+			// Mock ChurchesAPI methods
+			vi.mock('$lib/api/churches', () => ({
+				ChurchesAPI: {
+					getPendingInvites: vi.fn(),
+					acceptInvitation: vi.fn(),
+					declineInvitation: vi.fn()
+				}
+			}));
+		});
+
+		it('should load pending invites successfully', async () => {
+			const mockInvites = [
+				{
+					id: 'invite-1',
+					church_id: 'church1',
+					role: 'musician',
+					expand: {
+						church_id: { id: 'church1', name: 'Test Church' },
+						invited_by: { id: 'user1', name: 'Admin' }
+					}
+				}
+			];
+
+			// Mock the import to return our mocked methods
+			const { ChurchesAPI } = await import('$lib/api/churches');
+			(ChurchesAPI.getPendingInvites as any) = vi.fn().mockResolvedValue(mockInvites);
+
+			auth.user = { id: 'user1', email: 'test@example.com' } as User;
+			
+			await auth.loadPendingInvites();
+
+			expect(auth.pendingInvites).toEqual(mockInvites);
+			expect(auth.invitesLoading).toBe(false);
+		});
+
+		it('should handle pending invites loading error', async () => {
+			const { ChurchesAPI } = await import('$lib/api/churches');
+			(ChurchesAPI.getPendingInvites as any) = vi.fn().mockRejectedValue(new Error('Failed to load'));
+
+			auth.user = { id: 'user1', email: 'test@example.com' } as User;
+			
+			await auth.loadPendingInvites();
+
+			expect(auth.pendingInvites).toEqual([]);
+			expect(auth.invitesLoading).toBe(false);
+		});
+
+		it('should not load invites if no user email', async () => {
+			const { ChurchesAPI } = await import('$lib/api/churches');
+			(ChurchesAPI.getPendingInvites as any) = vi.fn();
+
+			auth.user = { id: 'user1' } as User; // No email
+			
+			await auth.loadPendingInvites();
+
+			expect(ChurchesAPI.getPendingInvites).not.toHaveBeenCalled();
+			expect(auth.pendingInvites).toEqual([]);
+		});
+
+		it('should accept invitation successfully', async () => {
+			const mockChurch = { id: 'church1', name: 'Test Church' };
+			const { ChurchesAPI } = await import('$lib/api/churches');
+			(ChurchesAPI.acceptInvitation as any) = vi.fn().mockResolvedValue(mockChurch);
+
+			// Mock loadUserChurches and loadPendingInvites
+			auth.loadUserChurches = vi.fn().mockResolvedValue(undefined);
+			auth.loadPendingInvites = vi.fn().mockResolvedValue(undefined);
+			auth.switchChurch = vi.fn().mockResolvedValue(undefined);
+
+			await auth.acceptInvitation('test-token');
+
+			expect(ChurchesAPI.acceptInvitation).toHaveBeenCalledWith('test-token');
+			expect(auth.loadUserChurches).toHaveBeenCalled();
+			expect(auth.loadPendingInvites).toHaveBeenCalled();
+			expect(auth.switchChurch).toHaveBeenCalledWith('church1');
+			expect(auth.loading).toBe(false);
+			expect(auth.error).toBeNull();
+		});
+
+		it('should handle accept invitation error', async () => {
+			const { ChurchesAPI } = await import('$lib/api/churches');
+			(ChurchesAPI.acceptInvitation as any) = vi.fn().mockRejectedValue(new Error('Already a member'));
+
+			await expect(auth.acceptInvitation('test-token')).rejects.toThrow();
+			
+			expect(auth.loading).toBe(false);
+			expect(auth.error).toBe('Already a member');
+		});
+
+		it('should decline invitation successfully', async () => {
+			const { ChurchesAPI } = await import('$lib/api/churches');
+			(ChurchesAPI.declineInvitation as any) = vi.fn().mockResolvedValue(undefined);
+
+			auth.loadPendingInvites = vi.fn().mockResolvedValue(undefined);
+
+			await auth.declineInvitation('test-token');
+
+			expect(ChurchesAPI.declineInvitation).toHaveBeenCalledWith('test-token');
+			expect(auth.loadPendingInvites).toHaveBeenCalled();
+			expect(auth.loading).toBe(false);
+			expect(auth.error).toBeNull();
+		});
+
+		it('should handle decline invitation error', async () => {
+			const { ChurchesAPI } = await import('$lib/api/churches');
+			(ChurchesAPI.declineInvitation as any) = vi.fn().mockRejectedValue(new Error('Invalid token'));
+
+			await expect(auth.declineInvitation('test-token')).rejects.toThrow();
+			
+			expect(auth.loading).toBe(false);
+			expect(auth.error).toBe('Invalid token');
+		});
+
+		it('should compute pendingInvitesCount correctly', () => {
+			auth.pendingInvites = [];
+			expect(auth.pendingInvitesCount).toBe(0);
+
+			auth.pendingInvites = [{ id: '1' }, { id: '2' }, { id: '3' }] as any;
+			expect(auth.pendingInvitesCount).toBe(3);
+		});
+
+		it('should compute hasPendingInvites correctly', () => {
+			auth.pendingInvites = [];
+			expect(auth.hasPendingInvites).toBe(false);
+
+			auth.pendingInvites = [{ id: '1' }] as any;
+			expect(auth.hasPendingInvites).toBe(true);
 		});
 	});
 });

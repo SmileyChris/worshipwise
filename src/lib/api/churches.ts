@@ -226,6 +226,30 @@ export class ChurchesAPI {
 	}
 
 	/**
+	 * Get pending invitations for current user
+	 */
+	static async getPendingInvites(): Promise<any[]> {
+		if (!pb.authStore.model?.email) return [];
+		
+		return await pb.collection('church_invitations').getFullList({
+			filter: `email = "${pb.authStore.model.email}" && is_active = true && expires_at > @now`,
+			expand: 'church_id,invited_by',
+			sort: '-created'
+		});
+	}
+
+	/**
+	 * Get invitation by token
+	 */
+	static async getInvitationByToken(token: string): Promise<any> {
+		return await pb
+			.collection('church_invitations')
+			.getFirstListItem(`token = "${token}" && is_active = true && expires_at > @now`, {
+				expand: 'church_id,invited_by'
+			});
+	}
+
+	/**
 	 * Accept church invitation
 	 */
 	static async acceptInvitation(token: string): Promise<Church> {
@@ -234,6 +258,15 @@ export class ChurchesAPI {
 			.getFirstListItem(`token = "${token}" && is_active = true && expires_at > @now`, {
 				expand: 'church_id'
 			});
+
+		// Check if user already has membership in this church
+		const existingMembership = await pb.collection('church_memberships').getFullList({
+			filter: `church_id = "${invitation.church_id}" && user_id = "${pb.authStore.model?.id}"`
+		});
+
+		if (existingMembership.length > 0) {
+			throw new Error('You are already a member of this church');
+		}
 
 		// Create membership
 		await pb.collection('church_memberships').create({
@@ -256,6 +289,71 @@ export class ChurchesAPI {
 		});
 
 		return invitation.expand?.church_id as Church;
+	}
+
+	/**
+	 * Decline church invitation
+	 */
+	static async declineInvitation(token: string): Promise<void> {
+		const invitation = await pb
+			.collection('church_invitations')
+			.getFirstListItem(`token = "${token}" && is_active = true && expires_at > @now`);
+
+		// Mark invitation as declined
+		await pb.collection('church_invitations').update(invitation.id, {
+			is_active: false,
+			declined_at: new Date().toISOString(),
+			declined_by: pb.authStore.model?.id || invitation.email
+		});
+	}
+
+	/**
+	 * Get sent invitations for a church (admin only)
+	 */
+	static async getSentInvitations(churchId: string): Promise<any[]> {
+		return await pb.collection('church_invitations').getFullList({
+			filter: `church_id = "${churchId}"`,
+			expand: 'invited_by,used_by',
+			sort: '-created'
+		});
+	}
+
+	/**
+	 * Cancel invitation (admin only)
+	 */
+	static async cancelInvitation(invitationId: string): Promise<void> {
+		await pb.collection('church_invitations').update(invitationId, {
+			is_active: false,
+			cancelled_at: new Date().toISOString(),
+			cancelled_by: pb.authStore.model?.id
+		});
+	}
+
+	/**
+	 * Resend invitation (creates new invitation with same details)
+	 */
+	static async resendInvitation(invitationId: string): Promise<void> {
+		const originalInvite = await pb.collection('church_invitations').getOne(invitationId);
+		
+		// Cancel the old invitation
+		await this.cancelInvitation(invitationId);
+		
+		// Create a new invitation with fresh token and expiry
+		const token = crypto.randomUUID();
+		const expiresAt = new Date();
+		expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+
+		await pb.collection('church_invitations').create({
+			church_id: originalInvite.church_id,
+			email: originalInvite.email,
+			role: originalInvite.role,
+			permissions: originalInvite.permissions,
+			invited_by: pb.authStore.model?.id,
+			token: token,
+			expires_at: expiresAt.toISOString(),
+			is_active: true,
+			resent_from: invitationId
+		});
 	}
 
 	/**

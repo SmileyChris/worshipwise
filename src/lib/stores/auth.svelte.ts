@@ -3,6 +3,7 @@ import { goto } from '$app/navigation';
 import { browser } from '$app/environment';
 import type { User, LoginCredentials, RegisterData } from '$lib/types/auth';
 import type { Church, ChurchMembership } from '$lib/types/church';
+import { ChurchesAPI } from '$lib/api/churches';
 
 class AuthStore {
 	// Reactive state using Svelte 5 runes
@@ -18,6 +19,10 @@ class AuthStore {
 	churchMemberships = $state<ChurchMembership[]>([]);
 	churchLoading = $state<boolean>(false);
 
+	// Invitation state
+	pendingInvites = $state<any[]>([]);
+	invitesLoading = $state<boolean>(false);
+
 	constructor() {
 		if (browser) {
 			// Initialize from PocketBase auth store
@@ -29,6 +34,7 @@ class AuthStore {
 			if (this.isValid && this.user) {
 				this.loadProfile();
 				this.loadUserChurches();
+				this.loadPendingInvites();
 			}
 
 			// Listen for auth changes from PocketBase
@@ -42,10 +48,12 @@ class AuthStore {
 				if (this.isValid && this.user) {
 					await this.loadProfile();
 					await this.loadUserChurches();
+					await this.loadPendingInvites();
 				} else {
 					this.currentMembership = null;
 					this.availableChurches = [];
 					this.churchMemberships = [];
+					this.pendingInvites = [];
 				}
 
 				console.log('Auth state changed:', {
@@ -472,6 +480,84 @@ class AuthStore {
 	 * Check if user has multiple church affiliations
 	 */
 	hasMultipleChurches = $derived(this.availableChurches.length > 1);
+
+	/**
+	 * Load pending invitations for the current user
+	 */
+	async loadPendingInvites(): Promise<void> {
+		if (!this.user?.email) return;
+
+		this.invitesLoading = true;
+		try {
+			this.pendingInvites = await ChurchesAPI.getPendingInvites();
+			console.log('Loaded pending invites:', this.pendingInvites.length);
+		} catch (error) {
+			console.error('Failed to load pending invites:', error);
+			this.pendingInvites = [];
+		} finally {
+			this.invitesLoading = false;
+		}
+	}
+
+	/**
+	 * Accept a church invitation
+	 */
+	async acceptInvitation(token: string): Promise<void> {
+		this.loading = true;
+		this.error = null;
+
+		try {
+			const church = await ChurchesAPI.acceptInvitation(token);
+			
+			// Reload churches and invitations
+			await this.loadUserChurches();
+			await this.loadPendingInvites();
+			
+			// Switch to the new church
+			await this.switchChurch(church.id);
+			
+			console.log('Invitation accepted successfully');
+		} catch (error: unknown) {
+			console.error('Failed to accept invitation:', error);
+			this.error = error instanceof Error ? error.message : 'Failed to accept invitation';
+			throw error;
+		} finally {
+			this.loading = false;
+		}
+	}
+
+	/**
+	 * Decline a church invitation
+	 */
+	async declineInvitation(token: string): Promise<void> {
+		this.loading = true;
+		this.error = null;
+
+		try {
+			await ChurchesAPI.declineInvitation(token);
+			
+			// Reload invitations
+			await this.loadPendingInvites();
+			
+			console.log('Invitation declined successfully');
+		} catch (error: unknown) {
+			console.error('Failed to decline invitation:', error);
+			this.error = error instanceof Error ? error.message : 'Failed to decline invitation';
+			throw error;
+		} finally {
+			this.loading = false;
+		}
+	}
+
+	/**
+	 * Get count of pending invites
+	 */
+	pendingInvitesCount = $derived(this.pendingInvites.length);
+
+	/**
+	 * Check if user has pending invites
+	 */
+	hasPendingInvites = $derived(this.pendingInvites.length > 0);
 }
 
 // Export singleton instance
