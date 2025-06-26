@@ -1,10 +1,9 @@
-import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest';
+import { goto } from '$app/navigation';
+import { createSetupStore } from '$lib/stores/setup.svelte';
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import { goto } from '$app/navigation';
+import { beforeEach, describe, expect, it, vi, type MockedFunction } from 'vitest';
 import InitialSetup from './InitialSetup.svelte';
-import { ChurchesAPI } from '$lib/api/churches';
-import { createSetupStore } from '$lib/stores/setup.svelte';
 
 // Mock dependencies
 vi.mock('$app/navigation', () => ({
@@ -28,7 +27,6 @@ vi.mock('$lib/stores/setup.svelte', () => ({
 }));
 
 const mockedGoto = goto as MockedFunction<typeof goto>;
-const mockedChurchesAPI = ChurchesAPI as any;
 const mockedCreateSetupStore = createSetupStore as MockedFunction<any>;
 const mockedSetupStore = {
 	markSetupCompleted: vi.fn()

@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { createChurchMistralClient, hasAIFeaturesEnabled } from '$lib/api/mistral-config';
-	import { createLyricsSearchClient, validateLyricsContent } from '$lib/api/lyrics';
-	import { createLabelsAPI } from '$lib/api/labels';
-	import type { LyricsAnalysis, Label } from '$lib/types/song';
-	import { getAuthStore } from '$lib/context/stores.svelte';
 	import { pb } from '$lib/api/client';
-	import Button from '$lib/components/ui/Button.svelte';
+	import { createLabelsAPI } from '$lib/api/labels';
+	import { createLyricsSearchClient, validateLyricsContent } from '$lib/api/lyrics';
+	import { createChurchMistralClient, hasAIFeaturesEnabled } from '$lib/api/mistral-config';
 	import Badge from '$lib/components/ui/Badge.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
+	import type { Label, LyricsAnalysis } from '$lib/types/song';
 	import { onMount } from 'svelte';
 
 	const auth = getAuthStore();
@@ -209,7 +209,7 @@
 	}
 
 	// Get step display text
-	const stepText = $derived(() => {
+	const stepText = $derived.by(() => {
 		switch (currentStep) {
 			case 'searching':
 				return 'Searching for lyrics...';
@@ -225,7 +225,7 @@
 	});
 
 	// Progress percentage
-	const progress = $derived(() => {
+	const progress = $derived.by(() => {
 		switch (currentStep) {
 			case 'searching':
 				return 25;

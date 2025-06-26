@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { createChurchesAPI } from '$lib/api/churches';
 	import { pb } from '$lib/api/client';
-	import { getAuthStore } from '$lib/context/stores.svelte';
-	import Modal from '$lib/components/ui/Modal.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
-	import Select from '$lib/components/ui/Select.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import { Mail, UserPlus, AlertCircle, CheckCircle } from 'lucide-svelte';
+	import Input from '$lib/components/ui/Input.svelte';
+	import Modal from '$lib/components/ui/Modal.svelte';
+	import Select from '$lib/components/ui/Select.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
+	import { AlertCircle, CheckCircle, Mail, UserPlus } from 'lucide-svelte';
 
 	interface Props {
 		open: boolean;
@@ -28,7 +28,7 @@
 	let success = $state(false);
 
 	// Form validation
-	let emailError = $derived(() => {
+	let emailError = $derived.by(() => {
 		if (!email) return null;
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		return emailRegex.test(email) ? null : 'Please enter a valid email address';

@@ -1,9 +1,9 @@
-import { pb } from '$lib/api/client';
-import { goto } from '$app/navigation';
 import { browser } from '$app/environment';
-import type { User, LoginCredentials, RegisterData, AuthContext } from '$lib/types/auth';
-import type { Church, ChurchMembership } from '$lib/types/church';
+import { goto } from '$app/navigation';
 import { createChurchesAPI, type ChurchesAPI } from '$lib/api/churches';
+import { pb } from '$lib/api/client';
+import type { AuthContext, LoginCredentials, RegisterData, User } from '$lib/types/auth';
+import type { Church, ChurchMembership } from '$lib/types/church';
 
 class AuthStore {
 	// Reactive state using Svelte 5 runes
@@ -470,7 +470,7 @@ class AuthStore {
 	/**
 	 * Get user's role in current church
 	 */
-	getCurrentChurchRole = $derived(() => {
+	getCurrentChurchRole = $derived.by(() => {
 		if (!this.currentChurch?.id || !this.churchMemberships.length) return 'member';
 
 		const membership = this.churchMemberships.find((m) => m.church_id === this.currentChurch!.id);
@@ -480,7 +480,7 @@ class AuthStore {
 	/**
 	 * Check if user can manage current church (is admin)
 	 */
-	canManageChurch = $derived(this.getCurrentChurchRole() === 'admin');
+	canManageChurch = $derived(this.getCurrentChurchRole === 'admin');
 
 	/**
 	 * Check if user has multiple church affiliations

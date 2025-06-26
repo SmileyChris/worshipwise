@@ -1,11 +1,11 @@
 import {
 	createRecommendationsAPI,
+	type ComparativePeriod,
 	type RecommendationsAPI,
+	type SeasonalTrend,
+	type ServiceBalanceAnalysis,
 	type SongRecommendation,
 	type WorshipFlowSuggestion,
-	type ServiceBalanceAnalysis,
-	type SeasonalTrend,
-	type ComparativePeriod,
 	type WorshipInsights
 } from '$lib/api/recommendations';
 import type { AuthContext } from '$lib/types/auth';
@@ -41,21 +41,17 @@ class RecommendationsStore {
 	});
 
 	// Derived state
-	rotationRecommendations = $derived(() =>
-		this.songRecommendations.filter((r) => r.type === 'rotation')
-	);
+	rotationRecommendations = $derived(this.songRecommendations.filter((r) => r.type === 'rotation'));
 
-	seasonalRecommendations = $derived(() =>
-		this.songRecommendations.filter((r) => r.type === 'seasonal')
-	);
+	seasonalRecommendations = $derived(this.songRecommendations.filter((r) => r.type === 'seasonal'));
 
-	flowRecommendations = $derived(() => this.songRecommendations.filter((r) => r.type === 'flow'));
+	flowRecommendations = $derived(this.songRecommendations.filter((r) => r.type === 'flow'));
 
-	keyCompatibilityRecommendations = $derived(() =>
+	keyCompatibilityRecommendations = $derived(
 		this.songRecommendations.filter((r) => r.type === 'key_compatibility')
 	);
 
-	highPriorityFlowSuggestions = $derived(() =>
+	highPriorityFlowSuggestions = $derived(
 		this.worshipFlowSuggestions.filter(
 			(s) => s.reason.includes('Large tempo change') || s.reason.includes('difficult')
 		)

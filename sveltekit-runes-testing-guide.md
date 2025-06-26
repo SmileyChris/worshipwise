@@ -78,7 +78,7 @@ test('increments', () => {
 // math.svelte.js
 export function double(n) {
 	let base = $state(n);
-	const d = $derived(() => base * 2);
+	const d = $derived(base * 2);
 	return { base: () => base, set: (v) => (base = v), double: () => d };
 }
 

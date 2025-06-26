@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import '@testing-library/jest-dom/vitest';
+import { fireEvent, render, screen } from '@testing-library/svelte';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AuthForm from './AuthForm.svelte';
 
 describe('AuthForm', () => {
@@ -55,18 +55,14 @@ describe('AuthForm', () => {
 
 			// Test invalid email
 			await fireEvent.input(emailInput, { target: { value: 'invalid-email' } });
-			await waitFor(() => {
-				expect(screen.getByText('Please enter a valid email address')).toBeInTheDocument();
-			});
+			expect(screen.getByText('Please enter a valid email address')).toBeInTheDocument();
 
 			// Submit button should be disabled
 			expect(submitButton).toBeDisabled();
 
 			// Test valid email
 			await fireEvent.input(emailInput, { target: { value: 'test@example.com' } });
-			await waitFor(() => {
-				expect(screen.queryByText('Please enter a valid email address')).not.toBeInTheDocument();
-			});
+			expect(screen.queryByText('Please enter a valid email address')).not.toBeInTheDocument();
 		});
 
 		it('should validate password field in login mode', async () => {
@@ -82,20 +78,14 @@ describe('AuthForm', () => {
 
 			// Test short password
 			await fireEvent.input(passwordInput, { target: { value: '123' } });
-			await waitFor(() => {
-				expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
-			});
+			expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
 
 			// Submit button should be disabled
 			expect(submitButton).toBeDisabled();
 
 			// Test valid password
 			await fireEvent.input(passwordInput, { target: { value: 'password123' } });
-			await waitFor(() => {
-				expect(
-					screen.queryByText('Password must be at least 8 characters')
-				).not.toBeInTheDocument();
-			});
+			expect(screen.queryByText('Password must be at least 8 characters')).not.toBeInTheDocument();
 		});
 
 		it('should submit login form with valid data', async () => {
@@ -113,9 +103,7 @@ describe('AuthForm', () => {
 			await fireEvent.input(emailInput, { target: { value: 'test@example.com' } });
 			await fireEvent.input(passwordInput, { target: { value: 'password123' } });
 
-			await waitFor(() => {
-				expect(submitButton).not.toBeDisabled();
-			});
+			expect(submitButton).not.toBeDisabled();
 
 			await fireEvent.click(submitButton);
 
@@ -198,9 +186,7 @@ describe('AuthForm', () => {
 
 			// Test valid name
 			await fireEvent.input(nameInput, { target: { value: 'John Doe' } });
-			await waitFor(() => {
-				expect(screen.queryByText('Name is required')).not.toBeInTheDocument();
-			});
+			expect(screen.queryByText('Name is required')).not.toBeInTheDocument();
 		});
 
 		it('should validate password confirmation in register mode', async () => {
@@ -217,15 +203,11 @@ describe('AuthForm', () => {
 			await fireEvent.input(passwordInput, { target: { value: 'password123' } });
 			await fireEvent.input(passwordConfirmInput, { target: { value: 'different123' } });
 
-			await waitFor(() => {
-				expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
-			});
+			expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
 
 			// Test matching passwords
 			await fireEvent.input(passwordConfirmInput, { target: { value: 'password123' } });
-			await waitFor(() => {
-				expect(screen.queryByText('Passwords do not match')).not.toBeInTheDocument();
-			});
+			expect(screen.queryByText('Passwords do not match')).not.toBeInTheDocument();
 		});
 
 		it('should submit register form with valid data', async () => {
@@ -247,9 +229,7 @@ describe('AuthForm', () => {
 			await fireEvent.input(passwordInput, { target: { value: 'password123' } });
 			await fireEvent.input(passwordConfirmInput, { target: { value: 'password123' } });
 
-			await waitFor(() => {
-				expect(submitButton).not.toBeDisabled();
-			});
+			expect(submitButton).not.toBeDisabled();
 
 			await fireEvent.click(submitButton);
 
@@ -281,9 +261,7 @@ describe('AuthForm', () => {
 			await fireEvent.input(passwordInput, { target: { value: 'password123' } });
 			await fireEvent.input(passwordConfirmInput, { target: { value: 'password123' } });
 
-			await waitFor(() => {
-				expect(submitButton).not.toBeDisabled();
-			});
+			expect(submitButton).not.toBeDisabled();
 
 			await fireEvent.click(submitButton);
 

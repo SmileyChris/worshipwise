@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
+import { renderWithContext } from '$tests/helpers/component-test-utils';
+import { fireEvent, screen } from '@testing-library/svelte';
 import { flushSync } from 'svelte';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import InviteMemberModal from './InviteMemberModal.svelte';
-import { mockChurch } from '../../../../tests/helpers/mock-builders';
-import { renderWithContext } from '../../../../tests/helpers/component-test-utils';
 
 // Mock auth store for tests
 const mockAuthStore = {
@@ -16,7 +15,7 @@ const mockAuthStore = {
 
 // Mock the pb client
 vi.mock('$lib/api/client', async () => {
-	const { MockPocketBase } = await import('../../../../tests/helpers/pb-mock');
+	const { MockPocketBase } = await import('$tests/helpers/pb-mock');
 	return {
 		pb: new MockPocketBase()
 	};
@@ -91,10 +90,10 @@ describe('InviteMemberModal', () => {
 		await fireEvent.input(emailInput, { target: { value: 'valid@example.com' } });
 		await fireEvent.change(emailInput, { target: { value: 'valid@example.com' } });
 		await flushSync();
-		
+
 		// Small delay to allow derived state to update
-		await new Promise(resolve => setTimeout(resolve, 100));
-		
+		await new Promise((resolve) => setTimeout(resolve, 100));
+
 		// The button should now be enabled
 		expect(submitButton).not.toBeDisabled();
 	});
@@ -150,33 +149,28 @@ describe('InviteMemberModal', () => {
 		await flushSync();
 
 		// Wait for button to become enabled
-		await waitFor(() => {
-			expect(submitButton).not.toBeDisabled();
-		});
+		expect(submitButton).not.toBeDisabled();
 
 		// Submit form
 		await fireEvent.click(submitButton);
 
 		// Check API was called with correct data
-		await waitFor(() => {
-			expect(ChurchesAPI.inviteUser).toHaveBeenCalledWith('church1', {
-				email: 'newuser@example.com',
-				role: 'leader',
-				permissions: [
-					'songs:create',
-					'songs:edit',
-					'services:create',
-					'services:edit',
-					'services:delete'
-				],
-				message: ''
-			});
+		expect(ChurchesAPI.inviteUser).toHaveBeenCalledWith('church1', {
+			email: 'newuser@example.com',
+			role: 'leader',
+			permissions: [
+				'songs:create',
+				'songs:edit',
+				'services:create',
+				'services:edit',
+				'services:delete',
+				'users:invite'
+			],
+			message: ''
 		});
 
 		// Wait for success state
-		await waitFor(() => {
-			expect(screen.getByText('Invitation Sent!')).toBeInTheDocument();
-		});
+		expect(screen.getByText('Invitation Sent!')).toBeInTheDocument();
 	});
 
 	it('should display correct permissions for each role', async () => {
@@ -194,7 +188,9 @@ describe('InviteMemberModal', () => {
 
 		// Check musician permissions
 		await fireEvent.change(roleSelect, { target: { value: 'musician' } });
-		expect(screen.getByText(/Can view songs, services, and participate in worship teams/)).toBeInTheDocument();
+		expect(
+			screen.getByText(/Can view songs, services, and participate in worship teams/)
+		).toBeInTheDocument();
 
 		// Check admin permissions
 		await fireEvent.change(roleSelect, { target: { value: 'admin' } });
@@ -220,15 +216,13 @@ describe('InviteMemberModal', () => {
 		const submitButton = screen.getByText('Send Invitation');
 
 		await fireEvent.input(emailInput, { target: { value: 'test@example.com' } });
-		
+
 		// Wait a bit for reactive updates
-		await new Promise(resolve => setTimeout(resolve, 50));
-		
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
 		await fireEvent.click(submitButton);
 
-		await waitFor(() => {
-			expect(screen.queryByText(errorMessage)).toBeInTheDocument();
-		});
+		expect(screen.queryByText(errorMessage)).toBeInTheDocument();
 
 		// Should not show success state
 		expect(screen.queryByText('Invitation Sent!')).not.toBeInTheDocument();
@@ -276,10 +270,10 @@ describe('InviteMemberModal', () => {
 		const submitButton = screen.getByText('Send Invitation');
 
 		await fireEvent.input(emailInput, { target: { value: 'test@example.com' } });
-		
+
 		// Wait a bit for reactive updates
-		await new Promise(resolve => setTimeout(resolve, 50));
-		
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
 		await fireEvent.click(submitButton);
 
 		// Button should now show loading state
@@ -289,9 +283,7 @@ describe('InviteMemberModal', () => {
 		resolveInvite!();
 
 		// Wait for success state
-		await waitFor(() => {
-			expect(screen.getByText('Invitation Sent!')).toBeInTheDocument();
-		});
+		expect(screen.getByText('Invitation Sent!')).toBeInTheDocument();
 	});
 
 	it('should assign correct permissions based on role', async () => {
@@ -315,20 +307,16 @@ describe('InviteMemberModal', () => {
 		// Test musician role
 		await fireEvent.input(emailInput, { target: { value: 'musician@example.com' } });
 		await fireEvent.change(roleSelect, { target: { value: 'musician' } });
-		
-		// Wait a bit for reactive updates
-		await new Promise(resolve => setTimeout(resolve, 50));
-		
+		expect(submitButton).not.toBeDisabled();
+
 		await fireEvent.click(submitButton);
 
-		await waitFor(() => {
-			expect(ChurchesAPI.inviteUser).toHaveBeenCalledWith(
-				'church1',
-				expect.objectContaining({
-					role: 'musician',
-					permissions: ['songs:view', 'services:view']
-				})
-			);
-		});
+		expect(ChurchesAPI.inviteUser).toHaveBeenCalledWith(
+			'church1',
+			expect.objectContaining({
+				role: 'musician',
+				permissions: ['songs:view', 'services:view']
+			})
+		);
 	});
 });

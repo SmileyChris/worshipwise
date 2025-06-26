@@ -1,18 +1,17 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { getAuthStore } from '$lib/context/stores.svelte';
-	import { ChurchesAPI } from '$lib/api/churches';
+	import Badge from '$lib/components/ui/Badge.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import {
+		AlertCircle,
 		Building,
 		Calendar,
+		CheckCircle,
 		Mail,
 		UserPlus,
-		CheckCircle,
-		XCircle,
-		AlertCircle
+		XCircle
 	} from 'lucide-svelte';
 	import type { PageData } from './$types';
 
@@ -33,7 +32,7 @@
 	});
 
 	// Calculate expiration details
-	let expirationInfo = $derived(() => {
+	let expirationInfo = $derived.by(() => {
 		const expiresAt = new Date(data.invitation.expires_at);
 		const now = new Date();
 		const daysRemaining = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
