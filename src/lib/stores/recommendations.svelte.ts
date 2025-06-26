@@ -188,7 +188,7 @@ class RecommendationsStore {
 	 * Get quick rotation suggestions (most urgent)
 	 */
 	getQuickRotationSuggestions(count: number = 5): SongRecommendation[] {
-		return this.rotationRecommendations()
+		return this.rotationRecommendations
 			.sort((a, b) => {
 				// Prioritize songs that haven't been used in longer time
 				const aDays = (a.metadata?.daysSinceLastUse as number) || 0;
@@ -202,7 +202,7 @@ class RecommendationsStore {
 	 * Get current season recommendations
 	 */
 	getCurrentSeasonRecommendations(): SongRecommendation[] {
-		return this.seasonalRecommendations().filter((r) => r.score > 0.7);
+		return this.seasonalRecommendations.filter((r) => r.score > 0.7);
 	}
 
 	/**
@@ -220,14 +220,14 @@ class RecommendationsStore {
 		const insights: string[] = [];
 
 		// Rotation insights
-		const overdueSongs = this.rotationRecommendations().filter(
+		const overdueSongs = this.rotationRecommendations.filter(
 			(r) => (r.metadata?.daysSinceLastUse as number) > 60
 		);
 		if (overdueSongs.length > 0) {
 			insights.push(`${overdueSongs.length} songs haven't been used in over 2 months`);
 		}
 
-		const newSongs = this.rotationRecommendations().filter((r) => r.metadata?.isNew);
+		const newSongs = this.rotationRecommendations.filter((r) => r.metadata?.isNew);
 		if (newSongs.length > 0) {
 			insights.push(`${newSongs.length} new songs ready to be introduced`);
 		}

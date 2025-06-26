@@ -64,7 +64,9 @@ describe('ProfileSettings', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mockPbUpdate.mockClear().mockResolvedValue({ id: 'user1', name: 'Test User', email: 'test@example.com' });
+		mockPbUpdate
+			.mockClear()
+			.mockResolvedValue({ id: 'user1', name: 'Test User', email: 'test@example.com' });
 		mockPbAuthWithPassword.mockClear().mockResolvedValue(undefined);
 		mockLoadProfile.mockClear().mockResolvedValue(undefined);
 	});

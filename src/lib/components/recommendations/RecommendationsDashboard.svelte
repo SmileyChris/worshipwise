@@ -182,12 +182,12 @@
 
 						<div class="flex justify-between">
 							<span class="text-gray-600">Rotation Candidates</span>
-							<Badge>{recommendationsStore.rotationRecommendations().length}</Badge>
+							<Badge>{recommendationsStore.rotationRecommendations.length}</Badge>
 						</div>
 
 						<div class="flex justify-between">
 							<span class="text-gray-600">Seasonal Songs</span>
-							<Badge>{recommendationsStore.seasonalRecommendations().length}</Badge>
+							<Badge>{recommendationsStore.seasonalRecommendations.length}</Badge>
 						</div>
 
 						<div class="flex justify-between">

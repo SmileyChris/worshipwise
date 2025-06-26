@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi, type MockedFunction } from 'vitest';
 import InitialSetup from './InitialSetup.svelte';
+import { ChurchesAPI } from '$lib/api/churches';
 
 // Mock dependencies
 vi.mock('$app/navigation', () => ({
