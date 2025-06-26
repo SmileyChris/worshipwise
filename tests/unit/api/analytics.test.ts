@@ -16,9 +16,9 @@ describe('Analytics API - Basic Tests', () => {
 			pb: mockPb
 		}));
 		
-		// Create API instance with mock auth context
+		// Create API instance with mock auth context and pb instance
 		const authContext = createMockAuthContext();
-		analyticsApi = new AnalyticsAPI(authContext);
+		analyticsApi = new AnalyticsAPI(authContext, mockPb);
 	});
 
 	describe('getOverview', () => {

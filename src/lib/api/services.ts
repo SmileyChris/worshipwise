@@ -400,6 +400,6 @@ export class ServicesAPI {
 // Legacy import removed - using dependency injection
 
 // Factory function for creating API instances
-export function createServicesAPI(authContext: AuthContext): ServicesAPI {
-	return new ServicesAPI(authContext, authContext.pb);
+export function createServicesAPI(authContext: AuthContext, pb: PocketBase): ServicesAPI {
+	return new ServicesAPI(authContext, pb);
 }

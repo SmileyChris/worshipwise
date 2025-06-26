@@ -528,8 +528,8 @@ export class SongsAPI {
 // Legacy import removed - using dependency injection
 
 // Factory function for creating SongsAPI instances
-export function createSongsAPI(authContext: AuthContext): SongsAPI {
-	return new SongsAPI(authContext, authContext.pb);
+export function createSongsAPI(authContext: AuthContext, pb: PocketBase): SongsAPI {
+	return new SongsAPI(authContext, pb);
 }
 
 // Import for legacy proxy (will be removed in future migration)

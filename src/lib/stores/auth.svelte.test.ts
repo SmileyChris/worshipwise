@@ -17,6 +17,15 @@ vi.mock('$app/environment', () => ({
 	browser: true
 }));
 
+// Mock churches API
+vi.mock('$lib/api/churches', () => ({
+	createChurchesAPI: vi.fn(() => ({
+		getPendingInvites: vi.fn().mockResolvedValue([]),
+		acceptInvitation: vi.fn().mockResolvedValue({}),
+		declineInvitation: vi.fn().mockResolvedValue({})
+	}))
+}));
+
 // Mock console methods
 const originalConsoleLog = console.log;
 const originalConsoleError = console.error;
@@ -741,16 +750,6 @@ describe('AuthStore', () => {
 	});
 
 	describe('Invitation Management', () => {
-		beforeEach(() => {
-			// Mock ChurchesAPI methods
-			vi.mock('$lib/api/churches', () => ({
-				ChurchesAPI: {
-					getPendingInvites: vi.fn(),
-					acceptInvitation: vi.fn(),
-					declineInvitation: vi.fn()
-				}
-			}));
-		});
 
 		it('should load pending invites successfully', async () => {
 			const mockInvites = [

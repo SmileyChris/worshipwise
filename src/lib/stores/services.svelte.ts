@@ -1,6 +1,7 @@
 import { createServicesAPI } from '$lib/api/services';
 import type { ServicesAPI } from '$lib/api/services';
 import type { AuthContext } from '$lib/types/auth';
+import { pb } from '$lib/api/client';
 import type {
 	Service,
 	ServiceSong,
@@ -60,7 +61,7 @@ class ServicesStore {
 	hasUnsavedChanges = $derived(this.builderState.isDirty);
 
 	constructor(authContext: AuthContext) {
-		this.servicesApi = createServicesAPI(authContext);
+		this.servicesApi = createServicesAPI(authContext, pb);
 	}
 
 	/**

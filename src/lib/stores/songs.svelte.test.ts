@@ -58,7 +58,7 @@ describe('SongsStore', () => {
 		});
 
 		// Create fresh store instance with test auth context
-		songsStore = createSongsStore(authContext);
+		songsStore = createSongsStore(authContext, mockPb);
 		
 		// Set up PocketBase mock state
 		mockPb.setAuthState(authContext.user);

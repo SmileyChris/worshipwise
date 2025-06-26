@@ -1,5 +1,6 @@
 import { getContext, setContext } from 'svelte';
 import { createAuthStore, type AuthStore } from '$lib/stores/auth.svelte';
+import { pb } from '$lib/api/client';
 import { createSetupStore, type SetupStore } from '$lib/stores/setup.svelte';
 import { createSongsStore, type SongsStore } from '$lib/stores/songs.svelte';
 import { createServicesStore, type ServicesStore } from '$lib/stores/services.svelte';
@@ -43,8 +44,8 @@ export function initializeStores(): StoreContext {
 	
 	// Create auth-dependent stores with current auth context
 	const authContext = auth.getAuthContext();
-	const songs = createSongsStore(authContext);
-	const services = createServicesStore(authContext);
+	const songs = createSongsStore(authContext, pb);
+	const services = createServicesStore(authContext, pb);
 	
 	// Independent stores  
 	const analytics = createAnalyticsStore();

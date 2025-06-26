@@ -206,7 +206,7 @@ class QuickstartStore {
 			
 			const auth = createAuthStore();
 			const authContext = auth.getAuthContext();
-			const songsStore = createSongsStore(authContext);
+			const songsStore = createSongsStore(authContext, pb);
 			
 			await songsStore.loadSongs(true); // Reset to first page
 

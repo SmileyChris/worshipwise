@@ -1,6 +1,7 @@
 import { createSongsAPI } from '$lib/api/songs';
 import type { SongsAPI } from '$lib/api/songs';
 import type { AuthContext } from '$lib/types/auth';
+import { pb } from '$lib/api/client';
 import type {
 	Song,
 	CreateSongData,
@@ -69,7 +70,7 @@ class SongsStore {
 	});
 
 	constructor(authContext: AuthContext) {
-		this.songsApi = createSongsAPI(authContext);
+		this.songsApi = createSongsAPI(authContext, pb);
 	}
 
 	/**

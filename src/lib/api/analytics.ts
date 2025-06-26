@@ -714,8 +714,8 @@ export class AnalyticsAPI {
 // Legacy import removed - using dependency injection
 
 // Factory function for creating API instances
-export function createAnalyticsAPI(authContext: AuthContext): AnalyticsAPI {
-	return new AnalyticsAPI(authContext, authContext.pb);
+export function createAnalyticsAPI(authContext: AuthContext, pb: PocketBase): AnalyticsAPI {
+	return new AnalyticsAPI(authContext, pb);
 }
 
 // Import for legacy proxy (will be removed in future migration)
