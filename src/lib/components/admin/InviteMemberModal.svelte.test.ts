@@ -6,16 +6,46 @@ import { renderWithContext } from '../../../../tests/helpers/component-test-util
 import { mockChurch } from '../../../../tests/helpers/mock-builders';
 import { ChurchesAPI } from '$lib/api/churches';
 
-// Mock the API
-vi.mock('$lib/api/churches', () => ({
-	ChurchesAPI: {
-		inviteUser: vi.fn()
-	}
+// Mock the context stores to avoid pb dependency issues
+vi.mock('$lib/context/stores.svelte', () => ({
+	getAuthStore: vi.fn(() => ({
+		currentChurch: { id: 'church1', name: 'Test Church' },
+		user: { id: 'user1', email: 'test@example.com' }
+	})),
+	initializeStores: vi.fn(() => ({
+		auth: {
+			currentChurch: { id: 'church1', name: 'Test Church' },
+			user: { id: 'user1', email: 'test@example.com' },
+			churchMemberships: [],
+			pendingInvites: [],
+			availableChurches: []
+		}
+	}))
 }));
 
+// Mock the pb client
+vi.mock('$lib/api/client', async () => {
+	const { MockPocketBase } = await import('../../../../tests/helpers/pb-mock');
+	return {
+		pb: new MockPocketBase()
+	};
+});
+
+// Mock the API
+vi.mock('$lib/api/churches', () => {
+	const mockAPI = {
+		inviteUser: vi.fn()
+	};
+	return {
+		ChurchesAPI: mockAPI,
+		createChurchesAPI: vi.fn(() => mockAPI)
+	};
+});
+
 describe('InviteMemberModal', () => {
-	beforeEach(() => {
+	beforeEach(async () => {
 		vi.clearAllMocks();
+		const { ChurchesAPI } = await import('$lib/api/churches');
 		(ChurchesAPI.inviteUser as any).mockReset();
 	});
 
@@ -98,6 +128,7 @@ describe('InviteMemberModal', () => {
 	it('should send invitation with correct data', async () => {
 		const onclose = vi.fn();
 		const onsuccess = vi.fn();
+		const { ChurchesAPI } = await import('$lib/api/churches');
 		(ChurchesAPI.inviteUser as any).mockResolvedValue(undefined);
 
 		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
@@ -158,6 +189,7 @@ describe('InviteMemberModal', () => {
 
 	it('should handle API errors', async () => {
 		const errorMessage = 'Failed to send invitation';
+		const { ChurchesAPI } = await import('$lib/api/churches');
 		(ChurchesAPI.inviteUser as any).mockRejectedValue(new Error(errorMessage));
 
 		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
@@ -208,6 +240,7 @@ describe('InviteMemberModal', () => {
 		const invitePromise = new Promise<void>((resolve) => {
 			resolveInvite = resolve;
 		});
+		const { ChurchesAPI } = await import('$lib/api/churches');
 		(ChurchesAPI.inviteUser as any).mockReturnValue(invitePromise);
 
 		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
@@ -239,6 +272,7 @@ describe('InviteMemberModal', () => {
 	});
 
 	it('should assign correct permissions based on role', async () => {
+		const { ChurchesAPI } = await import('$lib/api/churches');
 		(ChurchesAPI.inviteUser as any).mockResolvedValue(undefined);
 		
 		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
@@ -276,7 +310,8 @@ describe('InviteMemberModal', () => {
 			});
 
 			vi.clearAllMocks();
-			(ChurchesAPI.inviteUser as any).mockResolvedValue(undefined);
+			const { ChurchesAPI } = await import('$lib/api/churches');
+		(ChurchesAPI.inviteUser as any).mockResolvedValue(undefined);
 		}
 	});
 });

@@ -1,8 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/svelte';
+import { screen } from '@testing-library/svelte';
 import '@testing-library/jest-dom/vitest';
 import LyricsAnalyzer from './LyricsAnalyzer.svelte';
 import type { Church } from '$lib/types/church';
+import { renderWithContext } from '../../../../tests/helpers/component-test-utils';
+
+// Mock environment
+vi.mock('$env/dynamic/public', () => ({
+	env: {
+		PUBLIC_MISTRAL_API_KEY: 'test-key'
+	}
+}));
 
 // Mock the API modules
 vi.mock('$lib/api/mistral', () => ({
@@ -58,13 +66,14 @@ describe('LyricsAnalyzer Component', () => {
 	});
 
 	it('should render with API key configured', () => {
-		render(LyricsAnalyzer, {
+		renderWithContext(LyricsAnalyzer, {
 			props: {
 				title: 'Amazing Grace',
 				artist: 'John Newton',
 				lyrics: 'Amazing grace how sweet the sound',
 				onAnalysisComplete: vi.fn()
-			}
+			},
+			currentChurch: mockChurch
 		});
 
 		expect(screen.getByText('AI Lyrics Analysis')).toBeInTheDocument();
@@ -72,11 +81,12 @@ describe('LyricsAnalyzer Component', () => {
 	});
 
 	it('should show API key required message when no key configured', () => {
-		render(LyricsAnalyzer, {
+		renderWithContext(LyricsAnalyzer, {
 			props: {
 				title: 'Amazing Grace',
 				onAnalysisComplete: vi.fn()
-			}
+			},
+			currentChurch: mockChurchWithoutAPI
 		});
 
 		expect(screen.getByText('API Key Required')).toBeInTheDocument();
@@ -84,11 +94,12 @@ describe('LyricsAnalyzer Component', () => {
 	});
 
 	it('should disable analyze button when no title provided', () => {
-		render(LyricsAnalyzer, {
+		renderWithContext(LyricsAnalyzer, {
 			props: {
 				title: '',
 				onAnalysisComplete: vi.fn()
-			}
+			},
+			currentChurch: mockChurch
 		});
 
 		// The analyze button should not be rendered when canAnalyze is false
@@ -96,12 +107,13 @@ describe('LyricsAnalyzer Component', () => {
 	});
 
 	it('should be disabled when disabled prop is true', () => {
-		render(LyricsAnalyzer, {
+		renderWithContext(LyricsAnalyzer, {
 			props: {
 				title: 'Amazing Grace',
 				onAnalysisComplete: vi.fn(),
 				disabled: true
-			}
+			},
+			currentChurch: mockChurch
 		});
 
 		// The analyze button should not be rendered when disabled

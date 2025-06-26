@@ -18,13 +18,17 @@ vi.mock('$app/environment', () => ({
 }));
 
 // Mock churches API
-vi.mock('$lib/api/churches', () => ({
-	createChurchesAPI: vi.fn(() => ({
+vi.mock('$lib/api/churches', () => {
+	const mockAPI = {
 		getPendingInvites: vi.fn().mockResolvedValue([]),
 		acceptInvitation: vi.fn().mockResolvedValue({}),
 		declineInvitation: vi.fn().mockResolvedValue({})
-	}))
-}));
+	};
+	return {
+		ChurchesAPI: mockAPI,
+		createChurchesAPI: vi.fn(() => mockAPI)
+	};
+});
 
 // Mock console methods
 const originalConsoleLog = console.log;

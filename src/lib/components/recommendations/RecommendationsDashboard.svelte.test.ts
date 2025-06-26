@@ -1,7 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/svelte';
+import { screen } from '@testing-library/svelte';
 import '@testing-library/jest-dom/vitest';
 import RecommendationsDashboard from './RecommendationsDashboard.svelte';
+import { renderWithContext } from '../../../../tests/helpers/component-test-utils';
+import { mockChurch } from '../../../../tests/helpers/mock-builders';
 
 // Mock the recommendations store with all required methods
 vi.mock('$lib/stores/recommendations.svelte', () => ({
@@ -34,7 +36,10 @@ vi.mock('$lib/stores/recommendations.svelte', () => ({
 
 describe('RecommendationsDashboard - Basic Rendering', () => {
 	it('should render the dashboard', () => {
-		render(RecommendationsDashboard);
+		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
+		renderWithContext(RecommendationsDashboard, {
+			currentChurch: testChurch
+		});
 
 		expect(screen.getByText('Worship Insights')).toBeInTheDocument();
 	});

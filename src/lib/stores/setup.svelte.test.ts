@@ -1,20 +1,33 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createSetupStore, type SetupStore } from './setup.svelte';
-import { MockPocketBase } from '../../../tests/helpers/pb-mock';
+import { MockPocketBase } from '$tests/helpers/pb-mock';
 
 // Mock pb from client
-vi.mock('$lib/api/client', () => {
-	const { MockPocketBase } = require('../../../tests/helpers/pb-mock');
+vi.mock('$lib/api/client', async () => {
+	// Use dynamic import instead of require for vitest compatibility
+	const { MockPocketBase } = await import('$tests/helpers/pb-mock');
 	return {
 		pb: new MockPocketBase()
+	};
+});
+
+// Mock churches API
+vi.mock('$lib/api/churches', () => {
+	const mockAPI = {
+		hasChurches: vi.fn().mockResolvedValue(false),
+		initialSetup: vi.fn().mockResolvedValue({})
+	};
+	return {
+		createChurchesAPI: vi.fn(() => mockAPI)
 	};
 });
 
 describe('SetupStore', () => {
 	let setupStore: SetupStore;
 	let mockPb: MockPocketBase;
+	let mockChurchesAPI: any;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		// Create fresh mock instance
 		mockPb = new MockPocketBase();
 		
@@ -25,6 +38,10 @@ describe('SetupStore', () => {
 		
 		// Create fresh store instance for each test
 		setupStore = createSetupStore();
+
+		// Get access to the mocked API
+		const { createChurchesAPI } = await import('$lib/api/churches');
+		mockChurchesAPI = createChurchesAPI(mockPb);
 
 		// Reset all mocks
 		vi.clearAllMocks();
@@ -48,8 +65,8 @@ describe('SetupStore', () => {
 		});
 
 		it('should return false when churches exist (setup not required)', async () => {
-			// Mock setup_status collection to indicate setup is complete
-			mockPb.collection('setup_status').getFirstListItem.mockResolvedValue({ setup_required: false });
+			// Mock the churches API to return true (churches exist)
+			mockChurchesAPI.hasChurches.mockResolvedValue(true);
 
 			const result = await setupStore.checkSetupRequired();
 
@@ -72,8 +89,7 @@ describe('SetupStore', () => {
 
 		it('should handle errors with Error objects', async () => {
 			const error = new Error('Network connection failed');
-			mockPb.collection('setup_status').getFirstListItem.mockRejectedValue(error);
-			mockPb.collection('churches').getList.mockRejectedValue(error);
+			mockChurchesAPI.hasChurches.mockRejectedValue(error);
 
 			const result = await setupStore.checkSetupRequired();
 
@@ -85,8 +101,7 @@ describe('SetupStore', () => {
 
 		it('should handle errors without message property', async () => {
 			const error = { someProperty: 'value' }; // Error without message
-			mockPb.collection('setup_status').getFirstListItem.mockRejectedValue(error);
-			mockPb.collection('churches').getList.mockRejectedValue(error);
+			mockChurchesAPI.hasChurches.mockRejectedValue(error);
 
 			const result = await setupStore.checkSetupRequired();
 
@@ -95,8 +110,7 @@ describe('SetupStore', () => {
 		});
 
 		it('should handle string errors', async () => {
-			mockPb.collection('setup_status').getFirstListItem.mockRejectedValue('Network error');
-			mockPb.collection('churches').getList.mockRejectedValue('Network error');
+			mockChurchesAPI.hasChurches.mockRejectedValue('Network error');
 
 			const result = await setupStore.checkSetupRequired();
 
@@ -105,16 +119,13 @@ describe('SetupStore', () => {
 		});
 
 		it('should maintain setupRequired state if already set to true', async () => {
-			// First call sets it to true
-			const notFoundError: any = new Error('Not found');
-			notFoundError.status = 404;
-			mockPb.collection('setup_status').getFirstListItem.mockRejectedValue(notFoundError);
-			mockPb.collection('churches').getList.mockRejectedValue(notFoundError);
+			// First call sets it to true (no churches exist)
+			mockChurchesAPI.hasChurches.mockResolvedValue(false);
 			await setupStore.checkSetupRequired();
 			expect(setupStore.setupRequired).toBe(true);
 
-			// Second call finds churches
-			mockPb.collection('setup_status').getFirstListItem.mockResolvedValue({ setup_required: false });
+			// Second call finds churches exist (setup not required)
+			mockChurchesAPI.hasChurches.mockResolvedValue(true);
 			await setupStore.checkSetupRequired();
 			expect(setupStore.setupRequired).toBe(false);
 		});

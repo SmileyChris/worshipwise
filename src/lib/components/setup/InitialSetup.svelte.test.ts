@@ -11,11 +11,15 @@ vi.mock('$app/navigation', () => ({
 	goto: vi.fn()
 }));
 
-vi.mock('$lib/api/churches', () => ({
-	ChurchesAPI: {
+vi.mock('$lib/api/churches', () => {
+	const mockAPI = {
 		initialSetup: vi.fn()
-	}
-}));
+	};
+	return {
+		ChurchesAPI: mockAPI,
+		createChurchesAPI: vi.fn(() => mockAPI)
+	};
+});
 
 vi.mock('$lib/stores/setup.svelte', () => ({
 	createSetupStore: vi.fn(() => ({
@@ -24,9 +28,7 @@ vi.mock('$lib/stores/setup.svelte', () => ({
 }));
 
 const mockedGoto = goto as MockedFunction<typeof goto>;
-const mockedChurchesAPI = ChurchesAPI as unknown as {
-	initialSetup: MockedFunction<any>;
-};
+// We'll access the API through import in tests
 const mockedCreateSetupStore = createSetupStore as MockedFunction<any>;
 const mockedSetupStore = {
 	markSetupCompleted: vi.fn()

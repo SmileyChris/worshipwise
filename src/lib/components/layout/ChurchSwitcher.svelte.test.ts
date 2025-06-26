@@ -18,6 +18,25 @@ vi.mock('$app/navigation', () => ({
 	goto: vi.fn()
 }));
 
+// Mock the context stores to avoid pb dependency issues
+vi.mock('$lib/context/stores.svelte', () => ({
+	getAuthStore: vi.fn(() => ({
+		currentChurch: { id: 'church1', name: 'Test Church' },
+		user: { id: 'user1', email: 'test@example.com' },
+		availableChurches: [{ id: 'church1', name: 'Test Church' }],
+		pendingInvites: []
+	})),
+	initializeStores: vi.fn(() => ({
+		auth: {
+			currentChurch: { id: 'church1', name: 'Test Church' },
+			user: { id: 'user1', email: 'test@example.com' },
+			churchMemberships: [],
+			pendingInvites: [],
+			availableChurches: [{ id: 'church1', name: 'Test Church' }]
+		}
+	}))
+}));
+
 describe('ChurchSwitcher - Basic Tests', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();

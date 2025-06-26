@@ -12,6 +12,23 @@ import { MockPocketBase } from '$tests/helpers/pb-mock';
 import { mockAuthContext } from '$tests/helpers/mock-builders';
 import type { AuthContext } from '$lib/types/auth';
 
+// Mock the recommendations API
+vi.mock('$lib/api/recommendations', () => {
+	const mockAPI = {
+		getSongRecommendations: vi.fn().mockResolvedValue([]),
+		getWorshipFlowSuggestions: vi.fn().mockResolvedValue([]),
+		analyzeServiceBalance: vi.fn().mockResolvedValue(null),
+		getSeasonalTrends: vi.fn().mockResolvedValue([]),
+		getWorshipInsights: vi.fn().mockResolvedValue(null),
+		getKeyCompatibilityRecommendations: vi.fn().mockResolvedValue([]),
+		getRotationHealthAnalysis: vi.fn().mockResolvedValue({}),
+		getComparativePeriodAnalysis: vi.fn().mockResolvedValue({})
+	};
+	return {
+		createRecommendationsAPI: vi.fn(() => mockAPI)
+	};
+});
+
 describe('RecommendationsStore', () => {
 	const mockSongRecommendations: SongRecommendation[] = [
 		{
@@ -184,8 +201,9 @@ describe('RecommendationsStore', () => {
 	let recommendationsStore: RecommendationsStore;
 	let mockPb: MockPocketBase;
 	let authContext: AuthContext;
+	let recommendationsApi: any;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		// Create fresh mock instances
 		vi.clearAllMocks();
 		mockPb = new MockPocketBase();
@@ -204,6 +222,10 @@ describe('RecommendationsStore', () => {
 
 		// Create fresh store instance for each test
 		recommendationsStore = createRecommendationsStore(authContext);
+		
+		// Get access to the mocked API
+		const { createRecommendationsAPI } = vi.mocked(await import('$lib/api/recommendations'));
+		recommendationsApi = createRecommendationsAPI(mockPb as any);
 	});
 
 	describe('loadSongRecommendations', () => {
