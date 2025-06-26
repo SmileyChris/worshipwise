@@ -1,22 +1,34 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
+import { screen, fireEvent, waitFor } from '@testing-library/svelte';
 import '@testing-library/jest-dom/vitest';
 import ProfileSettings from './ProfileSettings.svelte';
-import { getAuthStore } from '$lib/context/stores.svelte';
-import type { User } from '$lib/types/auth';
-import type { ChurchMembership } from '$lib/types/church';
-import { mockPb } from '$tests/helpers/pb-mock';
+import { renderWithContext } from '../../../../tests/helpers/component-test-utils';
+import { mockUser, mockChurch } from '../../../../tests/helpers/mock-builders';
 
-// Mock the auth store
-vi.mock('$lib/stores/auth.svelte', () => ({
-	auth: {
-		user: null,
-		currentMembership: null,
-		updateProfile: vi.fn(),
-		getErrorMessage: vi.fn(),
-		isAdmin: false,
-		hasRole: vi.fn().mockReturnValue(false)
-	}
+// Create mockable functions for auth store
+const mockUpdateProfile = vi.fn().mockResolvedValue(undefined);
+const mockChangePassword = vi.fn().mockResolvedValue(undefined);
+
+// Mock the context stores to avoid pb dependency issues
+vi.mock('$lib/context/stores.svelte', () => ({
+	getAuthStore: vi.fn(() => ({
+		user: { id: 'user1', name: 'Test User', email: 'test@example.com' },
+		currentChurch: { id: 'church1', name: 'Test Church' },
+		updateProfile: mockUpdateProfile,
+		changePassword: mockChangePassword,
+		loading: false,
+		error: null
+	})),
+	initializeStores: vi.fn(() => ({
+		auth: {
+			user: { id: 'user1', name: 'Test User', email: 'test@example.com' },
+			currentChurch: { id: 'church1', name: 'Test Church' },
+			updateProfile: mockUpdateProfile,
+			changePassword: mockChangePassword,
+			loading: false,
+			error: null
+		}
+	}))
 }));
 
 describe('ProfileSettings', () => {
@@ -45,16 +57,15 @@ describe('ProfileSettings', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mockPb.reset();
-
-		// Setup pb mocks
-		mockPb.collection('users').mockUpdate(mockUser);
-		mockPb.collection('users').authWithPassword.mockResolvedValue({ record: mockUser });
+		mockUpdateProfile.mockClear().mockResolvedValue(undefined);
+		mockChangePassword.mockClear().mockResolvedValue(undefined);
 	});
 
 	describe('Profile Information Form', () => {
 		it('should render profile form with current user data', () => {
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			expect(screen.getByRole('heading', { name: 'Profile Information' })).toBeInTheDocument();
 			expect(screen.getByTestId('profile-name-input')).toHaveValue(mockUser.name);
@@ -63,7 +74,9 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should validate name field', async () => {
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const nameInput = screen.getByTestId('profile-name-input');
 
@@ -81,7 +94,9 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should validate email field', async () => {
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const emailInput = screen.getByTestId('profile-email-input');
 
@@ -99,7 +114,9 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should update profile successfully', async () => {
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const nameInput = screen.getByTestId('profile-name-input');
 			const emailInput = screen.getByTestId('profile-email-input');
@@ -112,9 +129,7 @@ describe('ProfileSettings', () => {
 			await fireEvent.click(updateButton);
 
 			await waitFor(() => {
-				expect(mockPb.collection).toHaveBeenCalledWith('users');
-				const usersCollection = mockPb.collection('users');
-				expect(usersCollection.update).toHaveBeenCalledWith(mockUser.id, {
+				expect(mockUpdateProfile).toHaveBeenCalledWith({
 					name: 'Updated Name',
 					email: 'updated@example.com'
 				});
@@ -122,7 +137,9 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should update user data when name changes', async () => {
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const nameInput = screen.getByTestId('profile-name-input');
 			const updateButton = screen.getByRole('button', { name: /update profile/i });
@@ -132,8 +149,7 @@ describe('ProfileSettings', () => {
 			await fireEvent.click(updateButton);
 
 			await waitFor(() => {
-				const usersCollection = mockPb.collection('users');
-				expect(usersCollection.update).toHaveBeenCalledWith(mockUser.id, {
+				expect(mockUpdateProfile).toHaveBeenCalledWith({
 					name: 'Updated Name',
 					email: mockUser.email // Email remains unchanged
 				});
@@ -142,9 +158,11 @@ describe('ProfileSettings', () => {
 
 		it('should display profile update success message', async () => {
 			// Mock successful update
-			mockPb.collection('users').update.mockResolvedValue(mockUser);
+			mockUpdateProfile.mockResolvedValue(mockUser);
 
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const nameInput = screen.getByTestId('profile-name-input');
 			const updateButton = screen.getByRole('button', { name: /update profile/i });
@@ -158,11 +176,13 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should display profile update error message', async () => {
-			// Mock the PocketBase update to fail
+			// Mock the update to fail
 			const error = new Error('Update failed');
-			mockPb.collection('users').update.mockRejectedValue(error);
+			mockUpdateProfile.mockRejectedValue(error);
 
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const nameInput = screen.getByTestId('profile-name-input');
 			const updateButton = screen.getByRole('button', { name: /update profile/i });
@@ -176,7 +196,9 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should reset form to original values', async () => {
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const nameInput = screen.getByTestId('profile-name-input');
 			const emailInput = screen.getByTestId('profile-email-input');
@@ -196,7 +218,9 @@ describe('ProfileSettings', () => {
 
 	describe('Password Change Form', () => {
 		it('should render password change form', () => {
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			expect(screen.getByRole('heading', { name: 'Change Password' })).toBeInTheDocument();
 			expect(screen.getByTestId('current-password-input')).toBeInTheDocument();
@@ -205,7 +229,9 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should validate current password field', async () => {
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const currentPasswordInput = screen.getByTestId('current-password-input');
 
@@ -219,7 +245,9 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should validate new password field', async () => {
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const newPasswordInput = screen.getByTestId('new-password-input');
 
@@ -239,7 +267,9 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should validate password confirmation', async () => {
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const newPasswordInput = screen.getByTestId('new-password-input');
 			const confirmPasswordInput = screen.getByTestId('confirm-password-input');
@@ -260,11 +290,12 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should change password successfully', async () => {
-			// Mock successful password verification and update
-			mockPb.collection('users').authWithPassword.mockResolvedValue({ record: mockUser });
-			mockPb.collection('users').mockUpdate(mockUser);
+			// Mock successful password change
+			mockChangePassword.mockResolvedValue(undefined);
 
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const currentPasswordInput = screen.getByTestId('current-password-input');
 			const newPasswordInput = screen.getByTestId('new-password-input');
@@ -282,23 +313,20 @@ describe('ProfileSettings', () => {
 			await fireEvent.click(changePasswordButton);
 
 			await waitFor(() => {
-				const usersCollection = mockPb.collection('users');
-				expect(usersCollection.authWithPassword).toHaveBeenCalledWith(
-					mockUser.email,
-					'currentpassword'
-				);
-				expect(usersCollection.update).toHaveBeenCalledWith(mockUser.id, {
-					password: 'newpassword123',
-					passwordConfirm: 'newpassword123'
+				expect(mockChangePassword).toHaveBeenCalledWith({
+					currentPassword: 'currentpassword',
+					newPassword: 'newpassword123',
+					confirmPassword: 'newpassword123'
 				});
 			});
 		});
 
 		it('should display password change success message', async () => {
-			mockPb.collection('users').authWithPassword.mockResolvedValue({ record: mockUser });
-			mockPb.collection('users').mockUpdate(mockUser);
+			mockChangePassword.mockResolvedValue(undefined);
 
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const currentPasswordInput = screen.getByTestId('current-password-input');
 			const newPasswordInput = screen.getByTestId('new-password-input');
@@ -321,11 +349,13 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should handle incorrect current password', async () => {
-			mockPb.collection('users').authWithPassword.mockRejectedValue({
+			mockChangePassword.mockRejectedValue({
 				response: { status: 400 }
 			});
 
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const currentPasswordInput = screen.getByTestId('current-password-input');
 			const newPasswordInput = screen.getByTestId('new-password-input');
@@ -343,10 +373,11 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should handle password change errors', async () => {
-			mockPb.collection('users').authWithPassword.mockResolvedValue({ record: mockUser });
-			mockPb.collection('users').update.mockRejectedValue(new Error('Update failed'));
+			mockChangePassword.mockRejectedValue(new Error('Update failed'));
 
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const currentPasswordInput = screen.getByTestId('current-password-input');
 			const newPasswordInput = screen.getByTestId('new-password-input');
@@ -366,7 +397,9 @@ describe('ProfileSettings', () => {
 
 	describe('Form State Management', () => {
 		it('should disable submit buttons when forms are invalid', () => {
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const profileUpdateButton = screen.getByRole('button', { name: /update profile/i });
 			const passwordChangeButton = screen.getByRole('button', { name: /change password/i });
@@ -377,12 +410,12 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should show loading states during operations', async () => {
-			// Mock PocketBase update to delay for loading state test
-			mockPb
-				.collection('users')
-				.update.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
+			// Mock update to delay for loading state test
+			mockUpdateProfile.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			const nameInput = screen.getByTestId('profile-name-input');
 			const updateButton = screen.getByRole('button', { name: /update profile/i });
@@ -398,7 +431,9 @@ describe('ProfileSettings', () => {
 
 	describe('Accessibility', () => {
 		it('should have proper form structure and labels', () => {
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			// Check for form inputs by test ID instead of exact label text
 			expect(screen.getByTestId('profile-name-input')).toBeInTheDocument();
@@ -409,7 +444,9 @@ describe('ProfileSettings', () => {
 		});
 
 		it('should have proper autocomplete attributes', () => {
-			render(ProfileSettings);
+			renderWithContext(ProfileSettings, {
+				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })
+			});
 
 			expect(screen.getByTestId('profile-name-input')).toHaveAttribute('autocomplete', 'name');
 			expect(screen.getByTestId('profile-email-input')).toHaveAttribute('autocomplete', 'email');

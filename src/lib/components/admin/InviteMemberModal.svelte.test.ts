@@ -96,10 +96,14 @@ describe('InviteMemberModal', () => {
 		await flushSync();
 		expect(submitButton).toBeDisabled();
 
-		// Valid email - button should be enabled
+		// Valid email - button should be enabled  
 		await fireEvent.input(emailInput, { target: { value: 'valid@email.com' } });
 		await flushSync();
-		expect(submitButton).not.toBeDisabled();
+		
+		// Add extra wait for Svelte 5 runes reactivity
+		await waitFor(() => {
+			expect(submitButton).not.toBeDisabled();
+		}, { timeout: 1000 });
 	});
 
 	it('should disable submit button when email is invalid', async () => {
@@ -148,14 +152,20 @@ describe('InviteMemberModal', () => {
 		// Fill out form
 		await fireEvent.input(emailInput, { target: { value: 'test@example.com' } });
 		await fireEvent.change(roleSelect, { target: { value: 'musician' } });
+		
+		// Wait for form to become valid
+		await waitFor(() => {
+			expect(submitButton).not.toBeDisabled();
+		}, { timeout: 1000 });
+		
 		await fireEvent.click(submitButton);
 
 		// Should call API with correct data
 		await waitFor(() => {
-			expect(ChurchesAPI.inviteUser).toHaveBeenCalledWith({
+			expect(ChurchesAPI.inviteUser).toHaveBeenCalledWith('church1', {
 				email: 'test@example.com',
 				role: 'musician',
-				churchId: 'church1'
+				permissions: ['songs:view', 'services:view']
 			});
 		});
 
@@ -257,6 +267,12 @@ describe('InviteMemberModal', () => {
 
 		// Submit form
 		await fireEvent.input(emailInput, { target: { value: 'test@example.com' } });
+		
+		// Wait for form to become valid
+		await waitFor(() => {
+			expect(submitButton).not.toBeDisabled();
+		}, { timeout: 1000 });
+		
 		await fireEvent.click(submitButton);
 
 		// Should show loading state
@@ -294,14 +310,20 @@ describe('InviteMemberModal', () => {
 		for (const role of roles) {
 			await fireEvent.input(emailInput, { target: { value: 'test@example.com' } });
 			await fireEvent.change(roleSelect, { target: { value: role } });
+			
+			// Wait for form to become valid
+			await waitFor(() => {
+				expect(submitButton).not.toBeDisabled();
+			}, { timeout: 1000 });
+			
 			await fireEvent.click(submitButton);
 
 			await waitFor(() => {
-				expect(ChurchesAPI.inviteUser).toHaveBeenCalledWith({
+				expect(ChurchesAPI.inviteUser).toHaveBeenCalledWith('church1', expect.objectContaining({
 					email: 'test@example.com',
 					role: role,
-					churchId: 'church1'
-				});
+					permissions: expect.any(Array)
+				}));
 			});
 
 			// Wait for invitation to complete before next iteration
