@@ -251,15 +251,19 @@ export class MockRecordService {
 	}
 }
 
-// Create mock instance
-export const mockPb = new MockPocketBase();
-
 // Mock the PocketBase module
 vi.mock('pocketbase', () => ({
-	default: vi.fn(() => mockPb)
+	default: vi.fn((url?: string) => {
+		// Return a new instance each time PocketBase is instantiated
+		return new MockPocketBase();
+	})
 }));
 
-// Mock the client module
+// Create a temporary global instance for tests that haven't been migrated yet
+// This will be removed once all files are updated
+export const mockPb = new MockPocketBase();
+
+// Mock the client module - temporary for migration
 vi.mock('$lib/api/client', () => ({
 	pb: mockPb
 }));

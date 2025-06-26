@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { SystemAPI } from '$lib/api/system.js';
+	import { createSystemAPI } from '$lib/api/system.js';
+	import { pb } from '$lib/api/client.js';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import { AlertTriangle, RefreshCw, Terminal } from 'lucide-svelte';
@@ -23,7 +24,8 @@
 	}
 
 	function handleOpenAdmin() {
-		const adminUrl = SystemAPI.getAdminUrl();
+		const systemAPI = createSystemAPI(pb);
+		const adminUrl = systemAPI.getAdminUrl();
 		window.open(adminUrl, '_blank');
 	}
 

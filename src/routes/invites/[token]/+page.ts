@@ -1,5 +1,6 @@
 import type { PageLoad } from './$types';
-import { ChurchesAPI } from '$lib/api/churches';
+import { createChurchesAPI } from '$lib/api/churches';
+import { pb } from '$lib/api/client';
 import { error } from '@sveltejs/kit';
 
 export const ssr = false;
@@ -7,9 +8,10 @@ export const ssr = false;
 export const load: PageLoad = async ({ params, url }) => {
 	const { token } = params;
 	const action = url.searchParams.get('action');
+	const churchesAPI = createChurchesAPI(pb);
 	
 	try {
-		const invitation = await ChurchesAPI.getInvitationByToken(token);
+		const invitation = await churchesAPI.getInvitationByToken(token);
 		
 		return {
 			invitation,

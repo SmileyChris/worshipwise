@@ -1,4 +1,5 @@
-import { SystemAPI } from '$lib/api/system.js';
+import { createSystemAPI } from '$lib/api/system.js';
+import { pb } from '$lib/api/client.js';
 import { importSampleData, createDefaultCategories } from '$lib/data/sample-data.js';
 import { createSongsAPI } from '$lib/api/songs.js';
 import { createCategoriesAPI } from '$lib/api/categories.js';
@@ -65,7 +66,8 @@ class QuickstartStore {
 		this.isLoading = true;
 
 		try {
-			this.systemStatus = await SystemAPI.getSystemStatus();
+			const systemAPI = createSystemAPI(pb);
+			this.systemStatus = await systemAPI.getSystemStatus();
 
 			// Update setup steps based on system status
 			this.updateStepStatus('user-account', this.systemStatus.usersExist ? 'completed' : 'pending');

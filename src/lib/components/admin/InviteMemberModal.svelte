@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { ChurchesAPI } from '$lib/api/churches';
+	import { createChurchesAPI } from '$lib/api/churches';
+	import { pb } from '$lib/api/client';
 	import { getAuthStore } from '$lib/context/stores.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
@@ -16,6 +17,7 @@
 	let { open, onclose, onsuccess }: Props = $props();
 
 	const auth = getAuthStore();
+	const churchesAPI = createChurchesAPI(pb);
 
 	// Form state
 	let email = $state('');
@@ -52,7 +54,7 @@
 		try {
 			const permissions = getDefaultPermissions(role);
 			
-			await ChurchesAPI.inviteUser(auth.currentChurch.id, {
+			await churchesAPI.inviteUser(auth.currentChurch.id, {
 				email,
 				role,
 				permissions

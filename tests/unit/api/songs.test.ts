@@ -1,18 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mockPb } from '../../helpers/pb-mock';
+import { MockPocketBase } from '../../helpers/pb-mock';
 import { createMockSong, createMockUser, createMockAuthContext } from '../../helpers/test-utils';
 import { SongsAPI } from '$lib/api/songs';
 
-// Mock the client module
-vi.mock('$lib/api/client', () => ({
-	pb: mockPb
-}));
-
 describe('Songs API', () => {
 	let songsApi: SongsAPI;
+	let mockPb: MockPocketBase;
 
 	beforeEach(() => {
-		mockPb.reset();
+		// Create fresh mock instance for each test
+		mockPb = new MockPocketBase();
+		
+		// Mock the client module to return our fresh instance
+		vi.doMock('$lib/api/client', () => ({
+			pb: mockPb
+		}));
 		
 		// Create API instance with mock auth context
 		const authContext = createMockAuthContext();

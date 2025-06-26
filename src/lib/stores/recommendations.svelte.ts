@@ -1,5 +1,6 @@
 import {
-	recommendationsApi,
+	createRecommendationsAPI,
+	type RecommendationsAPI,
 	type SongRecommendation,
 	type WorshipFlowSuggestion,
 	type ServiceBalanceAnalysis,
@@ -7,8 +8,14 @@ import {
 	type ComparativePeriod,
 	type WorshipInsights
 } from '$lib/api/recommendations';
+import type { AuthContext } from '$lib/types/auth';
 
 class RecommendationsStore {
+	private recommendationsAPI: RecommendationsAPI;
+
+	constructor(authContext: AuthContext) {
+		this.recommendationsAPI = createRecommendationsAPI(authContext.pb);
+	}
 	// Loading states
 	loading = $state<boolean>(false);
 	error = $state<string | null>(null);
@@ -61,7 +68,7 @@ class RecommendationsStore {
 		this.error = null;
 
 		try {
-			this.songRecommendations = await recommendationsApi.getSongRecommendations(
+			this.songRecommendations = await this.recommendationsAPI.getSongRecommendations(
 				this.recommendationFilters
 			);
 		} catch (error) {
@@ -80,7 +87,7 @@ class RecommendationsStore {
 		this.error = null;
 
 		try {
-			this.worshipFlowSuggestions = await recommendationsApi.getWorshipFlowSuggestions(serviceId);
+			this.worshipFlowSuggestions = await this.recommendationsAPI.getWorshipFlowSuggestions(serviceId);
 		} catch (error) {
 			this.error = error instanceof Error ? error.message : 'Failed to load flow suggestions';
 			console.error('Failed to load worship flow suggestions:', error);
@@ -97,7 +104,7 @@ class RecommendationsStore {
 		this.error = null;
 
 		try {
-			this.serviceBalanceAnalysis = await recommendationsApi.analyzeServiceBalance(serviceId);
+			this.serviceBalanceAnalysis = await this.recommendationsAPI.analyzeServiceBalance(serviceId);
 		} catch (error) {
 			this.error = error instanceof Error ? error.message : 'Failed to analyze service balance';
 			console.error('Failed to analyze service balance:', error);
@@ -114,7 +121,7 @@ class RecommendationsStore {
 		this.error = null;
 
 		try {
-			this.seasonalTrends = await recommendationsApi.getSeasonalTrends(year);
+			this.seasonalTrends = await this.recommendationsAPI.getSeasonalTrends(year);
 		} catch (error) {
 			this.error = error instanceof Error ? error.message : 'Failed to load seasonal trends';
 			console.error('Failed to load seasonal trends:', error);
@@ -135,7 +142,7 @@ class RecommendationsStore {
 		this.error = null;
 
 		try {
-			this.comparativePeriod = await recommendationsApi.getComparativePeriodAnalysis(
+			this.comparativePeriod = await this.recommendationsAPI.getComparativePeriodAnalysis(
 				currentStart,
 				currentEnd
 			);
@@ -155,7 +162,7 @@ class RecommendationsStore {
 		this.error = null;
 
 		try {
-			this.worshipInsights = await recommendationsApi.getWorshipInsights();
+			this.worshipInsights = await this.recommendationsAPI.getWorshipInsights();
 		} catch (error) {
 			this.error = error instanceof Error ? error.message : 'Failed to load worship insights';
 			console.error('Failed to load worship insights:', error);
@@ -264,7 +271,7 @@ class RecommendationsStore {
 export type { RecommendationsStore };
 
 // Factory function for creating new store instances
-export function createRecommendationsStore(): RecommendationsStore {
-	return new RecommendationsStore();
+export function createRecommendationsStore(authContext: AuthContext): RecommendationsStore {
+	return new RecommendationsStore(authContext);
 }
 

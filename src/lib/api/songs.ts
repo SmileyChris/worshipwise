@@ -1,11 +1,11 @@
-import { pb } from './client';
+import type PocketBase from 'pocketbase';
 import type { AuthContext } from '$lib/types/auth';
 import type { Song, CreateSongData, UpdateSongData, SongFilterOptions } from '$lib/types/song';
 
 export class SongsAPI {
 	private collection = 'songs';
 	
-	constructor(private authContext: AuthContext) {}
+	constructor(private authContext: AuthContext, private pb: PocketBase) {}
 
 	/**
 	 * Get all active songs with optional filtering
@@ -65,7 +65,7 @@ export class SongsAPI {
 				filter += ` && (${filterParts.join(' && ')})`;
 			}
 
-			const records = await pb.collection(this.collection).getFullList({
+			const records = await this.pb.collection(this.collection).getFullList({
 				filter,
 				sort: options.sort || 'title',
 				expand: 'created_by,category,labels'
@@ -92,7 +92,7 @@ export class SongsAPI {
 			}
 
 			// First, get recently used song IDs
-			const recentUsage = await pb.collection('song_usage').getFullList({
+			const recentUsage = await this.pb.collection('song_usage').getFullList({
 				filter: `used_date >= "${cutoffDate.toISOString()}"`,
 				fields: 'song_id'
 			});
@@ -107,7 +107,7 @@ export class SongsAPI {
 			}
 
 			// Fetch available songs
-			const availableSongs = await pb.collection(this.collection).getFullList({
+			const availableSongs = await this.pb.collection(this.collection).getFullList({
 				filter: filterQuery,
 				expand: 'created_by,category,labels,song_usage_via_song',
 				sort: 'title'
@@ -125,7 +125,7 @@ export class SongsAPI {
 	 */
 	async getSong(id: string): Promise<Song> {
 		try {
-			const record = await pb.collection(this.collection).getOne(id, {
+			const record = await this.pb.collection(this.collection).getOne(id, {
 				expand: 'created_by,category,labels'
 			});
 			return record as unknown as Song;
@@ -190,7 +190,7 @@ export class SongsAPI {
 				filter += ` && (${filterParts.join(' && ')})`;
 			}
 
-			const result = await pb.collection(this.collection).getList(page, perPage, {
+			const result = await this.pb.collection(this.collection).getList(page, perPage, {
 				filter,
 				sort: options.sort || 'title',
 				expand: 'created_by,category,labels'
@@ -265,7 +265,7 @@ export class SongsAPI {
 			formData.append('created_by', this.authContext.user?.id || '');
 			formData.append('is_active', 'true');
 
-			const record = await pb.collection(this.collection).create(formData);
+			const record = await this.pb.collection(this.collection).create(formData);
 			return record as unknown as Song;
 		} catch (error) {
 			console.error('Failed to create song:', error);
@@ -278,7 +278,7 @@ export class SongsAPI {
 	 */
 	async updateSong(id: string, data: UpdateSongData): Promise<Song> {
 		try {
-			const record = await pb.collection(this.collection).update(id, data);
+			const record = await this.pb.collection(this.collection).update(id, data);
 			return record as unknown as Song;
 		} catch (error) {
 			console.error('Failed to update song:', error);
@@ -291,7 +291,7 @@ export class SongsAPI {
 	 */
 	async deleteSong(id: string): Promise<void> {
 		try {
-			await pb.collection(this.collection).update(id, { is_active: false });
+			await this.pb.collection(this.collection).update(id, { is_active: false });
 		} catch (error) {
 			console.error('Failed to delete song:', error);
 			throw error;
@@ -304,7 +304,7 @@ export class SongsAPI {
 	async searchSongs(query: string): Promise<Song[]> {
 		try {
 			const filter = `is_active = true && (title ~ "${query}" || artist ~ "${query}")`;
-			const records = await pb.collection(this.collection).getFullList({
+			const records = await this.pb.collection(this.collection).getFullList({
 				filter,
 				sort: 'title',
 				expand: 'created_by,category,labels'
@@ -321,7 +321,7 @@ export class SongsAPI {
 	 */
 	async getSongLastUsage(songId: string): Promise<{ lastUsed: Date | null; daysSince: number }> {
 		try {
-			const usage = await pb.collection('song_usage').getFirstListItem(`song_id = "${songId}"`, {
+			const usage = await this.pb.collection('song_usage').getFirstListItem(`song_id = "${songId}"`, {
 				sort: '-used_date',
 				fields: 'used_date'
 			});
@@ -354,7 +354,7 @@ export class SongsAPI {
 			const idFilters = songIds.map((id) => `song_id = "${id}"`).join(' || ');
 
 			// Get all usage records for these songs
-			const usageRecords = await pb.collection('song_usage').getFullList({
+			const usageRecords = await this.pb.collection('song_usage').getFullList({
 				filter: idFilters,
 				sort: '-used_date'
 			});
@@ -398,7 +398,7 @@ export class SongsAPI {
 	 */
 	async getSongUsageHistory(songId: string): Promise<Record<string, unknown>[]> {
 		try {
-			const usageRecords = await pb.collection('song_usage').getFullList({
+			const usageRecords = await this.pb.collection('song_usage').getFullList({
 				filter: `song_id = "${songId}"`,
 				sort: '-used_date',
 				expand: 'service_id,worship_leader'
@@ -417,7 +417,7 @@ export class SongsAPI {
 	async getPopularSongs(limit = 10): Promise<Song[]> {
 		try {
 			// Get song usage counts
-			const usageStats = await pb.collection('song_usage').getFullList({
+			const usageStats = await this.pb.collection('song_usage').getFullList({
 				fields: 'song_id',
 				sort: 'song_id'
 			});
@@ -441,7 +441,7 @@ export class SongsAPI {
 
 			// Fetch the actual song records
 			const songIdsFilter = popularSongIds.map(({ songId }) => `id = "${songId}"`).join(' || ');
-			const songs = await pb.collection(this.collection).getFullList({
+			const songs = await this.pb.collection(this.collection).getFullList({
 				filter: `is_active = true && (${songIdsFilter})`,
 				expand: 'created_by,category,labels'
 			});
@@ -470,7 +470,7 @@ export class SongsAPI {
 	async getPersonalPopularSongs(userId: string, limit = 10): Promise<Song[]> {
 		try {
 			// Get usage records for services where this user was the worship leader
-			const personalUsage = await pb.collection('song_usage').getFullList({
+			const personalUsage = await this.pb.collection('song_usage').getFullList({
 				filter: `worship_leader = "${userId}"`,
 				fields: 'song_id'
 			});
@@ -494,7 +494,7 @@ export class SongsAPI {
 
 			// Fetch the actual song records
 			const songIdsFilter = popularSongIds.map(({ songId }) => `id = "${songId}"`).join(' || ');
-			const songs = await pb.collection(this.collection).getFullList({
+			const songs = await this.pb.collection(this.collection).getFullList({
 				filter: `is_active = true && (${songIdsFilter})`,
 				expand: 'created_by,category,labels'
 			});
@@ -521,15 +521,15 @@ export class SongsAPI {
 	 * Subscribe to real-time updates for songs
 	 */
 	subscribe(callback: (data: unknown) => void) {
-		return pb.collection(this.collection).subscribe('*', callback);
+		return this.pb.collection(this.collection).subscribe('*', callback);
 	}
 }
 
 // Legacy import removed - using dependency injection
 
-// Factory function for creating API instances
+// Factory function for creating SongsAPI instances
 export function createSongsAPI(authContext: AuthContext): SongsAPI {
-	return new SongsAPI(authContext);
+	return new SongsAPI(authContext, authContext.pb);
 }
 
 // Import for legacy proxy (will be removed in future migration)
@@ -539,7 +539,8 @@ import { getAuthStore } from '$lib/context/stores.svelte';
 class SongsAPIProxy {
 	private get api() {
 		const auth = getAuthStore();
-		return new SongsAPI(auth.getAuthContext());
+		const authContext = auth.getAuthContext();
+		return new SongsAPI(authContext, authContext.pb);
 	}
 	
 	getSongs = (options?: SongFilterOptions) => this.api.getSongs(options);

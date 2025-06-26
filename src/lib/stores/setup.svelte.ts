@@ -1,10 +1,19 @@
-import { ChurchesAPI } from '$lib/api/churches';
+import { createChurchesAPI, type ChurchesAPI } from '$lib/api/churches';
+import { pb } from '$lib/api/client';
 
 class SetupStore {
 	// Setup state
 	setupRequired = $state<boolean | null>(null); // null = checking, true = required, false = not required
 	loading = $state<boolean>(false);
 	error = $state<string | null>(null);
+	
+	// API instances
+	private churchesAPI: ChurchesAPI;
+	
+	constructor() {
+		// Create API instances
+		this.churchesAPI = createChurchesAPI(pb);
+	}
 
 	/**
 	 * Check if initial setup is required
@@ -14,7 +23,7 @@ class SetupStore {
 		this.error = null;
 
 		try {
-			const hasChurches = await ChurchesAPI.hasChurches();
+			const hasChurches = await this.churchesAPI.hasChurches();
 			this.setupRequired = !hasChurches;
 			return !hasChurches;
 		} catch (error: unknown) {

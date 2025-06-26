@@ -1,4 +1,4 @@
-import { pb } from './client';
+import type PocketBase from 'pocketbase';
 import type { AuthContext } from '$lib/types/auth';
 import type { Song } from '$lib/types/song';
 import type { ServiceSong } from '$lib/types/service';
@@ -54,7 +54,7 @@ export interface WorshipLeaderStats {
 }
 
 export class AnalyticsAPI {
-	constructor(private authContext: AuthContext) {}
+	constructor(private authContext: AuthContext, private pb: PocketBase) {}
 
 	/**
 	 * Get overview analytics for the dashboard
@@ -71,17 +71,17 @@ export class AnalyticsAPI {
 
 			// Get basic counts
 			const [songsResult, servicesResult, usageResult] = await Promise.all([
-				pb.collection('songs').getList(1, 1, { filter: `is_active = true && ${churchFilter}` }),
-				pb.collection('services').getList(1, 1, {
+				this.pb.collection('songs').getList(1, 1, { filter: `is_active = true && ${churchFilter}` }),
+				this.pb.collection('services').getList(1, 1, {
 					filter: dateFilter ? `status = "completed" && ${churchFilter} && ${dateFilter}` : `status = "completed" && ${churchFilter}`
 				}),
-				pb.collection('song_usage').getList(1, 1, {
+				this.pb.collection('song_usage').getList(1, 1, {
 					filter: dateFilter ? `${churchFilter} && ${dateFilter}` : churchFilter
 				})
 			]);
 
 			// Get services with songs for calculations
-			const completedServices = await pb.collection('services').getFullList({
+			const completedServices = await this.pb.collection('services').getFullList({
 				filter: dateFilter ? `status = "completed" && ${churchFilter} && ${dateFilter}` : `status = "completed" && ${churchFilter}`,
 				expand: 'service_songs_via_service_id.song_id'
 			});
@@ -153,7 +153,7 @@ export class AnalyticsAPI {
 			const churchFilter = `church_id = "${this.authContext.currentChurch.id}"`;
 
 			// Get all usage records with song details
-			const usageRecords = await pb.collection('song_usage').getFullList({
+			const usageRecords = await this.pb.collection('song_usage').getFullList({
 				filter: dateFilter ? `${churchFilter} && ${dateFilter}` : churchFilter,
 				expand: 'song_id',
 				sort: '-used_date'
@@ -244,7 +244,7 @@ export class AnalyticsAPI {
 			const dateFilter = this.buildDateFilter(dateFrom, dateTo);
 			const churchFilter = `church_id = "${this.authContext.currentChurch.id}"`;
 
-			const services = await pb.collection('services').getFullList({
+			const services = await this.pb.collection('services').getFullList({
 				filter: dateFilter ? `status = "completed" && ${churchFilter} && ${dateFilter}` : `status = "completed" && ${churchFilter}`,
 				expand: 'service_songs_via_service_id.song_id'
 			});
@@ -341,7 +341,7 @@ export class AnalyticsAPI {
 			const churchFilter = `service_id.church_id = "${this.authContext.currentChurch.id}"`;
 
 			// Get service songs with key information
-			const serviceSongs = await pb.collection('service_songs').getFullList({
+			const serviceSongs = await this.pb.collection('service_songs').getFullList({
 				expand: 'song_id,service_id',
 				filter: dateFilter
 					? `service_id.status = "completed" && ${churchFilter} && service_id.${dateFilter}`
@@ -397,11 +397,11 @@ export class AnalyticsAPI {
 
 			// Get usage data
 			const [usageRecords, services] = await Promise.all([
-				pb.collection('song_usage').getFullList({
+				this.pb.collection('song_usage').getFullList({
 					filter: dateFilter ? `${churchFilter} && ${dateFilter}` : churchFilter,
 					sort: 'used_date'
 				}),
-				pb.collection('services').getFullList({
+				this.pb.collection('services').getFullList({
 					filter: dateFilter ? `status = "completed" && ${churchFilter} && ${dateFilter}` : `status = "completed" && ${churchFilter}`,
 					sort: 'service_date'
 				})
@@ -496,7 +496,7 @@ export class AnalyticsAPI {
 			const dateFilter = this.buildDateFilter(dateFrom, dateTo);
 			const churchFilter = `church_id = "${this.authContext.currentChurch.id}"`;
 
-			const services = await pb.collection('services').getFullList({
+			const services = await this.pb.collection('services').getFullList({
 				filter: dateFilter ? `status = "completed" && ${churchFilter} && ${dateFilter}` : `status = "completed" && ${churchFilter}`,
 				expand: 'worship_leader,service_songs_via_service_id.song_id'
 			});
@@ -715,7 +715,7 @@ export class AnalyticsAPI {
 
 // Factory function for creating API instances
 export function createAnalyticsAPI(authContext: AuthContext): AnalyticsAPI {
-	return new AnalyticsAPI(authContext);
+	return new AnalyticsAPI(authContext, authContext.pb);
 }
 
 // Import for legacy proxy (will be removed in future migration)

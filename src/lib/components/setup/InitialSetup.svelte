@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { ChurchesAPI } from '$lib/api/churches';
+	import { createChurchesAPI } from '$lib/api/churches';
+	import { pb } from '$lib/api/client';
 	import { createSetupStore } from '$lib/stores/setup.svelte';
 	import type { InitialChurchSetup } from '$lib/types/church';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -9,8 +10,9 @@
 	import Card from '$lib/components/ui/Card.svelte';
 	import { Clock } from 'lucide-svelte';
 
-	// Initialize setup store
+	// Initialize setup store and API
 	const setupStore = createSetupStore();
+	const churchesAPI = createChurchesAPI(pb);
 
 	let loading = $state<boolean>(false);
 	let error = $state<string | null>(null);
@@ -136,7 +138,7 @@
 		error = null;
 
 		try {
-			const result = await ChurchesAPI.initialSetup(setupData);
+			const result = await churchesAPI.initialSetup(setupData);
 			console.log('Setup successful:', result);
 
 			// Mark setup as completed in the store

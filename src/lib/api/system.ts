@@ -1,12 +1,43 @@
-import { pb } from './client.js';
+import type PocketBase from 'pocketbase';
 import type { SystemStatus } from '$lib/types/quickstart.js';
 
-export class SystemAPI {
+export interface SystemAPI {
 	/**
 	 * Check the overall system status for quickstart flow
 	 * Simplified: only check if worship users exist (the real indicator)
 	 */
-	static async getSystemStatus(): Promise<SystemStatus> {
+	getSystemStatus(): Promise<SystemStatus>;
+
+	/**
+	 * Check if any worship users exist using anonymous access
+	 * This is the key indicator of whether this is a fresh install
+	 */
+	checkWorshipUsersExist(): Promise<boolean>;
+
+	/**
+	 * Check if PocketBase server is running and accessible
+	 */
+	checkHealth(): Promise<boolean>;
+
+	/**
+	 * Get PocketBase admin URL for setup
+	 */
+	getAdminUrl(): string;
+
+	/**
+	 * Check if admin user exists by trying to access admin endpoints
+	 */
+	checkAdminAccess(): Promise<boolean>;
+}
+
+class SystemAPIImpl implements SystemAPI {
+	constructor(private pb: PocketBase) {}
+
+	/**
+	 * Check the overall system status for quickstart flow
+	 * Simplified: only check if worship users exist (the real indicator)
+	 */
+	async getSystemStatus(): Promise<SystemStatus> {
 		const status: SystemStatus = {
 			pocketbaseRunning: true, // If we got here, PB is running
 			adminExists: true, // If app loads, admin was created via `just dev`
@@ -24,14 +55,14 @@ export class SystemAPI {
 			// Check optional content for progress display
 			if (status.usersExist) {
 				try {
-					const songs = await pb.collection('songs').getList(1, 1);
+					const songs = await this.pb.collection('songs').getList(1, 1);
 					status.songsExist = songs.totalItems > 0;
 				} catch {
 					status.songsExist = false;
 				}
 
 				try {
-					const categories = await pb.collection('categories').getList(1, 1);
+					const categories = await this.pb.collection('categories').getList(1, 1);
 					status.categoriesExist = categories.totalItems > 0;
 				} catch {
 					status.categoriesExist = false;
@@ -53,11 +84,11 @@ export class SystemAPI {
 	 * Check if any worship users exist using anonymous access
 	 * This is the key indicator of whether this is a fresh install
 	 */
-	static async checkWorshipUsersExist(): Promise<boolean> {
+	async checkWorshipUsersExist(): Promise<boolean> {
 		try {
 			// Try to get a count of users without authentication
 			// This should work anonymously if collections are set up properly
-			const users = await pb.collection('users').getList(1, 1);
+			const users = await this.pb.collection('users').getList(1, 1);
 			return users.totalItems > 0;
 		} catch (error: unknown) {
 			// If we can't access users anonymously, assume no users exist
@@ -69,9 +100,9 @@ export class SystemAPI {
 	/**
 	 * Check if PocketBase server is running and accessible
 	 */
-	static async checkHealth(): Promise<boolean> {
+	async checkHealth(): Promise<boolean> {
 		try {
-			await pb.health.check();
+			await this.pb.health.check();
 			return true;
 		} catch (error) {
 			console.warn('PocketBase health check failed:', error);
@@ -82,18 +113,18 @@ export class SystemAPI {
 	/**
 	 * Get PocketBase admin URL for setup
 	 */
-	static getAdminUrl(): string {
-		return `${pb.baseUrl}/_/`;
+	getAdminUrl(): string {
+		return `${this.pb.baseUrl}/_/`;
 	}
 
 	/**
 	 * Check if admin user exists by trying to access admin endpoints
 	 */
-	static async checkAdminAccess(): Promise<boolean> {
+	async checkAdminAccess(): Promise<boolean> {
 		try {
 			// Try to access an admin-only endpoint that requires authentication
 			// This will help us determine if an admin user exists and can authenticate
-			const response = await fetch(`${pb.baseUrl}/api/admins`, {
+			const response = await fetch(`${this.pb.baseUrl}/api/admins`, {
 				method: 'GET'
 			});
 
@@ -106,4 +137,11 @@ export class SystemAPI {
 			return false;
 		}
 	}
+}
+
+/**
+ * Factory function to create a SystemAPI instance
+ */
+export function createSystemAPI(pb: PocketBase): SystemAPI {
+	return new SystemAPIImpl(pb);
 }

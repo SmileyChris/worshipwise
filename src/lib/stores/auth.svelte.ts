@@ -3,7 +3,7 @@ import { goto } from '$app/navigation';
 import { browser } from '$app/environment';
 import type { User, LoginCredentials, RegisterData, AuthContext } from '$lib/types/auth';
 import type { Church, ChurchMembership } from '$lib/types/church';
-import { ChurchesAPI } from '$lib/api/churches';
+import { createChurchesAPI, type ChurchesAPI } from '$lib/api/churches';
 
 class AuthStore {
 	// Reactive state using Svelte 5 runes
@@ -23,7 +23,13 @@ class AuthStore {
 	pendingInvites = $state<any[]>([]);
 	invitesLoading = $state<boolean>(false);
 
+	// API instances
+	private churchesAPI: ChurchesAPI;
+
 	constructor() {
+		// Create API instances
+		this.churchesAPI = createChurchesAPI(pb);
+		
 		if (browser) {
 			// Initialize from PocketBase auth store
 			this.user = pb.authStore.model as User | null;
@@ -489,7 +495,7 @@ class AuthStore {
 
 		this.invitesLoading = true;
 		try {
-			this.pendingInvites = await ChurchesAPI.getPendingInvites();
+			this.pendingInvites = await this.churchesAPI.getPendingInvites();
 			console.log('Loaded pending invites:', this.pendingInvites.length);
 		} catch (error) {
 			console.error('Failed to load pending invites:', error);
@@ -507,7 +513,7 @@ class AuthStore {
 		this.error = null;
 
 		try {
-			const church = await ChurchesAPI.acceptInvitation(token);
+			const church = await this.churchesAPI.acceptInvitation(token);
 			
 			// Reload churches and invitations
 			await this.loadUserChurches();
@@ -534,7 +540,7 @@ class AuthStore {
 		this.error = null;
 
 		try {
-			await ChurchesAPI.declineInvitation(token);
+			await this.churchesAPI.declineInvitation(token);
 			
 			// Reload invitations
 			await this.loadPendingInvites();

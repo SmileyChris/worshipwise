@@ -1,4 +1,4 @@
-import { pb } from './client';
+import type PocketBase from 'pocketbase';
 import type { AuthContext } from '$lib/types/auth';
 import type {
 	Service,
@@ -14,7 +14,7 @@ export class ServicesAPI {
 	private collection = 'services';
 	private serviceSongsCollection = 'service_songs';
 	
-	constructor(private authContext: AuthContext) {}
+	constructor(private authContext: AuthContext, private pb: PocketBase) {}
 
 	/**
 	 * Get all services with optional filtering
@@ -64,7 +64,7 @@ export class ServicesAPI {
 				filter = filterParts.join(' && ');
 			}
 
-			const records = await pb.collection(this.collection).getFullList({
+			const records = await this.pb.collection(this.collection).getFullList({
 				filter,
 				sort: options.sort || '-service_date',
 				expand: 'worship_leader,team_members,created_by'
@@ -82,7 +82,7 @@ export class ServicesAPI {
 	 */
 	async getService(id: string): Promise<Service> {
 		try {
-			const record = await pb.collection(this.collection).getOne(id, {
+			const record = await this.pb.collection(this.collection).getOne(id, {
 				expand: 'worship_leader,team_members,created_by'
 			});
 			return record as unknown as Service;
@@ -97,7 +97,7 @@ export class ServicesAPI {
 	 */
 	async getServiceSongs(serviceId: string): Promise<ServiceSong[]> {
 		try {
-			const records = await pb.collection(this.serviceSongsCollection).getFullList({
+			const records = await this.pb.collection(this.serviceSongsCollection).getFullList({
 				filter: `service_id = "${serviceId}"`,
 				sort: 'order_position',
 				expand: 'song_id,added_by'
@@ -131,7 +131,7 @@ export class ServicesAPI {
 				serviceData.status = 'draft';
 			}
 
-			const record = await pb.collection(this.collection).create(serviceData);
+			const record = await this.pb.collection(this.collection).create(serviceData);
 			return record as unknown as Service;
 		} catch (error) {
 			console.error('Failed to create service:', error);
@@ -144,7 +144,7 @@ export class ServicesAPI {
 	 */
 	async updateService(id: string, data: UpdateServiceData): Promise<Service> {
 		try {
-			const record = await pb.collection(this.collection).update(id, data);
+			const record = await this.pb.collection(this.collection).update(id, data);
 			return record as unknown as Service;
 		} catch (error) {
 			console.error('Failed to update service:', error);
@@ -157,7 +157,7 @@ export class ServicesAPI {
 	 */
 	async deleteService(id: string): Promise<void> {
 		try {
-			await pb.collection(this.collection).delete(id);
+			await this.pb.collection(this.collection).delete(id);
 		} catch (error) {
 			console.error('Failed to delete service:', error);
 			throw error;
@@ -181,7 +181,7 @@ export class ServicesAPI {
 				added_by: this.authContext.user?.id || ''
 			};
 
-			const record = await pb.collection(this.serviceSongsCollection).create(serviceSongData);
+			const record = await this.pb.collection(this.serviceSongsCollection).create(serviceSongData);
 			return record as unknown as ServiceSong;
 		} catch (error) {
 			console.error('Failed to add song to service:', error);
@@ -194,7 +194,7 @@ export class ServicesAPI {
 	 */
 	async updateServiceSong(id: string, data: UpdateServiceSongData): Promise<ServiceSong> {
 		try {
-			const record = await pb.collection(this.serviceSongsCollection).update(id, data);
+			const record = await this.pb.collection(this.serviceSongsCollection).update(id, data);
 			return record as unknown as ServiceSong;
 		} catch (error) {
 			console.error('Failed to update service song:', error);
@@ -207,7 +207,7 @@ export class ServicesAPI {
 	 */
 	async removeSongFromService(serviceSongId: string): Promise<void> {
 		try {
-			await pb.collection(this.serviceSongsCollection).delete(serviceSongId);
+			await this.pb.collection(this.serviceSongsCollection).delete(serviceSongId);
 		} catch (error) {
 			console.error('Failed to remove song from service:', error);
 			throw error;
@@ -224,7 +224,7 @@ export class ServicesAPI {
 		try {
 			// Update each song's position
 			const updates = songOrder.map(({ id, position }) =>
-				pb.collection(this.serviceSongsCollection).update(id, { order_position: position })
+				this.pb.collection(this.serviceSongsCollection).update(id, { order_position: position })
 			);
 
 			await Promise.all(updates);
@@ -322,7 +322,7 @@ export class ServicesAPI {
 
 			// Create usage records for each song
 			const usagePromises = songs.map((song) =>
-				pb.collection('song_usage').create({
+				this.pb.collection('song_usage').create({
 					church_id: this.authContext.currentChurch!.id, // REQUIRED for church-scoped data
 					song_id: song.song_id,
 					service_id: serviceId,
@@ -348,7 +348,7 @@ export class ServicesAPI {
 		try {
 			const today = new Date().toISOString().split('T')[0];
 
-			const records = await pb.collection(this.collection).getFullList({
+			const records = await this.pb.collection(this.collection).getFullList({
 				filter: `service_date >= "${today}" && is_template = false`,
 				sort: 'service_date',
 				limit,
@@ -367,7 +367,7 @@ export class ServicesAPI {
 	 */
 	async getTemplates(): Promise<Service[]> {
 		try {
-			const records = await pb.collection(this.collection).getFullList({
+			const records = await this.pb.collection(this.collection).getFullList({
 				filter: 'is_template = true',
 				sort: '-created',
 				expand: 'created_by'
@@ -384,14 +384,14 @@ export class ServicesAPI {
 	 * Subscribe to real-time updates for services
 	 */
 	subscribeToServices(callback: (data: unknown) => void) {
-		return pb.collection(this.collection).subscribe('*', callback);
+		return this.pb.collection(this.collection).subscribe('*', callback);
 	}
 
 	/**
 	 * Subscribe to real-time updates for service songs
 	 */
 	subscribeToServiceSongs(serviceId: string, callback: (data: unknown) => void) {
-		return pb.collection(this.serviceSongsCollection).subscribe('*', callback, {
+		return this.pb.collection(this.serviceSongsCollection).subscribe('*', callback, {
 			filter: `service_id = "${serviceId}"`
 		});
 	}
@@ -401,5 +401,5 @@ export class ServicesAPI {
 
 // Factory function for creating API instances
 export function createServicesAPI(authContext: AuthContext): ServicesAPI {
-	return new ServicesAPI(authContext);
+	return new ServicesAPI(authContext, authContext.pb);
 }

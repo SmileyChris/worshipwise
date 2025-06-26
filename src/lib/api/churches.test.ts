@@ -1,13 +1,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { InitialChurchSetup, InviteUserData } from '$lib/types/church';
-import { mockPb } from '$tests/helpers/pb-mock';
-import { ChurchesAPI } from './churches';
+import { MockPocketBase } from '$tests/helpers/pb-mock';
+import { createChurchesAPI, type ChurchesAPI } from './churches';
 
 describe('Churches API - Simple Tests', () => {
+	let mockPb: MockPocketBase;
+	let churchesAPI: ChurchesAPI;
+
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mockPb.reset();
+		// Create fresh instances for each test
+		mockPb = new MockPocketBase();
 		mockPb.authStore.model = { id: 'user1' };
+		churchesAPI = createChurchesAPI(mockPb as any);
 	});
 
 	describe('hasChurches', () => {
@@ -16,7 +21,7 @@ describe('Churches API - Simple Tests', () => {
 				.collection('setup_status')
 				.getFirstListItem.mockResolvedValue({ setup_required: false });
 
-			const result = await ChurchesAPI.hasChurches();
+			const result = await churchesAPI.hasChurches();
 
 			expect(mockPb.collection).toHaveBeenCalledWith('setup_status');
 			expect(result).toBe(true);
@@ -28,7 +33,7 @@ describe('Churches API - Simple Tests', () => {
 			mockPb.collection('setup_status').getFirstListItem.mockRejectedValue(notFoundError);
 			mockPb.collection('churches').getFullList.mockRejectedValue(notFoundError);
 
-			const result = await ChurchesAPI.hasChurches();
+			const result = await churchesAPI.hasChurches();
 
 			expect(result).toBe(false);
 		});
@@ -68,7 +73,7 @@ describe('Churches API - Simple Tests', () => {
 			notFoundError.status = 404;
 			mockPb.collection('setup_status').getFirstListItem.mockRejectedValue(notFoundError);
 
-			const result = await ChurchesAPI.initialSetup(setupData);
+			const result = await churchesAPI.initialSetup(setupData);
 
 			expect(result).toHaveProperty('user');
 			expect(result).toHaveProperty('church');
@@ -87,7 +92,7 @@ describe('Churches API - Simple Tests', () => {
 
 			mockPb.collection('church_memberships').getFullList.mockResolvedValue([membershipWithExpand]);
 
-			const result = await ChurchesAPI.getUserChurches();
+			const result = await churchesAPI.getUserChurches();
 
 			expect(mockPb.collection).toHaveBeenCalledWith('church_memberships');
 			expect(result).toEqual([church]);
@@ -100,7 +105,7 @@ describe('Churches API - Simple Tests', () => {
 
 			mockPb.collection('churches').update.mockResolvedValue(updatedChurch);
 
-			const result = await ChurchesAPI.updateChurch('church1', { name: 'Updated Church' });
+			const result = await churchesAPI.updateChurch('church1', { name: 'Updated Church' });
 
 			expect(mockPb.collection).toHaveBeenCalledWith('churches');
 			expect(result).toEqual(updatedChurch);
@@ -117,7 +122,7 @@ describe('Churches API - Simple Tests', () => {
 
 			mockPb.collection('church_memberships').getFullList.mockResolvedValue(members);
 
-			const result = await ChurchesAPI.getChurchMembers('church1');
+			const result = await churchesAPI.getChurchMembers('church1');
 
 			expect(result).toEqual(members);
 			expect(result).toHaveLength(3);
@@ -145,7 +150,7 @@ describe('Churches API - Simple Tests', () => {
 
 				mockPb.collection('church_invitations').create.mockResolvedValue(createdInvite);
 
-				await ChurchesAPI.inviteUser('church1', inviteData);
+				await churchesAPI.inviteUser('church1', inviteData);
 
 				expect(mockPb.collection).toHaveBeenCalledWith('church_invitations');
 				expect(mockPb.collection('church_invitations').create).toHaveBeenCalledWith(
@@ -180,7 +185,7 @@ describe('Churches API - Simple Tests', () => {
 
 				mockPb.collection('church_invitations').getFullList.mockResolvedValue(pendingInvites);
 
-				const result = await ChurchesAPI.getPendingInvites();
+				const result = await churchesAPI.getPendingInvites();
 
 				expect(mockPb.collection).toHaveBeenCalledWith('church_invitations');
 				expect(mockPb.collection('church_invitations').getFullList).toHaveBeenCalledWith({
@@ -194,7 +199,7 @@ describe('Churches API - Simple Tests', () => {
 			it('should return empty array if no user email', async () => {
 				mockPb.authStore.model = { id: 'user1' }; // No email
 
-				const result = await ChurchesAPI.getPendingInvites();
+				const result = await churchesAPI.getPendingInvites();
 
 				expect(result).toEqual([]);
 				expect(mockPb.collection).not.toHaveBeenCalled();
@@ -215,7 +220,7 @@ describe('Churches API - Simple Tests', () => {
 
 				mockPb.collection('church_invitations').getFirstListItem.mockResolvedValue(invitation);
 
-				const result = await ChurchesAPI.getInvitationByToken('test-token');
+				const result = await churchesAPI.getInvitationByToken('test-token');
 
 				expect(mockPb.collection('church_invitations').getFirstListItem).toHaveBeenCalledWith(
 					`token = "test-token" && is_active = true && expires_at > @now`,
@@ -242,7 +247,7 @@ describe('Churches API - Simple Tests', () => {
 				mockPb.collection('church_memberships').create.mockResolvedValue({ id: 'membership-1' });
 				mockPb.collection('church_invitations').update.mockResolvedValue({});
 
-				const result = await ChurchesAPI.acceptInvitation('test-token');
+				const result = await churchesAPI.acceptInvitation('test-token');
 
 				expect(mockPb.collection('church_memberships').create).toHaveBeenCalledWith({
 					church_id: 'church1',
@@ -280,7 +285,7 @@ describe('Churches API - Simple Tests', () => {
 					{ id: 'existing-membership' }
 				]); // Existing membership
 
-				await expect(ChurchesAPI.acceptInvitation('test-token')).rejects.toThrow(
+				await expect(churchesAPI.acceptInvitation('test-token')).rejects.toThrow(
 					'You are already a member of this church'
 				);
 			});
@@ -293,7 +298,7 @@ describe('Churches API - Simple Tests', () => {
 				mockPb.collection('church_invitations').getFirstListItem.mockResolvedValue(invitation);
 				mockPb.collection('church_invitations').update.mockResolvedValue({});
 
-				await ChurchesAPI.declineInvitation('test-token');
+				await churchesAPI.declineInvitation('test-token');
 
 				expect(mockPb.collection('church_invitations').update).toHaveBeenCalledWith(
 					'invite-1',
@@ -315,7 +320,7 @@ describe('Churches API - Simple Tests', () => {
 
 				mockPb.collection('church_invitations').getFullList.mockResolvedValue(sentInvites);
 
-				const result = await ChurchesAPI.getSentInvitations('church1');
+				const result = await churchesAPI.getSentInvitations('church1');
 
 				expect(mockPb.collection('church_invitations').getFullList).toHaveBeenCalledWith({
 					filter: `church_id = "church1"`,
@@ -330,7 +335,7 @@ describe('Churches API - Simple Tests', () => {
 			it('should cancel invitation', async () => {
 				mockPb.collection('church_invitations').update.mockResolvedValue({});
 
-				await ChurchesAPI.cancelInvitation('invite-1');
+				await churchesAPI.cancelInvitation('invite-1');
 
 				expect(mockPb.collection('church_invitations').update).toHaveBeenCalledWith(
 					'invite-1',
@@ -357,7 +362,7 @@ describe('Churches API - Simple Tests', () => {
 				mockPb.collection('church_invitations').update.mockResolvedValue({});
 				mockPb.collection('church_invitations').create.mockResolvedValue({});
 
-				await ChurchesAPI.resendInvitation('invite-1');
+				await churchesAPI.resendInvitation('invite-1');
 
 				// Should cancel the old invitation
 				expect(mockPb.collection('church_invitations').update).toHaveBeenCalledWith(

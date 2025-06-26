@@ -1,4 +1,4 @@
-import { pb } from './client';
+import type PocketBase from 'pocketbase';
 import type { Song, SongUsage } from '$lib/types/song';
 import type { ServiceSong } from '$lib/types/service';
 
@@ -100,7 +100,33 @@ export interface ComparativePeriod {
 	insights: string[];
 }
 
-class RecommendationsApi {
+export interface RecommendationsAPI {
+	getSongRecommendations(filters?: {
+		excludeRecentDays?: number;
+		serviceType?: string;
+		worshipLeaderId?: string;
+		limit?: number;
+	}): Promise<SongRecommendation[]>;
+	getWorshipFlowSuggestions(currentSongs: ServiceSong[]): Promise<WorshipFlowSuggestion[]>;
+	analyzeServiceBalance(serviceSongs: ServiceSong[]): Promise<ServiceBalanceAnalysis>;
+	getSeasonalTrends(year?: number): Promise<SeasonalTrend[]>;
+	getWorshipInsights(dateRange?: { start: Date; end: Date }): Promise<WorshipInsights>;
+	getKeyCompatibilityRecommendations(currentKeys: string[]): Promise<SongRecommendation[]>;
+	getRotationHealthAnalysis(): Promise<{
+		overusedSongs: Array<{ songId: string; title: string; usageCount: number }>;
+		underusedSongs: Array<{ songId: string; title: string; daysSinceLastUse: number }>;
+		recommendations: string[];
+	}>;
+	getComparativePeriodAnalysis(period1: ComparativePeriod, period2: ComparativePeriod): Promise<{
+		period1Stats: any;
+		period2Stats: any;
+		changes: any;
+		insights: string[];
+	}>;
+}
+
+class RecommendationsApiImpl implements RecommendationsAPI {
+	constructor(private pb: PocketBase) {}
 	/**
 	 * Get song recommendations based on current usage patterns
 	 */
@@ -124,7 +150,7 @@ class RecommendationsApi {
 				recentUsageFilter += ` && service_id.worship_leader = "${worshipLeaderId}"`;
 			}
 
-			const recentUsage = await pb.collection('song_usage').getFullList({
+			const recentUsage = await this.pb.collection('song_usage').getFullList({
 				filter: recentUsageFilter,
 				fields: 'song_id'
 			});
@@ -137,13 +163,13 @@ class RecommendationsApi {
 				songFilter += ` && id !~ "${recentSongIds.join('|')}"`;
 			}
 
-			const availableSongs = await pb.collection('songs').getFullList({
+			const availableSongs = await this.pb.collection('songs').getFullList({
 				filter: songFilter,
 				expand: 'song_usage_via_song_id'
 			});
 
 			// Get historical usage data for scoring
-			const allUsage = await pb.collection('song_usage').getFullList({
+			const allUsage = await this.pb.collection('song_usage').getFullList({
 				expand: 'song_id,service_id',
 				sort: '-used_date'
 			});
@@ -275,7 +301,7 @@ class RecommendationsApi {
 		try {
 			// If analyzing an existing service
 			if (serviceId) {
-				const service = await pb.collection('services').getOne(serviceId, {
+				const service = await this.pb.collection('services').getOne(serviceId, {
 					expand: 'service_songs_via_service.song'
 				});
 
@@ -353,7 +379,7 @@ class RecommendationsApi {
 	 */
 	async analyzeServiceBalance(serviceId: string): Promise<ServiceBalanceAnalysis> {
 		try {
-			const service = await pb.collection('services').getOne(serviceId, {
+			const service = await this.pb.collection('services').getOne(serviceId, {
 				expand: 'service_songs_via_service.song'
 			});
 
@@ -444,7 +470,7 @@ class RecommendationsApi {
 
 					const usageFilter = `usage_date >= "${startDate.toISOString()}" && usage_date <= "${endDate.toISOString()}"`;
 
-					const usages = await pb.collection('song_usage').getFullList({
+					const usages = await this.pb.collection('song_usage').getFullList({
 						filter: usageFilter,
 						expand: 'song'
 					});
@@ -502,14 +528,14 @@ class RecommendationsApi {
 
 			// Get current period data
 			const currentFilter = `usage_date >= "${currentStart.toISOString()}" && usage_date <= "${currentEnd.toISOString()}"`;
-			const currentUsages = await pb.collection('song_usage').getFullList({
+			const currentUsages = await this.pb.collection('song_usage').getFullList({
 				filter: currentFilter,
 				expand: 'song,service'
 			});
 
 			// Get previous period data
 			const prevFilter = `usage_date >= "${prevStart.toISOString()}" && usage_date <= "${prevEnd.toISOString()}"`;
-			const prevUsages = await pb.collection('song_usage').getFullList({
+			const prevUsages = await this.pb.collection('song_usage').getFullList({
 				filter: prevFilter,
 				expand: 'song,service'
 			});
@@ -588,11 +614,11 @@ class RecommendationsApi {
 		try {
 			// Get comprehensive usage data
 			const [allUsage, allSongs] = await Promise.all([
-				pb.collection('song_usage').getFullList({
+				this.pb.collection('song_usage').getFullList({
 					expand: 'song_id,service_id',
 					sort: '-used_date'
 				}),
-				pb.collection('songs').getFullList({
+				this.pb.collection('songs').getFullList({
 					filter: 'is_active = true'
 				})
 			]);
@@ -953,10 +979,10 @@ class RecommendationsApi {
 	}> {
 		try {
 			// Try to get current user's church settings
-			const user = pb.authStore.model;
+			const user = this.pb.authStore.model;
 			if (user?.id) {
 				// Get current user's active church membership
-				const membership = await pb.collection('church_memberships').getFirstListItem(
+				const membership = await this.pb.collection('church_memberships').getFirstListItem(
 					`user_id = "${user.id}" && status = "active" && is_active = true`,
 					{ expand: 'church_id', fields: 'church_id,expand.church_id.timezone,expand.church_id.hemisphere,expand.church_id.country' }
 				).catch(() => null);
@@ -1182,4 +1208,6 @@ class RecommendationsApi {
 	}
 }
 
-export const recommendationsApi = new RecommendationsApi();
+export function createRecommendationsAPI(pb: PocketBase): RecommendationsAPI {
+	return new RecommendationsApiImpl(pb);
+}

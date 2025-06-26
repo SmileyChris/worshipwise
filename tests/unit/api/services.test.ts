@@ -1,27 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mockPb } from '../../helpers/pb-mock';
+import { MockPocketBase } from '../../helpers/pb-mock';
 import { createMockService, createMockServiceSong, createMockUser, createMockAuthContext } from '../../helpers/test-utils';
 import { ServicesAPI } from '$lib/api/services';
 
-// Mock the client module
-vi.mock('$lib/api/client', () => ({
-	pb: mockPb
-}));
-
-// Mock the auth store
-vi.mock('$lib/stores/auth.svelte', () => ({
-	auth: {
-		currentChurch: { id: 'church_test123', name: 'Test Church' },
-		user: { id: 'user123', email: 'test@example.com' }
-	}
-}));
-
 describe('Services API', () => {
 	let servicesApi: ServicesAPI;
+	let mockPb: MockPocketBase;
 
 	beforeEach(() => {
-		mockPb.reset();
+		// Create fresh mock instance for each test
+		mockPb = new MockPocketBase();
 		mockPb.authStore.model = createMockUser({ id: 'user_1', name: 'Test User' }) as any;
+		
+		// Mock the client module to return our fresh instance
+		vi.doMock('$lib/api/client', () => ({
+			pb: mockPb
+		}));
 		
 		// Create API instance with mock auth context
 		const authContext = createMockAuthContext({

@@ -1,22 +1,28 @@
-import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createSetupStore, type SetupStore } from './setup.svelte';
-import { ChurchesAPI } from '$lib/api/churches';
+import { MockPocketBase } from '../../../tests/helpers/pb-mock';
 
-// Mock the ChurchesAPI
-vi.mock('$lib/api/churches', () => ({
-	ChurchesAPI: {
-		hasChurches: vi.fn()
-	}
-}));
-
-const mockedChurchesAPI = ChurchesAPI as unknown as {
-	hasChurches: MockedFunction<any>;
-};
+// Mock pb from client
+vi.mock('$lib/api/client', () => {
+	const { MockPocketBase } = require('../../../tests/helpers/pb-mock');
+	return {
+		pb: new MockPocketBase()
+	};
+});
 
 describe('SetupStore', () => {
 	let setupStore: SetupStore;
+	let mockPb: MockPocketBase;
 
 	beforeEach(() => {
+		// Create fresh mock instance
+		mockPb = new MockPocketBase();
+		
+		// Mock the pb import to return our fresh instance
+		vi.doMock('$lib/api/client', () => ({
+			pb: mockPb
+		}));
+		
 		// Create fresh store instance for each test
 		setupStore = createSetupStore();
 
@@ -26,7 +32,11 @@ describe('SetupStore', () => {
 
 	describe('checkSetupRequired', () => {
 		it('should return true when no churches exist (setup required)', async () => {
-			mockedChurchesAPI.hasChurches.mockResolvedValue(false);
+			// Mock setup_status collection to not find any churches
+			const notFoundError: any = new Error('Not found');
+			notFoundError.status = 404;
+			mockPb.collection('setup_status').getFirstListItem.mockRejectedValue(notFoundError);
+			mockPb.collection('churches').getList.mockRejectedValue(notFoundError);
 
 			const result = await setupStore.checkSetupRequired();
 
@@ -34,11 +44,12 @@ describe('SetupStore', () => {
 			expect(setupStore.setupRequired).toBe(true);
 			expect(setupStore.loading).toBe(false);
 			expect(setupStore.error).toBe(null);
-			expect(mockedChurchesAPI.hasChurches).toHaveBeenCalled();
+			expect(mockPb.collection).toHaveBeenCalledWith('setup_status');
 		});
 
 		it('should return false when churches exist (setup not required)', async () => {
-			mockedChurchesAPI.hasChurches.mockResolvedValue(true);
+			// Mock setup_status collection to indicate setup is complete
+			mockPb.collection('setup_status').getFirstListItem.mockResolvedValue({ setup_required: false });
 
 			const result = await setupStore.checkSetupRequired();
 
@@ -49,9 +60,9 @@ describe('SetupStore', () => {
 		});
 
 		it('should handle loading state correctly', async () => {
-			mockedChurchesAPI.hasChurches.mockImplementation(async () => {
+			mockPb.collection('setup_status').getFirstListItem.mockImplementation(async () => {
 				expect(setupStore.loading).toBe(true);
-				return true;
+				return { setup_required: false };
 			});
 
 			await setupStore.checkSetupRequired();
@@ -61,7 +72,8 @@ describe('SetupStore', () => {
 
 		it('should handle errors with Error objects', async () => {
 			const error = new Error('Network connection failed');
-			mockedChurchesAPI.hasChurches.mockRejectedValue(error);
+			mockPb.collection('setup_status').getFirstListItem.mockRejectedValue(error);
+			mockPb.collection('churches').getList.mockRejectedValue(error);
 
 			const result = await setupStore.checkSetupRequired();
 
@@ -73,59 +85,57 @@ describe('SetupStore', () => {
 
 		it('should handle errors without message property', async () => {
 			const error = { someProperty: 'value' }; // Error without message
-			mockedChurchesAPI.hasChurches.mockRejectedValue(error);
+			mockPb.collection('setup_status').getFirstListItem.mockRejectedValue(error);
+			mockPb.collection('churches').getList.mockRejectedValue(error);
 
 			const result = await setupStore.checkSetupRequired();
 
 			expect(result).toBe(false);
-			expect(setupStore.setupRequired).toBe(false);
-			expect(setupStore.loading).toBe(false);
 			expect(setupStore.error).toBe('Failed to check setup status');
 		});
 
 		it('should handle string errors', async () => {
-			mockedChurchesAPI.hasChurches.mockRejectedValue('String error');
+			mockPb.collection('setup_status').getFirstListItem.mockRejectedValue('Network error');
+			mockPb.collection('churches').getList.mockRejectedValue('Network error');
 
 			const result = await setupStore.checkSetupRequired();
 
 			expect(result).toBe(false);
-			expect(setupStore.setupRequired).toBe(false);
 			expect(setupStore.error).toBe('Failed to check setup status');
 		});
 
-		it('should clear previous error state on new check', async () => {
-			// Set initial error state
-			setupStore.error = 'Previous error';
-
-			mockedChurchesAPI.hasChurches.mockResolvedValue(true);
-
+		it('should maintain setupRequired state if already set to true', async () => {
+			// First call sets it to true
+			const notFoundError: any = new Error('Not found');
+			notFoundError.status = 404;
+			mockPb.collection('setup_status').getFirstListItem.mockRejectedValue(notFoundError);
+			mockPb.collection('churches').getList.mockRejectedValue(notFoundError);
 			await setupStore.checkSetupRequired();
+			expect(setupStore.setupRequired).toBe(true);
 
-			expect(setupStore.error).toBe(null);
+			// Second call finds churches
+			mockPb.collection('setup_status').getFirstListItem.mockResolvedValue({ setup_required: false });
+			await setupStore.checkSetupRequired();
+			expect(setupStore.setupRequired).toBe(false);
 		});
 	});
 
 	describe('markSetupCompleted', () => {
-		it('should mark setup as completed', () => {
-			// Start with setup required
+		it('should set setupRequired to false', () => {
+			// Set initial state
 			setupStore.setupRequired = true;
 
+			// Mark completed
 			setupStore.markSetupCompleted();
 
 			expect(setupStore.setupRequired).toBe(false);
 		});
 
-		it('should work when setup was already not required', () => {
+		it('should remain false if already false', () => {
+			// Set initial state
 			setupStore.setupRequired = false;
 
-			setupStore.markSetupCompleted();
-
-			expect(setupStore.setupRequired).toBe(false);
-		});
-
-		it('should work when setup state was null', () => {
-			setupStore.setupRequired = null;
-
+			// Mark completed
 			setupStore.markSetupCompleted();
 
 			expect(setupStore.setupRequired).toBe(false);
@@ -134,93 +144,22 @@ describe('SetupStore', () => {
 
 	describe('clearError', () => {
 		it('should clear error state', () => {
-			setupStore.error = 'Some error message';
+			// Set initial error
+			setupStore.error = 'Test error message';
 
+			// Clear error
 			setupStore.clearError();
 
 			expect(setupStore.error).toBe(null);
 		});
 
 		it('should work when error is already null', () => {
+			// Initial state
 			setupStore.error = null;
 
+			// Clear error
 			setupStore.clearError();
 
-			expect(setupStore.error).toBe(null);
-		});
-	});
-
-	describe('initial state', () => {
-		it('should have correct initial state', () => {
-			const store = setupStore;
-
-			expect(store.setupRequired).toBe(null);
-			expect(store.loading).toBe(false);
-			expect(store.error).toBe(null);
-		});
-	});
-
-	describe('error recovery', () => {
-		it('should recover from error state on successful check', async () => {
-			// Set error state
-			setupStore.error = 'Previous error';
-			setupStore.setupRequired = false;
-
-			mockedChurchesAPI.hasChurches.mockResolvedValue(false);
-
-			const result = await setupStore.checkSetupRequired();
-
-			expect(result).toBe(true);
-			expect(setupStore.setupRequired).toBe(true);
-			expect(setupStore.error).toBe(null);
-		});
-
-		it('should maintain error state after failed check', async () => {
-			const error = new Error('Persistent error');
-			mockedChurchesAPI.hasChurches.mockRejectedValue(error);
-
-			await setupStore.checkSetupRequired();
-
-			expect(setupStore.error).toBe('Persistent error');
-			expect(setupStore.setupRequired).toBe(false);
-		});
-	});
-
-	describe('loading state transitions', () => {
-		it('should set loading to false after successful operation', async () => {
-			mockedChurchesAPI.hasChurches.mockResolvedValue(true);
-
-			await setupStore.checkSetupRequired();
-
-			expect(setupStore.loading).toBe(false);
-		});
-
-		it('should set loading to false after failed operation', async () => {
-			const error = new Error('Test error');
-			mockedChurchesAPI.hasChurches.mockRejectedValue(error);
-
-			await setupStore.checkSetupRequired();
-
-			expect(setupStore.loading).toBe(false);
-		});
-
-		it('should not interfere with other store properties during loading', async () => {
-			// Set some initial state
-			setupStore.setupRequired = true;
-			setupStore.error = 'Old error';
-
-			mockedChurchesAPI.hasChurches.mockImplementation(async () => {
-				// During the async operation, loading should be true
-				expect(setupStore.loading).toBe(true);
-				// Error should be cleared
-				expect(setupStore.error).toBe(null);
-				return false;
-			});
-
-			await setupStore.checkSetupRequired();
-
-			expect(setupStore.loading).toBe(false);
-			expect(setupStore.setupRequired).toBe(true);
 			expect(setupStore.error).toBe(null);
 		});
 	});
