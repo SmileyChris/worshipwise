@@ -58,19 +58,19 @@ export interface AuthStore {
 export interface AuthContext {
 	/** Current authenticated user */
 	readonly user: User | null;
-	
+
 	/** Current church membership information */
 	readonly currentMembership: ChurchMembership | null;
-	
+
 	/** Current church (derived from membership) */
 	readonly currentChurch: Church | null;
-	
+
 	/** Whether user is authenticated */
 	readonly isAuthenticated: boolean;
-	
+
 	/** Current auth token */
 	readonly token: string;
-	
+
 	/** Whether auth state is valid */
 	readonly isValid: boolean;
 }

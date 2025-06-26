@@ -13,8 +13,11 @@ import type {
 export class ServicesAPI {
 	private collection = 'services';
 	private serviceSongsCollection = 'service_songs';
-	
-	constructor(private authContext: AuthContext, private pb: PocketBase) {}
+
+	constructor(
+		private authContext: AuthContext,
+		private pb: PocketBase
+	) {}
 
 	/**
 	 * Get all services with optional filtering

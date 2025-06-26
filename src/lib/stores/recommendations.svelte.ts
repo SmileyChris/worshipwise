@@ -9,12 +9,13 @@ import {
 	type WorshipInsights
 } from '$lib/api/recommendations';
 import type { AuthContext } from '$lib/types/auth';
+import type PocketBase from 'pocketbase';
 
 class RecommendationsStore {
 	private recommendationsAPI: RecommendationsAPI;
 
-	constructor(authContext: AuthContext) {
-		this.recommendationsAPI = createRecommendationsAPI(authContext.pb);
+	constructor(authContext: AuthContext, pb: PocketBase) {
+		this.recommendationsAPI = createRecommendationsAPI(pb);
 	}
 	// Loading states
 	loading = $state<boolean>(false);
@@ -87,7 +88,8 @@ class RecommendationsStore {
 		this.error = null;
 
 		try {
-			this.worshipFlowSuggestions = await this.recommendationsAPI.getWorshipFlowSuggestions(serviceId);
+			this.worshipFlowSuggestions =
+				await this.recommendationsAPI.getWorshipFlowSuggestions(serviceId);
 		} catch (error) {
 			this.error = error instanceof Error ? error.message : 'Failed to load flow suggestions';
 			console.error('Failed to load worship flow suggestions:', error);
@@ -271,7 +273,9 @@ class RecommendationsStore {
 export type { RecommendationsStore };
 
 // Factory function for creating new store instances
-export function createRecommendationsStore(authContext: AuthContext): RecommendationsStore {
-	return new RecommendationsStore(authContext);
+export function createRecommendationsStore(
+	authContext: AuthContext,
+	pb: PocketBase
+): RecommendationsStore {
+	return new RecommendationsStore(authContext, pb);
 }
-

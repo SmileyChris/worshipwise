@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { labelsApi } from '$lib/api/labels';
+	import { createLabelsAPI } from '$lib/api/labels';
+	import { getAuthStore } from '$lib/context/stores.svelte';
+	import { pb } from '$lib/api/client';
 	import LabelBadge from './LabelBadge.svelte';
 	import type { Label } from '$lib/types/song';
 
@@ -12,6 +14,9 @@
 
 	let { selectedLabelIds = $bindable([]), id, onchange }: Props = $props();
 
+	const auth = getAuthStore();
+	const labelsApi = createLabelsAPI(pb);
+
 	let availableLabels: Label[] = $state([]);
 	let filteredLabels: Label[] = $state([]);
 	let selectedLabels: Label[] = $state([]);
@@ -22,8 +27,11 @@
 
 	onMount(async () => {
 		try {
-			availableLabels = await labelsApi.getLabels();
-			updateSelectedLabels();
+			const churchId = auth.currentChurch?.id;
+			if (churchId) {
+				availableLabels = await labelsApi.getLabels(churchId);
+				updateSelectedLabels();
+			}
 		} catch (err) {
 			error = 'Failed to load labels';
 			console.error('Error loading labels:', err);

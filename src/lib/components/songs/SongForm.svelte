@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { getAuthStore } from '$lib/context/stores.svelte';
-	import type { Song, CreateSongData, UpdateSongData, LyricsAnalysis, Label } from '$lib/types/song';
+	import type {
+		Song,
+		CreateSongData,
+		UpdateSongData,
+		LyricsAnalysis,
+		Label
+	} from '$lib/types/song';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
@@ -276,9 +282,9 @@
 
 	function handleLabelsCreated(labels: Label[]) {
 		// Add the newly created label IDs to the selected labels
-		const newLabelIds = labels.map(label => label.id);
+		const newLabelIds = labels.map((label) => label.id);
 		selectedLabelIds = [...selectedLabelIds, ...newLabelIds];
-		
+
 		// The LabelSelector component should automatically update to show these new labels
 		// since it fetches labels from the API
 	}

@@ -392,4 +392,3 @@ export type { AnalyticsStore };
 export function createAnalyticsStore(): AnalyticsStore {
 	return new AnalyticsStore();
 }
-

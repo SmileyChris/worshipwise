@@ -211,7 +211,7 @@ describe('RecommendationsStore', () => {
 			pb: mockPb as any,
 			user: { id: 'user-1' },
 			church: { id: 'church-1', name: 'Test Church' },
-			membership: { 
+			membership: {
 				church_id: 'church-1',
 				user_id: 'user-1',
 				expand: {
@@ -222,7 +222,7 @@ describe('RecommendationsStore', () => {
 
 		// Create fresh store instance for each test
 		recommendationsStore = createRecommendationsStore(authContext);
-		
+
 		// Get access to the mocked API
 		const { createRecommendationsAPI } = vi.mocked(await import('$lib/api/recommendations'));
 		recommendationsApi = createRecommendationsAPI(mockPb as any);
@@ -239,11 +239,11 @@ describe('RecommendationsStore', () => {
 			mockPb.collection('church_memberships').getFirstListItem.mockResolvedValue({
 				church_id: 'church-1',
 				expand: {
-					church_id: { 
-						id: 'church-1', 
+					church_id: {
+						id: 'church-1',
 						name: 'Test Church',
 						timezone: 'America/New_York',
-						hemisphere: 'northern' 
+						hemisphere: 'northern'
 					}
 				}
 			});
@@ -288,7 +288,9 @@ describe('RecommendationsStore', () => {
 
 	describe('loadWorshipFlowSuggestions', () => {
 		it('should load flow suggestions successfully', async () => {
-			vi.mocked(recommendationsApi.getWorshipFlowSuggestions).mockResolvedValue(mockFlowSuggestions);
+			vi.mocked(recommendationsApi.getWorshipFlowSuggestions).mockResolvedValue(
+				mockFlowSuggestions
+			);
 
 			await recommendationsStore.loadWorshipFlowSuggestions('service-1');
 
@@ -354,12 +356,17 @@ describe('RecommendationsStore', () => {
 		it('should load comparative analysis successfully', async () => {
 			const startDate = new Date('2024-01-01');
 			const endDate = new Date('2024-01-31');
-			vi.mocked(recommendationsApi.getComparativePeriodAnalysis).mockResolvedValue(mockComparativePeriod);
+			vi.mocked(recommendationsApi.getComparativePeriodAnalysis).mockResolvedValue(
+				mockComparativePeriod
+			);
 
 			await recommendationsStore.loadComparativePeriodAnalysis(startDate, endDate);
 
 			expect(recommendationsStore.comparativePeriod).toEqual(mockComparativePeriod);
-			expect(recommendationsApi.getComparativePeriodAnalysis).toHaveBeenCalledWith(startDate, endDate);
+			expect(recommendationsApi.getComparativePeriodAnalysis).toHaveBeenCalledWith(
+				startDate,
+				endDate
+			);
 		});
 
 		it('should handle errors when loading comparative analysis', async () => {
@@ -409,7 +416,9 @@ describe('RecommendationsStore', () => {
 		});
 
 		it('should get personalized recommendations', async () => {
-			vi.mocked(recommendationsApi.getSongRecommendations).mockResolvedValue(mockSongRecommendations);
+			vi.mocked(recommendationsApi.getSongRecommendations).mockResolvedValue(
+				mockSongRecommendations
+			);
 
 			await recommendationsStore.getPersonalizedRecommendations('leader-1');
 

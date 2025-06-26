@@ -7,12 +7,15 @@ import type { Church } from '$lib/types/church';
  * Priority order:
  * 1. Church-specific API key (from database)
  * 2. Global environment variable
- * 
+ *
  * @param pb - PocketBase instance
  * @param churchId - The ID of the church to get the API key for
  * @returns The API key if available, null otherwise
  */
-export async function getMistralApiKey(pb: PocketBase, churchId: string | undefined): Promise<string | null> {
+export async function getMistralApiKey(
+	pb: PocketBase,
+	churchId: string | undefined
+): Promise<string | null> {
 	// If no church ID provided, use global key only
 	if (!churchId) {
 		return env.PUBLIC_MISTRAL_API_KEY || null;
@@ -20,8 +23,10 @@ export async function getMistralApiKey(pb: PocketBase, churchId: string | undefi
 
 	try {
 		// Fetch church settings
-		const church = await pb.collection('churches').getOne<Church & { mistral_api_key?: string }>(churchId);
-		
+		const church = await pb
+			.collection('churches')
+			.getOne<Church & { mistral_api_key?: string }>(churchId);
+
 		// Return church-specific key if available, otherwise global key
 		return church.mistral_api_key || env.PUBLIC_MISTRAL_API_KEY || null;
 	} catch (error) {
@@ -37,7 +42,10 @@ export async function getMistralApiKey(pb: PocketBase, churchId: string | undefi
  * @param churchId - The ID of the church to check
  * @returns True if AI features can be used
  */
-export async function hasAIFeaturesEnabled(pb: PocketBase, churchId: string | undefined): Promise<boolean> {
+export async function hasAIFeaturesEnabled(
+	pb: PocketBase,
+	churchId: string | undefined
+): Promise<boolean> {
 	const apiKey = await getMistralApiKey(pb, churchId);
 	return !!apiKey && apiKey.trim().length > 0;
 }
@@ -53,7 +61,7 @@ export async function createChurchMistralClient(pb: PocketBase, churchId: string
 	if (!apiKey) {
 		return null;
 	}
-	
+
 	// Import dynamically to avoid circular dependencies
 	const { createMistralClient } = await import('./mistral');
 	return createMistralClient(apiKey);

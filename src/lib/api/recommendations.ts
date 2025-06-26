@@ -117,7 +117,10 @@ export interface RecommendationsAPI {
 		underusedSongs: Array<{ songId: string; title: string; daysSinceLastUse: number }>;
 		recommendations: string[];
 	}>;
-	getComparativePeriodAnalysis(period1: ComparativePeriod, period2: ComparativePeriod): Promise<{
+	getComparativePeriodAnalysis(
+		period1: ComparativePeriod,
+		period2: ComparativePeriod
+	): Promise<{
 		period1Stats: any;
 		period2Stats: any;
 		changes: any;
@@ -982,10 +985,14 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 			const user = this.pb.authStore.model;
 			if (user?.id) {
 				// Get current user's active church membership
-				const membership = await this.pb.collection('church_memberships').getFirstListItem(
-					`user_id = "${user.id}" && status = "active" && is_active = true`,
-					{ expand: 'church_id', fields: 'church_id,expand.church_id.timezone,expand.church_id.hemisphere,expand.church_id.country' }
-				).catch(() => null);
+				const membership = await this.pb
+					.collection('church_memberships')
+					.getFirstListItem(`user_id = "${user.id}" && status = "active" && is_active = true`, {
+						expand: 'church_id',
+						fields:
+							'church_id,expand.church_id.timezone,expand.church_id.hemisphere,expand.church_id.country'
+					})
+					.catch(() => null);
 
 				if (membership?.expand?.church_id) {
 					const church = membership.expand.church_id;

@@ -53,7 +53,7 @@
 
 		try {
 			const permissions = getDefaultPermissions(role);
-			
+
 			await churchesAPI.inviteUser(auth.currentChurch.id, {
 				email,
 				role,
@@ -61,7 +61,7 @@
 			});
 
 			success = true;
-			
+
 			// Show success for 2 seconds then close
 			setTimeout(() => {
 				resetForm();
@@ -85,15 +85,25 @@
 		switch (role) {
 			case 'admin':
 				return [
-					'songs:create', 'songs:edit', 'songs:delete',
-					'services:create', 'services:edit', 'services:delete',
-					'users:invite', 'users:manage', 'users:remove',
-					'church:settings', 'church:billing'
+					'songs:create',
+					'songs:edit',
+					'songs:delete',
+					'services:create',
+					'services:edit',
+					'services:delete',
+					'users:invite',
+					'users:manage',
+					'users:remove',
+					'church:settings',
+					'church:billing'
 				];
 			case 'leader':
 				return [
-					'songs:create', 'songs:edit',
-					'services:create', 'services:edit', 'services:delete',
+					'songs:create',
+					'songs:edit',
+					'services:create',
+					'services:edit',
+					'services:delete',
 					'users:invite'
 				];
 			case 'musician':
@@ -135,9 +145,7 @@
 				<p class="text-sm text-gray-600">
 					An invitation email has been sent to <strong>{email}</strong>
 				</p>
-				<p class="mt-1 text-xs text-gray-500">
-					They have 7 days to accept the invitation.
-				</p>
+				<p class="mt-1 text-xs text-gray-500">They have 7 days to accept the invitation.</p>
 			</div>
 		{:else}
 			<form onsubmit={handleSubmit} class="space-y-4">
@@ -174,15 +182,8 @@
 				</div>
 
 				<div>
-					<label for="role" class="mb-1 block text-sm font-medium text-gray-700">
-						Role
-					</label>
-					<Select
-						id="role"
-						name="role"
-						bind:value={role}
-						disabled={loading}
-					>
+					<label for="role" class="mb-1 block text-sm font-medium text-gray-700"> Role </label>
+					<Select id="role" name="role" bind:value={role} disabled={loading}>
 						<option value="musician">Musician</option>
 						<option value="leader">Worship Leader</option>
 						<option value="admin">Administrator</option>
@@ -216,9 +217,7 @@
 
 	{#snippet footer()}
 		{#if !success}
-			<Button onclick={handleClose} variant="outline" disabled={loading}>
-				Cancel
-			</Button>
+			<Button onclick={handleClose} variant="outline" disabled={loading}>Cancel</Button>
 			<Button onclick={handleButtonSubmit} disabled={!canSubmit} {loading}>
 				{#if loading}
 					Sending...

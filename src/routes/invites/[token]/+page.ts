@@ -9,10 +9,10 @@ export const load: PageLoad = async ({ params, url }) => {
 	const { token } = params;
 	const action = url.searchParams.get('action');
 	const churchesAPI = createChurchesAPI(pb);
-	
+
 	try {
 		const invitation = await churchesAPI.getInvitationByToken(token);
-		
+
 		return {
 			invitation,
 			token,

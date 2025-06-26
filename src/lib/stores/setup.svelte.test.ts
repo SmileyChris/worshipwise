@@ -30,12 +30,12 @@ describe('SetupStore', () => {
 	beforeEach(async () => {
 		// Create fresh mock instance
 		mockPb = new MockPocketBase();
-		
+
 		// Mock the pb import to return our fresh instance
 		vi.doMock('$lib/api/client', () => ({
 			pb: mockPb
 		}));
-		
+
 		// Create fresh store instance for each test
 		setupStore = createSetupStore();
 

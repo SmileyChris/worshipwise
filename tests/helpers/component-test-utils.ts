@@ -83,13 +83,13 @@ export function renderWithContextAndRunes<T extends Record<string, any>>(
 ) {
 	return testWithRunes(() => {
 		const rendered = renderWithContext(Component, options);
-		
+
 		// Ensure all reactive state is flushed
 		flushSync();
-		
+
 		// Run test logic in reactive context
 		testFn(rendered);
-		
+
 		return rendered;
 	});
 }

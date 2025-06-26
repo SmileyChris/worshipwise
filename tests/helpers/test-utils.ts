@@ -150,10 +150,12 @@ export const cleanupTestEnvironment = () => {
 };
 
 // Auth context utilities for API unit tests
-export const createMockAuthContext = (overrides: {
-	user?: Partial<any>;
-	church?: Partial<any>;
-} = {}) => {
+export const createMockAuthContext = (
+	overrides: {
+		user?: Partial<any>;
+		church?: Partial<any>;
+	} = {}
+) => {
 	const mockUser = {
 		id: 'user123',
 		email: 'test@example.com',

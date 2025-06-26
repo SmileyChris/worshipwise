@@ -52,14 +52,14 @@ describe('SongsStore', () => {
 		authContext = mockAuthContext({
 			church: { id: 'church-1', name: 'Test Church' },
 			user: { id: 'user-1' },
-			membership: { 
+			membership: {
 				church_id: 'church-1'
 			}
 		});
 
 		// Create fresh store instance with test auth context
 		songsStore = createSongsStore(authContext, mockPb);
-		
+
 		// Set up PocketBase mock state
 		mockPb.setAuthState(authContext.user);
 	});
@@ -68,7 +68,7 @@ describe('SongsStore', () => {
 		it('should load songs with usage information successfully', async () => {
 			// Mock the songs paginated result
 			mockPb.collection('songs').getList.mockResolvedValue(mockPaginatedResult);
-			
+
 			// Mock the song_usage collection to return usage data
 			const mockUsageRecord = {
 				song_id: 'song-1',
@@ -275,7 +275,9 @@ describe('SongsStore', () => {
 			expect(songsStore.totalItems).toBe(0);
 			expect(songsStore.loading).toBe(false);
 			expect(songsStore.error).toBe(null);
-			expect(mockPb.collection('songs').update).toHaveBeenCalledWith('song-1', { is_active: false });
+			expect(mockPb.collection('songs').update).toHaveBeenCalledWith('song-1', {
+				is_active: false
+			});
 		});
 
 		it('should handle errors when deleting song', async () => {
@@ -363,10 +365,14 @@ describe('SongsStore', () => {
 			await songsStore.nextPage();
 
 			expect(songsStore.currentPage).toBe(3);
-			expect(mockPb.collection('songs').getList).toHaveBeenCalledWith(3, 20, expect.objectContaining({
-				filter: expect.stringContaining('church_id'),
-				expand: 'created_by,category,labels'
-			}));
+			expect(mockPb.collection('songs').getList).toHaveBeenCalledWith(
+				3,
+				20,
+				expect.objectContaining({
+					filter: expect.stringContaining('church_id'),
+					expand: 'created_by,category,labels'
+				})
+			);
 		});
 
 		it('should navigate to previous page', async () => {
@@ -376,10 +382,14 @@ describe('SongsStore', () => {
 			await songsStore.prevPage();
 
 			expect(songsStore.currentPage).toBe(1);
-			expect(mockPb.collection('songs').getList).toHaveBeenCalledWith(1, 20, expect.objectContaining({
-				filter: expect.stringContaining('church_id'),
-				expand: 'created_by,category,labels'
-			}));
+			expect(mockPb.collection('songs').getList).toHaveBeenCalledWith(
+				1,
+				20,
+				expect.objectContaining({
+					filter: expect.stringContaining('church_id'),
+					expand: 'created_by,category,labels'
+				})
+			);
 		});
 
 		it('should go to specific page', async () => {
@@ -389,10 +399,14 @@ describe('SongsStore', () => {
 			await songsStore.goToPage(4);
 
 			expect(songsStore.currentPage).toBe(4);
-			expect(mockPb.collection('songs').getList).toHaveBeenCalledWith(4, 20, expect.objectContaining({
-				filter: expect.stringContaining('church_id'),
-				expand: 'created_by,category,labels'
-			}));
+			expect(mockPb.collection('songs').getList).toHaveBeenCalledWith(
+				4,
+				20,
+				expect.objectContaining({
+					filter: expect.stringContaining('church_id'),
+					expand: 'created_by,category,labels'
+				})
+			);
 		});
 
 		it('should not go to invalid page numbers', async () => {

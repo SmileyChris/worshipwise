@@ -17,7 +17,8 @@ cd pocketbase/
 ```
 
 ## Access
-- Admin Interface: http://localhost:8090/_/
+
+- Admin Interface: http://localhost:8090/\_/
 - Create admin account on first visit
 
 ## Architecture
@@ -39,17 +40,19 @@ cd pocketbase/
 ## Security Configuration
 
 ### General Settings
+
 - **App URL**: Set to your domain
 - **File Upload**: Max 50MB, extensions: pdf,jpg,png,mp3,wav,m4a
 - **Rate Limiting**: Enable with reasonable limits
 
 ### API Security Rules
+
 ```javascript
 // Common patterns
-"@request.auth.id != ''"                    // Only authenticated users
-"@request.auth.role = 'admin'"              // Admin only
-"@request.auth.role ?~ 'leader|admin'"      // Role-based access
-"created_by = @request.auth.id"             // Record owner
+"@request.auth.id != ''"; // Only authenticated users
+"@request.auth.role = 'admin'"; // Admin only
+"@request.auth.role ?~ 'leader|admin'"; // Role-based access
+'created_by = @request.auth.id'; // Record owner
 ```
 
 ## Backup & Maintenance
@@ -65,12 +68,14 @@ find /backups -name "*.tar.gz" -mtime +30 -delete
 ## Troubleshooting
 
 **Common Issues:**
+
 - CORS Errors: Check app URL in settings
 - File Upload: Verify size limits and permissions
 - Performance: Add database indexes for slow queries
 - Debug: Use `./pocketbase serve --debug` for detailed logging
 
 **Health Checks:**
+
 - Database connectivity
 - File system access
 - Memory usage

@@ -5,7 +5,10 @@ import { createSetupStore, type SetupStore } from '$lib/stores/setup.svelte';
 import { createSongsStore, type SongsStore } from '$lib/stores/songs.svelte';
 import { createServicesStore, type ServicesStore } from '$lib/stores/services.svelte';
 import { createAnalyticsStore, type AnalyticsStore } from '$lib/stores/analytics.svelte';
-import { createRecommendationsStore, type RecommendationsStore } from '$lib/stores/recommendations.svelte';
+import {
+	createRecommendationsStore,
+	type RecommendationsStore
+} from '$lib/stores/recommendations.svelte';
 import { createQuickstartStore, type QuickstartStore } from '$lib/stores/quickstart.svelte';
 
 // Context keys
@@ -35,22 +38,22 @@ export interface StoreContext {
 export function initializeStores(): StoreContext {
 	// Create auth store first (required for other stores)
 	const auth = createAuthStore();
-	
+
 	// Create setup store (independent)
 	const setup = createSetupStore();
-	
+
 	// Create quickstart store (independent)
 	const quickstart = createQuickstartStore();
-	
+
 	// Create auth-dependent stores with current auth context
 	const authContext = auth.getAuthContext();
 	const songs = createSongsStore(authContext, pb);
 	const services = createServicesStore(authContext, pb);
-	
-	// Independent stores  
+
+	// Independent stores
 	const analytics = createAnalyticsStore();
-	const recommendations = createRecommendationsStore();
-	
+	const recommendations = createRecommendationsStore(authContext, pb);
+
 	// Set all contexts
 	setContext(AUTH_STORE_KEY, auth);
 	setContext(SETUP_STORE_KEY, setup);
@@ -59,7 +62,7 @@ export function initializeStores(): StoreContext {
 	setContext(ANALYTICS_STORE_KEY, analytics);
 	setContext(RECOMMENDATIONS_STORE_KEY, recommendations);
 	setContext(QUICKSTART_STORE_KEY, quickstart);
-	
+
 	const storeContext: StoreContext = {
 		auth,
 		setup,
@@ -69,7 +72,7 @@ export function initializeStores(): StoreContext {
 		recommendations,
 		quickstart
 	};
-	
+
 	return storeContext;
 }
 
@@ -79,7 +82,9 @@ export function initializeStores(): StoreContext {
 export function getAuthStore(): AuthStore {
 	const store = getContext<AuthStore>(AUTH_STORE_KEY);
 	if (!store) {
-		throw new Error('Auth store not found in context. Make sure initializeStores() was called in a parent component.');
+		throw new Error(
+			'Auth store not found in context. Make sure initializeStores() was called in a parent component.'
+		);
 	}
 	return store;
 }
@@ -90,7 +95,9 @@ export function getAuthStore(): AuthStore {
 export function getSetupStore(): SetupStore {
 	const store = getContext<SetupStore>(SETUP_STORE_KEY);
 	if (!store) {
-		throw new Error('Setup store not found in context. Make sure initializeStores() was called in a parent component.');
+		throw new Error(
+			'Setup store not found in context. Make sure initializeStores() was called in a parent component.'
+		);
 	}
 	return store;
 }
@@ -101,7 +108,9 @@ export function getSetupStore(): SetupStore {
 export function getSongsStore(): SongsStore {
 	const store = getContext<SongsStore>(SONGS_STORE_KEY);
 	if (!store) {
-		throw new Error('Songs store not found in context. Make sure initializeStores() was called in a parent component.');
+		throw new Error(
+			'Songs store not found in context. Make sure initializeStores() was called in a parent component.'
+		);
 	}
 	return store;
 }
@@ -112,7 +121,9 @@ export function getSongsStore(): SongsStore {
 export function getServicesStore(): ServicesStore {
 	const store = getContext<ServicesStore>(SERVICES_STORE_KEY);
 	if (!store) {
-		throw new Error('Services store not found in context. Make sure initializeStores() was called in a parent component.');
+		throw new Error(
+			'Services store not found in context. Make sure initializeStores() was called in a parent component.'
+		);
 	}
 	return store;
 }
@@ -123,7 +134,9 @@ export function getServicesStore(): ServicesStore {
 export function getAnalyticsStore(): AnalyticsStore {
 	const store = getContext<AnalyticsStore>(ANALYTICS_STORE_KEY);
 	if (!store) {
-		throw new Error('Analytics store not found in context. Make sure initializeStores() was called in a parent component.');
+		throw new Error(
+			'Analytics store not found in context. Make sure initializeStores() was called in a parent component.'
+		);
 	}
 	return store;
 }
@@ -134,7 +147,9 @@ export function getAnalyticsStore(): AnalyticsStore {
 export function getRecommendationsStore(): RecommendationsStore {
 	const store = getContext<RecommendationsStore>(RECOMMENDATIONS_STORE_KEY);
 	if (!store) {
-		throw new Error('Recommendations store not found in context. Make sure initializeStores() was called in a parent component.');
+		throw new Error(
+			'Recommendations store not found in context. Make sure initializeStores() was called in a parent component.'
+		);
 	}
 	return store;
 }
@@ -145,7 +160,9 @@ export function getRecommendationsStore(): RecommendationsStore {
 export function getQuickstartStore(): QuickstartStore {
 	const store = getContext<QuickstartStore>(QUICKSTART_STORE_KEY);
 	if (!store) {
-		throw new Error('Quickstart store not found in context. Make sure initializeStores() was called in a parent component.');
+		throw new Error(
+			'Quickstart store not found in context. Make sure initializeStores() was called in a parent component.'
+		);
 	}
 	return store;
 }

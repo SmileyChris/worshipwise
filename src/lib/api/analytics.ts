@@ -54,7 +54,10 @@ export interface WorshipLeaderStats {
 }
 
 export class AnalyticsAPI {
-	constructor(private authContext: AuthContext, private pb: PocketBase) {}
+	constructor(
+		private authContext: AuthContext,
+		private pb: PocketBase
+	) {}
 
 	/**
 	 * Get overview analytics for the dashboard
@@ -71,9 +74,13 @@ export class AnalyticsAPI {
 
 			// Get basic counts
 			const [songsResult, servicesResult, usageResult] = await Promise.all([
-				this.pb.collection('songs').getList(1, 1, { filter: `is_active = true && ${churchFilter}` }),
+				this.pb
+					.collection('songs')
+					.getList(1, 1, { filter: `is_active = true && ${churchFilter}` }),
 				this.pb.collection('services').getList(1, 1, {
-					filter: dateFilter ? `status = "completed" && ${churchFilter} && ${dateFilter}` : `status = "completed" && ${churchFilter}`
+					filter: dateFilter
+						? `status = "completed" && ${churchFilter} && ${dateFilter}`
+						: `status = "completed" && ${churchFilter}`
 				}),
 				this.pb.collection('song_usage').getList(1, 1, {
 					filter: dateFilter ? `${churchFilter} && ${dateFilter}` : churchFilter
@@ -82,7 +89,9 @@ export class AnalyticsAPI {
 
 			// Get services with songs for calculations
 			const completedServices = await this.pb.collection('services').getFullList({
-				filter: dateFilter ? `status = "completed" && ${churchFilter} && ${dateFilter}` : `status = "completed" && ${churchFilter}`,
+				filter: dateFilter
+					? `status = "completed" && ${churchFilter} && ${dateFilter}`
+					: `status = "completed" && ${churchFilter}`,
 				expand: 'service_songs_via_service_id.song_id'
 			});
 
@@ -245,7 +254,9 @@ export class AnalyticsAPI {
 			const churchFilter = `church_id = "${this.authContext.currentChurch.id}"`;
 
 			const services = await this.pb.collection('services').getFullList({
-				filter: dateFilter ? `status = "completed" && ${churchFilter} && ${dateFilter}` : `status = "completed" && ${churchFilter}`,
+				filter: dateFilter
+					? `status = "completed" && ${churchFilter} && ${dateFilter}`
+					: `status = "completed" && ${churchFilter}`,
 				expand: 'service_songs_via_service_id.song_id'
 			});
 
@@ -402,7 +413,9 @@ export class AnalyticsAPI {
 					sort: 'used_date'
 				}),
 				this.pb.collection('services').getFullList({
-					filter: dateFilter ? `status = "completed" && ${churchFilter} && ${dateFilter}` : `status = "completed" && ${churchFilter}`,
+					filter: dateFilter
+						? `status = "completed" && ${churchFilter} && ${dateFilter}`
+						: `status = "completed" && ${churchFilter}`,
 					sort: 'service_date'
 				})
 			]);
@@ -497,7 +510,9 @@ export class AnalyticsAPI {
 			const churchFilter = `church_id = "${this.authContext.currentChurch.id}"`;
 
 			const services = await this.pb.collection('services').getFullList({
-				filter: dateFilter ? `status = "completed" && ${churchFilter} && ${dateFilter}` : `status = "completed" && ${churchFilter}`,
+				filter: dateFilter
+					? `status = "completed" && ${churchFilter} && ${dateFilter}`
+					: `status = "completed" && ${churchFilter}`,
 				expand: 'worship_leader,service_songs_via_service_id.song_id'
 			});
 
@@ -727,17 +742,19 @@ class AnalyticsAPIProxy {
 		const auth = getAuthStore();
 		return new AnalyticsAPI(auth.getAuthContext());
 	}
-	
+
 	getOverview = (dateFrom?: string, dateTo?: string) => this.api.getOverview(dateFrom, dateTo);
-	getSongUsageStats = (limit?: number, dateFrom?: string, dateTo?: string) => 
+	getSongUsageStats = (limit?: number, dateFrom?: string, dateTo?: string) =>
 		this.api.getSongUsageStats(limit, dateFrom, dateTo);
-	getServiceTypeStats = (dateFrom?: string, dateTo?: string) => this.api.getServiceTypeStats(dateFrom, dateTo);
-	getKeyUsageStats = (dateFrom?: string, dateTo?: string) => this.api.getKeyUsageStats(dateFrom, dateTo);
-	getUsageTrends = (dateFrom?: string, dateTo?: string, interval?: 'week' | 'month') => 
+	getServiceTypeStats = (dateFrom?: string, dateTo?: string) =>
+		this.api.getServiceTypeStats(dateFrom, dateTo);
+	getKeyUsageStats = (dateFrom?: string, dateTo?: string) =>
+		this.api.getKeyUsageStats(dateFrom, dateTo);
+	getUsageTrends = (dateFrom?: string, dateTo?: string, interval?: 'week' | 'month') =>
 		this.api.getUsageTrends(dateFrom, dateTo, interval);
-	getWorshipLeaderStats = (limit?: number, dateFrom?: string, dateTo?: string) => 
+	getWorshipLeaderStats = (limit?: number, dateFrom?: string, dateTo?: string) =>
 		this.api.getWorshipLeaderStats(limit, dateFrom, dateTo);
-	exportToCSV = (type: 'songs' | 'services' | 'leaders', dateFrom?: string, dateTo?: string) => 
+	exportToCSV = (type: 'songs' | 'services' | 'leaders', dateFrom?: string, dateTo?: string) =>
 		this.api.exportToCSV(type, dateFrom, dateTo);
 }
 

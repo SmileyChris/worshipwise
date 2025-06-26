@@ -18,6 +18,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 **Type**: Base Collection
 
 #### Fields:
+
 - `id` - Auto-generated unique identifier
 - `name` (text, required) - Church name
 - `slug` (text, required, unique) - URL-friendly identifier
@@ -39,6 +40,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 - `updated` - Auto-generated timestamp
 
 #### Rules:
+
 - List/View: `@request.auth.id != ''`
 - Create: `@request.auth.id != ''`
 - Update: Member must be admin of the church
@@ -50,6 +52,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 **Type**: Base Collection
 
 #### Fields:
+
 - `id` - Auto-generated unique identifier
 - `church_id` (relation to churches, required) - Church reference
 - `user_id` (relation to users, required) - User reference
@@ -66,9 +69,11 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 - `updated` - Auto-generated timestamp
 
 #### Indexes:
+
 - Unique composite index on `(church_id, user_id)`
 
 #### Rules:
+
 - List/View: Authenticated users
 - Create: Authenticated users
 - Update: Church admins or self
@@ -80,6 +85,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 **Type**: Base Collection
 
 #### Fields:
+
 - `id` - Auto-generated unique identifier
 - `church_id` (relation to churches, required) - Target church
 - `email` (email, required) - Invitee email address
@@ -95,9 +101,11 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 - `updated` - Auto-generated timestamp
 
 #### Indexes:
+
 - Unique index on `token`
 
 #### Rules:
+
 - All operations require authentication
 
 ### 4. Songs
@@ -106,6 +114,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 **Type**: Base Collection
 
 #### Fields:
+
 - `id` - Auto-generated unique identifier
 - `church_id` (relation to churches, required) - Owning church
 - `title` (text, required) - Song title
@@ -132,6 +141,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 - `updated` - Auto-generated timestamp
 
 #### Rules:
+
 - List/View: Authenticated users in the church
 - Create: Leaders and admins
 - Update: Leaders, admins, or creator
@@ -143,6 +153,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 **Type**: Base Collection
 
 #### Fields:
+
 - `id` - Auto-generated unique identifier
 - `church_id` (relation to churches, required) - Church reference
 - `title` (text, required) - Service title
@@ -165,6 +176,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 - `updated` - Auto-generated timestamp
 
 #### Rules:
+
 - List/View: Church members
 - Create: Leaders and admins
 - Update: Leaders, admins, or worship leader
@@ -176,6 +188,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 **Type**: Base Collection
 
 #### Fields:
+
 - `id` - Auto-generated unique identifier
 - `service_id` (relation to services, required) - Parent service
 - `song_id` (relation to songs, required) - Song reference
@@ -188,9 +201,11 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 - `updated` - Auto-generated timestamp
 
 #### Indexes:
+
 - Composite index on `(service_id, position)`
 
 #### Rules:
+
 - List/View: Church members
 - Create/Update/Delete: Service worship leader or admins
 
@@ -200,6 +215,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 **Type**: Base Collection
 
 #### Fields:
+
 - `id` - Auto-generated unique identifier
 - `song_id` (relation to songs, required) - Song reference
 - `service_id` (relation to services, required) - Service reference
@@ -212,6 +228,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 - `updated` - Auto-generated timestamp
 
 #### Rules:
+
 - List/View: Authenticated users
 - Create: Authenticated users (auto-created when service completed)
 - Update/Delete: Admins only
@@ -222,6 +239,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 **Type**: Base Collection
 
 #### Fields:
+
 - `id` - Auto-generated unique identifier
 - `name` (text, required) - Category name
 - `description` (text) - Category description
@@ -232,6 +250,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 - `updated` - Auto-generated timestamp
 
 #### Default Categories:
+
 1. Hymns and Te Reo
 2. Contemporary
 3. Seasonal (youth suggestions)
@@ -240,6 +259,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 6. Modern (archive list)
 
 #### Rules:
+
 - List/View: Authenticated users
 - Create/Update/Delete: Admins only
 
@@ -249,6 +269,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 **Type**: Base Collection
 
 #### Fields:
+
 - `id` - Auto-generated unique identifier
 - `name` (text, required) - Label name
 - `description` (text) - Label description
@@ -259,6 +280,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 - `updated` - Auto-generated timestamp
 
 #### Rules:
+
 - List/View: Authenticated users
 - Create: Leaders and admins
 - Update/Delete: Admins or creator
@@ -269,6 +291,7 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 **Type**: Auth Collection (built-in PocketBase)
 
 #### Fields:
+
 - `id` - Auto-generated unique identifier
 - `email` (email, required, unique) - Login email
 - `username` (text, unique) - Username
@@ -290,10 +313,10 @@ WorshipWise uses a church-centric multi-tenant architecture where all data is or
 
 ```sql
 CREATE VIEW IF NOT EXISTS setup_status AS
-SELECT 
-    CASE 
-        WHEN COUNT(*) > 0 THEN 1 
-        ELSE 0 
+SELECT
+    CASE
+        WHEN COUNT(*) > 0 THEN 1
+        ELSE 0
     END as has_churches
 FROM churches;
 ```
@@ -371,6 +394,7 @@ song_usage ───────┬─── (1) song_id → songs
 ## AI Integration
 
 The `mistral_api_key` field in the churches collection enables AI features:
+
 - Lyrics analysis for worship insights
 - Automatic label suggestions based on themes
 - Seasonal appropriateness recommendations

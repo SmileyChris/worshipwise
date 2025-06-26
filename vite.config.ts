@@ -19,9 +19,11 @@ export default defineConfig({
 					setupFiles: ['./vitest-setup-client.ts']
 				},
 				// Tell Vitest to use browser entry points for Svelte 5 reactivity
-				resolve: process.env.VITEST ? {
-					conditions: ['browser']
-				} : undefined
+				resolve: process.env.VITEST
+					? {
+							conditions: ['browser']
+						}
+					: undefined
 			},
 			{
 				extends: './vite.config.ts',

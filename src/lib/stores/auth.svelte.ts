@@ -29,7 +29,7 @@ class AuthStore {
 	constructor() {
 		// Create API instances
 		this.churchesAPI = createChurchesAPI(pb);
-		
+
 		if (browser) {
 			// Initialize from PocketBase auth store
 			this.user = pb.authStore.model as User | null;
@@ -514,14 +514,14 @@ class AuthStore {
 
 		try {
 			const church = await this.churchesAPI.acceptInvitation(token);
-			
+
 			// Reload churches and invitations
 			await this.loadUserChurches();
 			await this.loadPendingInvites();
-			
+
 			// Switch to the new church
 			await this.switchChurch(church.id);
-			
+
 			console.log('Invitation accepted successfully');
 		} catch (error: unknown) {
 			console.error('Failed to accept invitation:', error);
@@ -541,10 +541,10 @@ class AuthStore {
 
 		try {
 			await this.churchesAPI.declineInvitation(token);
-			
+
 			// Reload invitations
 			await this.loadPendingInvites();
-			
+
 			console.log('Invitation declined successfully');
 		} catch (error: unknown) {
 			console.error('Failed to decline invitation:', error);
@@ -588,4 +588,3 @@ export type { AuthStore };
 export function createAuthStore(): AuthStore {
 	return new AuthStore();
 }
-

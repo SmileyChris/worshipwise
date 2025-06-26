@@ -203,11 +203,11 @@ class QuickstartStore {
 			// Import the auth and songs stores and reload songs
 			const { createAuthStore } = await import('$lib/stores/auth.svelte.js');
 			const { createSongsStore } = await import('$lib/stores/songs.svelte.js');
-			
+
 			const auth = createAuthStore();
 			const authContext = auth.getAuthContext();
 			const songsStore = createSongsStore(authContext, pb);
-			
+
 			await songsStore.loadSongs(true); // Reset to first page
 
 			// Trigger a custom event that components can listen to for data refresh

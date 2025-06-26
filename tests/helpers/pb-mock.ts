@@ -168,15 +168,9 @@ export class MockRecordService {
 			.mockResolvedValue({});
 
 		// Service-specific methods
-		this.getOneSongs = vi
-			.fn()
-			.mockName(`${collectionName}.getOneSongs`)
-			.mockResolvedValue([]);
-		this.updateSong = vi
-			.fn()
-			.mockName(`${collectionName}.updateSong`)
-			.mockResolvedValue({});
-		
+		this.getOneSongs = vi.fn().mockName(`${collectionName}.getOneSongs`).mockResolvedValue([]);
+		this.updateSong = vi.fn().mockName(`${collectionName}.updateSong`).mockResolvedValue({});
+
 		// Song-specific methods
 		this.getFullListUsageInfo = vi
 			.fn()

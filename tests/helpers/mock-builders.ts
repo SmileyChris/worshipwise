@@ -218,19 +218,21 @@ export const mockMusician = (overrides: Partial<ChurchMembership> = {}) =>
 	mockMembership({ ...overrides, role: 'musician' });
 
 // Auth Context Helper
-export function mockAuthContext(overrides: {
-	user?: Partial<User>;
-	church?: Partial<Church>;
-	membership?: Partial<ChurchMembership>;
-} = {}): AuthContext {
+export function mockAuthContext(
+	overrides: {
+		user?: Partial<User>;
+		church?: Partial<Church>;
+		membership?: Partial<ChurchMembership>;
+	} = {}
+): AuthContext {
 	const church = mockChurch(overrides.church);
-	const user = mockUser({ 
-		...overrides.user 
+	const user = mockUser({
+		...overrides.user
 	});
-	const membership = mockMembership({ 
+	const membership = mockMembership({
 		user_id: user.id,
 		church_id: church.id,
-		...overrides.membership 
+		...overrides.membership
 	});
 
 	// Return proper AuthContext format

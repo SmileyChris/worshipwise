@@ -10,12 +10,12 @@ describe('Analytics API - Basic Tests', () => {
 	beforeEach(() => {
 		// Create fresh mock instance for each test
 		mockPb = new MockPocketBase();
-		
+
 		// Mock the client module to return our fresh instance
 		vi.doMock('$lib/api/client', () => ({
 			pb: mockPb
 		}));
-		
+
 		// Create API instance with mock auth context and pb instance
 		const authContext = createMockAuthContext();
 		analyticsApi = new AnalyticsAPI(authContext, mockPb);

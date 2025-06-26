@@ -27,11 +27,19 @@ export interface AdminStats {
 
 export interface AdminAPI {
 	getAdminStats(): Promise<AdminStats>;
-	getUsers(page?: number, perPage?: number, filter?: string, sort?: string): Promise<UserListResponse>;
+	getUsers(
+		page?: number,
+		perPage?: number,
+		filter?: string,
+		sort?: string
+	): Promise<UserListResponse>;
 	searchUsers(query: string, page?: number, perPage?: number): Promise<UserListResponse>;
 	getUsersByRole(role: string, page?: number, perPage?: number): Promise<UserListResponse>;
 	updateUser(userId: string, userData: Partial<User>): Promise<User>;
-	updateUserMembership(membershipId: string, membershipData: Partial<ChurchMembership>): Promise<ChurchMembership>;
+	updateUserMembership(
+		membershipId: string,
+		membershipData: Partial<ChurchMembership>
+	): Promise<ChurchMembership>;
 	deactivateUser(userId: string): Promise<void>;
 	reactivateUser(userId: string): Promise<void>;
 	deleteUser(userId: string): Promise<void>;
@@ -57,10 +65,12 @@ export function createAdminAPI(pb: PocketBase): AdminAPI {
 				}
 
 				// Get current user's active church membership
-				const userMembership = await pb.collection('church_memberships').getFirstListItem(
-					`user_id = "${currentUser.id}" && status = "active" && is_active = true`,
-					{ expand: 'church_id' }
-				);
+				const userMembership = await pb
+					.collection('church_memberships')
+					.getFirstListItem(
+						`user_id = "${currentUser.id}" && status = "active" && is_active = true`,
+						{ expand: 'church_id' }
+					);
 
 				if (!userMembership?.church_id) {
 					throw new Error('No current church selected');
@@ -88,7 +98,9 @@ export function createAdminAPI(pb: PocketBase): AdminAPI {
 				// Users created in last 30 days
 				const thirtyDaysAgo = new Date();
 				thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-				const recentlyCreated = memberships.filter((m) => new Date(m.created) > thirtyDaysAgo).length;
+				const recentlyCreated = memberships.filter(
+					(m) => new Date(m.created) > thirtyDaysAgo
+				).length;
 
 				return {
 					totalUsers,
@@ -121,10 +133,12 @@ export function createAdminAPI(pb: PocketBase): AdminAPI {
 				}
 
 				// Get current user's active church membership
-				const userMembership = await pb.collection('church_memberships').getFirstListItem(
-					`user_id = "${currentUser.id}" && status = "active" && is_active = true`,
-					{ expand: 'church_id' }
-				);
+				const userMembership = await pb
+					.collection('church_memberships')
+					.getFirstListItem(
+						`user_id = "${currentUser.id}" && status = "active" && is_active = true`,
+						{ expand: 'church_id' }
+					);
 
 				if (!userMembership?.church_id) {
 					throw new Error('No current church selected');
@@ -179,10 +193,12 @@ export function createAdminAPI(pb: PocketBase): AdminAPI {
 				}
 
 				// Get current user's active church membership
-				const userMembership = await pb.collection('church_memberships').getFirstListItem(
-					`user_id = "${currentUser.id}" && status = "active" && is_active = true`,
-					{ expand: 'church_id' }
-				);
+				const userMembership = await pb
+					.collection('church_memberships')
+					.getFirstListItem(
+						`user_id = "${currentUser.id}" && status = "active" && is_active = true`,
+						{ expand: 'church_id' }
+					);
 
 				if (!userMembership?.church_id) {
 					throw new Error('No current church selected');
@@ -253,10 +269,12 @@ export function createAdminAPI(pb: PocketBase): AdminAPI {
 				}
 
 				// Get current user's active church membership
-				const userMembership = await pb.collection('church_memberships').getFirstListItem(
-					`user_id = "${currentUser.id}" && status = "active" && is_active = true`,
-					{ expand: 'church_id' }
-				);
+				const userMembership = await pb
+					.collection('church_memberships')
+					.getFirstListItem(
+						`user_id = "${currentUser.id}" && status = "active" && is_active = true`,
+						{ expand: 'church_id' }
+					);
 
 				if (!userMembership?.church_id) {
 					throw new Error('No current church selected');
@@ -344,10 +362,12 @@ export function createAdminAPI(pb: PocketBase): AdminAPI {
 				}
 
 				// Get current user's active church membership
-				const userMembership = await pb.collection('church_memberships').getFirstListItem(
-					`user_id = "${currentUser.id}" && status = "active" && is_active = true`,
-					{ expand: 'church_id' }
-				);
+				const userMembership = await pb
+					.collection('church_memberships')
+					.getFirstListItem(
+						`user_id = "${currentUser.id}" && status = "active" && is_active = true`,
+						{ expand: 'church_id' }
+					);
 
 				if (!userMembership?.church_id) {
 					throw new Error('No current church selected');
@@ -383,10 +403,12 @@ export function createAdminAPI(pb: PocketBase): AdminAPI {
 				}
 
 				// Get current user's active church membership
-				const userMembership = await pb.collection('church_memberships').getFirstListItem(
-					`user_id = "${currentUser.id}" && status = "active" && is_active = true`,
-					{ expand: 'church_id' }
-				);
+				const userMembership = await pb
+					.collection('church_memberships')
+					.getFirstListItem(
+						`user_id = "${currentUser.id}" && status = "active" && is_active = true`,
+						{ expand: 'church_id' }
+					);
 
 				if (!userMembership?.church_id) {
 					throw new Error('No current church selected');
@@ -435,10 +457,7 @@ export function createAdminAPI(pb: PocketBase): AdminAPI {
 		/**
 		 * Change user role
 		 */
-		async changeUserRole(
-			userId: string,
-			newRole: 'musician' | 'leader' | 'admin'
-		): Promise<void> {
+		async changeUserRole(userId: string, newRole: 'musician' | 'leader' | 'admin'): Promise<void> {
 			try {
 				// Get current user
 				const currentUser = pb.authStore.model;
@@ -447,10 +466,12 @@ export function createAdminAPI(pb: PocketBase): AdminAPI {
 				}
 
 				// Get current user's active church membership
-				const userMembership = await pb.collection('church_memberships').getFirstListItem(
-					`user_id = "${currentUser.id}" && status = "active" && is_active = true`,
-					{ expand: 'church_id' }
-				);
+				const userMembership = await pb
+					.collection('church_memberships')
+					.getFirstListItem(
+						`user_id = "${currentUser.id}" && status = "active" && is_active = true`,
+						{ expand: 'church_id' }
+					);
 
 				if (!userMembership?.church_id) {
 					throw new Error('No current church selected');

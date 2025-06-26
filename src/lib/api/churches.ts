@@ -279,7 +279,7 @@ export function createChurchesAPI(pb: PocketBase): ChurchesAPI {
 		 */
 		async getPendingInvites(): Promise<any[]> {
 			if (!pb.authStore.model?.email) return [];
-			
+
 			return await pb.collection('church_invitations').getFullList({
 				filter: `email = "${pb.authStore.model.email}" && is_active = true && expires_at > @now`,
 				expand: 'church_id,invited_by',
@@ -379,10 +379,10 @@ export function createChurchesAPI(pb: PocketBase): ChurchesAPI {
 		 */
 		async resendInvitation(invitationId: string): Promise<void> {
 			const originalInvite = await pb.collection('church_invitations').getOne(invitationId);
-			
+
 			// Cancel the old invitation
 			await cancelInvitation(invitationId);
-			
+
 			// Create a new invitation with fresh token and expiry
 			const token = crypto.randomUUID();
 			const expiresAt = new Date();

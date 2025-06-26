@@ -11,14 +11,14 @@ export function testWithRunes<T>(testFn: () => T): T {
 	try {
 		cleanup = $effect.root(() => {
 			result = testFn();
-			
+
 			// Return cleanup function if provided by test
 			return typeof result === 'function' ? result : undefined;
 		});
 
 		// Flush any pending effects synchronously
 		flushSync();
-		
+
 		return result!;
 	} finally {
 		// Clean up the effect root
@@ -30,19 +30,16 @@ export function testWithRunes<T>(testFn: () => T): T {
  * Test reactive state changes with proper flushSync timing
  * Follows official Svelte 5 testing patterns
  */
-export function testStateChanges<T>(
-	setup: () => T,
-	test: (state: T) => void
-): void {
+export function testStateChanges<T>(setup: () => T, test: (state: T) => void): void {
 	testWithRunes(() => {
 		const state = setup();
-		
+
 		// Flush initial setup
 		flushSync();
-		
+
 		// Run test logic
 		test(state);
-		
+
 		// Flush any changes made during test
 		flushSync();
 	});
@@ -57,17 +54,14 @@ export function testStateChanges<T>(
 /**
  * Test effects with proper lifecycle management
  */
-export function testEffect(
-	setup: () => void,
-	test: () => void
-): void {
+export function testEffect(setup: () => void, test: () => void): void {
 	testWithRunes(() => {
 		setup();
-		
+
 		// Effects normally run after a microtask,
 		// use flushSync to execute all pending effects synchronously
 		flushSync();
-		
+
 		test();
 	});
 }
@@ -84,23 +78,23 @@ export function testComponentWithRunes<T extends Record<string, any>>(
 	}
 ): void {
 	const { props = {} as T, target = document.body, test } = options;
-	
+
 	testWithRunes(() => {
 		// Import mount/unmount from svelte for proper lifecycle
 		const { mount, unmount } = require('svelte');
-		
+
 		const component = mount(Component, {
 			target,
 			props
 		});
-		
+
 		try {
 			// Flush to ensure component is fully mounted
 			flushSync();
-			
+
 			// Run test logic
 			test(component);
-			
+
 			// Flush any changes made during test
 			flushSync();
 		} finally {

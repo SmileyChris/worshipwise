@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MockPocketBase } from '../../helpers/pb-mock';
-import { createMockService, createMockServiceSong, createMockUser, createMockAuthContext } from '../../helpers/test-utils';
+import {
+	createMockService,
+	createMockServiceSong,
+	createMockUser,
+	createMockAuthContext
+} from '../../helpers/test-utils';
 import { ServicesAPI } from '$lib/api/services';
 
 describe('Services API', () => {
@@ -11,12 +16,12 @@ describe('Services API', () => {
 		// Create fresh mock instance for each test
 		mockPb = new MockPocketBase();
 		mockPb.authStore.model = createMockUser({ id: 'user_1', name: 'Test User' }) as any;
-		
+
 		// Mock the client module to return our fresh instance
 		vi.doMock('$lib/api/client', () => ({
 			pb: mockPb
 		}));
-		
+
 		// Create API instance with mock auth context and pb instance
 		const authContext = createMockAuthContext({
 			user: { id: 'user_1', name: 'Test User' }

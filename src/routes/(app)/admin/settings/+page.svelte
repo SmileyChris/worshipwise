@@ -14,18 +14,18 @@
 
 	const auth = getAuthStore();
 
-	let church = $state<Church & { mistral_api_key?: string } | null>(null);
+	let church = $state<(Church & { mistral_api_key?: string }) | null>(null);
 	let loading = $state(true);
 	let saving = $state(false);
 	let error = $state<string | null>(null);
 	let success = $state<string | null>(null);
-	
+
 	// Form state
 	let mistralApiKey = $state('');
 	let showApiKey = $state(false);
 	let testingApiKey = $state(false);
 	let apiKeyValid = $state<boolean | null>(null);
-	
+
 	// Check if there's a global API key
 	const hasGlobalKey = !!env.PUBLIC_MISTRAL_API_KEY;
 
@@ -54,7 +54,9 @@
 			}
 
 			// Load church data with API key
-			const churchData = await pb.collection('churches').getOne<Church & { mistral_api_key?: string }>(currentChurch.id);
+			const churchData = await pb
+				.collection('churches')
+				.getOne<Church & { mistral_api_key?: string }>(currentChurch.id);
 			church = churchData;
 			mistralApiKey = churchData.mistral_api_key || '';
 		} catch (err) {
@@ -67,7 +69,7 @@
 
 	async function handleSave() {
 		if (!church) return;
-		
+
 		saving = true;
 		error = null;
 		success = null;
@@ -79,7 +81,7 @@
 			});
 
 			success = 'Settings saved successfully';
-			
+
 			// Reload to get updated data
 			await loadChurchSettings();
 		} catch (err) {
@@ -92,7 +94,7 @@
 
 	async function testApiKey() {
 		if (!mistralApiKey.trim()) return;
-		
+
 		testingApiKey = true;
 		apiKeyValid = null;
 		error = null;
@@ -109,7 +111,7 @@
 			const { createMistralClient } = await import('$lib/api/mistral');
 			const client = createMistralClient(mistralApiKey.trim());
 			const result = await client.testConnection();
-			
+
 			apiKeyValid = result.success;
 			if (!result.success) {
 				error = result.error || 'API key validation failed';
@@ -139,13 +141,9 @@
 			<span class="text-red-600">⚠️</span>
 		</div>
 		<h2 class="mt-4 text-lg font-medium text-gray-900">Access Denied</h2>
-		<p class="mt-2 text-sm text-gray-500">
-			Only church administrators can access settings.
-		</p>
+		<p class="mt-2 text-sm text-gray-500">Only church administrators can access settings.</p>
 		<div class="mt-6">
-			<Button href="/dashboard" variant="primary">
-				Return to Dashboard
-			</Button>
+			<Button href="/dashboard" variant="primary">Return to Dashboard</Button>
 		</div>
 	</div>
 {:else}
@@ -183,7 +181,7 @@
 			<Card class="space-y-6">
 				<!-- AI Settings Section -->
 				<div>
-					<div class="flex items-center gap-2 mb-4">
+					<div class="mb-4 flex items-center gap-2">
 						<Settings class="h-5 w-5 text-gray-500" />
 						<h2 class="text-lg font-semibold">AI Features</h2>
 					</div>
@@ -197,7 +195,8 @@
 									<div>
 										<p class="text-sm font-medium text-blue-800">Global API Key Active</p>
 										<p class="mt-1 text-sm text-blue-700">
-											A global Mistral API key is configured. You can override it with a church-specific key below.
+											A global Mistral API key is configured. You can override it with a
+											church-specific key below.
 										</p>
 									</div>
 								</div>
@@ -209,10 +208,10 @@
 							<label for="mistral-key" class="mb-2 block text-sm font-medium text-gray-700">
 								Mistral API Key
 								{#if hasGlobalKey}
-									<span class="text-gray-500 font-normal">(Optional - overrides global key)</span>
+									<span class="font-normal text-gray-500">(Optional - overrides global key)</span>
 								{/if}
 							</label>
-							
+
 							<div class="flex gap-2">
 								<div class="relative flex-1">
 									<input
@@ -223,12 +222,12 @@
 										class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
 										disabled={saving || testingApiKey}
 									/>
-									
+
 									{#if mistralApiKey}
 										<button
 											type="button"
-											onclick={() => showApiKey = !showApiKey}
-											class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+											onclick={() => (showApiKey = !showApiKey)}
+											class="absolute top-1/2 right-2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
 										>
 											{#if showApiKey}
 												<X class="h-4 w-4" />
@@ -240,11 +239,7 @@
 								</div>
 
 								{#if mistralApiKey}
-									<Button
-										variant="outline"
-										onclick={testApiKey}
-										disabled={testingApiKey || saving}
-									>
+									<Button variant="outline" onclick={testApiKey} disabled={testingApiKey || saving}>
 										{#if testingApiKey}
 											Testing...
 										{:else}
@@ -252,11 +247,7 @@
 										{/if}
 									</Button>
 
-									<Button
-										variant="ghost"
-										onclick={clearApiKey}
-										disabled={saving || testingApiKey}
-									>
+									<Button variant="ghost" onclick={clearApiKey} disabled={saving || testingApiKey}>
 										Clear
 									</Button>
 								{/if}
@@ -279,13 +270,19 @@
 							{/if}
 
 							<p class="mt-2 text-sm text-gray-500">
-								Get your API key from <a href="https://console.mistral.ai/" target="__blank" class="text-blue-600 hover:underline">Mistral AI Console</a>
+								Get your API key from <a
+									href="https://console.mistral.ai/"
+									target="__blank"
+									class="text-blue-600 hover:underline">Mistral AI Console</a
+								>
 							</p>
 						</div>
 
 						<!-- Features Enabled by API Key -->
 						<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-							<h3 class="mb-2 text-sm font-medium text-gray-900">Features enabled with Mistral API:</h3>
+							<h3 class="mb-2 text-sm font-medium text-gray-900">
+								Features enabled with Mistral API:
+							</h3>
 							<ul class="space-y-1 text-sm text-gray-600">
 								<li class="flex items-center">
 									<Check class="mr-2 h-4 w-4 text-green-500" />
@@ -310,11 +307,7 @@
 
 				<!-- Save Button -->
 				<div class="flex justify-end border-t pt-4">
-					<Button
-						variant="primary"
-						onclick={handleSave}
-						disabled={saving || testingApiKey}
-					>
+					<Button variant="primary" onclick={handleSave} disabled={saving || testingApiKey}>
 						{#if saving}
 							Saving...
 						{:else}

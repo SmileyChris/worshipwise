@@ -4,6 +4,7 @@ import '@testing-library/jest-dom/vitest';
 import LyricsAnalyzer from './LyricsAnalyzer.svelte';
 import type { Church } from '$lib/types/church';
 import { renderWithContext } from '../../../../tests/helpers/component-test-utils';
+import { hasAIFeaturesEnabled } from '$lib/api/mistral-config';
 
 // Mock environment
 vi.mock('$env/dynamic/public', () => ({
@@ -17,6 +18,15 @@ vi.mock('$lib/api/mistral', () => ({
 	createMistralClient: vi.fn(() => ({
 		analyzeLyrics: vi.fn()
 	}))
+}));
+
+vi.mock('$lib/api/mistral-config', () => ({
+	createChurchMistralClient: vi.fn(() =>
+		Promise.resolve({
+			analyzeLyrics: vi.fn()
+		})
+	),
+	hasAIFeaturesEnabled: vi.fn()
 }));
 
 vi.mock('$lib/api/lyrics', () => ({
@@ -63,9 +73,14 @@ describe('LyricsAnalyzer Component', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// Default mock return values
+		vi.mocked(hasAIFeaturesEnabled).mockResolvedValue(false);
 	});
 
-	it('should render with API key configured', () => {
+	it('should render with API key configured', async () => {
+		// Mock AI features as enabled for this test
+		vi.mocked(hasAIFeaturesEnabled).mockResolvedValue(true);
+
 		renderWithContext(LyricsAnalyzer, {
 			props: {
 				title: 'Amazing Grace',
@@ -77,7 +92,11 @@ describe('LyricsAnalyzer Component', () => {
 		});
 
 		expect(screen.getByText('AI Lyrics Analysis')).toBeInTheDocument();
-		expect(screen.getByText('🎵 Analyze Lyrics')).toBeInTheDocument();
+
+		// Wait for the onMount to complete
+		await vi.waitFor(() => {
+			expect(screen.getByText('🎵 Analyze Lyrics')).toBeInTheDocument();
+		});
 	});
 
 	it('should show API key required message when no key configured', () => {

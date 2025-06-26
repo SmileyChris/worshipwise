@@ -12,7 +12,12 @@ import type {
 } from '$lib/types/service';
 import type { Song } from '$lib/types/song';
 import { mockPb } from '$tests/helpers/pb-mock';
-import { mockService, mockServiceSong, mockSong, mockAuthContext } from '$tests/helpers/mock-builders';
+import {
+	mockService,
+	mockServiceSong,
+	mockSong,
+	mockAuthContext
+} from '$tests/helpers/mock-builders';
 
 describe('ServicesStore', () => {
 	let servicesStore: ServicesStore;
@@ -53,7 +58,7 @@ describe('ServicesStore', () => {
 		authContext = mockAuthContext({
 			church: { id: 'church-1', name: 'Test Church' },
 			user: { id: 'user-1' },
-			membership: { 
+			membership: {
 				church_id: 'church-1'
 			}
 		});
@@ -465,14 +470,12 @@ describe('ServicesStore', () => {
 			expect(servicesStore.currentServiceSongs[1].order_position).toBe(2);
 			expect(servicesStore.currentServiceSongs[1].id).toBe('ss-1');
 			expect(servicesStore.builderState.isDirty).toBe(true);
-			expect(mockPb.collection('service_songs').update).toHaveBeenCalledWith(
-				'ss-2',
-				{ order_position: 1 }
-			);
-			expect(mockPb.collection('service_songs').update).toHaveBeenCalledWith(
-				'ss-1',
-				{ order_position: 2 }
-			);
+			expect(mockPb.collection('service_songs').update).toHaveBeenCalledWith('ss-2', {
+				order_position: 1
+			});
+			expect(mockPb.collection('service_songs').update).toHaveBeenCalledWith('ss-1', {
+				order_position: 2
+			});
 			expect(mockPb.collection('service_songs').update).toHaveBeenCalledTimes(2);
 		});
 
@@ -508,13 +511,13 @@ describe('ServicesStore', () => {
 			expect(result).toEqual(duplicatedService);
 			expect(servicesStore.services).toEqual([duplicatedService]);
 			expect(mockPb.collection('services').create).toHaveBeenCalledWith(
-			expect.objectContaining({
-				title: expect.stringContaining('Duplicated Service'),
-				church_id: 'church-1',
-				created_by: 'user-1',
-				status: 'draft'
-			})
-		);
+				expect.objectContaining({
+					title: expect.stringContaining('Duplicated Service'),
+					church_id: 'church-1',
+					created_by: 'user-1',
+					status: 'draft'
+				})
+			);
 		});
 
 		it('should handle errors when duplicating service', async () => {
@@ -546,9 +549,9 @@ describe('ServicesStore', () => {
 			expect(servicesStore.currentService).toEqual(completedService);
 			expect(servicesStore.builderState.service).toEqual(completedService);
 			expect(mockPb.collection('services').update).toHaveBeenCalledWith('service-1', {
-			status: 'completed',
-			actual_duration: 3500
-		});
+				status: 'completed',
+				actual_duration: 3500
+			});
 		});
 
 		it('should handle errors when completing service', async () => {
@@ -737,10 +740,12 @@ describe('ServicesStore', () => {
 			const unsubscribe = vi.fn();
 			let eventHandler: (data: unknown) => void;
 
-			mockPb.collection('services').subscribe.mockImplementation(async (topic: string, handler: any) => {
-				eventHandler = handler;
-				return unsubscribe;
-			});
+			mockPb
+				.collection('services')
+				.subscribe.mockImplementation(async (topic: string, handler: any) => {
+					eventHandler = handler;
+					return unsubscribe;
+				});
 
 			const result = await servicesStore.subscribeToServices();
 

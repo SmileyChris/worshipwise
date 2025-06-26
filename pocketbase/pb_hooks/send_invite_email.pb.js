@@ -3,41 +3,41 @@
 /**
  * Send email notifications when church invitations are created
  */
-onRecordCreateRequest(function(e) {
-    // Continue with the record creation
-    e.next()
-    
-    // After record is created, send the invitation email
-    const invitation = e.record
-    const churchId = invitation.get('church_id')
-    const invitedByUserId = invitation.get('invited_by')
-    const token = invitation.get('token')
-    const email = invitation.get('email')
-    const role = invitation.get('role')
-    const expiresAt = invitation.get('expires_at')
-    
-    try {
-        // Fetch the church details
-        const church = e.app.findRecordById('churches', churchId)
-        const invitedBy = e.app.findRecordById('users', invitedByUserId)
-        
-        // Calculate days until expiration
-        const expirationDate = new Date(expiresAt)
-        const daysUntilExpiration = Math.ceil((expirationDate - new Date()) / (1000 * 60 * 60 * 24))
-        
-        // Construct the invitation URL
-        const baseUrl = e.app.settings().meta.appUrl || 'http://localhost:5173'
-        const inviteUrl = `${baseUrl}/invites/${token}`
-        
-        // Role display names
-        const roleDisplayNames = {
-            'musician': 'Musician',
-            'leader': 'Worship Leader',
-            'admin': 'Administrator'
-        }
-        
-        // Create the email HTML
-        const emailHtml = `
+onRecordCreateRequest(function (e) {
+	// Continue with the record creation
+	e.next();
+
+	// After record is created, send the invitation email
+	const invitation = e.record;
+	const churchId = invitation.get('church_id');
+	const invitedByUserId = invitation.get('invited_by');
+	const token = invitation.get('token');
+	const email = invitation.get('email');
+	const role = invitation.get('role');
+	const expiresAt = invitation.get('expires_at');
+
+	try {
+		// Fetch the church details
+		const church = e.app.findRecordById('churches', churchId);
+		const invitedBy = e.app.findRecordById('users', invitedByUserId);
+
+		// Calculate days until expiration
+		const expirationDate = new Date(expiresAt);
+		const daysUntilExpiration = Math.ceil((expirationDate - new Date()) / (1000 * 60 * 60 * 24));
+
+		// Construct the invitation URL
+		const baseUrl = e.app.settings().meta.appUrl || 'http://localhost:5173';
+		const inviteUrl = `${baseUrl}/invites/${token}`;
+
+		// Role display names
+		const roleDisplayNames = {
+			musician: 'Musician',
+			leader: 'Worship Leader',
+			admin: 'Administrator'
+		};
+
+		// Create the email HTML
+		const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -79,23 +79,35 @@ onRecordCreateRequest(function(e) {
             
             <p>As a ${roleDisplayNames[role] || role}, you'll be able to:</p>
             <ul>
-                ${role === 'musician' ? `
+                ${
+									role === 'musician'
+										? `
                     <li>View and access song library</li>
                     <li>See upcoming services and setlists</li>
                     <li>Access chord charts and resources</li>
-                ` : ''}
-                ${role === 'leader' ? `
+                `
+										: ''
+								}
+                ${
+									role === 'leader'
+										? `
                     <li>Create and manage worship services</li>
                     <li>Add and edit songs in the library</li>
                     <li>Build setlists and manage teams</li>
                     <li>View analytics and insights</li>
-                ` : ''}
-                ${role === 'admin' ? `
+                `
+										: ''
+								}
+                ${
+									role === 'admin'
+										? `
                     <li>Full access to all church features</li>
                     <li>Manage users and permissions</li>
                     <li>Configure church settings</li>
                     <li>Access all administrative tools</li>
-                ` : ''}
+                `
+										: ''
+								}
             </ul>
             
             <div class="expiry-notice">
@@ -124,10 +136,10 @@ onRecordCreateRequest(function(e) {
     </div>
 </body>
 </html>
-        `
-        
-        // Create plain text version
-        const emailText = `
+        `;
+
+		// Create plain text version
+		const emailText = `
 You're Invited to Join ${church.get('name')}!
 
 Hello!
@@ -147,82 +159,80 @@ This invitation will expire in ${daysUntilExpiration} days.
 If you already have a WorshipWise account, you can log in with your existing credentials. If you're new, you'll be able to create an account during the acceptance process.
 
 This invitation was sent to ${email} by WorshipWise on behalf of ${church.get('name')}.
-        `
-        
-        // Send the email
-        const message = new MailerMessage({
-            from: {
-                address: e.app.settings().meta.senderAddress,
-                name: e.app.settings().meta.senderName || 'WorshipWise'
-            },
-            to: [{address: email}],
-            subject: `Invitation to join ${church.get('name')} on WorshipWise`,
-            html: emailHtml,
-            text: emailText
-        })
-        
-        e.app.newMailClient().send(message)
-        
-        console.log(`Invitation email sent to ${email} for church ${church.get('name')}`)
-        
-    } catch (error) {
-        console.error('Failed to send invitation email:', error)
-        // Don't throw - we don't want to fail the invitation creation if email fails
-        // The invitation can still be accessed via the UI
-    }
-}, 'church_invitations')
+        `;
+
+		// Send the email
+		const message = new MailerMessage({
+			from: {
+				address: e.app.settings().meta.senderAddress,
+				name: e.app.settings().meta.senderName || 'WorshipWise'
+			},
+			to: [{ address: email }],
+			subject: `Invitation to join ${church.get('name')} on WorshipWise`,
+			html: emailHtml,
+			text: emailText
+		});
+
+		e.app.newMailClient().send(message);
+
+		console.log(`Invitation email sent to ${email} for church ${church.get('name')}`);
+	} catch (error) {
+		console.error('Failed to send invitation email:', error);
+		// Don't throw - we don't want to fail the invitation creation if email fails
+		// The invitation can still be accessed via the UI
+	}
+}, 'church_invitations');
 
 /**
  * Send email notification when an invitation is accepted
  */
-onRecordUpdateRequest(function(e) {
-    const oldRecord = e.record.originalCopy()
-    const newRecord = e.record
-    
-    // Check if the invitation was just accepted
-    if (!oldRecord.get('used_at') && newRecord.get('used_at')) {
-        e.next()
-        
-        try {
-            const churchId = newRecord.get('church_id')
-            const invitedByUserId = newRecord.get('invited_by')
-            const usedByUserId = newRecord.get('used_by')
-            const role = newRecord.get('role')
-            
-            // Fetch related records
-            const church = e.app.findRecordById('churches', churchId)
-            const invitedBy = e.app.findRecordById('users', invitedByUserId)
-            const acceptedBy = e.app.findRecordById('users', usedByUserId)
-            
-            // Role display names
-            const roleDisplayNames = {
-                'musician': 'Musician',
-                'leader': 'Worship Leader',
-                'admin': 'Administrator'
-            }
-            
-            // Send notification to the inviter
-            const message = new MailerMessage({
-                from: {
-                    address: e.app.settings().meta.senderAddress,
-                    name: e.app.settings().meta.senderName || 'WorshipWise'
-                },
-                to: [{address: invitedBy.get('email')}],
-                subject: `${acceptedBy.get('name') || acceptedBy.get('email')} accepted your invitation`,
-                html: `
+onRecordUpdateRequest(function (e) {
+	const oldRecord = e.record.originalCopy();
+	const newRecord = e.record;
+
+	// Check if the invitation was just accepted
+	if (!oldRecord.get('used_at') && newRecord.get('used_at')) {
+		e.next();
+
+		try {
+			const churchId = newRecord.get('church_id');
+			const invitedByUserId = newRecord.get('invited_by');
+			const usedByUserId = newRecord.get('used_by');
+			const role = newRecord.get('role');
+
+			// Fetch related records
+			const church = e.app.findRecordById('churches', churchId);
+			const invitedBy = e.app.findRecordById('users', invitedByUserId);
+			const acceptedBy = e.app.findRecordById('users', usedByUserId);
+
+			// Role display names
+			const roleDisplayNames = {
+				musician: 'Musician',
+				leader: 'Worship Leader',
+				admin: 'Administrator'
+			};
+
+			// Send notification to the inviter
+			const message = new MailerMessage({
+				from: {
+					address: e.app.settings().meta.senderAddress,
+					name: e.app.settings().meta.senderName || 'WorshipWise'
+				},
+				to: [{ address: invitedBy.get('email') }],
+				subject: `${acceptedBy.get('name') || acceptedBy.get('email')} accepted your invitation`,
+				html: `
                     <p>Good news!</p>
                     <p><strong>${acceptedBy.get('name') || acceptedBy.get('email')}</strong> has accepted your invitation to join <strong>${church.get('name')}</strong> as a ${roleDisplayNames[role] || role}.</p>
                     <p>They now have access to the church and can start collaborating with your worship team.</p>
                 `,
-                text: `Good news! ${acceptedBy.get('name') || acceptedBy.get('email')} has accepted your invitation to join ${church.get('name')} as a ${roleDisplayNames[role] || role}.`
-            })
-            
-            e.app.newMailClient().send(message)
-            
-        } catch (error) {
-            console.error('Failed to send acceptance notification:', error)
-        }
-    } else {
-        e.next()
-    }
-}, 'church_invitations')
+				text: `Good news! ${acceptedBy.get('name') || acceptedBy.get('email')} has accepted your invitation to join ${church.get('name')} as a ${roleDisplayNames[role] || role}.`
+			});
+
+			e.app.newMailClient().send(message);
+		} catch (error) {
+			console.error('Failed to send acceptance notification:', error);
+		}
+	} else {
+		e.next();
+	}
+}, 'church_invitations');

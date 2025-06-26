@@ -97,11 +97,14 @@ describe('InviteMemberModal', () => {
 
 		// Test valid email state
 		await fireEvent.input(emailInput, { target: { value: 'valid@email.com' } });
-		
+
 		// Wait for reactive state to update
-		await waitFor(() => {
-			expect(submitButton).not.toBeDisabled();
-		}, { timeout: 1000 });
+		await waitFor(
+			() => {
+				expect(submitButton).not.toBeDisabled();
+			},
+			{ timeout: 1000 }
+		);
 	});
 
 	it('should disable submit button when email is invalid', async () => {
@@ -150,12 +153,15 @@ describe('InviteMemberModal', () => {
 		// Fill out form
 		await fireEvent.input(emailInput, { target: { value: 'test@example.com' } });
 		await fireEvent.change(roleSelect, { target: { value: 'musician' } });
-		
+
 		// Wait for form to become valid
-		await waitFor(() => {
-			expect(submitButton).not.toBeDisabled();
-		}, { timeout: 1000 });
-		
+		await waitFor(
+			() => {
+				expect(submitButton).not.toBeDisabled();
+			},
+			{ timeout: 1000 }
+		);
+
 		await fireEvent.click(submitButton);
 
 		// Should call API with correct data
@@ -168,10 +174,13 @@ describe('InviteMemberModal', () => {
 		});
 
 		// Should call callbacks after delay
-		await waitFor(() => {
-			expect(onclose).toHaveBeenCalled();
-			expect(onsuccess).toHaveBeenCalled();
-		}, { timeout: 3000 });
+		await waitFor(
+			() => {
+				expect(onclose).toHaveBeenCalled();
+				expect(onsuccess).toHaveBeenCalled();
+			},
+			{ timeout: 3000 }
+		);
 	});
 
 	it('should display correct permissions for each role', async () => {
@@ -265,12 +274,15 @@ describe('InviteMemberModal', () => {
 
 		// Submit form
 		await fireEvent.input(emailInput, { target: { value: 'test@example.com' } });
-		
+
 		// Wait for form to become valid
-		await waitFor(() => {
-			expect(submitButton).not.toBeDisabled();
-		}, { timeout: 1000 });
-		
+		await waitFor(
+			() => {
+				expect(submitButton).not.toBeDisabled();
+			},
+			{ timeout: 1000 }
+		);
+
 		await fireEvent.click(submitButton);
 
 		// Should show loading state
@@ -288,7 +300,7 @@ describe('InviteMemberModal', () => {
 	it('should assign correct permissions based on role', async () => {
 		const { ChurchesAPI } = await import('$lib/api/churches');
 		(ChurchesAPI.inviteUser as any).mockResolvedValue(undefined);
-		
+
 		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
 		const { getByLabelText, getByText } = renderWithContext(InviteMemberModal, {
 			props: {
@@ -304,24 +316,30 @@ describe('InviteMemberModal', () => {
 
 		// Test different roles
 		const roles = ['musician', 'leader', 'admin'];
-		
+
 		for (const role of roles) {
 			await fireEvent.input(emailInput, { target: { value: 'test@example.com' } });
 			await fireEvent.change(roleSelect, { target: { value: role } });
-			
+
 			// Wait for form to become valid
-			await waitFor(() => {
-				expect(submitButton).not.toBeDisabled();
-			}, { timeout: 1000 });
-			
+			await waitFor(
+				() => {
+					expect(submitButton).not.toBeDisabled();
+				},
+				{ timeout: 1000 }
+			);
+
 			await fireEvent.click(submitButton);
 
 			await waitFor(() => {
-				expect(ChurchesAPI.inviteUser).toHaveBeenCalledWith('church1', expect.objectContaining({
-					email: 'test@example.com',
-					role: role,
-					permissions: expect.any(Array)
-				}));
+				expect(ChurchesAPI.inviteUser).toHaveBeenCalledWith(
+					'church1',
+					expect.objectContaining({
+						email: 'test@example.com',
+						role: role,
+						permissions: expect.any(Array)
+					})
+				);
 			});
 
 			// Wait for invitation to complete before next iteration
@@ -331,7 +349,7 @@ describe('InviteMemberModal', () => {
 
 			vi.clearAllMocks();
 			const { ChurchesAPI } = await import('$lib/api/churches');
-		(ChurchesAPI.inviteUser as any).mockResolvedValue(undefined);
+			(ChurchesAPI.inviteUser as any).mockResolvedValue(undefined);
 		}
 	});
 });

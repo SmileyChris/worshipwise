@@ -411,7 +411,9 @@ describe('ProfileSettings', () => {
 
 		it('should show loading states during operations', async () => {
 			// Mock update to delay for loading state test
-			mockUpdateProfile.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
+			mockUpdateProfile.mockImplementation(
+				() => new Promise((resolve) => setTimeout(resolve, 100))
+			);
 
 			renderWithContext(ProfileSettings, {
 				currentChurch: mockChurch({ id: 'church1', name: 'Test Church' })

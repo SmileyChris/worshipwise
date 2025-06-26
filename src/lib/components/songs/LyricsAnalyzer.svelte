@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { createChurchMistralClient, hasAIFeaturesEnabled } from '$lib/api/mistral-config';
 	import { createLyricsSearchClient, validateLyricsContent } from '$lib/api/lyrics';
-	import { labelsApi } from '$lib/api/labels';
+	import { createLabelsAPI } from '$lib/api/labels';
 	import type { LyricsAnalysis, Label } from '$lib/types/song';
 	import { getAuthStore } from '$lib/context/stores.svelte';
+	import { pb } from '$lib/api/client';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -41,25 +42,26 @@
 	let hasAIFeatures = $state(false);
 
 	// Check if Mistral API is configured
-	const canAnalyze = $derived(
-		!disabled && hasAIFeatures && title?.trim().length > 0
-	);
+	const canAnalyze = $derived(!disabled && hasAIFeatures && title?.trim().length > 0);
 
 	// Initialize clients
 	const lyricsClient = createLyricsSearchClient();
 	let mistralClient: Awaited<ReturnType<typeof createChurchMistralClient>> = null;
+	const labelsApi = createLabelsAPI(pb);
 
 	// Load existing labels on mount
 	onMount(async () => {
 		const churchId = auth.currentChurch?.id;
 		hasAIFeatures = await hasAIFeaturesEnabled(churchId);
-		
+
 		if (hasAIFeatures) {
 			mistralClient = await createChurchMistralClient(churchId);
 		}
-		
+
 		try {
-			existingLabels = await labelsApi.getLabels();
+			if (churchId) {
+				existingLabels = await labelsApi.getLabels(churchId);
+			}
 		} catch (err) {
 			console.error('Failed to load labels:', err);
 		}
@@ -122,42 +124,42 @@
 
 	function generateLabelSuggestions(analysis: LyricsAnalysis) {
 		const suggestions = new Set<string>();
-		
+
 		// Add themes as label suggestions
-		analysis.themes.forEach(theme => {
+		analysis.themes.forEach((theme) => {
 			// Convert to label-friendly format (lowercase, no spaces)
 			const labelName = theme.toLowerCase().replace(/\s+/g, '-');
 			suggestions.add(labelName);
 		});
-		
+
 		// Add seasonal appropriateness as labels
-		analysis.seasonal_appropriateness.forEach(season => {
+		analysis.seasonal_appropriateness.forEach((season) => {
 			const labelName = season.toLowerCase().replace(/\s+/g, '-');
 			suggestions.add(labelName);
 		});
-		
+
 		// Add service placement as a label
 		if (analysis.service_placement) {
 			const labelName = analysis.service_placement.toLowerCase().replace(/\s+/g, '-');
 			suggestions.add(labelName);
 		}
-		
+
 		// Filter out existing labels
-		const existingLabelNames = existingLabels.map(l => l.name.toLowerCase());
+		const existingLabelNames = existingLabels.map((l) => l.name.toLowerCase());
 		suggestedLabels = Array.from(suggestions).filter(
-			label => !existingLabelNames.includes(label)
+			(label) => !existingLabelNames.includes(label)
 		);
 	}
 
 	async function createSuggestedLabels() {
 		if (suggestedLabels.length === 0) return;
-		
+
 		creatingLabels = true;
 		error = null;
-		
+
 		try {
 			const createdLabels: Label[] = [];
-			
+
 			for (const labelName of suggestedLabels) {
 				try {
 					// Generate a color based on the label type
@@ -169,24 +171,32 @@
 					} else if (labelName.includes('praise') || labelName.includes('worship')) {
 						color = '#7C3AED'; // Purple for worship themes
 					}
-					
-					const label = await labelsApi.createLabel({
-						name: labelName,
-						description: `AI-suggested label based on song analysis`,
-						color
-					});
+
+					const churchId = auth.currentChurch?.id;
+					const userId = auth.user?.id;
+					if (!churchId || !userId) continue;
+
+					const label = await labelsApi.createLabel(
+						{
+							name: labelName,
+							description: `AI-suggested label based on song analysis`,
+							color
+						},
+						userId,
+						churchId
+					);
 					createdLabels.push(label);
 				} catch (err) {
 					console.error(`Failed to create label ${labelName}:`, err);
 				}
 			}
-			
+
 			if (createdLabels.length > 0) {
 				// Update existing labels list
 				existingLabels = [...existingLabels, ...createdLabels];
 				// Clear suggestions that were created
 				suggestedLabels = suggestedLabels.filter(
-					label => !createdLabels.find(cl => cl.name === label)
+					(label) => !createdLabels.find((cl) => cl.name === label)
 				);
 				// Notify parent component
 				onLabelsCreated(createdLabels);
@@ -244,7 +254,8 @@
 		<!-- Instructions -->
 		{#if !hasAIFeatures}
 			<p class="text-sm text-gray-600">
-				Configure your Mistral API key in church settings or set a global key to enable AI-powered lyrics analysis.
+				Configure your Mistral API key in church settings or set a global key to enable AI-powered
+				lyrics analysis.
 			</p>
 		{:else if currentStep === 'idle'}
 			<p class="text-sm text-gray-600">

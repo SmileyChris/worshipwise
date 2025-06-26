@@ -6,10 +6,10 @@ class SetupStore {
 	setupRequired = $state<boolean | null>(null); // null = checking, true = required, false = not required
 	loading = $state<boolean>(false);
 	error = $state<string | null>(null);
-	
+
 	// API instances
 	private churchesAPI: ChurchesAPI;
-	
+
 	constructor() {
 		// Create API instances
 		this.churchesAPI = createChurchesAPI(pb);
@@ -58,4 +58,3 @@ export type { SetupStore };
 export function createSetupStore(): SetupStore {
 	return new SetupStore();
 }
-

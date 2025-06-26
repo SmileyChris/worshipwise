@@ -40,7 +40,7 @@ describe('AuthStore', () => {
 	beforeEach(() => {
 		// Create fresh store instance for each test
 		auth = createAuthStore();
-		
+
 		mockPb.reset();
 		(goto as any).mockClear();
 		console.log = vi.fn();
@@ -754,7 +754,6 @@ describe('AuthStore', () => {
 	});
 
 	describe('Invitation Management', () => {
-
 		it('should load pending invites successfully', async () => {
 			const mockInvites = [
 				{
@@ -773,7 +772,7 @@ describe('AuthStore', () => {
 			(ChurchesAPI.getPendingInvites as any) = vi.fn().mockResolvedValue(mockInvites);
 
 			auth.user = { id: 'user1', email: 'test@example.com' } as User;
-			
+
 			await auth.loadPendingInvites();
 
 			expect(auth.pendingInvites).toEqual(mockInvites);
@@ -782,10 +781,12 @@ describe('AuthStore', () => {
 
 		it('should handle pending invites loading error', async () => {
 			const { ChurchesAPI } = await import('$lib/api/churches');
-			(ChurchesAPI.getPendingInvites as any) = vi.fn().mockRejectedValue(new Error('Failed to load'));
+			(ChurchesAPI.getPendingInvites as any) = vi
+				.fn()
+				.mockRejectedValue(new Error('Failed to load'));
 
 			auth.user = { id: 'user1', email: 'test@example.com' } as User;
-			
+
 			await auth.loadPendingInvites();
 
 			expect(auth.pendingInvites).toEqual([]);
@@ -797,7 +798,7 @@ describe('AuthStore', () => {
 			(ChurchesAPI.getPendingInvites as any) = vi.fn();
 
 			auth.user = { id: 'user1' } as User; // No email
-			
+
 			await auth.loadPendingInvites();
 
 			expect(ChurchesAPI.getPendingInvites).not.toHaveBeenCalled();
@@ -826,10 +827,12 @@ describe('AuthStore', () => {
 
 		it('should handle accept invitation error', async () => {
 			const { ChurchesAPI } = await import('$lib/api/churches');
-			(ChurchesAPI.acceptInvitation as any) = vi.fn().mockRejectedValue(new Error('Already a member'));
+			(ChurchesAPI.acceptInvitation as any) = vi
+				.fn()
+				.mockRejectedValue(new Error('Already a member'));
 
 			await expect(auth.acceptInvitation('test-token')).rejects.toThrow();
-			
+
 			expect(auth.loading).toBe(false);
 			expect(auth.error).toBe('Already a member');
 		});
@@ -850,10 +853,12 @@ describe('AuthStore', () => {
 
 		it('should handle decline invitation error', async () => {
 			const { ChurchesAPI } = await import('$lib/api/churches');
-			(ChurchesAPI.declineInvitation as any) = vi.fn().mockRejectedValue(new Error('Invalid token'));
+			(ChurchesAPI.declineInvitation as any) = vi
+				.fn()
+				.mockRejectedValue(new Error('Invalid token'));
 
 			await expect(auth.declineInvitation('test-token')).rejects.toThrow();
-			
+
 			expect(auth.loading).toBe(false);
 			expect(auth.error).toBe('Invalid token');
 		});

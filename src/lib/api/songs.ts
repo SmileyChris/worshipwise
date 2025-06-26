@@ -4,8 +4,11 @@ import type { Song, CreateSongData, UpdateSongData, SongFilterOptions } from '$l
 
 export class SongsAPI {
 	private collection = 'songs';
-	
-	constructor(private authContext: AuthContext, private pb: PocketBase) {}
+
+	constructor(
+		private authContext: AuthContext,
+		private pb: PocketBase
+	) {}
 
 	/**
 	 * Get all active songs with optional filtering
@@ -321,10 +324,12 @@ export class SongsAPI {
 	 */
 	async getSongLastUsage(songId: string): Promise<{ lastUsed: Date | null; daysSince: number }> {
 		try {
-			const usage = await this.pb.collection('song_usage').getFirstListItem(`song_id = "${songId}"`, {
-				sort: '-used_date',
-				fields: 'used_date'
-			});
+			const usage = await this.pb
+				.collection('song_usage')
+				.getFirstListItem(`song_id = "${songId}"`, {
+					sort: '-used_date',
+					fields: 'used_date'
+				});
 
 			if (usage && usage.used_date) {
 				const lastUsed = new Date(usage.used_date);
@@ -542,11 +547,11 @@ class SongsAPIProxy {
 		const authContext = auth.getAuthContext();
 		return new SongsAPI(authContext, authContext.pb);
 	}
-	
+
 	getSongs = (options?: SongFilterOptions) => this.api.getSongs(options);
 	getAvailableSongs = (weeksToCheck?: number) => this.api.getAvailableSongs(weeksToCheck);
 	getSong = (id: string) => this.api.getSong(id);
-	getSongsPaginated = (page: number, perPage: number, options?: SongFilterOptions) => 
+	getSongsPaginated = (page: number, perPage: number, options?: SongFilterOptions) =>
 		this.api.getSongsPaginated(page, perPage, options);
 	createSong = (data: CreateSongData) => this.api.createSong(data);
 	updateSong = (id: string, data: UpdateSongData) => this.api.updateSong(id, data);
@@ -556,7 +561,8 @@ class SongsAPIProxy {
 	getSongsUsageInfo = (songIds: string[]) => this.api.getSongsUsageInfo(songIds);
 	getSongUsageHistory = (songId: string) => this.api.getSongUsageHistory(songId);
 	getPopularSongs = (limit?: number) => this.api.getPopularSongs(limit);
-	getPersonalPopularSongs = (userId: string, limit?: number) => this.api.getPersonalPopularSongs(userId, limit);
+	getPersonalPopularSongs = (userId: string, limit?: number) =>
+		this.api.getPersonalPopularSongs(userId, limit);
 	subscribe = (callback: (data: unknown) => void) => this.api.subscribe(callback);
 }
 

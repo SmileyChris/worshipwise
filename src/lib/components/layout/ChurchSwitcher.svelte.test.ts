@@ -34,18 +34,30 @@ vi.mock('$lib/context/stores.svelte', () => ({
 		currentChurch: { id: 'church1', name: 'Test Church' },
 		user: { id: 'user1', email: 'test@example.com' },
 		availableChurches: [{ id: 'church1', name: 'Test Church' }],
-		get pendingInvites() { return testPendingInvites; },
-		get pendingInvitesCount() { return testPendingInvites.length; },
-		get hasPendingInvites() { return testPendingInvites.length > 0; }
+		get pendingInvites() {
+			return testPendingInvites;
+		},
+		get pendingInvitesCount() {
+			return testPendingInvites.length;
+		},
+		get hasPendingInvites() {
+			return testPendingInvites.length > 0;
+		}
 	})),
 	initializeStores: vi.fn(() => ({
 		auth: {
 			currentChurch: { id: 'church1', name: 'Test Church' },
 			user: { id: 'user1', email: 'test@example.com' },
 			churchMemberships: [],
-			get pendingInvites() { return testPendingInvites; },
-			get pendingInvitesCount() { return testPendingInvites.length; },
-			get hasPendingInvites() { return testPendingInvites.length > 0; },
+			get pendingInvites() {
+				return testPendingInvites;
+			},
+			get pendingInvitesCount() {
+				return testPendingInvites.length;
+			},
+			get hasPendingInvites() {
+				return testPendingInvites.length > 0;
+			},
 			availableChurches: [{ id: 'church1', name: 'Test Church' }]
 		}
 	}))
@@ -98,7 +110,7 @@ describe('ChurchSwitcher - Invitation Features', () => {
 
 	it('should show notification badge when user has pending invites', async () => {
 		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
-		
+
 		// Set up pending invites for this test
 		testPendingInvites.length = 0; // Clear array
 		testPendingInvites.push(
@@ -121,7 +133,7 @@ describe('ChurchSwitcher - Invitation Features', () => {
 				}
 			}
 		);
-		
+
 		renderWithContext(ChurchSwitcher, {
 			currentChurch: testChurch
 		});
@@ -148,7 +160,7 @@ describe('ChurchSwitcher - Invitation Features', () => {
 
 	it('should show invitations section in dropdown when there are pending invites', async () => {
 		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
-		
+
 		// Set up pending invites for this test
 		testPendingInvites.length = 0; // Clear array
 		testPendingInvites.push(
@@ -190,7 +202,7 @@ describe('ChurchSwitcher - Invitation Features', () => {
 
 	it('should limit displayed invitations to 3 and show "View all" link', async () => {
 		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
-		
+
 		// Set up pending invites for this test
 		testPendingInvites.length = 0; // Clear array
 		testPendingInvites.push(
@@ -265,19 +277,17 @@ describe('ChurchSwitcher - Invitation Features', () => {
 
 	it('should have correct links for invitations', async () => {
 		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
-		
+
 		// Set up pending invites for this test
 		testPendingInvites.length = 0; // Clear array
-		testPendingInvites.push(
-			{
-				id: 'invite1',
-				token: 'test-token-123',
-				role: 'musician',
-				expand: {
-					church_id: { id: 'church2', name: 'New Church Invitation' }
-				}
+		testPendingInvites.push({
+			id: 'invite1',
+			token: 'test-token-123',
+			role: 'musician',
+			expand: {
+				church_id: { id: 'church2', name: 'New Church Invitation' }
 			}
-		);
+		});
 
 		renderWithContext(ChurchSwitcher, {
 			currentChurch: testChurch
@@ -294,17 +304,15 @@ describe('ChurchSwitcher - Invitation Features', () => {
 
 	it('should handle missing church name in invitation', async () => {
 		const testChurch = mockChurch({ id: 'church1', name: 'Test Church' });
-		
+
 		// Set up pending invites for this test
 		testPendingInvites.length = 0; // Clear array
-		testPendingInvites.push(
-			{
-				id: 'invite1',
-				token: 'token1',
-				role: 'musician',
-				expand: {} // Missing church_id expansion
-			}
-		);
+		testPendingInvites.push({
+			id: 'invite1',
+			token: 'token1',
+			role: 'musician',
+			expand: {} // Missing church_id expansion
+		});
 
 		renderWithContext(ChurchSwitcher, {
 			currentChurch: testChurch

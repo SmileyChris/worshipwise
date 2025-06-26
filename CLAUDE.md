@@ -9,6 +9,7 @@ WorshipWise is a sophisticated worship song tracking system built with SvelteKit
 **Stack:** SvelteKit + Static Adapter, Svelte 5 Runes, PocketBase, TypeScript, Tailwind CSS, Vitest, Playwright
 
 **Docs:**
+
 - Current: @plan/DEVELOPMENT_ROADMAP.md, @plan/COMPONENT_GUIDE.md, @plan/TESTING_GUIDE.md
 - Setup: @plan/POCKETBASE_SETUP.md, @plan/SVELTE.md, @plan/PB_SVELTE.md
 

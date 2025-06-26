@@ -5,7 +5,15 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
-	import { Building, Calendar, Mail, UserPlus, CheckCircle, XCircle, AlertCircle } from 'lucide-svelte';
+	import {
+		Building,
+		Calendar,
+		Mail,
+		UserPlus,
+		CheckCircle,
+		XCircle,
+		AlertCircle
+	} from 'lucide-svelte';
 	import type { PageData } from './$types';
 
 	const auth = getAuthStore();
@@ -30,7 +38,7 @@
 		const now = new Date();
 		const daysRemaining = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 		const isExpired = daysRemaining <= 0;
-		
+
 		return { daysRemaining, isExpired, expiresAt };
 	});
 
@@ -81,7 +89,7 @@
 		try {
 			await auth.acceptInvitation(data.token);
 			success = true;
-			
+
 			// Redirect to dashboard after short delay
 			setTimeout(() => {
 				goto('/dashboard');
@@ -154,9 +162,7 @@
 						You've declined the invitation to join <strong>{church?.name}</strong>.
 					</p>
 					<div class="mt-6">
-						<Button href="/dashboard" variant="outline">
-							Go to Dashboard
-						</Button>
+						<Button href="/dashboard" variant="outline">Go to Dashboard</Button>
 					</div>
 				</div>
 			</Card>
@@ -177,9 +183,7 @@
 						Please contact {invitedBy?.name || 'the church administrator'} for a new invitation.
 					</p>
 					<div class="mt-6">
-						<Button href="/dashboard" variant="outline">
-							Go to Dashboard
-						</Button>
+						<Button href="/dashboard" variant="outline">Go to Dashboard</Button>
 					</div>
 				</div>
 			</Card>
@@ -250,7 +254,9 @@
 								<ul class="space-y-1 text-sm text-gray-600">
 									{#each roleData.permissions as permission}
 										<li class="flex items-start">
-											<span class="mr-2 mt-1 block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400"></span>
+											<span
+												class="mt-1 mr-2 block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400"
+											></span>
 											{permission}
 										</li>
 									{/each}
@@ -282,12 +288,7 @@
 						{/if}
 
 						<div class="flex flex-col gap-3 sm:flex-row">
-							<Button
-								onclick={handleAccept}
-								disabled={loading}
-								class="flex-1"
-								size="lg"
-							>
+							<Button onclick={handleAccept} disabled={loading} class="flex-1" size="lg">
 								{#if loading}
 									Accepting...
 								{:else if !auth.isValid}
@@ -308,8 +309,8 @@
 						</div>
 
 						<p class="mt-4 text-center text-xs text-gray-500">
-							By accepting this invitation, you agree to join {church?.name} on WorshipWise
-							and grant them permission to manage your access to their church resources.
+							By accepting this invitation, you agree to join {church?.name} on WorshipWise and grant
+							them permission to manage your access to their church resources.
 						</p>
 					</div>
 				</Card>

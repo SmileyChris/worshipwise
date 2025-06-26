@@ -12,7 +12,7 @@ import type {
 
 class SongsStore {
 	private songsApi: SongsAPI;
-	
+
 	// Reactive state using Svelte 5 runes
 	songs = $state<Song[]>([]);
 	loading = $state<boolean>(false);
@@ -85,7 +85,11 @@ class SongsStore {
 		this.error = null;
 
 		try {
-			const result = await this.songsApi.getSongsPaginated(this.currentPage, this.perPage, this.filters);
+			const result = await this.songsApi.getSongsPaginated(
+				this.currentPage,
+				this.perPage,
+				this.filters
+			);
 
 			// Load usage information for all songs
 			const songIds = result.items.map((song) => song.id);
@@ -458,4 +462,3 @@ export type { SongsStore };
 export function createSongsStore(authContext: AuthContext): SongsStore {
 	return new SongsStore(authContext);
 }
-
