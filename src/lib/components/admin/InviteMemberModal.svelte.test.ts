@@ -1,5 +1,5 @@
 import { renderWithContext } from '$tests/helpers/component-test-utils';
-import { fireEvent, screen } from '@testing-library/svelte';
+import { fireEvent, screen, waitFor } from '@testing-library/svelte';
 import { flushSync } from 'svelte';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import InviteMemberModal from './InviteMemberModal.svelte';
@@ -165,12 +165,13 @@ describe('InviteMemberModal', () => {
 				'services:edit',
 				'services:delete',
 				'users:invite'
-			],
-			message: ''
+			]
 		});
 
 		// Wait for success state
-		expect(screen.getByText('Invitation Sent!')).toBeInTheDocument();
+		await waitFor(() => {
+			expect(screen.getByText('Invitation Sent!')).toBeInTheDocument();
+		});
 	});
 
 	it('should display correct permissions for each role', async () => {
@@ -283,7 +284,9 @@ describe('InviteMemberModal', () => {
 		resolveInvite!();
 
 		// Wait for success state
-		expect(screen.getByText('Invitation Sent!')).toBeInTheDocument();
+		await waitFor(() => {
+			expect(screen.getByText('Invitation Sent!')).toBeInTheDocument();
+		});
 	});
 
 	it('should assign correct permissions based on role', async () => {
