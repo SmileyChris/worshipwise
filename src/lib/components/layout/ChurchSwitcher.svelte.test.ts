@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { screen, fireEvent } from '@testing-library/svelte';
+import { flushSync } from 'svelte';
 import '@testing-library/jest-dom/vitest';
 import ChurchSwitcher from './ChurchSwitcher.svelte';
 import { renderWithContext } from '../../../../tests/helpers/component-test-utils';
@@ -120,7 +121,7 @@ describe('ChurchSwitcher - Invitation Features', () => {
 				}
 			}
 		);
-
+		
 		renderWithContext(ChurchSwitcher, {
 			currentChurch: testChurch
 		});

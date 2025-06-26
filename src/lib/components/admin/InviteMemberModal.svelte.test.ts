@@ -91,16 +91,14 @@ describe('InviteMemberModal', () => {
 		const emailInput = getByLabelText('Email Address');
 		const submitButton = getByText('Send Invitation');
 
-		// Invalid email - button should be disabled
+		// Test invalid email state
 		await fireEvent.input(emailInput, { target: { value: 'invalid-email' } });
-		await flushSync();
 		expect(submitButton).toBeDisabled();
 
-		// Valid email - button should be enabled  
+		// Test valid email state
 		await fireEvent.input(emailInput, { target: { value: 'valid@email.com' } });
-		await flushSync();
 		
-		// Add extra wait for Svelte 5 runes reactivity
+		// Wait for reactive state to update
 		await waitFor(() => {
 			expect(submitButton).not.toBeDisabled();
 		}, { timeout: 1000 });

@@ -1,6 +1,8 @@
 import { render } from '@testing-library/svelte';
+import { flushSync } from 'svelte';
 import type { ComponentProps, SvelteComponent, Component } from 'svelte';
 import { mockAuthContext, mockUser, mockChurch, mockMembership } from './mock-builders';
+import { testWithRunes } from './rune-test-utils';
 import ContextProvider from './ContextProvider.svelte';
 
 /**
@@ -43,7 +45,7 @@ export function renderWithContext<T extends Record<string, any>>(
 		membership: defaultMembership
 	});
 
-	return render(ContextProvider, {
+	const result = render(ContextProvider, {
 		Component,
 		componentProps: props,
 		authUser: defaultUser,
@@ -53,6 +55,11 @@ export function renderWithContext<T extends Record<string, any>>(
 		availableChurches: churches.length > 0 ? churches : [defaultChurch],
 		storeOverrides
 	});
+
+	// Flush to ensure component is fully rendered with reactive state
+	flushSync();
+
+	return result;
 }
 
 /**
@@ -63,4 +70,26 @@ export function renderWithBasicAuth<T extends Record<string, any>>(
 	props: T = {} as T
 ) {
 	return renderWithContext(Component, { props });
+}
+
+/**
+ * Render component with context and proper rune testing patterns
+ * Follows Svelte 5 best practices for reactive testing
+ */
+export function renderWithContextAndRunes<T extends Record<string, any>>(
+	Component: Component<T>,
+	options: Parameters<typeof renderWithContext>[1] = {},
+	testFn: (rendered: ReturnType<typeof renderWithContext>) => void
+) {
+	return testWithRunes(() => {
+		const rendered = renderWithContext(Component, options);
+		
+		// Ensure all reactive state is flushed
+		flushSync();
+		
+		// Run test logic in reactive context
+		testFn(rendered);
+		
+		return rendered;
+	});
 }
