@@ -471,7 +471,7 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 					const startDate = new Date(year, month - 1, 1);
 					const endDate = new Date(year, month, 0);
 
-					const usageFilter = `usage_date >= "${startDate.toISOString()}" && usage_date <= "${endDate.toISOString()}"`;
+					const usageFilter = `used_date >= "${startDate.toISOString()}" && used_date <= "${endDate.toISOString()}"`;
 
 					const usages = await this.pb.collection('song_usage').getFullList({
 						filter: usageFilter,
@@ -530,14 +530,14 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 			const prevStart = new Date(prevEnd.getTime() - timeDiff);
 
 			// Get current period data
-			const currentFilter = `usage_date >= "${currentStart.toISOString()}" && usage_date <= "${currentEnd.toISOString()}"`;
+			const currentFilter = `used_date >= "${currentStart.toISOString()}" && used_date <= "${currentEnd.toISOString()}"`;
 			const currentUsages = await this.pb.collection('song_usage').getFullList({
 				filter: currentFilter,
 				expand: 'song,service'
 			});
 
 			// Get previous period data
-			const prevFilter = `usage_date >= "${prevStart.toISOString()}" && usage_date <= "${prevEnd.toISOString()}"`;
+			const prevFilter = `used_date >= "${prevStart.toISOString()}" && used_date <= "${prevEnd.toISOString()}"`;
 			const prevUsages = await this.pb.collection('song_usage').getFullList({
 				filter: prevFilter,
 				expand: 'song,service'
@@ -756,13 +756,15 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 			slow: total > 0 ? slowCount / total : 0
 		};
 
-		const tempoDiversity =
-			100 -
-			Math.abs(
-				(actualDistribution.fast - idealDistribution.fast) * 100 +
-					(actualDistribution.medium - idealDistribution.medium) * 100 +
-					(actualDistribution.slow - idealDistribution.slow) * 100
-			);
+		// Calculate tempo diversity as percentage of ideal distribution achieved
+		// Average the differences from ideal for each category
+		const fastDiff = Math.abs(actualDistribution.fast - idealDistribution.fast);
+		const mediumDiff = Math.abs(actualDistribution.medium - idealDistribution.medium);
+		const slowDiff = Math.abs(actualDistribution.slow - idealDistribution.slow);
+		const avgDiff = (fastDiff + mediumDiff + slowDiff) / 3;
+		
+		// Convert to percentage (100% = perfect match, 0% = maximum difference)
+		const tempoDiversity = total > 0 ? Math.max(0, 100 - (avgDiff * 100)) : 0;
 
 		// Artist diversity
 		const artistsUsed = new Set(
