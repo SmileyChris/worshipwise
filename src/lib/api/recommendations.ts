@@ -666,6 +666,16 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 		const now = new Date();
 		const fourMonthsAgo = new Date(now.getTime() - 120 * 24 * 60 * 60 * 1000);
 
+		// Handle case when there are no songs
+		if (allSongs.length === 0) {
+			return {
+				score: 0,
+				status: 'critical' as const,
+				insights: ['No songs in library'],
+				recommendations: ['Add songs to your library to start tracking rotation health']
+			};
+		}
+
 		// Categorize songs by last usage
 		const neverUsed = allSongs.filter(
 			(song) => !allUsage.some((usage) => usage.song_id === song.id)
@@ -677,8 +687,8 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 		});
 
 		const total = allSongs.length;
-		const overduePercentage = (overdue.length / total) * 100;
-		const neverUsedPercentage = (neverUsed.length / total) * 100;
+		const overduePercentage = total > 0 ? (overdue.length / total) * 100 : 0;
+		const neverUsedPercentage = total > 0 ? (neverUsed.length / total) * 100 : 0;
 
 		let score = 100;
 		let status: 'excellent' | 'good' | 'needs_attention' | 'critical' = 'excellent';
@@ -741,9 +751,9 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 
 		const idealDistribution = { fast: 0.3, medium: 0.4, slow: 0.3 };
 		const actualDistribution = {
-			fast: fastCount / total,
-			medium: mediumCount / total,
-			slow: slowCount / total
+			fast: total > 0 ? fastCount / total : 0,
+			medium: total > 0 ? mediumCount / total : 0,
+			slow: total > 0 ? slowCount / total : 0
 		};
 
 		const tempoDiversity =
@@ -817,7 +827,7 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 		}).length;
 
 		const insights: string[] = [];
-		if (familiarSongs / totalSongs < 0.3) {
+		if (totalSongs > 0 && familiarSongs / totalSongs < 0.3) {
 			insights.push('Consider focusing on building familiarity with core songs');
 		}
 		if (newSongIntroductionRate > 12) {
@@ -852,7 +862,7 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 					title.includes(keyword) || tags.some((tag: string) => tag.toLowerCase().includes(keyword))
 			);
 		});
-		const currentSeasonAlignment = (currentSeasonSongs.length / allSongs.length) * 100;
+		const currentSeasonAlignment = allSongs.length > 0 ? (currentSeasonSongs.length / allSongs.length) * 100 : 0;
 
 		// Upcoming season preparation
 		const upcomingSeasonKeywords = this.getSeasonalKeywords(nextMonth, seasonalContext.hemisphere);
@@ -864,7 +874,7 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 					title.includes(keyword) || tags.some((tag: string) => tag.toLowerCase().includes(keyword))
 			);
 		});
-		const upcomingSeasonPreparation = (upcomingSeasonSongs.length / allSongs.length) * 100;
+		const upcomingSeasonPreparation = allSongs.length > 0 ? (upcomingSeasonSongs.length / allSongs.length) * 100 : 0;
 
 		const seasonalSuggestions: string[] = [];
 		const currentSeasonName = this.getSeasonName(currentMonth, seasonalContext.hemisphere);
