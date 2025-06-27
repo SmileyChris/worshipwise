@@ -1,16 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createSongsStore, type SongsStore } from './songs.svelte';
 import type { AuthContext } from '$lib/types/auth';
-import type {
-	Song,
-	CreateSongData,
-	UpdateSongData,
-	SongFilterOptions,
-	SongStats,
-	SongUsage
-} from '$lib/types/song';
+import type { CreateSongData, SongFilterOptions, SongUsage, UpdateSongData } from '$lib/types/song';
+import { mockAuthContext, mockSong } from '$tests/helpers/mock-builders';
 import { mockPb } from '$tests/helpers/pb-mock';
-import { mockSong, mockAuthContext } from '$tests/helpers/mock-builders';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { createSongsStore, type SongsStore } from './songs.svelte';
 
 describe('SongsStore', () => {
 	let songsStore: SongsStore;
@@ -58,7 +51,7 @@ describe('SongsStore', () => {
 		});
 
 		// Create fresh store instance with test auth context
-		songsStore = createSongsStore(authContext, mockPb);
+		songsStore = createSongsStore(authContext);
 
 		// Set up PocketBase mock state
 		mockPb.setAuthState(authContext.user);

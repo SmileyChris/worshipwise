@@ -129,4 +129,32 @@ export function createCategoriesAPI(pb: PocketBase): CategoriesAPI {
 	};
 }
 
-export const categoriesApi = createCategoriesAPI(pb);
+// Import for dynamic auth context
+import { getAuthStore } from '$lib/context/stores.svelte';
+
+// Dynamic proxy that always uses current auth state
+class CategoriesAPIProxy {
+	private get api() {
+		return createCategoriesAPI(pb);
+	}
+
+	private get churchId(): string {
+		const auth = getAuthStore();
+		const authContext = auth.getAuthContext();
+		if (!authContext.currentChurch?.id) {
+			throw new Error('No church selected. Please select a church to manage categories.');
+		}
+		return authContext.currentChurch.id;
+	}
+
+	getCategories = () => this.api.getCategories(this.churchId);
+	getCategory = (id: string) => this.api.getCategory(id);
+	createCategory = (data: Parameters<CategoriesAPI['createCategory']>[0]) =>
+		this.api.createCategory(data, this.churchId);
+	updateCategory = (id: string, data: Parameters<CategoriesAPI['updateCategory']>[1]) =>
+		this.api.updateCategory(id, data);
+	deleteCategory = (id: string) => this.api.deleteCategory(id);
+	subscribe = (callback: (data: unknown) => void) => this.api.subscribe(callback);
+}
+
+export const categoriesApi = new CategoriesAPIProxy();

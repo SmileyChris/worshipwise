@@ -1,9 +1,9 @@
-import { createSystemAPI } from '$lib/api/system.js';
-import { pb } from '$lib/api/client.js';
-import { importSampleData, createDefaultCategories } from '$lib/data/sample-data.js';
-import { createSongsAPI } from '$lib/api/songs.js';
 import { createCategoriesAPI } from '$lib/api/categories.js';
-import type { SystemStatus, SetupStep } from '$lib/types/quickstart.js';
+import { pb } from '$lib/api/client.js';
+import { createSongsAPI } from '$lib/api/songs.js';
+import { createSystemAPI } from '$lib/api/system.js';
+import { createDefaultCategories, importSampleData } from '$lib/data/sample-data.js';
+import type { SetupStep, SystemStatus } from '$lib/types/quickstart.js';
 
 class QuickstartStore {
 	systemStatus = $state<SystemStatus>({
@@ -206,7 +206,7 @@ class QuickstartStore {
 
 			const auth = createAuthStore();
 			const authContext = auth.getAuthContext();
-			const songsStore = createSongsStore(authContext, pb);
+			const songsStore = createSongsStore(authContext);
 
 			await songsStore.loadSongs(true); // Reset to first page
 

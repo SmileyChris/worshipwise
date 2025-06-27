@@ -47,7 +47,7 @@ export function initializeStores(): StoreContext {
 
 	// Create auth-dependent stores with current auth context
 	const authContext = auth.getAuthContext();
-	const songs = createSongsStore(authContext, pb);
+	const songs = createSongsStore(authContext);
 	const services = createServicesStore(authContext, pb);
 
 	// Independent stores
