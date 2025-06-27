@@ -740,7 +740,8 @@ import { getAuthStore } from '$lib/context/stores.svelte';
 class AnalyticsAPIProxy {
 	private get api() {
 		const auth = getAuthStore();
-		return new AnalyticsAPI(auth.getAuthContext());
+		const authContext = auth.getAuthContext();
+		return new AnalyticsAPI(authContext, authContext.pb);
 	}
 
 	getOverview = (dateFrom?: string, dateTo?: string) => this.api.getOverview(dateFrom, dateTo);

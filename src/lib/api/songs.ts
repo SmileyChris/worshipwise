@@ -1,6 +1,7 @@
 import type PocketBase from 'pocketbase';
 import type { AuthContext } from '$lib/types/auth';
 import type { Song, CreateSongData, UpdateSongData, SongFilterOptions } from '$lib/types/song';
+import { pb } from '$lib/api/client';
 
 export class SongsAPI {
 	private collection = 'songs';

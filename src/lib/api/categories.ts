@@ -1,6 +1,7 @@
 import type PocketBase from 'pocketbase';
 import type { Category } from '$lib/types/song';
 import type { AuthContext } from '$lib/types/auth';
+import { pb } from '$lib/api/client';
 
 export interface CategoriesAPI {
 	getCategories(churchId: string): Promise<Category[]>;
@@ -127,3 +128,5 @@ export function createCategoriesAPI(pb: PocketBase): CategoriesAPI {
 		}
 	};
 }
+
+export const categoriesApi = createCategoriesAPI(pb);

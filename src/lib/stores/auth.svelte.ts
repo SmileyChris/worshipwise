@@ -497,8 +497,12 @@ class AuthStore {
 		try {
 			this.pendingInvites = await this.churchesAPI.getPendingInvites();
 			console.log('Loaded pending invites:', this.pendingInvites.length);
-		} catch (error) {
+		} catch (error: any) {
 			console.error('Failed to load pending invites:', error);
+			// Log more details about the error
+			if (error.response) {
+				console.error('Error response:', error.response);
+			}
 			this.pendingInvites = [];
 		} finally {
 			this.invitesLoading = false;
@@ -576,7 +580,8 @@ class AuthStore {
 			currentChurch: this.currentChurch,
 			isAuthenticated: this.user !== null,
 			token: this.token,
-			isValid: this.isValid
+			isValid: this.isValid,
+			pb: pb
 		};
 	}
 }

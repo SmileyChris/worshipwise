@@ -73,4 +73,7 @@ export interface AuthContext {
 
 	/** Whether auth state is valid */
 	readonly isValid: boolean;
+
+	/** PocketBase instance */
+	readonly pb: any;
 }

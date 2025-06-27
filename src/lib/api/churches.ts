@@ -280,11 +280,17 @@ export function createChurchesAPI(pb: PocketBase): ChurchesAPI {
 		async getPendingInvites(): Promise<any[]> {
 			if (!pb.authStore.model?.email) return [];
 
-			return await pb.collection('church_invitations').getFullList({
-				filter: `email = "${pb.authStore.model.email}" && is_active = true && expires_at > @now`,
-				expand: 'church_id,invited_by',
-				sort: '-created'
-			});
+			try {
+				return await pb.collection('church_invitations').getFullList({
+					filter: `email = "${pb.authStore.model.email}" && is_active = true && expires_at > @now`,
+					expand: 'church_id,invited_by',
+					sort: '-expires_at'
+				});
+			} catch (error: any) {
+				// If the collection doesn't exist or there's an issue, return empty array
+				console.warn('Error fetching church invitations:', error);
+				return [];
+			}
 		},
 
 		/**
