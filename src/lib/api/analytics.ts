@@ -69,7 +69,8 @@ export class AnalyticsAPI {
 				throw new Error('No church selected. Please select a church to view analytics.');
 			}
 
-			const dateFilter = this.buildDateFilter(dateFrom, dateTo);
+			const serviceDateFilter = this.buildDateFilter(dateFrom, dateTo, 'service_date');
+			const usageDateFilter = this.buildDateFilter(dateFrom, dateTo, 'used_date');
 			const churchFilter = `church_id = "${this.authContext.currentChurch.id}"`;
 
 			// Get basic counts
@@ -78,19 +79,19 @@ export class AnalyticsAPI {
 					.collection('songs')
 					.getList(1, 1, { filter: `is_active = true && ${churchFilter}` }),
 				this.pb.collection('services').getList(1, 1, {
-					filter: dateFilter
-						? `status = "completed" && ${churchFilter} && ${dateFilter}`
+					filter: serviceDateFilter
+						? `status = "completed" && ${churchFilter} && ${serviceDateFilter}`
 						: `status = "completed" && ${churchFilter}`
 				}),
 				this.pb.collection('song_usage').getList(1, 1, {
-					filter: dateFilter ? `${churchFilter} && ${dateFilter}` : churchFilter
+					filter: usageDateFilter ? `${churchFilter} && ${usageDateFilter}` : churchFilter
 				})
 			]);
 
 			// Get services with songs for calculations
 			const completedServices = await this.pb.collection('services').getFullList({
-				filter: dateFilter
-					? `status = "completed" && ${churchFilter} && ${dateFilter}`
+				filter: serviceDateFilter
+					? `status = "completed" && ${churchFilter} && ${serviceDateFilter}`
 					: `status = "completed" && ${churchFilter}`,
 				expand: 'service_songs_via_service_id.song_id'
 			});
@@ -158,7 +159,7 @@ export class AnalyticsAPI {
 				throw new Error('No church selected. Please select a church to view song usage stats.');
 			}
 
-			const dateFilter = this.buildDateFilter(dateFrom, dateTo);
+			const dateFilter = this.buildDateFilter(dateFrom, dateTo, 'used_date');
 			const churchFilter = `church_id = "${this.authContext.currentChurch.id}"`;
 
 			// Get all usage records with song details
@@ -250,7 +251,7 @@ export class AnalyticsAPI {
 				throw new Error('No church selected. Please select a church to view service type stats.');
 			}
 
-			const dateFilter = this.buildDateFilter(dateFrom, dateTo);
+			const dateFilter = this.buildDateFilter(dateFrom, dateTo, 'service_date');
 			const churchFilter = `church_id = "${this.authContext.currentChurch.id}"`;
 
 			const services = await this.pb.collection('services').getFullList({
@@ -348,14 +349,14 @@ export class AnalyticsAPI {
 				throw new Error('No church selected. Please select a church to view key usage stats.');
 			}
 
-			const dateFilter = this.buildDateFilter(dateFrom, dateTo);
+			const dateFilter = this.buildDateFilter(dateFrom, dateTo, 'service_date');
 			const churchFilter = `service_id.church_id = "${this.authContext.currentChurch.id}"`;
 
 			// Get service songs with key information
 			const serviceSongs = await this.pb.collection('service_songs').getFullList({
 				expand: 'song_id,service_id',
 				filter: dateFilter
-					? `service_id.status = "completed" && ${churchFilter} && service_id.${dateFilter}`
+					? `service_id.status = "completed" && ${churchFilter} && ${dateFilter.replace(/service_date/g, 'service_id.service_date')}`
 					: `service_id.status = "completed" && ${churchFilter}`
 			});
 
@@ -403,18 +404,19 @@ export class AnalyticsAPI {
 				throw new Error('No church selected. Please select a church to view usage trends.');
 			}
 
-			const dateFilter = this.buildDateFilter(dateFrom, dateTo);
+			const usageDateFilter = this.buildDateFilter(dateFrom, dateTo, 'used_date');
+			const serviceDateFilter = this.buildDateFilter(dateFrom, dateTo, 'service_date');
 			const churchFilter = `church_id = "${this.authContext.currentChurch.id}"`;
 
 			// Get usage data
 			const [usageRecords, services] = await Promise.all([
 				this.pb.collection('song_usage').getFullList({
-					filter: dateFilter ? `${churchFilter} && ${dateFilter}` : churchFilter,
+					filter: usageDateFilter ? `${churchFilter} && ${usageDateFilter}` : churchFilter,
 					sort: 'used_date'
 				}),
 				this.pb.collection('services').getFullList({
-					filter: dateFilter
-						? `status = "completed" && ${churchFilter} && ${dateFilter}`
+					filter: serviceDateFilter
+						? `status = "completed" && ${churchFilter} && ${serviceDateFilter}`
 						: `status = "completed" && ${churchFilter}`,
 					sort: 'service_date'
 				})
@@ -506,7 +508,7 @@ export class AnalyticsAPI {
 				throw new Error('No church selected. Please select a church to view worship leader stats.');
 			}
 
-			const dateFilter = this.buildDateFilter(dateFrom, dateTo);
+			const dateFilter = this.buildDateFilter(dateFrom, dateTo, 'service_date');
 			const churchFilter = `church_id = "${this.authContext.currentChurch.id}"`;
 
 			const services = await this.pb.collection('services').getFullList({
@@ -690,20 +692,20 @@ export class AnalyticsAPI {
 	/**
 	 * Build date filter for queries
 	 */
-	private buildDateFilter(dateFrom?: string, dateTo?: string): string | null {
+	private buildDateFilter(dateFrom?: string, dateTo?: string, dateField: string = 'created'): string | null {
 		if (!dateFrom && !dateTo) return null;
 
 		const filters: string[] = [];
 
 		if (dateFrom) {
-			filters.push(`created >= "${dateFrom}"`);
+			filters.push(`${dateField} >= "${dateFrom}"`);
 		}
 
 		if (dateTo) {
 			// Add one day to include the end date
 			const endDate = new Date(dateTo);
 			endDate.setDate(endDate.getDate() + 1);
-			filters.push(`created < "${endDate.toISOString().split('T')[0]}"`);
+			filters.push(`${dateField} < "${endDate.toISOString().split('T')[0]}"`);
 		}
 
 		return filters.join(' && ');
