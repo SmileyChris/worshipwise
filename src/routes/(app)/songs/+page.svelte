@@ -249,6 +249,11 @@
 		</div>
 
 		<div class="mt-4 flex items-center gap-4 md:mt-0 md:ml-4">
+			<!-- Suggestions Link -->
+			<Button variant="ghost" href="/songs/suggestions" class="text-primary">
+				View Suggestions
+			</Button>
+
 			<!-- View Toggle -->
 			<div class="flex rounded-lg border border-gray-300 bg-gray-50 p-1">
 				<button
