@@ -63,19 +63,34 @@
 					expand: 'user_id'
 				});
 
-				const admins = memberships.items.filter((m) => m.role === 'admin');
+				// Get users with manage-church permission
+				const rolesWithManageChurch = await pb.collection('roles').getFullList({
+					filter: `church_id = "${church.id}" && permissions ~ "manage-church"`
+				});
+				
+				const adminUserIds = new Set<string>();
+				if (rolesWithManageChurch.length > 0) {
+					const roleIds = rolesWithManageChurch.map(r => r.id);
+					const userRoles = await pb.collection('user_roles').getFullList({
+						filter: `church_id = "${church.id}" && (${roleIds.map(id => `role_id = "${id}"`).join(' || ')})`,
+						expand: 'user_id'
+					});
+					userRoles.forEach(ur => adminUserIds.add(ur.user_id));
+				}
+
+				const adminMemberships = memberships.items.filter(m => adminUserIds.has(m.user_id));
 				const members = memberships.items.length;
 
 				details[church.id] = {
 					memberCount: members,
-					adminCount: admins.length,
-					admins: admins.map((a) => ({
+					adminCount: adminUserIds.size,
+					admins: adminMemberships.map((a) => ({
 						id: a.id,
 						name: a.expand?.user_id?.name || 'Unknown',
 						email: a.expand?.user_id?.email || 'Unknown'
 					})),
-					isCurrentUserAdmin: admins.some((a) => a.user_id === auth.user?.id),
-					isOnlyAdmin: admins.length === 1 && admins[0].user_id === auth.user?.id
+					isCurrentUserAdmin: adminUserIds.has(auth.user?.id || ''),
+					isOnlyAdmin: adminUserIds.size === 1 && adminUserIds.has(auth.user?.id || '')
 				};
 			}
 

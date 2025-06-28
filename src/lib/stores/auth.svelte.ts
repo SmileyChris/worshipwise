@@ -571,20 +571,6 @@ class AuthStore {
 		}
 	}
 
-	/**
-	 * Get user's role in current church
-	 */
-	getCurrentChurchRole = $derived.by(() => {
-		if (!this.currentChurch?.id || !this.churchMemberships.length) return 'member';
-
-		const membership = this.churchMemberships.find((m) => m.church_id === this.currentChurch!.id);
-		return membership?.role || 'member';
-	});
-
-	/**
-	 * Check if user can manage current church (is admin)
-	 */
-	canManageChurch = $derived(this.getCurrentChurchRole === 'admin');
 
 	/**
 	 * Check if user has multiple church affiliations

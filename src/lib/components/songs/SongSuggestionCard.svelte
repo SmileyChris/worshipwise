@@ -19,7 +19,7 @@
 	// Check permissions
 	let canModerate = $derived(auth.canManageSongs);
 	let canDelete = $derived(
-		suggestion.suggested_by === auth.user?.id || auth.membershipRole === 'admin'
+		suggestion.suggested_by === auth.user?.id || auth.canManageChurch
 	);
 
 	// Status badge variant
