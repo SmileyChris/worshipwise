@@ -1,4 +1,5 @@
 import type { Church, ChurchMembership } from './church';
+import type { Permission, UserRole, UserSkill } from './permissions';
 
 export interface User {
 	id: string;
@@ -76,4 +77,22 @@ export interface AuthContext {
 
 	/** PocketBase instance */
 	readonly pb: any;
+
+	/** User's roles in current church */
+	readonly userRoles?: UserRole[];
+
+	/** User's skills in current church */
+	readonly userSkills?: UserSkill[];
+
+	/** User's permissions (calculated from roles) */
+	readonly permissions?: Set<Permission>;
+
+	/** Check if user has a specific permission */
+	hasPermission?(permission: Permission): boolean;
+
+	/** Check if user has a specific skill */
+	hasSkill?(skillSlug: string): boolean;
+
+	/** Check if user has the leader skill */
+	hasLeaderSkill?(): boolean;
 }
