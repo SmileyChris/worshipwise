@@ -513,7 +513,19 @@ class SongsStore {
 	 * Handle auto-retire event
 	 */
 	async handleAutoRetire(songId: string): Promise<void> {
-		await this.retireSong(songId, 'all_thumbs_down');
+		const song = this.songs.find(s => s.id === songId);
+		if (song) {
+			await this.retireSong(songId, 'all_thumbs_down');
+			
+			// Trigger notification event for other components to handle
+			window.dispatchEvent(new CustomEvent('song-retired', {
+				detail: { 
+					songId,
+					songTitle: song.title,
+					reason: 'all_thumbs_down'
+				}
+			}));
+		}
 	}
 
 	/**

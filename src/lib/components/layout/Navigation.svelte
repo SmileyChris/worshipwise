@@ -2,6 +2,7 @@
 	import { page as pageStore } from '$app/stores';
 	import { getAuthStore, getQuickstartStore } from '$lib/context/stores.svelte';
 	import ChurchSwitcher from './ChurchSwitcher.svelte';
+	import NotificationBell from '$lib/components/notifications/NotificationBell.svelte';
 
 	const auth = getAuthStore();
 	const quickstartStore = getQuickstartStore();
@@ -107,6 +108,9 @@
 			<div class="flex items-center space-x-4">
 				<!-- Church switcher -->
 				<ChurchSwitcher />
+
+				<!-- Notifications -->
+				<NotificationBell />
 
 				<!-- User info -->
 				<div class="hidden sm:flex sm:items-center sm:space-x-2">
