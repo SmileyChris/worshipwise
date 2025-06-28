@@ -1,9 +1,12 @@
 import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 import { createChurchesAPI, type ChurchesAPI } from '$lib/api/churches';
+import { createRolesAPI, type RolesAPI } from '$lib/api/roles';
+import { createSkillsAPI, type SkillsAPI } from '$lib/api/skills';
 import { pb } from '$lib/api/client';
 import type { AuthContext, LoginCredentials, RegisterData, User } from '$lib/types/auth';
 import type { Church, ChurchMembership } from '$lib/types/church';
+import type { Role, UserRole, Skill, UserSkill, Permission } from '$lib/types/permissions';
 
 class AuthStore {
 	// Reactive state using Svelte 5 runes
@@ -23,8 +26,15 @@ class AuthStore {
 	pendingInvites = $state<any[]>([]);
 	invitesLoading = $state<boolean>(false);
 
+	// Permission state
+	userRoles = $state<UserRole[]>([]);
+	userSkills = $state<UserSkill[]>([]);
+	permissions = $state<Set<Permission>>(new Set());
+
 	// API instances
 	private churchesAPI: ChurchesAPI;
+	private rolesAPI: RolesAPI | null = null;
+	private skillsAPI: SkillsAPI | null = null;
 
 	constructor() {
 		// Create API instances
@@ -41,6 +51,7 @@ class AuthStore {
 				this.loadProfile();
 				this.loadUserChurches();
 				this.loadPendingInvites();
+				this.loadPermissions();
 			}
 
 			// Listen for auth changes from PocketBase
@@ -55,17 +66,21 @@ class AuthStore {
 					await this.loadProfile();
 					await this.loadUserChurches();
 					await this.loadPendingInvites();
+					await this.loadPermissions();
 				} else {
 					this.currentMembership = null;
 					this.availableChurches = [];
 					this.churchMemberships = [];
 					this.pendingInvites = [];
+					this.userRoles = [];
+					this.userSkills = [];
+					this.permissions = new Set();
 				}
 
 				console.log('Auth state changed:', {
 					isValid: this.isValid,
 					user: this.user?.email,
-					membership: this.currentMembership?.role
+					permissions: Array.from(this.permissions)
 				});
 			});
 		}
@@ -251,17 +266,70 @@ class AuthStore {
 	}
 
 	/**
-	 * Check if user has specific role
+	 * Load permissions for the current user and church
 	 */
-	hasRole(role: string): boolean {
-		return this.currentMembership?.role === role;
+	async loadPermissions(): Promise<void> {
+		if (!this.user || !this.currentChurch) {
+			this.userRoles = [];
+			this.userSkills = [];
+			this.permissions = new Set();
+			return;
+		}
+
+		try {
+			// Create APIs with auth context
+			const authContext = this.getAuthContext();
+			this.rolesAPI = createRolesAPI(authContext, pb);
+			this.skillsAPI = createSkillsAPI(authContext, pb);
+
+			// Load user roles
+			this.userRoles = await this.rolesAPI.getUserRoles(this.user.id);
+			
+			// Load user skills
+			this.userSkills = await this.skillsAPI.getUserSkills(this.user.id);
+			
+			// Calculate permissions from roles
+			this.permissions = new Set<Permission>();
+			this.userRoles.forEach(userRole => {
+				if (userRole.expand?.role_id?.permissions) {
+					userRole.expand.role_id.permissions.forEach(permission => {
+						this.permissions.add(permission);
+					});
+				}
+			});
+		} catch (error) {
+			console.error('Failed to load permissions:', error);
+		}
 	}
 
 	/**
-	 * Check if user has any of the specified roles
+	 * Check if user has a specific permission
 	 */
-	hasAnyRole(roles: string[]): boolean {
-		return this.currentMembership ? roles.includes(this.currentMembership.role) : false;
+	hasPermission(permission: Permission): boolean {
+		return this.permissions.has(permission);
+	}
+
+	/**
+	 * Check if user has any of the specified permissions
+	 */
+	hasAnyPermission(permissions: Permission[]): boolean {
+		return permissions.some(permission => this.hasPermission(permission));
+	}
+
+	/**
+	 * Check if user has a specific skill
+	 */
+	hasSkill(skillSlug: string): boolean {
+		return this.userSkills.some(userSkill => 
+			userSkill.expand?.skill_id?.slug === skillSlug
+		);
+	}
+
+	/**
+	 * Check if user has the leader skill
+	 */
+	hasLeaderSkill(): boolean {
+		return this.hasSkill('leader');
 	}
 
 	/**
@@ -275,19 +343,34 @@ class AuthStore {
 	currentChurch = $derived(this.currentMembership?.expand?.church_id || null);
 
 	/**
-	 * Check if user can manage songs (leader or admin)
+	 * Check if user can manage songs
 	 */
-	canManageSongs = $derived(this.hasAnyRole(['leader', 'admin']));
+	canManageSongs = $derived(this.hasPermission('manage-songs'));
 
 	/**
-	 * Check if user can manage services (leader or admin)
+	 * Check if user can manage services
 	 */
-	canManageServices = $derived(this.hasAnyRole(['leader', 'admin']));
+	canManageServices = $derived(this.hasPermission('manage-services'));
 
 	/**
-	 * Check if user is admin
+	 * Check if user can manage members
 	 */
-	isAdmin = $derived(this.hasRole('admin'));
+	canManageMembers = $derived(this.hasPermission('manage-members'));
+
+	/**
+	 * Check if user can manage church settings
+	 */
+	canManageChurch = $derived(this.hasPermission('manage-church'));
+
+	/**
+	 * Check if user is admin (has manage-church permission)
+	 */
+	isAdmin = $derived(this.hasPermission('manage-church'));
+
+	/**
+	 * Check if user is a worship leader (has leader skill)
+	 */
+	isLeader = $derived(this.hasLeaderSkill());
 
 	/**
 	 * Extract user-friendly error message
@@ -386,6 +469,9 @@ class AuthStore {
 			// Set current membership to the target church membership
 			this.currentMembership = targetMembership;
 
+			// Reload permissions for new church context
+			await this.loadPermissions();
+
 			console.log('Switched to church:', this.currentChurch?.name);
 		} catch (error) {
 			console.error('Failed to switch church:', error);
@@ -403,18 +489,27 @@ class AuthStore {
 
 		this.churchLoading = true;
 		try {
-			// Check if user is the only admin
-			const adminMemberships = await pb.collection('church_memberships').getList(1, 50, {
-				filter: `church_id = "${churchId}" && role = "admin" && status = "active"`
+			// Check if user is the only one with manage-church permission
+			const rolesWithManageChurch = await pb.collection('roles').getFullList({
+				filter: `church_id = "${churchId}" && permissions ~ "manage-church"`
 			});
 
-			if (
-				adminMemberships.items.length === 1 &&
-				adminMemberships.items[0].user_id === this.user.id
-			) {
-				throw new Error(
-					'Cannot leave church - you are the only administrator. Transfer admin role to another user or delete the church.'
-				);
+			if (rolesWithManageChurch.length > 0) {
+				// Get all users with those roles
+				const roleIds = rolesWithManageChurch.map(r => r.id);
+				const userRolesWithManageChurch = await pb.collection('user_roles').getFullList({
+					filter: `church_id = "${churchId}" && (${roleIds.map(id => `role_id = "${id}"`).join(' || ')})`
+				});
+
+				// If user is the only one with manage-church permission
+				if (
+					userRolesWithManageChurch.length === 1 &&
+					userRolesWithManageChurch[0].user_id === this.user.id
+				) {
+					throw new Error(
+						'Cannot leave church - you are the only user with church management permissions. Grant manage-church permission to another user first.'
+					);
+				}
 			}
 
 			// Remove user from church by deleting their membership
@@ -438,15 +533,24 @@ class AuthStore {
 	}
 
 	/**
-	 * Delete a church (only if user is admin)
+	 * Delete a church (only if user has manage-church permission)
 	 */
 	async deleteChurch(churchId: string): Promise<void> {
 		if (!this.user) return;
 
-		// Verify user is admin of this church
+		// Verify user has manage-church permission for this church
 		const membership = this.churchMemberships.find((m) => m.church_id === churchId);
-		if (!membership || membership.role !== 'admin') {
-			throw new Error('Only church administrators can delete churches');
+		if (!membership) {
+			throw new Error('You are not a member of this church');
+		}
+
+		// Switch to this church context to check permissions
+		if (this.currentMembership?.church_id !== churchId) {
+			await this.switchChurch(churchId);
+		}
+
+		if (!this.hasPermission('manage-church')) {
+			throw new Error('Only users with church management permissions can delete churches');
 		}
 
 		this.churchLoading = true;
@@ -467,20 +571,6 @@ class AuthStore {
 		}
 	}
 
-	/**
-	 * Get user's role in current church
-	 */
-	getCurrentChurchRole = $derived.by(() => {
-		if (!this.currentChurch?.id || !this.churchMemberships.length) return 'member';
-
-		const membership = this.churchMemberships.find((m) => m.church_id === this.currentChurch!.id);
-		return membership?.role || 'member';
-	});
-
-	/**
-	 * Check if user can manage current church (is admin)
-	 */
-	canManageChurch = $derived(this.getCurrentChurchRole === 'admin');
 
 	/**
 	 * Check if user has multiple church affiliations
@@ -565,25 +655,31 @@ class AuthStore {
 	pendingInvitesCount = $derived(this.pendingInvites.length);
 
 	/**
-	 * Check if user has pending invites
-	 */
-	hasPendingInvites = $derived(this.pendingInvites.length > 0);
-
-	/**
 	 * Get auth context for dependency injection
-	 * This allows APIs to depend on auth without circular imports
 	 */
 	getAuthContext(): AuthContext {
 		return {
 			user: this.user,
 			currentMembership: this.currentMembership,
 			currentChurch: this.currentChurch,
-			isAuthenticated: this.user !== null,
+			isAuthenticated: this.isValid,
 			token: this.token,
 			isValid: this.isValid,
-			pb: pb
+			pb: pb,
+			userRoles: this.userRoles,
+			userSkills: this.userSkills,
+			permissions: this.permissions,
+			hasPermission: (permission: Permission) => this.hasPermission(permission),
+			hasSkill: (skillSlug: string) => this.hasSkill(skillSlug),
+			hasLeaderSkill: () => this.hasLeaderSkill()
 		};
 	}
+
+	/**
+	 * Check if user has pending invites
+	 */
+	hasPendingInvites = $derived(this.pendingInvites.length > 0);
+
 }
 
 // Export the class type for tests

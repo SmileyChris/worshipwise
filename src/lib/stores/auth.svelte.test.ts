@@ -173,8 +173,7 @@ describe('AuthStore', () => {
 				email: 'newuser@example.com',
 				password: 'password123',
 				passwordConfirm: 'password123',
-				name: 'New User',
-				role: 'musician'
+				name: 'New User'
 			};
 
 			const mockUser = { id: 'user1', email: 'newuser@example.com' };
@@ -182,8 +181,6 @@ describe('AuthStore', () => {
 				id: 'membership1',
 				church_id: 'church1',
 				user_id: 'user1',
-				role: 'musician',
-				permissions: [],
 				status: 'active'
 			};
 
@@ -250,8 +247,6 @@ describe('AuthStore', () => {
 				id: 'membership1',
 				church_id: 'church1',
 				user_id: 'user1',
-				role: 'musician',
-				permissions: [],
 				status: 'active'
 			};
 
@@ -296,8 +291,6 @@ describe('AuthStore', () => {
 				id: 'membership1',
 				church_id: 'church1',
 				user_id: 'user1',
-				role: 'musician',
-				permissions: [],
 				status: 'active'
 			};
 
@@ -495,8 +488,6 @@ describe('AuthStore', () => {
 				id: 'membership1',
 				church_id: 'church1',
 				user_id: 'user1',
-				role: 'musician',
-				permissions: [],
 				status: 'active',
 				is_active: true,
 				created: '2024-01-01T00:00:00Z',
@@ -506,7 +497,7 @@ describe('AuthStore', () => {
 			auth.user = mockUser;
 			auth.currentMembership = mockMembership;
 
-			const profileData = { name: 'New Name', role: 'leader' as const };
+			const profileData = { name: 'New Name' };
 			const userData = { email: 'newemail@example.com' };
 
 			const updatedUser = { ...mockUser, ...userData };
@@ -530,8 +521,6 @@ describe('AuthStore', () => {
 				id: 'membership1',
 				church_id: 'church1',
 				user_id: 'user1',
-				role: 'musician',
-				permissions: [],
 				status: 'active',
 				is_active: true,
 				created: '2024-01-01T00:00:00Z',
@@ -562,8 +551,6 @@ describe('AuthStore', () => {
 				id: 'membership1',
 				church_id: 'church1',
 				user_id: 'user1',
-				role: 'musician',
-				permissions: [],
 				status: 'active',
 				is_active: true,
 				created: '2024-01-01T00:00:00Z',
@@ -653,74 +640,109 @@ describe('AuthStore', () => {
 		});
 	});
 
-	describe('Role-based Permissions', () => {
+	describe('Permission-based Access Control', () => {
 		beforeEach(() => {
 			auth.user = { id: 'user1', email: 'test@example.com' } as User;
+			auth.currentMembership = { church_id: 'church1' } as any;
 		});
 
-		it('should check if user has specific role', () => {
-			auth.currentMembership = { role: 'leader' } as any;
+		it('should check if user has specific permission', () => {
+			// Set up permissions
+			auth.permissions = new Set(['manage-songs', 'manage-services']);
 
-			expect(auth.hasRole('leader')).toBe(true);
-			expect(auth.hasRole('admin')).toBe(false);
-			expect(auth.hasRole('musician')).toBe(false);
+			expect(auth.hasPermission('manage-songs')).toBe(true);
+			expect(auth.hasPermission('manage-services')).toBe(true);
+			expect(auth.hasPermission('manage-members')).toBe(false);
+			expect(auth.hasPermission('manage-church')).toBe(false);
 		});
 
-		it('should check if user has any of specified roles', () => {
-			auth.currentMembership = { role: 'leader' } as any;
+		it('should check if user has any of specified permissions', () => {
+			auth.permissions = new Set(['manage-songs']);
 
-			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true);
-			expect(auth.hasAnyRole(['admin', 'musician'])).toBe(false);
-			expect(auth.hasAnyRole(['musician'])).toBe(false);
+			expect(auth.hasAnyPermission(['manage-songs', 'manage-services'])).toBe(true);
+			expect(auth.hasAnyPermission(['manage-members', 'manage-church'])).toBe(false);
+			expect(auth.hasAnyPermission(['manage-church'])).toBe(false);
 		});
 
-		it('should return false for role checks when no profile', () => {
-			auth.currentMembership = null;
+		it('should return false for permission checks when no permissions', () => {
+			auth.permissions = new Set();
 
-			expect(auth.hasRole('leader')).toBe(false);
-			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(false);
+			expect(auth.hasPermission('manage-songs')).toBe(false);
+			expect(auth.hasAnyPermission(['manage-songs', 'manage-services'])).toBe(false);
 		});
 
 		it('should compute canManageSongs correctly', () => {
-			// Leader can manage songs
-			auth.currentMembership = { role: 'leader' } as any;
-			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true);
+			// User with manage-songs permission
+			auth.permissions = new Set(['manage-songs']);
+			expect(auth.canManageSongs).toBe(true);
 
-			// Admin can manage songs
-			auth.currentMembership = { role: 'admin' } as any;
-			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true);
+			// User without manage-songs permission
+			auth.permissions = new Set(['manage-services']);
+			expect(auth.canManageSongs).toBe(false);
 
-			// Musician cannot manage songs
-			auth.currentMembership = { role: 'musician' } as any;
-			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(false);
+			// User with no permissions
+			auth.permissions = new Set();
+			expect(auth.canManageSongs).toBe(false);
 		});
 
 		it('should compute canManageServices correctly', () => {
-			// Leader can manage services
-			auth.currentMembership = { role: 'leader' } as any;
-			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true);
+			// User with manage-services permission
+			auth.permissions = new Set(['manage-services']);
+			expect(auth.canManageServices).toBe(true);
 
-			// Admin can manage services
-			auth.currentMembership = { role: 'admin' } as any;
-			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(true);
+			// User without manage-services permission
+			auth.permissions = new Set(['manage-songs']);
+			expect(auth.canManageServices).toBe(false);
 
-			// Musician cannot manage services
-			auth.currentMembership = { role: 'musician' } as any;
-			expect(auth.hasAnyRole(['leader', 'admin'])).toBe(false);
+			// User with no permissions
+			auth.permissions = new Set();
+			expect(auth.canManageServices).toBe(false);
 		});
 
 		it('should compute isAdmin correctly', () => {
-			// Test admin role
-			auth.currentMembership = { role: 'admin' } as any;
-			expect(auth.hasRole('admin')).toBe(true);
+			// User with manage-church permission (admin)
+			auth.permissions = new Set(['manage-church']);
+			expect(auth.isAdmin).toBe(true);
 
-			// Test leader role
-			auth.currentMembership = { role: 'leader' } as any;
-			expect(auth.hasRole('admin')).toBe(false);
+			// User without manage-church permission
+			auth.permissions = new Set(['manage-songs', 'manage-services']);
+			expect(auth.isAdmin).toBe(false);
 
-			// Test musician role
-			auth.currentMembership = { role: 'musician' } as any;
-			expect(auth.hasRole('admin')).toBe(false);
+			// User with no permissions
+			auth.permissions = new Set();
+			expect(auth.isAdmin).toBe(false);
+		});
+
+		it('should check if user has leader skill', () => {
+			// User with leader skill
+			auth.userSkills = [
+				{
+					id: 'user-skill-1',
+					user_id: 'user1',
+					skill_id: 'skill-1',
+					church_id: 'church1',
+					expand: {
+						skill_id: { id: 'skill-1', name: 'Leader', slug: 'leader' }
+					}
+				} as any
+			];
+			expect(auth.hasLeaderSkill()).toBe(true);
+			expect(auth.isLeader).toBe(true);
+
+			// User without leader skill
+			auth.userSkills = [
+				{
+					id: 'user-skill-2',
+					user_id: 'user1',
+					skill_id: 'skill-2',
+					church_id: 'church1',
+					expand: {
+						skill_id: { id: 'skill-2', name: 'Guitarist', slug: 'guitarist' }
+					}
+				} as any
+			];
+			expect(auth.hasLeaderSkill()).toBe(false);
+			expect(auth.isLeader).toBe(false);
 		});
 
 		it('should compute displayName correctly', () => {
@@ -759,7 +781,6 @@ describe('AuthStore', () => {
 				{
 					id: 'invite-1',
 					church_id: 'church1',
-					role: 'musician',
 					expand: {
 						church_id: { id: 'church1', name: 'Test Church' },
 						invited_by: { id: 'user1', name: 'Admin' }

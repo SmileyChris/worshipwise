@@ -5,6 +5,8 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import ServiceBuilder from '$lib/components/services/ServiceBuilder.svelte';
+	import TeamSelector from '$lib/components/services/TeamSelector.svelte';
+	import type { ServiceTeamSkills } from '$lib/types/service';
 	import { onMount } from 'svelte';
 
 	const auth = getAuthStore();
@@ -22,6 +24,7 @@
 		theme: '',
 		notes: '',
 		worship_leader: auth.user?.id || '',
+		team_skills: {} as ServiceTeamSkills,
 		estimated_duration: 3600 // 1 hour default
 	});
 
@@ -139,6 +142,7 @@
 				theme: createForm.theme || undefined,
 				notes: createForm.notes || undefined,
 				worship_leader: createForm.worship_leader,
+				team_skills: createForm.team_skills,
 				estimated_duration: createForm.estimated_duration,
 				status: 'draft'
 			});
@@ -217,6 +221,7 @@
 			theme: '',
 			notes: '',
 			worship_leader: auth.user?.id || '',
+			team_skills: {},
 			estimated_duration: 3600
 		};
 	}
@@ -450,6 +455,15 @@
 				class="focus:border-primary focus:ring-primary block w-full rounded-md border-gray-300 shadow-sm"
 				placeholder="Special instructions or notes..."
 			></textarea>
+		</div>
+
+		<!-- Team assignments -->
+		<div class="border-t pt-4">
+			<TeamSelector
+				teamSkills={createForm.team_skills}
+				worshipLeader={createForm.worship_leader}
+				onchange={(skills) => (createForm.team_skills = skills)}
+			/>
 		</div>
 
 		{#if error}

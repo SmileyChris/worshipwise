@@ -4,7 +4,7 @@
 
 WorshipWise is a sophisticated worship song tracking system built with SvelteKit 5 + PocketBase. Single-server deployment where PocketBase serves both API and static frontend.
 
-**Status:** Advanced (42% complete - Sprint 5 finished) - Production-ready authentication, song management, real-time collaboration, analytics dashboard
+**Status:** Advanced (50% complete - Sprint 6 finished) - Production-ready authentication, song management, real-time collaboration, analytics dashboard, flexible permission system
 
 **Stack:** SvelteKit + Static Adapter, Svelte 5 Runes, PocketBase, TypeScript, Tailwind CSS, Vitest, Playwright
 
@@ -24,13 +24,13 @@ WorshipWise is a sophisticated worship song tracking system built with SvelteKit
 ## Architecture
 
 **Deployment:** PocketBase serves API + static frontend (single origin, no CORS)  
-**Collections:** Users, Churches, Church Memberships, Songs, Services, Service Songs, Song Usage  
+**Collections:** Users, Churches, Church Memberships, Songs, Services, Service Songs, Song Usage, Roles, User Roles, Skills, User Skills  
 **Structure:** `src/lib/{components,stores,api,utils}` + `routes/`
 
 ## Key Features
 
 **Church-Centric:** Multi-tenant with `/setup` flow, timezone-aware operations  
-**Authentication:** PocketBase auth with role-based permissions (pastor/admin/leader/musician/member)  
+**Authentication:** PocketBase auth with flexible permission-based system (manage-songs/services/members/church)  
 **Song Management:** Usage tracking (green/yellow/red), key transposition, file attachments  
 **Real-Time:** WebSocket collaboration, optimistic UI updates  
 **Analytics:** Usage tracking, heat maps, AI insights, seasonal trending
@@ -41,7 +41,7 @@ WorshipWise is a sophisticated worship song tracking system built with SvelteKit
 **PocketBase:** Single global instance, disable auto-cancellation, church-based scoping  
 **Real-time:** WebSocket subscriptions with proper cleanup in `onDestroy`
 
-**Testing:** Multi-project Vitest setup with dependency injection. Store tests (199/199 passing), component tests, E2E tests. See `plan/TESTING_GUIDE.md`
+**Testing:** Multi-project Vitest setup with dependency injection. Store tests (574/575 passing), component tests, E2E tests. See `plan/TESTING_GUIDE.md`
 
 **Performance:** Lazy loading, virtual lists, caching, code splitting, optimistic updates
 

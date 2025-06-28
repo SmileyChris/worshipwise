@@ -5,6 +5,7 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import CategoryBadge from '$lib/components/ui/CategoryBadge.svelte';
 	import LabelBadge from '$lib/components/ui/LabelBadge.svelte';
+	import SongRatingButton from './SongRatingButton.svelte';
 
 	interface Props {
 		song: Song;
@@ -206,6 +207,20 @@
 			{#if song.ccli_number}
 				<p class="mt-1 text-xs text-gray-400">CCLI: {song.ccli_number}</p>
 			{/if}
+
+			<!-- Retired status -->
+			{#if song.is_retired}
+				<div class="mt-2">
+					<Badge variant="warning" size="sm">
+						Retired {#if song.retired_reason === 'all_thumbs_down'}(75%+ leaders thumbs down){/if}
+					</Badge>
+				</div>
+			{/if}
+
+			<!-- Rating button -->
+			<div class="mt-3">
+				<SongRatingButton {song} showAggregates={true} />
+			</div>
 		</div>
 
 		<!-- Actions -->

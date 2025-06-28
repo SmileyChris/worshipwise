@@ -1,4 +1,5 @@
-import { songsApi } from '$lib/api/songs';
+import { createSongsAPI, type SongsAPI } from '$lib/api/songs';
+import { createRatingsAPI, type RatingsAPI } from '$lib/api/ratings';
 import type { AuthContext } from '$lib/types/auth';
 import { pb } from '$lib/api/client';
 import type {
@@ -6,7 +7,8 @@ import type {
 	CreateSongData,
 	UpdateSongData,
 	SongFilterOptions,
-	SongStats
+	SongStats,
+	AggregateRatings
 } from '$lib/types/song';
 
 class SongsStore {
@@ -35,6 +37,11 @@ class SongsStore {
 		availableSongs: 0,
 		recentlyUsed: 0
 	});
+
+	// Ratings state
+	songRatings = $state<Map<string, AggregateRatings>>(new Map());
+	userFavorites = $state<Set<string>>(new Set());
+	userDifficultSongs = $state<Set<string>>(new Set());
 
 	// Selected song for editing
 	selectedSong = $state<Song | null>(null);
@@ -66,8 +73,13 @@ class SongsStore {
 		return Array.from(tags).sort();
 	});
 
-	constructor(authContext: AuthContext) {
-		// Auth context is now handled dynamically by songsApi proxy
+	private songsApi: SongsAPI;
+	private ratingsApi: RatingsAPI;
+
+	constructor(private authContext: AuthContext) {
+		// Create API instances with injected context
+		this.songsApi = createSongsAPI(authContext, authContext.pb);
+		this.ratingsApi = createRatingsAPI(authContext, authContext.pb);
 	}
 
 	/**
@@ -82,7 +94,7 @@ class SongsStore {
 		this.error = null;
 
 		try {
-			const result = await songsApi.getSongsPaginated(
+			const result = await this.songsApi.getSongsPaginated(
 				this.currentPage,
 				this.perPage,
 				this.filters
@@ -90,7 +102,11 @@ class SongsStore {
 
 			// Load usage information for all songs
 			const songIds = result.items.map((song) => song.id);
-			const usageMap = await songsApi.getSongsUsageInfo(songIds);
+			const usageMap = await this.songsApi.getSongsUsageInfo(songIds);
+			
+			// Load ratings for all songs
+			const ratingsMap = await this.ratingsApi.getMultipleSongRatings(songIds);
+			this.songRatings = ratingsMap;
 
 			// Enhance songs with usage information
 			this.songs = result.items.map((song) => {
@@ -131,7 +147,7 @@ class SongsStore {
 	 */
 	async loadAllSongs(): Promise<Song[]> {
 		try {
-			return await songsApi.getSongs();
+			return await this.songsApi.getSongs();
 		} catch (error: unknown) {
 			console.error('Failed to load all songs:', error);
 			return [];
@@ -146,7 +162,7 @@ class SongsStore {
 		this.error = null;
 
 		try {
-			const newSong = await songsApi.createSong(data);
+			const newSong = await this.songsApi.createSong(data);
 
 			// Refresh the list to include the new song
 			await this.loadSongs();
@@ -169,7 +185,7 @@ class SongsStore {
 		this.error = null;
 
 		try {
-			const updatedSong = await songsApi.updateSong(id, data);
+			const updatedSong = await this.songsApi.updateSong(id, data);
 
 			// Update the song in the local array
 			const index = this.songs.findIndex((song) => song.id === id);
@@ -195,7 +211,7 @@ class SongsStore {
 		this.error = null;
 
 		try {
-			await songsApi.deleteSong(id);
+			await this.songsApi.deleteSong(id);
 
 			// Remove from local array
 			this.songs = this.songs.filter((song) => song.id !== id);
@@ -385,7 +401,7 @@ class SongsStore {
 	> {
 		try {
 			// Load all songs with expanded category information
-			const allSongs = await songsApi.getSongs({});
+			const allSongs = await this.songsApi.getSongs({});
 
 			// Group songs by category
 			const categoryMap = new Map<string, { category: Record<string, unknown>; songs: Song[] }>();
@@ -421,10 +437,102 @@ class SongsStore {
 	}
 
 	/**
+	 * Load user's favorite and difficult songs
+	 */
+	async loadUserPreferences(): Promise<void> {
+		try {
+			const [favorites, difficultSongs] = await Promise.all([
+				this.ratingsApi.getUserFavorites(),
+				this.ratingsApi.getUserDifficultSongs()
+			]);
+			
+			this.userFavorites = new Set(favorites);
+			this.userDifficultSongs = new Set(difficultSongs);
+		} catch (error) {
+			console.error('Failed to load user preferences:', error);
+		}
+	}
+
+	/**
+	 * Retire a song
+	 */
+	async retireSong(songId: string, reason?: string): Promise<void> {
+		try {
+			await this.songsApi.retireSong(songId, reason);
+			
+			// Update local state
+			const index = this.songs.findIndex(s => s.id === songId);
+			if (index !== -1) {
+				this.songs[index] = {
+					...this.songs[index],
+					is_retired: true,
+					retired_date: new Date().toISOString(),
+					retired_reason: reason || 'manual'
+				};
+			}
+			
+			// Reload if showing retired filter
+			if (this.filters.showRetired) {
+				await this.loadSongs();
+			}
+		} catch (error) {
+			this.error = this.getErrorMessage(error);
+			throw error;
+		}
+	}
+
+	/**
+	 * Unretire a song
+	 */
+	async unretireSong(songId: string): Promise<void> {
+		try {
+			await this.songsApi.unretireSong(songId);
+			
+			// Update local state
+			const index = this.songs.findIndex(s => s.id === songId);
+			if (index !== -1) {
+				this.songs[index] = {
+					...this.songs[index],
+					is_retired: false,
+					retired_date: undefined,
+					retired_reason: undefined
+				};
+			}
+			
+			// Reload if not showing retired filter
+			if (!this.filters.showRetired) {
+				await this.loadSongs();
+			}
+		} catch (error) {
+			this.error = this.getErrorMessage(error);
+			throw error;
+		}
+	}
+
+	/**
+	 * Handle auto-retire event
+	 */
+	async handleAutoRetire(songId: string): Promise<void> {
+		const song = this.songs.find(s => s.id === songId);
+		if (song) {
+			await this.retireSong(songId, 'all_thumbs_down');
+			
+			// Trigger notification event for other components to handle
+			window.dispatchEvent(new CustomEvent('song-retired', {
+				detail: { 
+					songId,
+					songTitle: song.title,
+					reason: 'all_thumbs_down'
+				}
+			}));
+		}
+	}
+
+	/**
 	 * Subscribe to real-time updates
 	 */
 	async subscribeToUpdates(): Promise<() => void> {
-		return await songsApi.subscribe((data: unknown) => {
+		return await this.songsApi.subscribe((data: unknown) => {
 			console.log('Real-time song update:', data);
 
 			// Type-safe access to event data

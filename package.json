@@ -52,7 +52,9 @@
 	},
 	"dependencies": {
 		"chart.js": "^4.5.0",
+		"clsx": "^2.1.1",
 		"lucide-svelte": "^0.515.0",
-		"pocketbase": "^0.26.1"
+		"pocketbase": "^0.26.1",
+		"tailwind-merge": "^3.3.1"
 	}
 }

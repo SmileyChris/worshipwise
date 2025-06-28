@@ -65,6 +65,9 @@ export interface Song {
 	lyrics_analysis?: LyricsAnalysis;
 	created_by: string;
 	is_active: boolean;
+	is_retired?: boolean;
+	retired_date?: string;
+	retired_reason?: string;
 	created: string;
 	updated: string;
 
@@ -155,6 +158,9 @@ export interface SongFilterOptions {
 	maxTempo?: number;
 	createdBy?: string;
 	sort?: string;
+	showRetired?: boolean;
+	showFavorites?: boolean;
+	showDifficult?: boolean;
 }
 
 export interface SongStats {
@@ -163,4 +169,72 @@ export interface SongStats {
 	recentlyUsed: number;
 	mostUsedKey?: string;
 	averageTempo?: number;
+}
+
+export type SongRatingValue = 'thumbs_up' | 'neutral' | 'thumbs_down';
+
+export interface SongRating {
+	id: string;
+	song_id: string;
+	user_id: string;
+	church_id: string;
+	rating: SongRatingValue;
+	is_difficult?: boolean;
+	created: string;
+	updated: string;
+	
+	// Expanded relations
+	expand?: {
+		song_id?: Song;
+		user_id?: {
+			id: string;
+			name: string;
+			email: string;
+		};
+	};
+}
+
+export interface CreateSongRatingData {
+	song_id: string;
+	rating: SongRatingValue;
+	is_difficult?: boolean;
+}
+
+export interface UpdateSongRatingData {
+	rating?: SongRatingValue;
+	is_difficult?: boolean;
+}
+
+export interface SongSuggestion {
+	id: string;
+	song_id: string;
+	church_id: string;
+	suggested_by: string;
+	notes?: string;
+	status: 'pending' | 'approved' | 'rejected';
+	created: string;
+	updated: string;
+	
+	// Expanded relations
+	expand?: {
+		song_id?: Song;
+		suggested_by?: {
+			id: string;
+			name: string;
+			email: string;
+		};
+	};
+}
+
+export interface CreateSongSuggestionData {
+	song_id: string;
+	notes?: string;
+}
+
+export interface AggregateRatings {
+	thumbsUp: number;
+	neutral: number;
+	thumbsDown: number;
+	totalRatings: number;
+	difficultCount: number;
 }

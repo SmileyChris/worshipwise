@@ -21,8 +21,15 @@ export class SongsAPI {
 				throw new Error('No church selected. Please select a church to view songs.');
 			}
 
-			let filter = `is_active = true && church_id = "${this.authContext.currentChurch.id}"`;
+			let filter = `church_id = "${this.authContext.currentChurch.id}"`;
 			const filterParts: string[] = [];
+			
+			// Handle retired filter
+			if (!options.showRetired) {
+				filterParts.push('(is_retired = false || is_retired = null)');
+			} else {
+				filterParts.push('is_retired = true');
+			}
 
 			// Add search filter
 			if (options.search) {
@@ -159,8 +166,15 @@ export class SongsAPI {
 				throw new Error('No church selected. Please select a church to view songs.');
 			}
 
-			let filter = `is_active = true && church_id = "${this.authContext.currentChurch.id}"`;
+			let filter = `church_id = "${this.authContext.currentChurch.id}"`;
 			const filterParts: string[] = [];
+
+			// Handle retired filter
+			if (!options.showRetired) {
+				filterParts.push('(is_retired = false || is_retired = null)');
+			} else {
+				filterParts.push('is_retired = true');
+			}
 
 			// Apply same filtering logic as getSongs
 			if (options.search) {
@@ -298,6 +312,42 @@ export class SongsAPI {
 			await this.pb.collection(this.collection).update(id, { is_active: false });
 		} catch (error) {
 			console.error('Failed to delete song:', error);
+			throw error;
+		}
+	}
+
+	/**
+	 * Retire a song
+	 */
+	async retireSong(id: string, reason?: string): Promise<Song> {
+		try {
+			const data = {
+				is_retired: true,
+				retired_date: new Date().toISOString(),
+				retired_reason: reason || 'manual'
+			};
+			const record = await this.pb.collection(this.collection).update(id, data);
+			return record as unknown as Song;
+		} catch (error) {
+			console.error('Failed to retire song:', error);
+			throw error;
+		}
+	}
+
+	/**
+	 * Unretire a song
+	 */
+	async unretireSong(id: string): Promise<Song> {
+		try {
+			const data = {
+				is_retired: false,
+				retired_date: null,
+				retired_reason: null
+			};
+			const record = await this.pb.collection(this.collection).update(id, data);
+			return record as unknown as Song;
+		} catch (error) {
+			console.error('Failed to unretire song:', error);
 			throw error;
 		}
 	}
@@ -557,6 +607,8 @@ class SongsAPIProxy {
 	createSong = (data: CreateSongData) => this.api.createSong(data);
 	updateSong = (id: string, data: UpdateSongData) => this.api.updateSong(id, data);
 	deleteSong = (id: string) => this.api.deleteSong(id);
+	retireSong = (id: string, reason?: string) => this.api.retireSong(id, reason);
+	unretireSong = (id: string) => this.api.unretireSong(id);
 	searchSongs = (query: string) => this.api.searchSongs(query);
 	getSongLastUsage = (songId: string) => this.api.getSongLastUsage(songId);
 	getSongsUsageInfo = (songIds: string[]) => this.api.getSongsUsageInfo(songIds);
