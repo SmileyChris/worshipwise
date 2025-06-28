@@ -12,6 +12,7 @@ export interface Service {
 	notes?: string;
 	worship_leader: string;
 	team_members?: string[] | Record<string, unknown>;
+	team_skills?: ServiceTeamSkills; // Skill-based team assignments
 	is_completed?: boolean;
 	is_archived?: boolean;
 	// Optional advanced fields (may not exist in all environments)
@@ -26,6 +27,11 @@ export interface Service {
 	expand?: {
 		worship_leader?: User;
 	};
+}
+
+// Skill-based team assignments
+export interface ServiceTeamSkills {
+	[skillId: string]: string; // skillId -> userId mapping
 }
 
 export interface ServiceSong {
@@ -59,6 +65,7 @@ export interface CreateServiceData {
 	notes?: string;
 	worship_leader: string;
 	team_members?: string[] | Record<string, unknown>;
+	team_skills?: ServiceTeamSkills;
 	estimated_duration?: number;
 	is_template?: boolean;
 	status?: Service['status'];
@@ -72,6 +79,7 @@ export interface UpdateServiceData {
 	notes?: string;
 	worship_leader?: string;
 	team_members?: string[] | Record<string, unknown>;
+	team_skills?: ServiceTeamSkills;
 	status?: Service['status'];
 	estimated_duration?: number;
 	actual_duration?: number;
