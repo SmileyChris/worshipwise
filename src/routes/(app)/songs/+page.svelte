@@ -32,6 +32,9 @@
 	let selectedCategory = $state('');
 	let selectedLabelIds = $state<string[]>([]);
 	let selectedSort = $state('title');
+	let showRetired = $state(false);
+	let showFavorites = $state(false);
+	let showDifficult = $state(false);
 	let initialLoadComplete = $state(false);
 
 	// Category data
@@ -99,15 +102,29 @@
 				initialLoadComplete = true;
 			});
 		}
+		
+		// Load user preferences
+		songsStore.loadUserPreferences();
 
 		// Set up real-time updates with proper cleanup
 		let unsubscribePromise = songsStore.subscribeToUpdates();
+		
+		// Listen for auto-retire events
+		const handleAutoRetire = (event: CustomEvent) => {
+			const { songId } = event.detail;
+			songsStore.handleAutoRetire(songId);
+		};
+		
+		window.addEventListener('song-auto-retire', handleAutoRetire as EventListener);
 
 		return () => {
 			// Cleanup subscription on component unmount
 			unsubscribePromise.then((unsubscribe) => {
 				if (unsubscribe) unsubscribe();
 			});
+			
+			// Cleanup event listener
+			window.removeEventListener('song-auto-retire', handleAutoRetire as EventListener);
 		};
 	});
 
@@ -131,7 +148,10 @@
 				key: selectedKey,
 				category: selectedCategory,
 				labels: selectedLabelIds.length > 0 ? selectedLabelIds : undefined,
-				sort: selectedSort
+				sort: selectedSort,
+				showRetired,
+				showFavorites,
+				showDifficult
 			};
 
 			// Use a timeout to debounce rapid changes (especially for search)
@@ -403,6 +423,24 @@
 									bind:value={searchQuery}
 									class="w-full"
 								/>
+							</div>
+
+							<!-- Toggle filters -->
+							<div class="flex flex-wrap gap-3">
+								<label class="flex items-center gap-2 cursor-pointer">
+									<input type="checkbox" bind:checked={showRetired} class="rounded border-gray-300 text-primary focus:ring-primary" />
+									<span class="text-sm font-medium text-gray-700">Show Retired Songs</span>
+								</label>
+								
+								<label class="flex items-center gap-2 cursor-pointer">
+									<input type="checkbox" bind:checked={showFavorites} class="rounded border-gray-300 text-primary focus:ring-primary" />
+									<span class="text-sm font-medium text-gray-700">My Favorites</span>
+								</label>
+								
+								<label class="flex items-center gap-2 cursor-pointer">
+									<input type="checkbox" bind:checked={showDifficult} class="rounded border-gray-300 text-primary focus:ring-primary" />
+									<span class="text-sm font-medium text-gray-700">Difficult Songs</span>
+								</label>
 							</div>
 
 							<!-- Filters row -->
