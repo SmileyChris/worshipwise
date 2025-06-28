@@ -77,7 +77,7 @@
 </script>
 
 <Modal {open} title="Suggest a Song" onclose={handleCancel}>
-	<form onsubmit|preventDefault={handleSubmit} class="space-y-4">
+	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
 		{#if !song}
 			<div>
 				<label for="song-select" class="block text-sm font-medium text-gray-700 mb-1">

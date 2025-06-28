@@ -3,7 +3,6 @@
 	import { getAuthStore } from '$lib/context/stores.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
-	import { formatDistanceToNow } from 'date-fns';
 
 	interface Props {
 		suggestion: SongSuggestion;
@@ -35,7 +34,18 @@
 	});
 
 	// Format time
-	let timeAgo = $derived(formatDistanceToNow(new Date(suggestion.created), { addSuffix: true }));
+	// Simple time ago function
+	let timeAgo = $derived.by(() => {
+		const date = new Date(suggestion.created);
+		const now = new Date();
+		const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+		
+		if (seconds < 60) return 'just now';
+		if (seconds < 3600) return Math.floor(seconds / 60) + ' minutes ago';
+		if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
+		if (seconds < 604800) return Math.floor(seconds / 86400) + ' days ago';
+		return date.toLocaleDateString();
+	});
 </script>
 
 <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">

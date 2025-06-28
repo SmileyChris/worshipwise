@@ -20,7 +20,9 @@ vi.mock('$lib/context/stores.svelte', () => ({
 		getAuthContext: () => mockAuthContext({
 			user: { id: 'user-1', email: 'test@example.com', name: 'Test User' },
 			church: { id: 'church-1', name: 'Test Church' },
-			membership: { church_id: 'church-1', role: 'leader' }
+			membership: { church_id: 'church-1' },
+			permissions: new Set(['manage-songs', 'manage-services']),
+			hasLeaderSkill: () => true
 		})
 	}))
 }));
@@ -44,7 +46,22 @@ describe('SongRatingButton', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mockRatingsAPI = (createRatingsAPI as any)();
+		mockRatingsAPI = {
+			getUserRating: vi.fn().mockResolvedValue(null),
+			getAggregateRatings: vi.fn().mockResolvedValue({
+				thumbsUp: 0,
+				neutral: 0,
+				thumbsDown: 0,
+				totalRatings: 0,
+				difficultCount: 0
+			}),
+			setRating: vi.fn().mockResolvedValue(undefined),
+			deleteRating: vi.fn().mockResolvedValue(undefined),
+			shouldAutoRetire: vi.fn().mockResolvedValue(false)
+		};
+		
+		// Set up the mock to return our API
+		(createRatingsAPI as any).mockReturnValue(mockRatingsAPI);
 		
 		// Reset mock implementations
 		mockRatingsAPI.getUserRating.mockResolvedValue(null);

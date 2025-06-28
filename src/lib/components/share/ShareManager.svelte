@@ -7,7 +7,6 @@
 	import Card from '$lib/components/ui/Card.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
-	import { formatDistanceToNow } from 'date-fns';
 
 	const auth = getAuthStore();
 	const authContext = auth.getAuthContext();
@@ -177,7 +176,18 @@
 									{link.access_type === 'both' ? 'All Access' : link.access_type}
 								</Badge>
 								<span class="text-xs text-gray-500">
-									Expires {formatDistanceToNow(new Date(link.expires_at), { addSuffix: true })}
+									Expires {(() => {
+										const date = new Date(link.expires_at);
+										const now = new Date();
+										const seconds = Math.floor((date.getTime() - now.getTime()) / 1000);
+										
+										if (seconds < 0) return 'expired';
+										if (seconds < 60) return 'in a few seconds';
+										if (seconds < 3600) return 'in ' + Math.floor(seconds / 60) + ' minutes';
+										if (seconds < 86400) return 'in ' + Math.floor(seconds / 3600) + ' hours';
+										if (seconds < 604800) return 'in ' + Math.floor(seconds / 86400) + ' days';
+										return date.toLocaleDateString();
+									})()}
 								</span>
 							</div>
 							<p class="mt-1 text-xs text-gray-600 truncate">

@@ -680,21 +680,6 @@ class AuthStore {
 	 */
 	hasPendingInvites = $derived(this.pendingInvites.length > 0);
 
-	/**
-	 * Get auth context for dependency injection
-	 * This allows APIs to depend on auth without circular imports
-	 */
-	getAuthContext(): AuthContext {
-		return {
-			user: this.user,
-			currentMembership: this.currentMembership,
-			currentChurch: this.currentChurch,
-			isAuthenticated: this.user !== null,
-			token: this.token,
-			isValid: this.isValid,
-			pb: pb
-		};
-	}
 }
 
 // Export the class type for tests
