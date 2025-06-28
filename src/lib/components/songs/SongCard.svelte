@@ -212,7 +212,7 @@
 			{#if song.is_retired}
 				<div class="mt-2">
 					<Badge variant="warning" size="sm">
-						Retired {#if song.retired_reason === 'all_thumbs_down'}(All thumbs down){/if}
+						Retired {#if song.retired_reason === 'all_thumbs_down'}(75%+ leaders thumbs down){/if}
 					</Badge>
 				</div>
 			{/if}

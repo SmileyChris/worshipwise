@@ -72,6 +72,7 @@
 			}
 
 			// Check if song should be auto-retired
+			// Auto-retire when: 75%+ of leaders rate thumbs down AND 0 thumbs up
 			if (newRating === 'thumbs_down') {
 				const shouldRetire = await ratingsAPI.shouldAutoRetire(song.id);
 				if (shouldRetire) {

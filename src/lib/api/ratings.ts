@@ -270,7 +270,8 @@ export class RatingsAPI {
 	}
 
 	/**
-	 * Check if all leaders/admins have rated a song thumbs down
+	 * Check if song should be auto-retired based on leader ratings
+	 * Requirements: At least 75% of leaders rated thumbs down AND 0 thumbs up
 	 */
 	async shouldAutoRetire(songId: string): Promise<boolean> {
 		try {
@@ -296,13 +297,39 @@ export class RatingsAPI {
 				filter: `song_id = "${songId}" && church_id = "${this.authContext.currentChurch.id}" && (${userIdFilters})`
 			});
 
-			// Check if all leaders/admins have rated it
-			if (ratings.length < leaderUserIds.length) {
-				return false; // Not all leaders have rated
+			// Need at least one leader to have rated
+			if (ratings.length === 0) {
+				return false;
 			}
 
-			// Check if all ratings are thumbs down
-			return ratings.every((rating: any) => rating.rating === 'thumbs_down');
+			// Count rating types
+			let thumbsUpCount = 0;
+			let thumbsDownCount = 0;
+			let neutralCount = 0;
+
+			ratings.forEach((rating: any) => {
+				switch (rating.rating) {
+					case 'thumbs_up':
+						thumbsUpCount++;
+						break;
+					case 'thumbs_down':
+						thumbsDownCount++;
+						break;
+					case 'neutral':
+						neutralCount++;
+						break;
+				}
+			});
+
+			// Requirements:
+			// 1. Zero thumbs up
+			// 2. At least 75% of leaders who rated gave thumbs down
+			if (thumbsUpCount > 0) {
+				return false; // Someone likes it, don't retire
+			}
+
+			const percentThumbsDown = (thumbsDownCount / ratings.length) * 100;
+			return percentThumbsDown >= 75;
 		} catch (error) {
 			console.error('Failed to check auto-retire status:', error);
 			return false;
