@@ -45,8 +45,6 @@ export interface ChurchMembership {
 	id: string;
 	church_id: string;
 	user_id: string;
-	role: ChurchRole;
-	permissions: string[];
 	status: 'active' | 'pending' | 'suspended';
 	preferred_keys?: string[];
 	notification_preferences?: NotificationPreferences;
@@ -64,8 +62,6 @@ export interface ChurchMembership {
 	};
 }
 
-export type ChurchRole = 'member' | 'musician' | 'leader' | 'admin';
-
 export interface NotificationPreferences {
 	email_service_reminders: boolean;
 	email_new_songs: boolean;
@@ -77,8 +73,6 @@ export interface ChurchInvitation {
 	id: string;
 	church_id: string;
 	email: string;
-	role: ChurchRole;
-	permissions: string[];
 	invited_by: string;
 	token: string;
 	expires_at: string;
@@ -135,90 +129,16 @@ export interface InitialChurchSetup {
 
 export interface InviteUserData {
 	email: string;
-	role: ChurchRole;
-	permissions?: string[];
 }
 
 export interface UpdateMembershipData {
-	role?: ChurchRole;
-	permissions?: string[];
 	status?: 'active' | 'suspended';
 	preferred_keys?: string[];
 	notification_preferences?: NotificationPreferences;
 }
 
-// Permission constants
-export const PERMISSIONS = {
-	SONGS_CREATE: 'songs:create',
-	SONGS_EDIT: 'songs:edit',
-	SONGS_DELETE: 'songs:delete',
-	SONGS_VIEW: 'songs:view',
-
-	SERVICES_CREATE: 'services:create',
-	SERVICES_EDIT: 'services:edit',
-	SERVICES_DELETE: 'services:delete',
-	SERVICES_VIEW: 'services:view',
-
-	USERS_INVITE: 'users:invite',
-	USERS_MANAGE: 'users:manage',
-	USERS_REMOVE: 'users:remove',
-
-	CHURCH_SETTINGS: 'church:settings',
-	CHURCH_BILLING: 'church:billing'
-} as const;
-
-// Helper functions
-export function getDefaultPermissions(role: ChurchRole): string[] {
-	switch (role) {
-		case 'admin':
-			return [
-				PERMISSIONS.SONGS_CREATE,
-				PERMISSIONS.SONGS_EDIT,
-				PERMISSIONS.SONGS_DELETE,
-				PERMISSIONS.SONGS_VIEW,
-				PERMISSIONS.SERVICES_CREATE,
-				PERMISSIONS.SERVICES_EDIT,
-				PERMISSIONS.SERVICES_DELETE,
-				PERMISSIONS.SERVICES_VIEW,
-				PERMISSIONS.USERS_INVITE,
-				PERMISSIONS.USERS_MANAGE,
-				PERMISSIONS.USERS_REMOVE,
-				PERMISSIONS.CHURCH_SETTINGS,
-				PERMISSIONS.CHURCH_BILLING
-			];
-		case 'leader':
-			return [
-				PERMISSIONS.SONGS_CREATE,
-				PERMISSIONS.SONGS_EDIT,
-				PERMISSIONS.SONGS_VIEW,
-				PERMISSIONS.SERVICES_CREATE,
-				PERMISSIONS.SERVICES_EDIT,
-				PERMISSIONS.SERVICES_DELETE,
-				PERMISSIONS.SERVICES_VIEW,
-				PERMISSIONS.USERS_INVITE
-			];
-		case 'musician':
-			return [PERMISSIONS.SONGS_VIEW, PERMISSIONS.SERVICES_VIEW];
-		case 'member':
-		default:
-			return [PERMISSIONS.SONGS_VIEW, PERMISSIONS.SERVICES_VIEW];
-	}
-}
-
-export function getRoleDisplayName(role: ChurchRole): string {
-	switch (role) {
-		case 'admin':
-			return 'Administrator';
-		case 'leader':
-			return 'Worship Leader';
-		case 'musician':
-			return 'Musician';
-		case 'member':
-			return 'Member';
-		default:
-			return 'Member';
-	}
-}
+// Note: Permission system has been moved to the new flexible role-based system
+// See src/lib/types/permissions.ts for the new permission definitions
 
 export function getDefaultChurchSettings(): ChurchSettings {
 	return {

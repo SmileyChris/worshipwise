@@ -282,19 +282,20 @@ export class RatingsAPI {
 				throw new Error('No church selected');
 			}
 
-			// Get all leaders and admins in the church
-			const memberships = await this.pb.collection('church_memberships').getFullList({
-				filter: `church_id = "${this.authContext.currentChurch.id}" && status = "active" && (role = "leader" || role = "admin")`,
-				fields: 'user_id'
+			// Get all users with leader skill in the church
+			const leaderSkills = await this.pb.collection('user_skills').getFullList({
+				filter: `church_id = "${this.authContext.currentChurch.id}" && skill_id.slug = "leader"`,
+				fields: 'user_id',
+				expand: 'skill_id'
 			});
 
-			if (memberships.length === 0) {
-				return false; // No leaders/admins to check
+			if (leaderSkills.length === 0) {
+				return false; // No leaders to check
 			}
 
-			const leaderUserIds = memberships.map(m => m.user_id);
+			const leaderUserIds = leaderSkills.map(s => s.user_id);
 
-			// Get all ratings for this song from leaders/admins
+			// Get all ratings for this song from users with leader skill
 			const userIdFilters = leaderUserIds.map(id => `user_id = "${id}"`).join(' || ');
 			const ratings = await this.pb.collection(this.collection).getFullList({
 				filter: `song_id = "${songId}" && church_id = "${this.authContext.currentChurch.id}" && (${userIdFilters})`
@@ -332,7 +333,7 @@ export class RatingsAPI {
 			}
 
 			// Need at least 75% of ALL leaders to have given thumbs down
-			const requiredThumbsDown = Math.ceil(memberships.length * 0.75);
+			const requiredThumbsDown = Math.ceil(leaderSkills.length * 0.75);
 			return thumbsDownCount >= requiredThumbsDown;
 		} catch (error) {
 			console.error('Failed to check auto-retire status:', error);
