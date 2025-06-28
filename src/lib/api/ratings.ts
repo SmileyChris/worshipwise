@@ -271,7 +271,10 @@ export class RatingsAPI {
 
 	/**
 	 * Check if song should be auto-retired based on leader ratings
-	 * Requirements: At least 75% of leaders rated thumbs down AND 0 thumbs up
+	 * Requirements: 
+	 * - Zero thumbs up ratings from any leader
+	 * - At least 75% of ALL leaders in the church have rated thumbs down
+	 * Example: If there are 4 leaders, at least 3 must rate thumbs down
 	 */
 	async shouldAutoRetire(songId: string): Promise<boolean> {
 		try {
@@ -323,13 +326,14 @@ export class RatingsAPI {
 
 			// Requirements:
 			// 1. Zero thumbs up
-			// 2. At least 75% of leaders who rated gave thumbs down
+			// 2. At least 75% of ALL leaders have rated thumbs down
 			if (thumbsUpCount > 0) {
 				return false; // Someone likes it, don't retire
 			}
 
-			const percentThumbsDown = (thumbsDownCount / ratings.length) * 100;
-			return percentThumbsDown >= 75;
+			// Need at least 75% of ALL leaders to have given thumbs down
+			const requiredThumbsDown = Math.ceil(memberships.length * 0.75);
+			return thumbsDownCount >= requiredThumbsDown;
 		} catch (error) {
 			console.error('Failed to check auto-retire status:', error);
 			return false;
