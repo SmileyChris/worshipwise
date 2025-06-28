@@ -116,9 +116,11 @@
 				<div class="hidden sm:flex sm:items-center sm:space-x-2">
 					<div class="text-sm">
 						<p class="font-medium text-gray-900">{auth.displayName}</p>
-						<p class="text-xs text-gray-500 capitalize">
-							{auth.currentMembership?.role || 'member'}
-						</p>
+						{#if auth.currentChurch}
+							<p class="text-xs text-gray-500">
+								{auth.currentChurch.name}
+							</p>
+						{/if}
 					</div>
 				</div>
 
@@ -155,6 +157,46 @@
 							>
 								Profile Settings
 							</a>
+							{#if auth.canManageChurch || auth.canManageMembers}
+								<hr class="my-1 border-gray-200" />
+								{#if auth.canManageMembers}
+									<a
+										href="/admin/members"
+										class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+										role="menuitem"
+										onclick={closeUserMenu}
+									>
+										Manage Members
+									</a>
+								{/if}
+								{#if auth.canManageChurch}
+									<a
+										href="/admin/roles"
+										class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+										role="menuitem"
+										onclick={closeUserMenu}
+									>
+										Manage Roles
+									</a>
+									<a
+										href="/admin/skills"
+										class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+										role="menuitem"
+										onclick={closeUserMenu}
+									>
+										Manage Skills
+									</a>
+									<a
+										href="/admin/churches"
+										class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+										role="menuitem"
+										onclick={closeUserMenu}
+									>
+										Church Settings
+									</a>
+								{/if}
+								<hr class="my-1 border-gray-200" />
+							{/if}
 							<button
 								onclick={handleOpenSetupWizard}
 								class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
