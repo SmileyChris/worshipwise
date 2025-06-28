@@ -6,6 +6,7 @@
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
+	import ShareManager from '$lib/components/share/ShareManager.svelte';
 
 	const auth = getAuthStore();
 
@@ -187,6 +188,11 @@
 					{/each}
 				</div>
 			</Card>
+		{/if}
+
+		<!-- Share Manager (for leaders/admins) -->
+		{#if auth.canManageSongs}
+			<ShareManager />
 		{/if}
 	{/if}
 </div>
