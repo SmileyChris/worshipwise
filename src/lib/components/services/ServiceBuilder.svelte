@@ -4,6 +4,7 @@
 	import { getServicesStore, getSongsStore } from '$lib/context/stores.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
+	import CommentThread from './CommentThread.svelte';
 	import { onMount } from 'svelte';
 	import { flip } from 'svelte/animate';
 
@@ -24,6 +25,7 @@
 	let dragOverIndex = $state<number | null>(null);
 	let loading = $state(false);
 	let error = $state<string | null>(null);
+	let showComments = $state(false);
 
 	// Computed values
 	let filteredSongs = $derived.by(() => {
@@ -234,6 +236,12 @@
 					<Badge variant="primary">
 						{servicesStore.currentServiceSongs.length} songs • {formattedDuration}
 					</Badge>
+					<Button variant="ghost" onclick={() => (showComments = !showComments)}>
+						<svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+						</svg>
+						Comments
+					</Button>
 					<Button variant="ghost" onclick={onClose}>Close</Button>
 				</div>
 			</div>
@@ -442,6 +450,13 @@
 					</div>
 				</div>
 			</div>
+			
+			<!-- Comments sidebar -->
+			{#if showComments}
+				<div class="w-96 border-l border-gray-200">
+					<CommentThread serviceId={serviceId} onClose={() => (showComments = false)} />
+				</div>
+			{/if}
 		</div>
 	</div>
 {/if}

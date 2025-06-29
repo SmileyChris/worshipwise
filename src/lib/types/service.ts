@@ -199,3 +199,37 @@ export interface CollaboratorPresence {
 	currentSection?: string;
 	isEditing?: boolean;
 }
+
+// Service Comments
+export interface ServiceComment {
+	id: string;
+	service_id: string;
+	user_id: string;
+	comment: string;
+	parent_id?: string;
+	mentions?: string[];
+	edited?: boolean;
+	edited_at?: string;
+	created: string;
+	updated: string;
+	
+	// Expanded fields
+	expand?: {
+		user_id?: User;
+		parent_id?: ServiceComment;
+		mentions?: User[];
+	};
+}
+
+export interface CreateServiceCommentData {
+	service_id: string;
+	comment: string;
+	parent_id?: string;
+	mentions?: string[];
+}
+
+export interface UpdateServiceCommentData {
+	comment: string;
+	edited?: boolean;
+	edited_at?: string;
+}
