@@ -216,7 +216,7 @@
 			type="submit"
 			variant="primary"
 			size="lg"
-			class="w-full"
+			fullWidth
 			{loading}
 			disabled={!isValid || loading}
 		>

@@ -202,7 +202,9 @@
 								onclick={handleOpenSetupWizard}
 								variant="ghost"
 								size="sm"
-								class="w-full justify-start px-4 py-2 h-auto font-normal text-gray-700 hover:bg-gray-100 border-0 rounded-none"
+								fullWidth
+								align="left"
+								class="px-4 py-2 h-auto font-normal text-gray-700 hover:bg-gray-100 border-0 rounded-none"
 							>
 								Setup Wizard
 							</Button>
@@ -210,7 +212,9 @@
 								onclick={handleLogout}
 								variant="ghost"
 								size="sm"
-								class="w-full justify-start px-4 py-2 h-auto font-normal text-gray-700 hover:bg-gray-100 border-0 rounded-none"
+								fullWidth
+								align="left"
+								class="px-4 py-2 h-auto font-normal text-gray-700 hover:bg-gray-100 border-0 rounded-none"
 							>
 								Sign Out
 							</Button>
@@ -272,7 +276,9 @@
 								onclick={() => auth.switchChurch(church.id)}
 								variant="ghost"
 								size="sm"
-								class="w-full justify-start px-2 py-1 h-auto font-normal text-gray-600 hover:bg-gray-100 border-0"
+								fullWidth
+								align="left"
+								class="px-2 py-1 h-auto font-normal text-gray-600 hover:bg-gray-100 border-0"
 							>
 								{church.name}
 							</Button>
@@ -291,7 +297,9 @@
 					onclick={handleOpenSetupWizard}
 					variant="ghost"
 					size="md"
-					class="w-full justify-start px-4 py-2 h-auto font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800 border-0 rounded-none"
+					fullWidth
+					align="left"
+					class="px-4 py-2 h-auto font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800 border-0 rounded-none"
 				>
 					Setup Wizard
 				</Button>
@@ -299,7 +307,9 @@
 					onclick={handleLogout}
 					variant="ghost"
 					size="md"
-					class="w-full justify-start px-4 py-2 h-auto font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800 border-0 rounded-none"
+					fullWidth
+					align="left"
+					class="px-4 py-2 h-auto font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800 border-0 rounded-none"
 				>
 					Sign Out
 				</Button>

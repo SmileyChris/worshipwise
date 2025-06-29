@@ -126,7 +126,9 @@
 							onclick={() => addLabel(label)}
 							variant="ghost"
 							size="sm"
-							class="w-full justify-start px-3 py-2 h-auto font-normal hover:bg-gray-100 border-0 rounded-none"
+							fullWidth
+							align="left"
+							class="px-3 py-2 h-auto font-normal hover:bg-gray-100 border-0 rounded-none"
 						>
 							<LabelBadge {label} size="sm" />
 							{#if label.description}

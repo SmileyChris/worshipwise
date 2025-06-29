@@ -155,7 +155,8 @@
 						onclick={() => (quickstart.showSetupWizard = true)}
 						variant="outline"
 						size="md"
-						class="w-full justify-start"
+						fullWidth
+						align="left"
 					>
 						<TrendingUp class="mr-2 h-4 w-4" />
 						Setup Wizard

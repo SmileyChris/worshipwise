@@ -3,7 +3,7 @@
 	import type { Snippet } from 'svelte';
 	
 	interface Props {
-		variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
+		variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline' | 'success';
 		size?: 'sm' | 'md' | 'lg';
 		disabled?: boolean;
 		loading?: boolean;
@@ -17,6 +17,10 @@
 		children?: Snippet;
 		icon?: Snippet;
 		iconPosition?: 'left' | 'right';
+		fullWidth?: boolean;
+		align?: 'left' | 'center' | 'right';
+		grow?: boolean;
+		iconOnly?: boolean;
 	}
 
 	let {
@@ -33,11 +37,20 @@
 		'data-testid': testId = '',
 		children,
 		icon,
-		iconPosition = 'left'
+		iconPosition = 'left',
+		fullWidth = false,
+		align = 'center',
+		grow = false,
+		iconOnly = false
 	}: Props = $props();
 
-	let baseClasses =
-		'inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 rounded-md';
+	let baseClasses = $derived.by(() => {
+		const justifyClass = align === 'left' ? 'justify-start' : align === 'right' ? 'justify-end' : 'justify-center';
+		const widthClass = fullWidth ? 'w-full' : grow ? 'flex-1' : '';
+		const displayClass = fullWidth || grow ? 'flex' : 'inline-flex';
+		
+		return `${displayClass} items-center ${justifyClass} ${widthClass} font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 rounded-md`;
+	});
 
 	let variantClasses = $derived.by(() => {
 		switch (variant) {
@@ -51,19 +64,32 @@
 				return 'border border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900';
 			case 'outline':
 				return 'border border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900';
+			case 'success':
+				return 'bg-green-600 text-white hover:bg-green-700 shadow-sm';
 			default:
 				return '';
 		}
 	});
 
 	let sizeClasses = $derived.by(() => {
-		switch (size) {
-			case 'sm':
-				return 'h-8 px-3 text-sm gap-1.5';
-			case 'lg':
-				return 'h-12 px-8 text-lg gap-3';
-			default:
-				return 'h-10 px-4 gap-2';
+		if (iconOnly) {
+			switch (size) {
+				case 'sm':
+					return 'h-8 w-8 text-sm';
+				case 'lg':
+					return 'h-12 w-12 text-lg';
+				default:
+					return 'h-10 w-10';
+			}
+		} else {
+			switch (size) {
+				case 'sm':
+					return 'h-8 px-3 text-sm gap-1.5';
+				case 'lg':
+					return 'h-12 px-8 text-lg gap-3';
+				default:
+					return 'h-10 px-4 gap-2';
+			}
 		}
 	});
 

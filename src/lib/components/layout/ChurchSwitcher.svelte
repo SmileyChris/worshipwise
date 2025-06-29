@@ -141,7 +141,9 @@
 								onclick={() => handleChurchSwitch(church.id)}
 								variant="ghost"
 								size="sm"
-								class="w-full justify-start px-4 py-3 h-auto font-normal text-gray-900 hover:bg-primary hover:text-white border-0 rounded-none group/item"
+								fullWidth
+								align="left"
+								class="px-4 py-3 h-auto font-normal text-gray-900 hover:bg-primary hover:text-white border-0 rounded-none group/item"
 							>
 								<div class="min-w-0 flex-1">
 									<div class="flex items-center space-x-2">
