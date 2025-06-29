@@ -182,7 +182,7 @@ export interface SongRating {
 	is_difficult?: boolean;
 	created: string;
 	updated: string;
-	
+
 	// Expanded relations
 	expand?: {
 		song_id?: Song;
@@ -214,7 +214,7 @@ export interface SongSuggestion {
 	status: 'pending' | 'approved' | 'rejected';
 	created: string;
 	updated: string;
-	
+
 	// Expanded relations
 	expand?: {
 		song_id?: Song;

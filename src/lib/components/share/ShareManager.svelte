@@ -74,7 +74,7 @@
 
 		try {
 			await shareAPI.deleteShareLink(link.id);
-			shareLinks = shareLinks.filter(l => l.id !== link.id);
+			shareLinks = shareLinks.filter((l) => l.id !== link.id);
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to delete share link';
 		}
@@ -83,7 +83,7 @@
 	// Copy link to clipboard
 	async function copyLink(token: string) {
 		const url = shareAPI.buildShareUrl(token);
-		
+
 		try {
 			await navigator.clipboard.writeText(url);
 			alert('Link copied to clipboard!');
@@ -107,36 +107,26 @@
 <Card>
 	<div class="space-y-4">
 		<h3 class="text-lg font-semibold text-gray-900">Team Share Links</h3>
-		
+
 		<!-- Create new link -->
 		<div class="rounded-lg bg-gray-50 p-4">
-			<h4 class="text-sm font-medium text-gray-700 mb-3">Create New Share Link</h4>
-			
+			<h4 class="mb-3 text-sm font-medium text-gray-700">Create New Share Link</h4>
+
 			<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
 				<div>
-					<label for="access-type" class="block text-xs font-medium text-gray-600 mb-1">
+					<label for="access-type" class="mb-1 block text-xs font-medium text-gray-600">
 						Access Type
 					</label>
-					<Select
-						id="access-type"
-						bind:value={accessType}
-						options={accessTypeOptions}
-						size="sm"
-					/>
+					<Select id="access-type" bind:value={accessType} options={accessTypeOptions} size="sm" />
 				</div>
-				
+
 				<div>
-					<label for="expires-in" class="block text-xs font-medium text-gray-600 mb-1">
+					<label for="expires-in" class="mb-1 block text-xs font-medium text-gray-600">
 						Expires In
 					</label>
-					<Select
-						id="expires-in"
-						bind:value={expiresInDays}
-						options={expiryOptions}
-						size="sm"
-					/>
+					<Select id="expires-in" bind:value={expiresInDays} options={expiryOptions} size="sm" />
 				</div>
-				
+
 				<div class="flex items-end">
 					<Button
 						variant="primary"
@@ -163,14 +153,14 @@
 				<div class="border-primary mx-auto h-6 w-6 animate-spin rounded-full border-b-2"></div>
 			</div>
 		{:else if shareLinks.length === 0}
-			<p class="text-sm text-gray-500 text-center py-4">
+			<p class="py-4 text-center text-sm text-gray-500">
 				No active share links. Create one to share with your team!
 			</p>
 		{:else}
 			<div class="space-y-2">
 				{#each shareLinks as link (link.id)}
 					<div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-						<div class="flex-1 min-w-0">
+						<div class="min-w-0 flex-1">
 							<div class="flex items-center gap-2">
 								<Badge variant="secondary" size="sm">
 									{link.access_type === 'both' ? 'All Access' : link.access_type}
@@ -180,7 +170,7 @@
 										const date = new Date(link.expires_at);
 										const now = new Date();
 										const seconds = Math.floor((date.getTime() - now.getTime()) / 1000);
-										
+
 										if (seconds < 0) return 'expired';
 										if (seconds < 60) return 'in a few seconds';
 										if (seconds < 3600) return 'in ' + Math.floor(seconds / 60) + ' minutes';
@@ -190,19 +180,13 @@
 									})()}
 								</span>
 							</div>
-							<p class="mt-1 text-xs text-gray-600 truncate">
+							<p class="mt-1 truncate text-xs text-gray-600">
 								{shareAPI.buildShareUrl(link.token)}
 							</p>
 						</div>
-						
-						<div class="flex items-center gap-2 ml-4">
-							<Button
-								variant="ghost"
-								size="sm"
-								onclick={() => copyLink(link.token)}
-							>
-								Copy
-							</Button>
+
+						<div class="ml-4 flex items-center gap-2">
+							<Button variant="ghost" size="sm" onclick={() => copyLink(link.token)}>Copy</Button>
 							<Button
 								variant="ghost"
 								size="sm"

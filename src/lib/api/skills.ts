@@ -1,11 +1,11 @@
-import type { PocketBase } from 'pocketbase';
+import type PocketBase from 'pocketbase';
 import type { AuthContext } from '$lib/types/auth';
-import type { 
-	Skill, 
-	UserSkill, 
-	CreateSkillData, 
-	UpdateSkillData, 
-	AssignSkillData 
+import type {
+	Skill,
+	UserSkill,
+	CreateSkillData,
+	UpdateSkillData,
+	AssignSkillData
 } from '$lib/types/permissions';
 
 export class SkillsAPI {

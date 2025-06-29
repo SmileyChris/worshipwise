@@ -88,17 +88,17 @@ user_skills {
 ```typescript
 // Check single permission
 if (auth.hasPermission('manage-songs')) {
-  // User can manage songs
+	// User can manage songs
 }
 
 // Check multiple permissions
 if (auth.hasAnyPermission(['manage-songs', 'manage-services'])) {
-  // User can manage songs OR services
+	// User can manage songs OR services
 }
 
 // Check leader skill
 if (auth.hasLeaderSkill()) {
-  // User is a worship leader
+	// User is a worship leader
 }
 ```
 
@@ -200,8 +200,8 @@ const roles = await rolesAPI.getRoles();
 
 // Create new role
 const newRole = await rolesAPI.createRole({
-  name: "Song Leader",
-  permissions: ["manage-songs", "manage-services"]
+	name: 'Song Leader',
+	permissions: ['manage-songs', 'manage-services']
 });
 
 // Assign role to user

@@ -52,11 +52,12 @@
 	// Filtered songs
 	let filteredSongs = $derived.by(() => {
 		if (!searchQuery) return songs;
-		
+
 		const query = searchQuery.toLowerCase();
-		return songs.filter(song => 
-			song.title.toLowerCase().includes(query) ||
-			(song.artist && song.artist.toLowerCase().includes(query))
+		return songs.filter(
+			(song) =>
+				song.title.toLowerCase().includes(query) ||
+				(song.artist && song.artist.toLowerCase().includes(query))
 		);
 	});
 
@@ -89,7 +90,7 @@
 			// Load ratings if access type includes ratings
 			if (linkData.access_type === 'ratings' || linkData.access_type === 'both') {
 				const ratingsAPI = createRatingsAPI(anonymousAuthContext, pb);
-				const songIds = songs.map(s => s.id);
+				const songIds = songs.map((s) => s.id);
 				ratings = await ratingsAPI.getMultipleSongRatings(songIds);
 			}
 		} catch (err) {
@@ -142,7 +143,7 @@
 					{shareLink.expand?.church_id?.name || 'Church'} Song Library
 				</h1>
 				<p class="mt-2 text-sm text-gray-600">
-					This link allows you to view 
+					This link allows you to view
 					{#if shareLink.access_type === 'ratings'}
 						and rate songs
 					{:else if shareLink.access_type === 'suggestions'}

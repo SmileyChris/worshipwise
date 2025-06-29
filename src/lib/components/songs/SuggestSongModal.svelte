@@ -31,8 +31,8 @@
 	let allSongs = $derived(songsStore.songs);
 
 	// Song options for dropdown
-	let songOptions = $derived.by(() => 
-		allSongs.map(s => ({
+	let songOptions = $derived.by(() =>
+		allSongs.map((s) => ({
 			value: s.id,
 			label: `${s.title}${s.artist ? ` - ${s.artist}` : ''}`
 		}))
@@ -77,10 +77,16 @@
 </script>
 
 <Modal {open} title="Suggest a Song" onclose={handleCancel}>
-	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			handleSubmit();
+		}}
+		class="space-y-4"
+	>
 		{#if !song}
 			<div>
-				<label for="song-select" class="block text-sm font-medium text-gray-700 mb-1">
+				<label for="song-select" class="mb-1 block text-sm font-medium text-gray-700">
 					Select Song
 				</label>
 				<Select
@@ -103,7 +109,7 @@
 		{/if}
 
 		<div>
-			<label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
+			<label for="notes" class="mb-1 block text-sm font-medium text-gray-700">
 				Notes (Optional)
 			</label>
 			<TextArea
@@ -125,19 +131,10 @@
 		{/if}
 
 		<div class="flex items-center justify-end gap-3 pt-2">
-			<Button
-				type="button"
-				variant="ghost"
-				onclick={handleCancel}
-				disabled={loading}
-			>
+			<Button type="button" variant="ghost" onclick={handleCancel} disabled={loading}>
 				Cancel
 			</Button>
-			<Button
-				type="submit"
-				variant="primary"
-				disabled={loading || !selectedSongId}
-			>
+			<Button type="submit" variant="primary" disabled={loading || !selectedSongId}>
 				{loading ? 'Suggesting...' : 'Suggest Song'}
 			</Button>
 		</div>

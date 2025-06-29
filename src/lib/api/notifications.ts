@@ -82,11 +82,9 @@ export class NotificationsAPI {
 			}
 
 			const unreadNotifications = await this.getNotifications(true);
-			
+
 			// Update each notification
-			await Promise.all(
-				unreadNotifications.map(n => this.markAsRead(n.id))
-			);
+			await Promise.all(unreadNotifications.map((n) => this.markAsRead(n.id)));
 		} catch (error) {
 			console.error('Failed to mark all as read:', error);
 			throw error;
@@ -108,10 +106,7 @@ export class NotificationsAPI {
 	/**
 	 * Create notifications for all church members (admin use)
 	 */
-	async createNotificationForChurch(
-		churchId: string,
-		data: CreateNotificationData
-	): Promise<void> {
+	async createNotificationForChurch(churchId: string, data: CreateNotificationData): Promise<void> {
 		try {
 			// This would typically be done server-side
 			// Get all active church members
@@ -121,7 +116,7 @@ export class NotificationsAPI {
 			});
 
 			// Create notification for each member
-			const notifications = memberships.map(m => ({
+			const notifications = memberships.map((m) => ({
 				church_id: churchId,
 				user_id: m.user_id,
 				type: data.type,
@@ -132,9 +127,7 @@ export class NotificationsAPI {
 			}));
 
 			// Batch create notifications
-			await Promise.all(
-				notifications.map(n => this.pb.collection(this.collection).create(n))
-			);
+			await Promise.all(notifications.map((n) => this.pb.collection(this.collection).create(n)));
 		} catch (error) {
 			console.error('Failed to create church notifications:', error);
 			throw error;
@@ -150,10 +143,9 @@ export class NotificationsAPI {
 		}
 
 		// Subscribe to notifications for current user
-		return this.pb.collection(this.collection).subscribe(
-			`user_id = "${this.authContext.user.id}"`,
-			callback
-		);
+		return this.pb
+			.collection(this.collection)
+			.subscribe(`user_id = "${this.authContext.user.id}"`, callback);
 	}
 }
 

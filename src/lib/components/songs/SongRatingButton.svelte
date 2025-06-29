@@ -77,9 +77,11 @@
 				const shouldRetire = await ratingsAPI.shouldAutoRetire(song.id);
 				if (shouldRetire) {
 					// Trigger retire event
-					window.dispatchEvent(new CustomEvent('song-auto-retire', { 
-						detail: { songId: song.id } 
-					}));
+					window.dispatchEvent(
+						new CustomEvent('song-auto-retire', {
+							detail: { songId: song.id }
+						})
+					);
 				}
 			}
 		} catch (error) {
@@ -125,7 +127,7 @@
 		>
 			👍
 		</button>
-		
+
 		<button
 			class="rating-btn"
 			class:active={currentRating === 'neutral'}
@@ -135,7 +137,7 @@
 		>
 			😐
 		</button>
-		
+
 		<button
 			class="rating-btn"
 			class:active={currentRating === 'thumbs_down'}
@@ -168,7 +170,10 @@
 				👎 {aggregates.thumbsDown}
 			</span>
 			{#if aggregates.difficultCount > 0}
-				<span class="difficulty-count" title="{aggregates.difficultCount} people find this difficult">
+				<span
+					class="difficulty-count"
+					title="{aggregates.difficultCount} people find this difficult"
+				>
 					🎵 {aggregates.difficultCount}
 				</span>
 			{/if}
@@ -226,7 +231,7 @@
 		cursor: pointer;
 	}
 
-	.difficulty-toggle input[type="checkbox"] {
+	.difficulty-toggle input[type='checkbox'] {
 		cursor: pointer;
 	}
 

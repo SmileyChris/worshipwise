@@ -102,19 +102,19 @@
 				initialLoadComplete = true;
 			});
 		}
-		
+
 		// Load user preferences
 		songsStore.loadUserPreferences();
 
 		// Set up real-time updates with proper cleanup
 		let unsubscribePromise = songsStore.subscribeToUpdates();
-		
+
 		// Listen for auto-retire events
 		const handleAutoRetire = (event: CustomEvent) => {
 			const { songId } = event.detail;
 			songsStore.handleAutoRetire(songId);
 		};
-		
+
 		window.addEventListener('song-auto-retire', handleAutoRetire as EventListener);
 
 		return () => {
@@ -122,7 +122,7 @@
 			unsubscribePromise.then((unsubscribe) => {
 				if (unsubscribe) unsubscribe();
 			});
-			
+
 			// Cleanup event listener
 			window.removeEventListener('song-auto-retire', handleAutoRetire as EventListener);
 		};
@@ -432,18 +432,30 @@
 
 							<!-- Toggle filters -->
 							<div class="flex flex-wrap gap-3">
-								<label class="flex items-center gap-2 cursor-pointer">
-									<input type="checkbox" bind:checked={showRetired} class="rounded border-gray-300 text-primary focus:ring-primary" />
+								<label class="flex cursor-pointer items-center gap-2">
+									<input
+										type="checkbox"
+										bind:checked={showRetired}
+										class="text-primary focus:ring-primary rounded border-gray-300"
+									/>
 									<span class="text-sm font-medium text-gray-700">Show Retired Songs</span>
 								</label>
-								
-								<label class="flex items-center gap-2 cursor-pointer">
-									<input type="checkbox" bind:checked={showFavorites} class="rounded border-gray-300 text-primary focus:ring-primary" />
+
+								<label class="flex cursor-pointer items-center gap-2">
+									<input
+										type="checkbox"
+										bind:checked={showFavorites}
+										class="text-primary focus:ring-primary rounded border-gray-300"
+									/>
 									<span class="text-sm font-medium text-gray-700">My Favorites</span>
 								</label>
-								
-								<label class="flex items-center gap-2 cursor-pointer">
-									<input type="checkbox" bind:checked={showDifficult} class="rounded border-gray-300 text-primary focus:ring-primary" />
+
+								<label class="flex cursor-pointer items-center gap-2">
+									<input
+										type="checkbox"
+										bind:checked={showDifficult}
+										class="text-primary focus:ring-primary rounded border-gray-300"
+									/>
 									<span class="text-sm font-medium text-gray-700">Difficult Songs</span>
 								</label>
 							</div>

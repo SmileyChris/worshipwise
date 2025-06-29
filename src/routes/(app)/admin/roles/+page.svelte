@@ -47,7 +47,7 @@
 			loading = true;
 			error = null;
 			roles = await rolesAPI.getRoles();
-			
+
 			// Check permission coverage
 			const coverage = await rolesAPI.validatePermissionCoverage();
 			missingPermissions = coverage.missingPermissions;
@@ -82,7 +82,7 @@
 		if (index === -1) {
 			formData.permissions = [...formData.permissions, permission];
 		} else {
-			formData.permissions = formData.permissions.filter(p => p !== permission);
+			formData.permissions = formData.permissions.filter((p) => p !== permission);
 		}
 	}
 
@@ -143,7 +143,10 @@
 
 	// Generate slug from name
 	function generateSlug(name: string): string {
-		return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+		return name
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/^-|-$/g, '');
 	}
 
 	// Update slug when name changes (only for new roles)
@@ -193,15 +196,15 @@
 	<!-- Permission Coverage Warning -->
 	{#if missingPermissions.length > 0}
 		<Card>
-			<div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+			<div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
 				<div class="flex items-start">
-					<Shield class="h-5 w-5 text-yellow-600 mt-0.5 mr-3" />
+					<Shield class="mt-0.5 mr-3 h-5 w-5 text-yellow-600" />
 					<div>
 						<h3 class="text-sm font-medium text-yellow-800">Missing Permission Coverage</h3>
 						<p class="mt-1 text-sm text-yellow-700">
 							The following permissions are not assigned to any role:
 						</p>
-						<ul class="mt-2 list-disc list-inside text-sm text-yellow-700">
+						<ul class="mt-2 list-inside list-disc text-sm text-yellow-700">
 							{#each missingPermissions as permission}
 								<li>{PERMISSION_DESCRIPTIONS[permission]}</li>
 							{/each}
@@ -215,7 +218,7 @@
 	<!-- Error Message -->
 	{#if error}
 		<Card>
-			<div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+			<div class="rounded-lg border border-red-200 bg-red-50 p-4">
 				<p class="text-sm text-red-800">{error}</p>
 			</div>
 		</Card>
@@ -225,7 +228,7 @@
 	{#if loading && roles.length === 0}
 		<Card>
 			<div class="p-8 text-center">
-				<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+				<div class="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
 				<p class="mt-2 text-sm text-gray-500">Loading roles...</p>
 			</div>
 		</Card>
@@ -276,7 +279,7 @@
 						<div class="mt-4 flex items-center justify-between">
 							<p class="text-sm text-gray-500">
 								{#await userCount}
-									<span class="inline-block h-4 w-16 animate-pulse bg-gray-200 rounded"></span>
+									<span class="inline-block h-4 w-16 animate-pulse rounded bg-gray-200"></span>
 								{:then count}
 									{count} {count === 1 ? 'user' : 'users'}
 								{/await}
@@ -311,7 +314,12 @@
 
 <!-- Create Role Modal -->
 <Modal bind:open={showCreateModal} title="Create Role" onclose={() => (showCreateModal = false)}>
-	<form onsubmit={(e) => { e.preventDefault(); handleCreateRole(); }}>
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			handleCreateRole();
+		}}
+	>
 		<div class="space-y-4">
 			<div>
 				<label for="name" class="block text-sm font-medium text-gray-700">Name</label>
@@ -332,13 +340,11 @@
 					pattern="^[a-z0-9-]+$"
 					required
 				/>
-				<p class="mt-1 text-xs text-gray-500">
-					Lowercase letters, numbers, and hyphens only
-				</p>
+				<p class="mt-1 text-xs text-gray-500">Lowercase letters, numbers, and hyphens only</p>
 			</div>
 
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
+				<label class="mb-2 block text-sm font-medium text-gray-700">Permissions</label>
 				<div class="space-y-2">
 					{#each Object.entries(PERMISSION_DESCRIPTIONS) as [permission, description]}
 						<label class="flex items-start">
@@ -346,7 +352,7 @@
 								type="checkbox"
 								checked={formData.permissions.includes(permission as Permission)}
 								onchange={() => togglePermission(permission as Permission)}
-								class="mt-0.5 h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+								class="text-primary focus:ring-primary mt-0.5 h-4 w-4 rounded border-gray-300"
 							/>
 							<span class="ml-2">
 								<span class="text-sm font-medium text-gray-700">{permission}</span>
@@ -371,20 +377,17 @@
 
 <!-- Edit Role Modal -->
 {#if editingRole}
-	<Modal
-		open={!!editingRole}
-		title="Edit Role"
-		onclose={() => (editingRole = null)}
-	>
-		<form onsubmit={(e) => { e.preventDefault(); handleUpdateRole(); }}>
+	<Modal open={!!editingRole} title="Edit Role" onclose={() => (editingRole = null)}>
+		<form
+			onsubmit={(e) => {
+				e.preventDefault();
+				handleUpdateRole();
+			}}
+		>
 			<div class="space-y-4">
 				<div>
 					<label for="edit-name" class="block text-sm font-medium text-gray-700">Name</label>
-					<Input
-						id="edit-name"
-						bind:value={formData.name}
-						required
-					/>
+					<Input id="edit-name" bind:value={formData.name} required />
 				</div>
 
 				<div>
@@ -393,7 +396,7 @@
 				</div>
 
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
+					<label class="mb-2 block text-sm font-medium text-gray-700">Permissions</label>
 					<div class="space-y-2">
 						{#each Object.entries(PERMISSION_DESCRIPTIONS) as [permission, description]}
 							<label class="flex items-start">
@@ -401,7 +404,7 @@
 									type="checkbox"
 									checked={formData.permissions.includes(permission as Permission)}
 									onchange={() => togglePermission(permission as Permission)}
-									class="mt-0.5 h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+									class="text-primary focus:ring-primary mt-0.5 h-4 w-4 rounded border-gray-300"
 								/>
 								<span class="ml-2">
 									<span class="text-sm font-medium text-gray-700">{permission}</span>
@@ -414,12 +417,8 @@
 			</div>
 
 			<div class="mt-6 flex justify-end gap-3">
-				<Button type="button" variant="outline" onclick={() => (editingRole = null)}>
-					Cancel
-				</Button>
-				<Button type="submit" disabled={loading || !formData.name}>
-					Update Role
-				</Button>
+				<Button type="button" variant="outline" onclick={() => (editingRole = null)}>Cancel</Button>
+				<Button type="submit" disabled={loading || !formData.name}>Update Role</Button>
 			</div>
 		</form>
 	</Modal>
@@ -427,31 +426,22 @@
 
 <!-- Delete Confirmation Modal -->
 {#if deletingRole}
-	<Modal
-		open={!!deletingRole}
-		title="Delete Role"
-		onclose={() => (deletingRole = null)}
-	>
+	<Modal open={!!deletingRole} title="Delete Role" onclose={() => (deletingRole = null)}>
 		<p class="text-sm text-gray-600">
-			Are you sure you want to delete the role "{deletingRole.name}"? 
-			This action cannot be undone.
+			Are you sure you want to delete the role "{deletingRole.name}"? This action cannot be undone.
 		</p>
 		{#await getUserCount(deletingRole.id) then count}
 			{#if count > 0}
 				<p class="mt-2 text-sm text-red-600">
-					Warning: This role is currently assigned to {count} {count === 1 ? 'user' : 'users'}.
-					You must reassign these users before deleting the role.
+					Warning: This role is currently assigned to {count}
+					{count === 1 ? 'user' : 'users'}. You must reassign these users before deleting the role.
 				</p>
 			{/if}
 		{/await}
 
 		<div class="mt-6 flex justify-end gap-3">
-			<Button variant="outline" onclick={() => (deletingRole = null)}>
-				Cancel
-			</Button>
-			<Button variant="danger" onclick={handleDeleteRole} disabled={loading}>
-				Delete Role
-			</Button>
+			<Button variant="outline" onclick={() => (deletingRole = null)}>Cancel</Button>
+			<Button variant="danger" onclick={handleDeleteRole} disabled={loading}>Delete Role</Button>
 		</div>
 	</Modal>
 {/if}

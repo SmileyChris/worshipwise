@@ -1,10 +1,10 @@
 import type PocketBase from 'pocketbase';
 import type { AuthContext } from '$lib/types/auth';
-import type { 
-	SongRating, 
-	CreateSongRatingData, 
+import type {
+	SongRating,
+	CreateSongRatingData,
 	UpdateSongRatingData,
-	AggregateRatings 
+	AggregateRatings
 } from '$lib/types/song';
 
 export class RatingsAPI {
@@ -24,10 +24,12 @@ export class RatingsAPI {
 				throw new Error('No church or user context');
 			}
 
-			const record = await this.pb.collection(this.collection).getFirstListItem(
-				`song_id = "${songId}" && user_id = "${this.authContext.user.id}" && church_id = "${this.authContext.currentChurch.id}"`
-			);
-			
+			const record = await this.pb
+				.collection(this.collection)
+				.getFirstListItem(
+					`song_id = "${songId}" && user_id = "${this.authContext.user.id}" && church_id = "${this.authContext.currentChurch.id}"`
+				);
+
 			return record as unknown as SongRating;
 		} catch (error: any) {
 			if (error?.status === 404) {
@@ -65,7 +67,7 @@ export class RatingsAPI {
 	 */
 	async getAggregateRatings(songId: string): Promise<AggregateRatings> {
 		const ratings = await this.getSongRatings(songId);
-		
+
 		const aggregate: AggregateRatings = {
 			thumbsUp: 0,
 			neutral: 0,
@@ -74,7 +76,7 @@ export class RatingsAPI {
 			difficultCount: 0
 		};
 
-		ratings.forEach(rating => {
+		ratings.forEach((rating) => {
 			switch (rating.rating) {
 				case 'thumbs_up':
 					aggregate.thumbsUp++;
@@ -86,7 +88,7 @@ export class RatingsAPI {
 					aggregate.thumbsDown++;
 					break;
 			}
-			
+
 			if (rating.is_difficult) {
 				aggregate.difficultCount++;
 			}
@@ -100,7 +102,7 @@ export class RatingsAPI {
 	 */
 	async getMultipleSongRatings(songIds: string[]): Promise<Map<string, AggregateRatings>> {
 		const ratingsMap = new Map<string, AggregateRatings>();
-		
+
 		if (songIds.length === 0) return ratingsMap;
 
 		try {
@@ -109,14 +111,14 @@ export class RatingsAPI {
 			}
 
 			// Build filter for all song IDs
-			const idFilters = songIds.map(id => `song_id = "${id}"`).join(' || ');
-			
+			const idFilters = songIds.map((id) => `song_id = "${id}"`).join(' || ');
+
 			const records = await this.pb.collection(this.collection).getFullList({
 				filter: `(${idFilters}) && church_id = "${this.authContext.currentChurch.id}"`
 			});
 
 			// Initialize all songs with empty ratings
-			songIds.forEach(songId => {
+			songIds.forEach((songId) => {
 				ratingsMap.set(songId, {
 					thumbsUp: 0,
 					neutral: 0,
@@ -131,7 +133,7 @@ export class RatingsAPI {
 				const aggregate = ratingsMap.get(rating.song_id);
 				if (aggregate) {
 					aggregate.totalRatings++;
-					
+
 					switch (rating.rating) {
 						case 'thumbs_up':
 							aggregate.thumbsUp++;
@@ -143,7 +145,7 @@ export class RatingsAPI {
 							aggregate.thumbsDown++;
 							break;
 					}
-					
+
 					if (rating.is_difficult) {
 						aggregate.difficultCount++;
 					}
@@ -154,7 +156,7 @@ export class RatingsAPI {
 		} catch (error) {
 			console.error('Failed to fetch multiple song ratings:', error);
 			// Return empty ratings for all songs on error
-			songIds.forEach(songId => {
+			songIds.forEach((songId) => {
 				ratingsMap.set(songId, {
 					thumbsUp: 0,
 					neutral: 0,
@@ -178,19 +180,18 @@ export class RatingsAPI {
 
 			// Check if rating already exists
 			const existingRating = await this.getUserRating(songId);
-			
+
 			if (existingRating) {
 				// Update existing rating
 				const updateData: UpdateSongRatingData = {
 					rating: data.rating,
 					is_difficult: data.is_difficult
 				};
-				
-				const record = await this.pb.collection(this.collection).update(
-					existingRating.id, 
-					updateData
-				);
-				
+
+				const record = await this.pb
+					.collection(this.collection)
+					.update(existingRating.id, updateData);
+
 				return record as unknown as SongRating;
 			} else {
 				// Create new rating
@@ -201,7 +202,7 @@ export class RatingsAPI {
 					rating: data.rating,
 					is_difficult: data.is_difficult || false
 				};
-				
+
 				const record = await this.pb.collection(this.collection).create(createData);
 				return record as unknown as SongRating;
 			}
@@ -217,7 +218,7 @@ export class RatingsAPI {
 	async deleteRating(songId: string): Promise<void> {
 		try {
 			const existingRating = await this.getUserRating(songId);
-			
+
 			if (existingRating) {
 				await this.pb.collection(this.collection).delete(existingRating.id);
 			}
@@ -241,7 +242,7 @@ export class RatingsAPI {
 				fields: 'song_id'
 			});
 
-			return records.map(r => r.song_id);
+			return records.map((r) => r.song_id);
 		} catch (error) {
 			console.error('Failed to fetch user favorites:', error);
 			return [];
@@ -262,7 +263,7 @@ export class RatingsAPI {
 				fields: 'song_id'
 			});
 
-			return records.map(r => r.song_id);
+			return records.map((r) => r.song_id);
 		} catch (error) {
 			console.error('Failed to fetch user difficult songs:', error);
 			return [];
@@ -271,7 +272,7 @@ export class RatingsAPI {
 
 	/**
 	 * Check if song should be auto-retired based on leader ratings
-	 * Requirements: 
+	 * Requirements:
 	 * - Zero thumbs up ratings from any leader
 	 * - At least 75% of ALL leaders in the church have rated thumbs down
 	 * Example: If there are 4 leaders, at least 3 must rate thumbs down
@@ -293,10 +294,10 @@ export class RatingsAPI {
 				return false; // No leaders to check
 			}
 
-			const leaderUserIds = leaderSkills.map(s => s.user_id);
+			const leaderUserIds = leaderSkills.map((s) => s.user_id);
 
 			// Get all ratings for this song from users with leader skill
-			const userIdFilters = leaderUserIds.map(id => `user_id = "${id}"`).join(' || ');
+			const userIdFilters = leaderUserIds.map((id) => `user_id = "${id}"`).join(' || ');
 			const ratings = await this.pb.collection(this.collection).getFullList({
 				filter: `song_id = "${songId}" && church_id = "${this.authContext.currentChurch.id}" && (${userIdFilters})`
 			});

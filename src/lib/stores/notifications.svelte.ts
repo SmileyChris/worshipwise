@@ -26,7 +26,7 @@ class NotificationsStore {
 		// Subscribe to real-time updates
 		this.unsubscribe = await this.notificationsApi.subscribe((data) => {
 			const event = data as { action: string; record: unknown };
-			
+
 			if (event.action === 'create') {
 				// Add new notification to the beginning
 				this.notifications = [event.record as Notification, ...this.notifications];
@@ -34,11 +34,11 @@ class NotificationsStore {
 			} else if (event.action === 'update') {
 				// Update existing notification
 				const updatedNotification = event.record as Notification;
-				const index = this.notifications.findIndex(n => n.id === updatedNotification.id);
+				const index = this.notifications.findIndex((n) => n.id === updatedNotification.id);
 				if (index !== -1) {
 					const wasUnread = !this.notifications[index].is_read;
 					this.notifications[index] = updatedNotification;
-					
+
 					// Update unread count
 					if (wasUnread && updatedNotification.is_read) {
 						this.unreadCount = Math.max(0, this.unreadCount - 1);
@@ -47,11 +47,11 @@ class NotificationsStore {
 			} else if (event.action === 'delete') {
 				// Remove deleted notification
 				const deletedId = (event.record as { id: string }).id;
-				const notification = this.notifications.find(n => n.id === deletedId);
+				const notification = this.notifications.find((n) => n.id === deletedId);
 				if (notification && !notification.is_read) {
 					this.unreadCount = Math.max(0, this.unreadCount - 1);
 				}
-				this.notifications = this.notifications.filter(n => n.id !== deletedId);
+				this.notifications = this.notifications.filter((n) => n.id !== deletedId);
 			}
 		});
 	}
@@ -68,7 +68,7 @@ class NotificationsStore {
 				this.notificationsApi.getNotifications(),
 				this.notificationsApi.getUnreadCount()
 			]);
-			
+
 			this.notifications = notifs;
 			this.unreadCount = count;
 		} catch (error) {
@@ -84,8 +84,8 @@ class NotificationsStore {
 	async markAsRead(notificationId: string): Promise<void> {
 		try {
 			await this.notificationsApi.markAsRead(notificationId);
-			
-			const notification = this.notifications.find(n => n.id === notificationId);
+
+			const notification = this.notifications.find((n) => n.id === notificationId);
 			if (notification && !notification.is_read) {
 				notification.is_read = true;
 				this.unreadCount = Math.max(0, this.unreadCount - 1);
@@ -101,8 +101,8 @@ class NotificationsStore {
 	async markAllAsRead(): Promise<void> {
 		try {
 			await this.notificationsApi.markAllAsRead();
-			
-			this.notifications = this.notifications.map(n => ({ ...n, is_read: true }));
+
+			this.notifications = this.notifications.map((n) => ({ ...n, is_read: true }));
 			this.unreadCount = 0;
 		} catch (error) {
 			this.error = error instanceof Error ? error.message : 'Failed to mark all as read';
@@ -115,13 +115,13 @@ class NotificationsStore {
 	async deleteNotification(notificationId: string): Promise<void> {
 		try {
 			await this.notificationsApi.deleteNotification(notificationId);
-			
-			const notification = this.notifications.find(n => n.id === notificationId);
+
+			const notification = this.notifications.find((n) => n.id === notificationId);
 			if (notification && !notification.is_read) {
 				this.unreadCount = Math.max(0, this.unreadCount - 1);
 			}
-			
-			this.notifications = this.notifications.filter(n => n.id !== notificationId);
+
+			this.notifications = this.notifications.filter((n) => n.id !== notificationId);
 		} catch (error) {
 			this.error = error instanceof Error ? error.message : 'Failed to delete notification';
 		}
@@ -139,10 +139,12 @@ class NotificationsStore {
 		if (!this.authContext.currentChurch?.id) return;
 
 		try {
-			await this.notificationsApi.createNotificationForChurch(
-				this.authContext.currentChurch.id,
-				{ type, title, message, data }
-			);
+			await this.notificationsApi.createNotificationForChurch(this.authContext.currentChurch.id, {
+				type,
+				title,
+				message,
+				data
+			});
 		} catch (error) {
 			console.error('Failed to create church notification:', error);
 		}

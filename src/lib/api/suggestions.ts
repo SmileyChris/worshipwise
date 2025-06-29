@@ -88,7 +88,7 @@ export class SuggestionsAPI {
 	 * Update suggestion status (for leaders/admins)
 	 */
 	async updateSuggestionStatus(
-		suggestionId: string, 
+		suggestionId: string,
 		status: 'approved' | 'rejected'
 	): Promise<SongSuggestion> {
 		try {

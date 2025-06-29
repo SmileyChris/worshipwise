@@ -86,9 +86,9 @@ describe('RecommendationsAPI - NaN Prevention', () => {
 		it('should handle division by zero in percentage calculations', async () => {
 			// Test with single song to ensure percentage calculations work
 			const mockSongs = [
-				{ 
-					id: '1', 
-					title: 'Christmas Song', 
+				{
+					id: '1',
+					title: 'Christmas Song',
 					is_active: true,
 					key_signature: 'C',
 					tempo: 100,

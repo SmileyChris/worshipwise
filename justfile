@@ -8,6 +8,15 @@ default:
 dev:
     ./scripts/start-dev.sh
 
+# Database migrations
+migrate *args:
+    @cd pocketbase && \
+    if [ -z "{{args}}" ]; then \
+        ./pocketbase migrate up; \
+    else \
+        ./pocketbase migrate {{args}}; \
+    fi
+
 # Setup
 setup:
     ./scripts/install-pocketbase.sh

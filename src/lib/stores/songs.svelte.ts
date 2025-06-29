@@ -103,7 +103,7 @@ class SongsStore {
 			// Load usage information for all songs
 			const songIds = result.items.map((song) => song.id);
 			const usageMap = await this.songsApi.getSongsUsageInfo(songIds);
-			
+
 			// Load ratings for all songs
 			const ratingsMap = await this.ratingsApi.getMultipleSongRatings(songIds);
 			this.songRatings = ratingsMap;
@@ -445,7 +445,7 @@ class SongsStore {
 				this.ratingsApi.getUserFavorites(),
 				this.ratingsApi.getUserDifficultSongs()
 			]);
-			
+
 			this.userFavorites = new Set(favorites);
 			this.userDifficultSongs = new Set(difficultSongs);
 		} catch (error) {
@@ -459,9 +459,9 @@ class SongsStore {
 	async retireSong(songId: string, reason?: string): Promise<void> {
 		try {
 			await this.songsApi.retireSong(songId, reason);
-			
+
 			// Update local state
-			const index = this.songs.findIndex(s => s.id === songId);
+			const index = this.songs.findIndex((s) => s.id === songId);
 			if (index !== -1) {
 				this.songs[index] = {
 					...this.songs[index],
@@ -470,7 +470,7 @@ class SongsStore {
 					retired_reason: reason || 'manual'
 				};
 			}
-			
+
 			// Reload if showing retired filter
 			if (this.filters.showRetired) {
 				await this.loadSongs();
@@ -487,9 +487,9 @@ class SongsStore {
 	async unretireSong(songId: string): Promise<void> {
 		try {
 			await this.songsApi.unretireSong(songId);
-			
+
 			// Update local state
-			const index = this.songs.findIndex(s => s.id === songId);
+			const index = this.songs.findIndex((s) => s.id === songId);
 			if (index !== -1) {
 				this.songs[index] = {
 					...this.songs[index],
@@ -498,7 +498,7 @@ class SongsStore {
 					retired_reason: undefined
 				};
 			}
-			
+
 			// Reload if not showing retired filter
 			if (!this.filters.showRetired) {
 				await this.loadSongs();
@@ -513,18 +513,20 @@ class SongsStore {
 	 * Handle auto-retire event
 	 */
 	async handleAutoRetire(songId: string): Promise<void> {
-		const song = this.songs.find(s => s.id === songId);
+		const song = this.songs.find((s) => s.id === songId);
 		if (song) {
 			await this.retireSong(songId, 'all_thumbs_down');
-			
+
 			// Trigger notification event for other components to handle
-			window.dispatchEvent(new CustomEvent('song-retired', {
-				detail: { 
-					songId,
-					songTitle: song.title,
-					reason: 'all_thumbs_down'
-				}
-			}));
+			window.dispatchEvent(
+				new CustomEvent('song-retired', {
+					detail: {
+						songId,
+						songTitle: song.title,
+						reason: 'all_thumbs_down'
+					}
+				})
+			);
 		}
 	}
 

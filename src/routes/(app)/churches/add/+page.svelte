@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { getAuthStore } from '$lib/context/stores.svelte';
-	import { ChurchesAPI } from '$lib/api/churches';
+	import { createChurchesAPI } from '$lib/api/churches';
+	import { pb } from '$lib/api/client';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import { Building, ArrowLeft, MapPin, Clock } from 'lucide-svelte';
 
 	const auth = getAuthStore();
+	const churchesAPI = createChurchesAPI(pb);
 
 	// Form state
 	let formData = $state({
@@ -60,7 +62,7 @@
 				.replace(/[^a-z0-9]+/g, '-')
 				.replace(/^-+|-+$/g, '');
 
-			const newChurch = await ChurchesAPI.createChurch({
+			const newChurch = await churchesAPI.createChurch({
 				name: formData.name.trim(),
 				slug,
 				city: formData.city.trim() || undefined,

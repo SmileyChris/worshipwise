@@ -79,7 +79,7 @@
 		editingSkill = skill;
 	}
 
-	function useSuggestion(suggestion: typeof skillSuggestions[0]) {
+	function useSuggestion(suggestion: (typeof skillSuggestions)[0]) {
 		formData.name = suggestion.name;
 		formData.slug = suggestion.slug;
 	}
@@ -139,7 +139,10 @@
 
 	// Generate slug from name
 	function generateSlug(name: string): string {
-		return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+		return name
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/^-|-$/g, '');
 	}
 
 	// Update slug when name changes (only for new skills)
@@ -163,7 +166,7 @@
 	// Get icon for skill
 	function getSkillIcon(skill: Skill): string {
 		if (skill.slug === 'leader') return '👑';
-		const suggestion = skillSuggestions.find(s => s.slug === skill.slug);
+		const suggestion = skillSuggestions.find((s) => s.slug === skill.slug);
 		return suggestion?.icon || '🎵';
 	}
 
@@ -196,7 +199,7 @@
 	<!-- Error Message -->
 	{#if error}
 		<Card>
-			<div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+			<div class="rounded-lg border border-red-200 bg-red-50 p-4">
 				<p class="text-sm text-red-800">{error}</p>
 			</div>
 		</Card>
@@ -206,7 +209,7 @@
 	{#if loading && skills.length === 0}
 		<Card>
 			<div class="p-8 text-center">
-				<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+				<div class="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
 				<p class="mt-2 text-sm text-gray-500">Loading skills...</p>
 			</div>
 		</Card>
@@ -232,7 +235,7 @@
 					<div class="p-4">
 						<div class="flex items-start justify-between">
 							<div class="flex items-center">
-								<span class="text-2xl mr-3">{getSkillIcon(skill)}</span>
+								<span class="mr-3 text-2xl">{getSkillIcon(skill)}</span>
 								<div>
 									<h3 class="text-base font-medium text-gray-900">{skill.name}</h3>
 									<p class="text-xs text-gray-500">{skill.slug}</p>
@@ -245,9 +248,9 @@
 
 						<div class="mt-4 flex items-center justify-between">
 							<div class="flex items-center text-sm text-gray-500">
-								<Users class="h-4 w-4 mr-1" />
+								<Users class="mr-1 h-4 w-4" />
 								{#await userCount}
-									<span class="inline-block h-4 w-8 animate-pulse bg-gray-200 rounded"></span>
+									<span class="inline-block h-4 w-8 animate-pulse rounded bg-gray-200"></span>
 								{:then count}
 									{count}
 								{/await}
@@ -285,12 +288,12 @@
 	{#if skills.length > 0}
 		<Card>
 			<div class="p-6">
-				<h3 class="text-lg font-medium text-gray-900 mb-4">Quick Add Common Skills</h3>
+				<h3 class="mb-4 text-lg font-medium text-gray-900">Quick Add Common Skills</h3>
 				<div class="flex flex-wrap gap-2">
 					{#each skillSuggestions as suggestion}
-						{@const exists = skills.some(s => s.slug === suggestion.slug)}
+						{@const exists = skills.some((s) => s.slug === suggestion.slug)}
 						<Button
-							variant={exists ? "outline" : "secondary"}
+							variant={exists ? 'outline' : 'secondary'}
 							size="sm"
 							disabled={exists || loading}
 							onclick={() => {
@@ -315,16 +318,16 @@
 
 <!-- Create Skill Modal -->
 <Modal bind:open={showCreateModal} title="Add New Skill" onclose={() => (showCreateModal = false)}>
-	<form onsubmit={(e) => { e.preventDefault(); handleCreateSkill(); }}>
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			handleCreateSkill();
+		}}
+	>
 		<div class="space-y-4">
 			<div>
 				<label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-				<Input
-					id="name"
-					bind:value={formData.name}
-					placeholder="e.g., Lead Guitarist"
-					required
-				/>
+				<Input id="name" bind:value={formData.name} placeholder="e.g., Lead Guitarist" required />
 			</div>
 
 			<div>
@@ -343,19 +346,20 @@
 
 			<!-- Suggestions -->
 			<div>
-				<p class="text-sm text-gray-600 mb-2">Common skills:</p>
+				<p class="mb-2 text-sm text-gray-600">Common skills:</p>
 				<div class="flex flex-wrap gap-2">
 					{#each skillSuggestions.slice(0, 6) as suggestion}
-						{@const exists = skills.some(s => s.slug === suggestion.slug)}
+						{@const exists = skills.some((s) => s.slug === suggestion.slug)}
 						<button
 							type="button"
 							disabled={exists}
 							onclick={() => useSuggestion(suggestion)}
-							class="inline-flex items-center px-2 py-1 text-xs rounded-md {exists 
-								? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+							class="inline-flex items-center rounded-md px-2 py-1 text-xs {exists
+								? 'cursor-not-allowed bg-gray-100 text-gray-400'
 								: 'bg-blue-50 text-blue-700 hover:bg-blue-100'}"
 						>
-							{suggestion.icon} {suggestion.name}
+							{suggestion.icon}
+							{suggestion.name}
 						</button>
 					{/each}
 				</div>
@@ -375,20 +379,17 @@
 
 <!-- Edit Skill Modal -->
 {#if editingSkill}
-	<Modal
-		open={!!editingSkill}
-		title="Edit Skill"
-		onclose={() => (editingSkill = null)}
-	>
-		<form onsubmit={(e) => { e.preventDefault(); handleUpdateSkill(); }}>
+	<Modal open={!!editingSkill} title="Edit Skill" onclose={() => (editingSkill = null)}>
+		<form
+			onsubmit={(e) => {
+				e.preventDefault();
+				handleUpdateSkill();
+			}}
+		>
 			<div class="space-y-4">
 				<div>
 					<label for="edit-name" class="block text-sm font-medium text-gray-700">Name</label>
-					<Input
-						id="edit-name"
-						bind:value={formData.name}
-						required
-					/>
+					<Input id="edit-name" bind:value={formData.name} required />
 				</div>
 
 				<div>
@@ -401,9 +402,7 @@
 				<Button type="button" variant="outline" onclick={() => (editingSkill = null)}>
 					Cancel
 				</Button>
-				<Button type="submit" disabled={loading || !formData.name}>
-					Update Skill
-				</Button>
+				<Button type="submit" disabled={loading || !formData.name}>Update Skill</Button>
 			</div>
 		</form>
 	</Modal>
@@ -411,31 +410,24 @@
 
 <!-- Delete Confirmation Modal -->
 {#if deletingSkill}
-	<Modal
-		open={!!deletingSkill}
-		title="Delete Skill"
-		onclose={() => (deletingSkill = null)}
-	>
+	<Modal open={!!deletingSkill} title="Delete Skill" onclose={() => (deletingSkill = null)}>
 		<p class="text-sm text-gray-600">
-			Are you sure you want to delete the skill "{deletingSkill.name}"? 
-			This action cannot be undone.
+			Are you sure you want to delete the skill "{deletingSkill.name}"? This action cannot be
+			undone.
 		</p>
 		{#await getUserCount(deletingSkill.id) then count}
 			{#if count > 0}
 				<p class="mt-2 text-sm text-red-600">
-					Warning: This skill is currently assigned to {count} team {count === 1 ? 'member' : 'members'}.
-					You must remove this skill from all members before deleting it.
+					Warning: This skill is currently assigned to {count} team {count === 1
+						? 'member'
+						: 'members'}. You must remove this skill from all members before deleting it.
 				</p>
 			{/if}
 		{/await}
 
 		<div class="mt-6 flex justify-end gap-3">
-			<Button variant="outline" onclick={() => (deletingSkill = null)}>
-				Cancel
-			</Button>
-			<Button variant="danger" onclick={handleDeleteSkill} disabled={loading}>
-				Delete Skill
-			</Button>
+			<Button variant="outline" onclick={() => (deletingSkill = null)}>Cancel</Button>
+			<Button variant="danger" onclick={handleDeleteSkill} disabled={loading}>Delete Skill</Button>
 		</div>
 	</Modal>
 {/if}

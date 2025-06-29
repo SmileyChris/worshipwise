@@ -17,9 +17,7 @@
 
 	// Check permissions
 	let canModerate = $derived(auth.canManageSongs);
-	let canDelete = $derived(
-		suggestion.suggested_by === auth.user?.id || auth.canManageChurch
-	);
+	let canDelete = $derived(suggestion.suggested_by === auth.user?.id || auth.canManageChurch);
 
 	// Status badge variant
 	let statusVariant = $derived.by(() => {
@@ -39,7 +37,7 @@
 		const date = new Date(suggestion.created);
 		const now = new Date();
 		const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-		
+
 		if (seconds < 60) return 'just now';
 		if (seconds < 3600) return Math.floor(seconds / 60) + ' minutes ago';
 		if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
@@ -81,7 +79,7 @@
 	<!-- Notes -->
 	{#if suggestion.notes}
 		<div class="mb-3">
-			<p class="text-sm text-gray-700 whitespace-pre-wrap">{suggestion.notes}</p>
+			<p class="text-sm whitespace-pre-wrap text-gray-700">{suggestion.notes}</p>
 		</div>
 	{/if}
 
@@ -89,20 +87,8 @@
 	{#if suggestion.status === 'pending'}
 		<div class="flex items-center gap-2">
 			{#if canModerate}
-				<Button
-					variant="success"
-					size="sm"
-					onclick={() => onApprove?.(suggestion)}
-				>
-					Approve
-				</Button>
-				<Button
-					variant="danger"
-					size="sm"
-					onclick={() => onReject?.(suggestion)}
-				>
-					Reject
-				</Button>
+				<Button variant="success" size="sm" onclick={() => onApprove?.(suggestion)}>Approve</Button>
+				<Button variant="danger" size="sm" onclick={() => onReject?.(suggestion)}>Reject</Button>
 			{/if}
 
 			{#if canDelete}

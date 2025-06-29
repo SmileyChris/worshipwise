@@ -25,7 +25,7 @@
 				notificationsAPI.getNotifications(),
 				notificationsAPI.getUnreadCount()
 			]);
-			
+
 			notifications = notifs.slice(0, 10); // Show max 10 in dropdown
 			unreadCount = count;
 		} catch (error) {
@@ -52,7 +52,7 @@
 	async function markAllAsRead() {
 		try {
 			await notificationsAPI.markAllAsRead();
-			notifications = notifications.map(n => ({ ...n, is_read: true }));
+			notifications = notifications.map((n) => ({ ...n, is_read: true }));
 			unreadCount = 0;
 		} catch (error) {
 			console.error('Failed to mark all as read:', error);
@@ -107,7 +107,7 @@
 		document.addEventListener('click', handleClickOutside);
 
 		return () => {
-			unsubscribePromise.then(unsubscribe => {
+			unsubscribePromise.then((unsubscribe) => {
 				if (unsubscribe) unsubscribe();
 			});
 			document.removeEventListener('click', handleClickOutside);
@@ -131,9 +131,11 @@
 				d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
 			/>
 		</svg>
-		
+
 		{#if unreadCount > 0}
-			<span class="absolute right-0 top-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+			<span
+				class="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white"
+			>
 				{unreadCount > 99 ? '99+' : unreadCount}
 			</span>
 		{/if}
@@ -143,18 +145,13 @@
 	{#if showDropdown}
 		<div
 			id="notification-dropdown"
-			class="absolute right-0 mt-2 w-80 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-50"
+			class="ring-opacity-5 absolute right-0 z-50 mt-2 w-80 rounded-lg bg-white shadow-lg ring-1 ring-black"
 		>
 			<!-- Header -->
 			<div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
 				<h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
 				{#if unreadCount > 0}
-					<Button
-						variant="ghost"
-						size="sm"
-						onclick={markAllAsRead}
-						class="text-xs"
-					>
+					<Button variant="ghost" size="sm" onclick={markAllAsRead} class="text-xs">
 						Mark all read
 					</Button>
 				{/if}
@@ -175,7 +172,9 @@
 						{#each notifications as notification (notification.id)}
 							<button
 								onclick={() => markAsRead(notification)}
-								class="w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 {!notification.is_read ? 'bg-blue-50' : ''}"
+								class="w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 {!notification.is_read
+									? 'bg-blue-50'
+									: ''}"
 							>
 								<div class="flex items-start gap-3">
 									<span class="text-xl">
@@ -193,7 +192,7 @@
 												const date = new Date(notification.created);
 												const now = new Date();
 												const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-												
+
 												if (seconds < 60) return 'just now';
 												if (seconds < 3600) return Math.floor(seconds / 60) + ' minutes ago';
 												if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
@@ -214,12 +213,7 @@
 
 			<!-- Footer -->
 			<div class="border-t border-gray-200 px-4 py-2">
-				<Button
-					variant="ghost"
-					size="sm"
-					href="/notifications"
-					class="w-full text-center text-xs"
-				>
+				<Button variant="ghost" size="sm" href="/notifications" class="w-full text-center text-xs">
 					View all notifications
 				</Button>
 			</div>

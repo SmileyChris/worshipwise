@@ -284,15 +284,15 @@ class AuthStore {
 
 			// Load user roles
 			this.userRoles = await this.rolesAPI.getUserRoles(this.user.id);
-			
+
 			// Load user skills
 			this.userSkills = await this.skillsAPI.getUserSkills(this.user.id);
-			
+
 			// Calculate permissions from roles
 			this.permissions = new Set<Permission>();
-			this.userRoles.forEach(userRole => {
+			this.userRoles.forEach((userRole) => {
 				if (userRole.expand?.role_id?.permissions) {
-					userRole.expand.role_id.permissions.forEach(permission => {
+					userRole.expand.role_id.permissions.forEach((permission) => {
 						this.permissions.add(permission);
 					});
 				}
@@ -313,16 +313,14 @@ class AuthStore {
 	 * Check if user has any of the specified permissions
 	 */
 	hasAnyPermission(permissions: Permission[]): boolean {
-		return permissions.some(permission => this.hasPermission(permission));
+		return permissions.some((permission) => this.hasPermission(permission));
 	}
 
 	/**
 	 * Check if user has a specific skill
 	 */
 	hasSkill(skillSlug: string): boolean {
-		return this.userSkills.some(userSkill => 
-			userSkill.expand?.skill_id?.slug === skillSlug
-		);
+		return this.userSkills.some((userSkill) => userSkill.expand?.skill_id?.slug === skillSlug);
 	}
 
 	/**
@@ -496,9 +494,9 @@ class AuthStore {
 
 			if (rolesWithManageChurch.length > 0) {
 				// Get all users with those roles
-				const roleIds = rolesWithManageChurch.map(r => r.id);
+				const roleIds = rolesWithManageChurch.map((r) => r.id);
 				const userRolesWithManageChurch = await pb.collection('user_roles').getFullList({
-					filter: `church_id = "${churchId}" && (${roleIds.map(id => `role_id = "${id}"`).join(' || ')})`
+					filter: `church_id = "${churchId}" && (${roleIds.map((id) => `role_id = "${id}"`).join(' || ')})`
 				});
 
 				// If user is the only one with manage-church permission
@@ -570,7 +568,6 @@ class AuthStore {
 			this.churchLoading = false;
 		}
 	}
-
 
 	/**
 	 * Check if user has multiple church affiliations
@@ -679,7 +676,6 @@ class AuthStore {
 	 * Check if user has pending invites
 	 */
 	hasPendingInvites = $derived(this.pendingInvites.length > 0);
-
 }
 
 // Export the class type for tests

@@ -31,16 +31,16 @@
 	// Filtered suggestions
 	let filteredSuggestions = $derived.by(() => {
 		if (statusFilter === 'all') return suggestions;
-		return suggestions.filter(s => s.status === statusFilter);
+		return suggestions.filter((s) => s.status === statusFilter);
 	});
 
 	// Stats
 	let stats = $derived.by(() => {
 		return {
 			total: suggestions.length,
-			pending: suggestions.filter(s => s.status === 'pending').length,
-			approved: suggestions.filter(s => s.status === 'approved').length,
-			rejected: suggestions.filter(s => s.status === 'rejected').length
+			pending: suggestions.filter((s) => s.status === 'pending').length,
+			approved: suggestions.filter((s) => s.status === 'approved').length,
+			rejected: suggestions.filter((s) => s.status === 'rejected').length
 		};
 	});
 
@@ -101,7 +101,7 @@
 		});
 
 		return () => {
-			unsubscribePromise.then(unsubscribe => {
+			unsubscribePromise.then((unsubscribe) => {
 				if (unsubscribe) unsubscribe();
 			});
 		};
@@ -116,18 +116,16 @@
 	<!-- Page header -->
 	<div class="md:flex md:items-center md:justify-between">
 		<div class="min-w-0 flex-1">
-			<h2 class="font-title text-2xl leading-7 font-bold text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+			<h2
+				class="font-title text-2xl leading-7 font-bold text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight"
+			>
 				Song Suggestions
 			</h2>
-			<p class="mt-1 text-sm text-gray-500">
-				Review and manage song suggestions from your team
-			</p>
+			<p class="mt-1 text-sm text-gray-500">Review and manage song suggestions from your team</p>
 		</div>
 
 		<div class="mt-4 flex md:mt-0 md:ml-4">
-			<Button variant="primary" onclick={() => showSuggestModal = true}>
-				Suggest a Song
-			</Button>
+			<Button variant="primary" onclick={() => (showSuggestModal = true)}>Suggest a Song</Button>
 		</div>
 	</div>
 
@@ -168,12 +166,7 @@
 			<label for="status-filter" class="text-sm font-medium text-gray-700">
 				Filter by status:
 			</label>
-			<Select
-				id="status-filter"
-				bind:value={statusFilter}
-				options={filterOptions}
-				class="w-48"
-			/>
+			<Select id="status-filter" bind:value={statusFilter} options={filterOptions} class="w-48" />
 		</div>
 	</Card>
 
@@ -218,5 +211,5 @@
 <SuggestSongModal
 	bind:open={showSuggestModal}
 	onsuccess={handleSuggestSuccess}
-	onclose={() => showSuggestModal = false}
+	onclose={() => (showSuggestModal = false)}
 />

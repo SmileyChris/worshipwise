@@ -80,10 +80,9 @@ export class ShareAPI {
 	async getShareLinkByToken(token: string): Promise<TeamShareLink | null> {
 		try {
 			const now = new Date().toISOString();
-			const record = await this.pb.collection(this.collection).getFirstListItem(
-				`token = "${token}" && expires_at > "${now}"`,
-				{ expand: 'church_id' }
-			);
+			const record = await this.pb
+				.collection(this.collection)
+				.getFirstListItem(`token = "${token}" && expires_at > "${now}"`, { expand: 'church_id' });
 
 			return record as unknown as TeamShareLink;
 		} catch (error: any) {

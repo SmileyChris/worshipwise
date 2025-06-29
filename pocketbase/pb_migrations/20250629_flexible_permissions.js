@@ -3,6 +3,17 @@
 migrate((app) => {
   const c = app;
   
+  // Get existing collection IDs
+  const churchesCollection = app.findCollectionByNameOrId('churches');
+  const usersCollection = app.findCollectionByNameOrId('users');
+  
+  if (!churchesCollection) {
+    throw new Error("churches collection not found");
+  }
+  
+  const churchesId = churchesCollection.id;
+  const usersId = usersCollection?.id || '_pb_users_auth_';
+  
   // Store collection IDs for relations
   const ids = {};
 
@@ -27,7 +38,7 @@ migrate((app) => {
           type: "relation", 
           name: "church_id", 
           required: true,
-          collectionId: "churches",
+          collectionId: churchesId,
           maxSelect: 1, 
           cascadeDelete: true 
         },
@@ -74,7 +85,7 @@ migrate((app) => {
           type: "relation", 
           name: "church_id", 
           required: true,
-          collectionId: "churches",
+          collectionId: churchesId,
           maxSelect: 1, 
           cascadeDelete: true 
         },
@@ -82,7 +93,7 @@ migrate((app) => {
           type: "relation", 
           name: "user_id", 
           required: true,
-          collectionId: "_pb_users_auth_",
+          collectionId: usersId,
           maxSelect: 1, 
           cascadeDelete: true 
         },
@@ -127,7 +138,7 @@ migrate((app) => {
           type: "relation", 
           name: "church_id", 
           required: true,
-          collectionId: "churches",
+          collectionId: churchesId,
           maxSelect: 1, 
           cascadeDelete: true 
         },
@@ -167,7 +178,7 @@ migrate((app) => {
           type: "relation", 
           name: "church_id", 
           required: true,
-          collectionId: "churches",
+          collectionId: churchesId,
           maxSelect: 1, 
           cascadeDelete: true 
         },
@@ -175,7 +186,7 @@ migrate((app) => {
           type: "relation", 
           name: "user_id", 
           required: true,
-          collectionId: "_pb_users_auth_",
+          collectionId: usersId,
           maxSelect: 1, 
           cascadeDelete: true 
         },
@@ -266,7 +277,6 @@ migrate((app) => {
     }
   });
 
-  return true;
 }, (app) => {
   // Revert migration
   try {
@@ -293,5 +303,4 @@ migrate((app) => {
     console.log("roles collection doesn't exist");
   }
   
-  return true;
 });

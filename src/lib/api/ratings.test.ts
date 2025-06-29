@@ -281,10 +281,7 @@ describe('RatingsAPI', () => {
 
 	describe('getUserDifficultSongs', () => {
 		it('should return array of difficult song IDs', async () => {
-			mockPb.getFullList.mockResolvedValue([
-				{ song_id: 'song-4' },
-				{ song_id: 'song-5' }
-			]);
+			mockPb.getFullList.mockResolvedValue([{ song_id: 'song-4' }, { song_id: 'song-5' }]);
 
 			const result = await ratingsAPI.getUserDifficultSongs();
 

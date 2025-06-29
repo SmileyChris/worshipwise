@@ -81,16 +81,16 @@
 	// Get skill icon
 	function getSkillIcon(skill: Skill): string {
 		const iconMap: Record<string, string> = {
-			'leader': '👑',
-			'guitarist': '🎸',
-			'bassist': '🎸',
-			'drummer': '🥁',
-			'pianist': '🎹',
-			'keyboard': '🎹',
-			'vocalist': '🎤',
+			leader: '👑',
+			guitarist: '🎸',
+			bassist: '🎸',
+			drummer: '🥁',
+			pianist: '🎹',
+			keyboard: '🎹',
+			vocalist: '🎤',
 			'sound-tech': '🎛️',
 			'media-slides': '📺',
-			'lighting': '💡'
+			lighting: '💡'
 		};
 		return iconMap[skill.slug] || '🎵';
 	}
@@ -118,9 +118,9 @@
 </script>
 
 <div class="space-y-4">
-	<div class="flex items-center justify-between mb-2">
-		<h3 class="text-sm font-medium text-gray-700 flex items-center">
-			<Users class="h-4 w-4 mr-2" />
+	<div class="mb-2 flex items-center justify-between">
+		<h3 class="flex items-center text-sm font-medium text-gray-700">
+			<Users class="mr-2 h-4 w-4" />
 			Team Assignments
 		</h3>
 		{#if loading}
@@ -129,7 +129,7 @@
 	</div>
 
 	{#if error}
-		<div class="p-3 bg-red-50 border border-red-200 rounded-md">
+		<div class="rounded-md border border-red-200 bg-red-50 p-3">
 			<p class="text-sm text-red-800">{error}</p>
 		</div>
 	{/if}
@@ -137,14 +137,14 @@
 	{#if loading}
 		<div class="space-y-2">
 			{#each Array(3) as _}
-				<div class="h-10 bg-gray-100 rounded animate-pulse"></div>
+				<div class="h-10 animate-pulse rounded bg-gray-100"></div>
 			{/each}
 		</div>
 	{:else if skills.length === 0}
-		<div class="text-center py-6 text-gray-500">
-			<Music class="h-8 w-8 mx-auto mb-2 text-gray-400" />
+		<div class="py-6 text-center text-gray-500">
+			<Music class="mx-auto mb-2 h-8 w-8 text-gray-400" />
 			<p class="text-sm">No skills defined yet.</p>
-			<a href="/admin/skills" class="text-sm text-blue-600 hover:text-blue-500 mt-1">
+			<a href="/admin/skills" class="mt-1 text-sm text-blue-600 hover:text-blue-500">
 				Manage Skills →
 			</a>
 		</div>
@@ -154,7 +154,7 @@
 				{@const availableUsers = usersBySkill[skill.id] || []}
 				{@const isLeaderSkill = skill.slug === 'leader'}
 				{@const currentAssignment = localTeamSkills[skill.id]}
-				
+
 				<div class="flex items-center space-x-3">
 					<span class="text-lg" title={skill.name}>{getSkillIcon(skill)}</span>
 					<div class="flex-1">
@@ -166,7 +166,7 @@
 						</label>
 						{#if isLeaderSkill && worshipLeader}
 							<!-- Leader skill is pre-assigned to worship leader -->
-							<p class="text-sm text-gray-600 mt-1">
+							<p class="mt-1 text-sm text-gray-600">
 								{#await pb.collection('users').getOne(worshipLeader)}
 									Worship Leader
 								{:then leader}
@@ -178,16 +178,13 @@
 								id={`skill-${skill.id}`}
 								value={currentAssignment || ''}
 								onchange={(e) => handleSkillAssignment(skill.id, e.currentTarget.value)}
-								class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
+								class="focus:ring-primary focus:border-primary mt-1 block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:outline-none sm:text-sm"
 								disabled={isLeaderSkill && !!worshipLeader}
 							>
 								<option value="">Unassigned</option>
 								{#each availableUsers as userSkill}
 									{@const isAssigned = isUserAssignedElsewhere(userSkill.user_id, skill.id)}
-									<option 
-										value={userSkill.user_id} 
-										disabled={isAssigned}
-									>
+									<option value={userSkill.user_id} disabled={isAssigned}>
 										{getUserName(userSkill)}
 										{#if isAssigned}
 											(Already assigned)

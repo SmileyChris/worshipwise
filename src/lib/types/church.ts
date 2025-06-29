@@ -129,6 +129,8 @@ export interface InitialChurchSetup {
 
 export interface InviteUserData {
 	email: string;
+	role: 'admin' | 'leader' | 'musician';
+	permissions?: string[];
 }
 
 export interface UpdateMembershipData {
@@ -222,4 +224,20 @@ export function getTimezoneAwareDefaults(timezone: string): Partial<ChurchSettin
 	return {
 		default_service_types
 	};
+}
+
+/**
+ * Get default permissions for a role
+ */
+export function getDefaultPermissions(role: 'admin' | 'leader' | 'musician'): string[] {
+	switch (role) {
+		case 'admin':
+			return ['manage-songs', 'manage-services', 'manage-members', 'manage-church'];
+		case 'leader':
+			return ['manage-songs', 'manage-services'];
+		case 'musician':
+			return ['view-songs', 'view-services'];
+		default:
+			return [];
+	}
 }

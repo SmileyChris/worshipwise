@@ -692,7 +692,11 @@ export class AnalyticsAPI {
 	/**
 	 * Build date filter for queries
 	 */
-	private buildDateFilter(dateFrom?: string, dateTo?: string, dateField: string = 'created'): string | null {
+	private buildDateFilter(
+		dateFrom?: string,
+		dateTo?: string,
+		dateField: string = 'created'
+	): string | null {
 		if (!dateFrom && !dateTo) return null;
 
 		const filters: string[] = [];

@@ -27,17 +27,19 @@ Dependency Injection (DI) is a design pattern where objects receive their depend
 ### The Problem We Solved
 
 Previously, our stores used a singleton pattern with `getContext()`:
+
 ```typescript
 // ❌ OLD: Singleton pattern with context
 export const songsStore = {
-  async loadSongs() {
-    const auth = getContext('auth'); // ERROR in tests!
-    const response = await pb.collection('songs').getList();
-  }
+	async loadSongs() {
+		const auth = getContext('auth'); // ERROR in tests!
+		const response = await pb.collection('songs').getList();
+	}
 };
 ```
 
 This caused several issues:
+
 - `lifecycle_outside_component` errors in tests
 - Shared state between tests leading to pollution
 - Memory leaks from persistent connections
@@ -49,22 +51,22 @@ This caused several issues:
 ```typescript
 // ✅ NEW: Dependency injection pattern
 class SongsStore {
-  private songsApi: SongsAPI;
-  
-  constructor(private authContext: AuthContext) {
-    // Dependencies are injected, not imported or fetched
-    this.songsApi = createSongsAPI(authContext, authContext.pb);
-  }
-  
-  async loadSongs() {
-    // Use injected dependencies
-    return await this.songsApi.getSongsPaginated();
-  }
+	private songsApi: SongsAPI;
+
+	constructor(private authContext: AuthContext) {
+		// Dependencies are injected, not imported or fetched
+		this.songsApi = createSongsAPI(authContext, authContext.pb);
+	}
+
+	async loadSongs() {
+		// Use injected dependencies
+		return await this.songsApi.getSongsPaginated();
+	}
 }
 
 // Factory function for creating instances
 export function createSongsStore(authContext: AuthContext) {
-  return new SongsStore(authContext);
+	return new SongsStore(authContext);
 }
 ```
 
@@ -95,19 +97,21 @@ Components (via context or props)
 ```typescript
 // Each test creates its own isolated world
 beforeEach(() => {
-  // 1. Create mock auth context
-  const authContext = mockAuthContext({ /* test data */ });
-  
-  // 2. Create mock API
-  const mockAPI = { loadSongs: vi.fn() };
-  
-  // 3. Inject mocks
-  (createSongsAPI as any).mockReturnValue(mockAPI);
-  
-  // 4. Create store with mocks
-  const store = createSongsStore(authContext);
-  
-  // Store is completely isolated!
+	// 1. Create mock auth context
+	const authContext = mockAuthContext({
+		/* test data */
+	});
+
+	// 2. Create mock API
+	const mockAPI = { loadSongs: vi.fn() };
+
+	// 3. Inject mocks
+	(createSongsAPI as any).mockReturnValue(mockAPI);
+
+	// 4. Create store with mocks
+	const store = createSongsStore(authContext);
+
+	// Store is completely isolated!
 });
 ```
 
@@ -126,7 +130,7 @@ class SongsStore {
 		// Create API instance with injected context
 		this.songsApi = createSongsAPI(authContext, authContext.pb);
 	}
-	
+
 	async loadSongs() {
 		// Use injected API instead of singleton
 		const result = await this.songsApi.getSongsPaginated();
@@ -163,7 +167,7 @@ describe('SongsStore', () => {
 			user: { id: 'user-1' },
 			membership: { church_id: 'church-1', role: 'leader' }
 		});
-		
+
 		// Create mock API with all methods
 		mockSongsAPI = {
 			getSongsPaginated: vi.fn(),
@@ -173,10 +177,10 @@ describe('SongsStore', () => {
 			deleteSong: vi.fn(),
 			subscribe: vi.fn()
 		};
-		
+
 		// Mock the factory to return our mock
 		(createSongsAPI as any).mockReturnValue(mockSongsAPI);
-		
+
 		// Create store instance
 		songsStore = createSongsStore(authContext);
 	});
@@ -188,6 +192,7 @@ describe('SongsStore', () => {
 We use a two-tier mocking approach:
 
 1. **Direct API Mocking** (Preferred for store tests):
+
 ```typescript
 // Mock the specific API methods your store uses
 const mockSongsAPI = {
@@ -198,13 +203,14 @@ const mockSongsAPI = {
 		page: 1,
 		perPage: 20
 	}),
-	getSongsUsageInfo: vi.fn().mockResolvedValue(
-		new Map([['song-1', { lastUsed: new Date(), daysSince: 7 }]])
-	)
+	getSongsUsageInfo: vi
+		.fn()
+		.mockResolvedValue(new Map([['song-1', { lastUsed: new Date(), daysSince: 7 }]]))
 };
 ```
 
 2. **PocketBase Mock** (For integration tests):
+
 ```typescript
 import { mockPb } from '$tests/helpers/pb-mock';
 
@@ -217,7 +223,8 @@ mockSongsAPI.subscribe.mockImplementation((handler: (data: unknown) => void) => 
 	return Promise.resolve(unsubscribe);
 });
 ```
-```
+
+````
 
 ### Component Testing
 
@@ -229,7 +236,7 @@ test('renders song information', () => {
 	render(SongCard, { song: mockSong });
 	expect(screen.getByText('Amazing Grace')).toBeInTheDocument();
 });
-```
+````
 
 ### E2E Testing
 
@@ -246,6 +253,7 @@ test('creates new song', async ({ page }) => {
 ## Architecture Benefits
 
 ### Before (Singleton Pattern)
+
 - **Test Success Rate**: 167/190 tests passing (87.9%)
 - **Memory Issues**: Persistent memory leaks between tests
 - **Test Isolation**: Poor - stores shared state between tests
@@ -253,6 +261,7 @@ test('creates new song', async ({ page }) => {
 - **Maintenance**: Difficult to mock and test edge cases
 
 ### After (Complete Dependency Injection)
+
 - **Test Success Rate**: 541/542 tests passing (99.8%)
 - **Memory Performance**: Zero memory leaks
 - **Test Isolation**: Perfect - each test gets fresh instances
@@ -260,6 +269,7 @@ test('creates new song', async ({ page }) => {
 - **Maintenance**: Easy to mock, test, and extend
 
 ### Key Improvements
+
 1. **No getContext() errors**: All stores receive dependencies explicitly
 2. **Better type safety**: TypeScript knows exact API shapes
 3. **Easier debugging**: Clear dependency flow
@@ -269,36 +279,38 @@ test('creates new song', async ({ page }) => {
 ## Common Testing Patterns
 
 ### 1. Real-time Subscription Testing
+
 ```typescript
 it('should handle real-time updates', async () => {
 	let eventHandler: (data: any) => void;
-	
+
 	// Capture the event handler
 	mockAPI.subscribe.mockImplementation((handler) => {
 		eventHandler = handler;
 		return Promise.resolve(() => {});
 	});
-	
+
 	await store.subscribeToUpdates();
-	
+
 	// Trigger real-time event
 	eventHandler({
 		action: 'create',
 		record: { id: 'new-1', title: 'New Item' }
 	});
-	
+
 	expect(store.items).toContainEqual(expect.objectContaining({ id: 'new-1' }));
 });
 ```
 
 ### 2. Error Handling Testing
+
 ```typescript
 it('should handle API errors gracefully', async () => {
 	const error = new Error('Network error');
 	mockAPI.getItems.mockRejectedValue(error);
-	
+
 	await store.loadItems();
-	
+
 	expect(store.error).toBe('Network error');
 	expect(store.items).toEqual([]);
 	expect(store.loading).toBe(false);
@@ -306,6 +318,7 @@ it('should handle API errors gracefully', async () => {
 ```
 
 ### 3. Loading State Testing
+
 ```typescript
 it('should manage loading states correctly', async () => {
 	mockAPI.getItems.mockImplementation(async () => {
@@ -313,9 +326,9 @@ it('should manage loading states correctly', async () => {
 		expect(store.loading).toBe(true);
 		return mockItems;
 	});
-	
+
 	await store.loadItems();
-	
+
 	// Assert loading is false after completion
 	expect(store.loading).toBe(false);
 });
@@ -333,30 +346,34 @@ npm run test:coverage        # Generate coverage report
 ## Testing Best Practices
 
 ### 1. Store Testing
+
 - Always use dependency injection
 - Mock at the API level, not PocketBase level
 - Test loading states, errors, and success paths
 - Verify real-time subscription cleanup
 
 ### 2. Component Testing
+
 - Use mock stores with controlled state
 - Test user interactions and outcomes
 - Verify proper event handling
 - Check accessibility attributes
 
 ### 3. Coverage Guidelines
+
 - **Target**: 80%+ for business logic
-- **Focus Areas**: 
+- **Focus Areas**:
   - State mutations
   - API error handling
   - Complex calculations
   - Permission checks
-- **Skip**: 
+- **Skip**:
   - Simple getters
   - Svelte's `$derived` values
   - Third-party integrations
 
 ### 4. Mock Data Conventions
+
 ```typescript
 // Use consistent mock builders
 const testUser = mockUser({ role: 'admin' });

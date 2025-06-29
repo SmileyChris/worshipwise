@@ -15,7 +15,7 @@
 		<div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
 			<div class="flex items-center justify-between">
 				<div class="flex items-baseline space-x-2">
-					<svg class="size-5 text-primary" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+					<svg class="text-primary size-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 						<use href="/logo.svg#svg1" width="24" height="24" />
 					</svg>
 					<span class="font-title text-xl font-bold text-gray-900">WorshipWise</span>

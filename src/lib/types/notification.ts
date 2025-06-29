@@ -1,4 +1,8 @@
-export type NotificationType = 'song_added' | 'song_retired' | 'song_suggested' | 'service_reminder';
+export type NotificationType =
+	| 'song_added'
+	| 'song_retired'
+	| 'song_suggested'
+	| 'service_reminder';
 
 export interface Notification {
 	id: string;
@@ -11,7 +15,7 @@ export interface Notification {
 	is_read?: boolean;
 	created: string;
 	updated: string;
-	
+
 	// Expanded relations
 	expand?: {
 		church_id?: {
@@ -37,7 +41,7 @@ export interface TeamShareLink {
 	access_type: 'ratings' | 'suggestions' | 'both';
 	created: string;
 	updated: string;
-	
+
 	// Expanded relations
 	expand?: {
 		church_id?: {

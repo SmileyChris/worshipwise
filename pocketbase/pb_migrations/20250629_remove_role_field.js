@@ -6,129 +6,180 @@ migrate((app) => {
   
   if (!collection) {
     console.error("church_memberships collection not found");
-    return false;
+    throw new Error("church_memberships collection not found");
   }
 
-  // Find and remove the role field
-  const roleFieldIndex = collection.fields.findIndex(f => f.name === "role");
+  // First update the access rules to remove references to 'role' field
+  collection.listRule = "@request.auth.id != '' && user_id = @request.auth.id";
+  collection.viewRule = "@request.auth.id != '' && user_id = @request.auth.id";
+  collection.createRule = "@request.auth.id != ''";
+  collection.updateRule = "@request.auth.id != '' && user_id = @request.auth.id";
+  collection.deleteRule = "@request.auth.id != ''";
+
+  // Remove the role field if it exists
+  try {
+    collection.fields.removeById("role");
+    console.log("Removed role field from church_memberships");
+  } catch (e) {
+    console.log("Role field not found or already removed");
+  }
   
-  if (roleFieldIndex !== -1) {
-    // Remove the role field
-    collection.fields.splice(roleFieldIndex, 1);
-    
-    // Also remove the permissions field if it exists
-    const permissionsFieldIndex = collection.fields.findIndex(f => f.name === "permissions");
-    if (permissionsFieldIndex !== -1) {
-      collection.fields.splice(permissionsFieldIndex, 1);
-    }
-    
-    // Save the updated collection
-    try {
-      app.save(collection);
-      console.log("Successfully removed role and permissions fields from church_memberships");
-    } catch (e) {
-      console.error("Failed to update church_memberships collection:", e);
-      throw e;
-    }
-  } else {
-    console.log("Role field not found in church_memberships - may have already been removed");
+  // Remove the permissions field if it exists
+  try {
+    collection.fields.removeById("permissions");
+    console.log("Removed permissions field from church_memberships");
+  } catch (e) {
+    console.log("Permissions field not found or already removed");
+  }
+
+  // Save the updated collection
+  try {
+    app.save(collection);
+    console.log("Successfully updated church_memberships collection");
+  } catch (e) {
+    console.error("Failed to update church_memberships collection:", e);
+    throw e;
   }
 
   // Also update the church_invitations collection to remove role field
   const invitations = app.findCollectionByNameOrId("church_invitations");
   
   if (invitations) {
-    const inviteRoleFieldIndex = invitations.fields.findIndex(f => f.name === "role");
+    // Update access rules if needed
+    // Remove the role field if it exists
+    try {
+      invitations.fields.removeById("role");
+      console.log("Removed role field from church_invitations");
+    } catch (e) {
+      console.log("Role field not found in invitations or already removed");
+    }
     
-    if (inviteRoleFieldIndex !== -1) {
-      // Remove the role field
-      invitations.fields.splice(inviteRoleFieldIndex, 1);
-      
-      // Also remove the permissions field if it exists
-      const invitePermissionsFieldIndex = invitations.fields.findIndex(f => f.name === "permissions");
-      if (invitePermissionsFieldIndex !== -1) {
-        invitations.fields.splice(invitePermissionsFieldIndex, 1);
-      }
-      
-      try {
-        app.save(invitations);
-        console.log("Successfully removed role and permissions fields from church_invitations");
-      } catch (e) {
-        console.error("Failed to update church_invitations collection:", e);
-        throw e;
-      }
+    // Remove the permissions field if it exists
+    try {
+      invitations.fields.removeById("permissions");
+      console.log("Removed permissions field from church_invitations");
+    } catch (e) {
+      console.log("Permissions field not found in invitations or already removed");
+    }
+    
+    try {
+      app.save(invitations);
+      console.log("Successfully updated church_invitations collection");
+    } catch (e) {
+      console.error("Failed to update church_invitations collection:", e);
+      throw e;
     }
   }
-
-  return true;
 }, (app) => {
   // Revert migration - add back the role field
   const collection = app.findCollectionByNameOrId("church_memberships");
   
   if (!collection) {
     console.error("church_memberships collection not found");
-    return false;
+    throw new Error("church_memberships collection not found");
   }
 
-  // Check if role field already exists
-  const hasRoleField = collection.fields.some(f => f.name === "role");
-  
-  if (!hasRoleField) {
-    // Add back the role field
-    collection.fields.push({
-      type: "select",
-      name: "role",
-      required: true,
+  // Restore the original access rules
+  collection.listRule = "@request.auth.id != '' && user_id = @request.auth.id";
+  collection.viewRule = "@request.auth.id != '' && (user_id = @request.auth.id || role = 'admin')";
+  collection.createRule = "@request.auth.id != ''";
+  collection.updateRule = "@request.auth.id != '' && (user_id = @request.auth.id || role = 'admin')";
+  collection.deleteRule = "@request.auth.id != '' && role = 'admin'";
+
+  // Add back the role field
+  const roleField = new Field({
+    id: "role",
+    name: "role",
+    type: "select",
+    required: true,
+    presentable: false,
+    unique: false,
+    options: {
       maxSelect: 1,
       values: ["musician", "leader", "admin"]
-    });
-    
-    // Add back the permissions field
-    collection.fields.push({
-      type: "json",
-      name: "permissions",
-      required: true
-    });
-    
-    try {
-      app.save(collection);
-      console.log("Successfully restored role and permissions fields to church_memberships");
-    } catch (e) {
-      console.error("Failed to restore fields:", e);
-      throw e;
     }
+  });
+  
+  try {
+    collection.fields.add(roleField);
+  } catch (e) {
+    console.log("Role field already exists");
+  }
+  
+  // Add back the permissions field
+  const permissionsField = new Field({
+    id: "permissions",
+    name: "permissions",
+    type: "json",
+    required: true,
+    presentable: false,
+    unique: false,
+    options: {
+      maxSize: 5000
+    }
+  });
+  
+  try {
+    collection.fields.add(permissionsField);
+  } catch (e) {
+    console.log("Permissions field already exists");
+  }
+  
+  try {
+    app.save(collection);
+    console.log("Successfully restored fields to church_memberships");
+  } catch (e) {
+    console.error("Failed to restore fields:", e);
+    throw e;
   }
 
   // Also restore for invitations
   const invitations = app.findCollectionByNameOrId("church_invitations");
   
   if (invitations) {
-    const hasInviteRoleField = invitations.fields.some(f => f.name === "role");
-    
-    if (!hasInviteRoleField) {
-      invitations.fields.push({
-        type: "select",
-        name: "role",
-        required: true,
+    const inviteRoleField = new Field({
+      id: "role",
+      name: "role",
+      type: "select",
+      required: true,
+      presentable: false,
+      unique: false,
+      options: {
         maxSelect: 1,
         values: ["musician", "leader", "admin"]
-      });
-      
-      invitations.fields.push({
-        type: "json",
-        name: "permissions",
-        required: true
-      });
-      
-      try {
-        app.save(invitations);
-        console.log("Successfully restored role and permissions fields to church_invitations");
-      } catch (e) {
-        console.error("Failed to restore invitation fields:", e);
-        throw e;
       }
+    });
+    
+    try {
+      invitations.fields.add(inviteRoleField);
+    } catch (e) {
+      console.log("Role field already exists in invitations");
+    }
+    
+    const invitePermissionsField = new Field({
+      id: "permissions",
+      name: "permissions",
+      type: "json",
+      required: true,
+      presentable: false,
+      unique: false,
+      options: {
+        maxSize: 5000
+      }
+    });
+    
+    try {
+      invitations.fields.add(invitePermissionsField);
+    } catch (e) {
+      console.log("Permissions field already exists in invitations");
+    }
+    
+    try {
+      app.save(invitations);
+      console.log("Successfully restored fields to church_invitations");
+    } catch (e) {
+      console.error("Failed to restore invitation fields:", e);
+      throw e;
     }
   }
-
-  return true;
 });

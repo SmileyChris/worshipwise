@@ -67,18 +67,18 @@
 				const rolesWithManageChurch = await pb.collection('roles').getFullList({
 					filter: `church_id = "${church.id}" && permissions ~ "manage-church"`
 				});
-				
+
 				const adminUserIds = new Set<string>();
 				if (rolesWithManageChurch.length > 0) {
-					const roleIds = rolesWithManageChurch.map(r => r.id);
+					const roleIds = rolesWithManageChurch.map((r) => r.id);
 					const userRoles = await pb.collection('user_roles').getFullList({
-						filter: `church_id = "${church.id}" && (${roleIds.map(id => `role_id = "${id}"`).join(' || ')})`,
+						filter: `church_id = "${church.id}" && (${roleIds.map((id) => `role_id = "${id}"`).join(' || ')})`,
 						expand: 'user_id'
 					});
-					userRoles.forEach(ur => adminUserIds.add(ur.user_id));
+					userRoles.forEach((ur) => adminUserIds.add(ur.user_id));
 				}
 
-				const adminMemberships = memberships.items.filter(m => adminUserIds.has(m.user_id));
+				const adminMemberships = memberships.items.filter((m) => adminUserIds.has(m.user_id));
 				const members = memberships.items.length;
 
 				details[church.id] = {

@@ -186,11 +186,7 @@ describe('NotificationsAPI', () => {
 
 	describe('createNotificationForChurch', () => {
 		it('should create notifications for all church members', async () => {
-			const mockMemberships = [
-				{ user_id: 'user-1' },
-				{ user_id: 'user-2' },
-				{ user_id: 'user-3' }
-			];
+			const mockMemberships = [{ user_id: 'user-1' }, { user_id: 'user-2' }, { user_id: 'user-3' }];
 
 			mockPb.getFullList.mockResolvedValue(mockMemberships);
 			mockPb.create.mockResolvedValue({ id: 'new-notif' });
@@ -228,10 +224,7 @@ describe('NotificationsAPI', () => {
 			const callback = vi.fn();
 			const unsubscribe = await notificationsAPI.subscribe(callback);
 
-			expect(mockPb.subscribe).toHaveBeenCalledWith(
-				'user_id = "user-1"',
-				callback
-			);
+			expect(mockPb.subscribe).toHaveBeenCalledWith('user_id = "user-1"', callback);
 			expect(unsubscribe).toBe(mockUnsubscribe);
 		});
 

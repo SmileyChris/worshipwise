@@ -17,13 +17,14 @@ vi.mock('$lib/api/ratings', () => ({
 
 vi.mock('$lib/context/stores.svelte', () => ({
 	getAuthStore: vi.fn(() => ({
-		getAuthContext: () => mockAuthContext({
-			user: { id: 'user-1', email: 'test@example.com', name: 'Test User' },
-			church: { id: 'church-1', name: 'Test Church' },
-			membership: { church_id: 'church-1' },
-			permissions: new Set(['manage-songs', 'manage-services']),
-			hasLeaderSkill: () => true
-		})
+		getAuthContext: () =>
+			mockAuthContext({
+				user: { id: 'user-1', email: 'test@example.com', name: 'Test User' },
+				church: { id: 'church-1', name: 'Test Church' },
+				membership: { church_id: 'church-1' },
+				permissions: new Set(['manage-songs', 'manage-services']),
+				hasLeaderSkill: () => true
+			})
 	}))
 }));
 
@@ -59,10 +60,10 @@ describe('SongRatingButton', () => {
 			deleteRating: vi.fn().mockResolvedValue(undefined),
 			shouldAutoRetire: vi.fn().mockResolvedValue(false)
 		};
-		
+
 		// Set up the mock to return our API
 		(createRatingsAPI as any).mockReturnValue(mockRatingsAPI);
-		
+
 		// Reset mock implementations
 		mockRatingsAPI.getUserRating.mockResolvedValue(null);
 		mockRatingsAPI.getAggregateRatings.mockResolvedValue({
@@ -105,9 +106,9 @@ describe('SongRatingButton', () => {
 			difficultCount: 3
 		});
 
-		const { getByText } = render(SongRatingButton, { 
+		const { getByText } = render(SongRatingButton, {
 			song: mockSong,
-			showAggregates: true 
+			showAggregates: true
 		});
 
 		await waitFor(() => {
@@ -121,7 +122,7 @@ describe('SongRatingButton', () => {
 		const { getByTitle } = render(SongRatingButton, { song: mockSong });
 
 		const thumbsUpBtn = getByTitle('I like this song');
-		
+
 		// First click - set rating
 		await fireEvent.click(thumbsUpBtn);
 		expect(mockRatingsAPI.setRating).toHaveBeenCalledWith(mockSong.id, {
@@ -151,7 +152,7 @@ describe('SongRatingButton', () => {
 
 	it('should check for auto-retire when rating thumbs down', async () => {
 		mockRatingsAPI.shouldAutoRetire.mockResolvedValue(true);
-		
+
 		const { getByTitle } = render(SongRatingButton, { song: mockSong });
 
 		// Mock window.dispatchEvent
@@ -182,9 +183,9 @@ describe('SongRatingButton', () => {
 
 	it('should handle rating change callback', async () => {
 		const onRatingChange = vi.fn();
-		const { getByTitle } = render(SongRatingButton, { 
+		const { getByTitle } = render(SongRatingButton, {
 			song: mockSong,
-			onRatingChange 
+			onRatingChange
 		});
 
 		const thumbsUpBtn = getByTitle('I like this song');
@@ -197,8 +198,8 @@ describe('SongRatingButton', () => {
 
 	it('should disable buttons while saving', async () => {
 		// Make setRating take some time
-		mockRatingsAPI.setRating.mockImplementation(() => 
-			new Promise(resolve => setTimeout(resolve, 100))
+		mockRatingsAPI.setRating.mockImplementation(
+			() => new Promise((resolve) => setTimeout(resolve, 100))
 		);
 
 		const { getByTitle } = render(SongRatingButton, { song: mockSong });

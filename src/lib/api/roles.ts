@@ -1,12 +1,12 @@
-import type { PocketBase } from 'pocketbase';
+import type PocketBase from 'pocketbase';
 import type { AuthContext } from '$lib/types/auth';
-import type { 
-	Role, 
-	UserRole, 
-	CreateRoleData, 
-	UpdateRoleData, 
+import type {
+	Role,
+	UserRole,
+	CreateRoleData,
+	UpdateRoleData,
 	AssignRoleData,
-	Permission 
+	Permission
 } from '$lib/types/permissions';
 
 export class RolesAPI {
@@ -59,7 +59,7 @@ export class RolesAPI {
 			}
 
 			// Validate permissions
-			const validPermissions = data.permissions.filter(p => 
+			const validPermissions = data.permissions.filter((p) =>
 				['manage-songs', 'manage-services', 'manage-members', 'manage-church'].includes(p)
 			);
 
@@ -82,14 +82,14 @@ export class RolesAPI {
 	async updateRole(roleId: string, data: UpdateRoleData): Promise<Role> {
 		try {
 			const updateData: any = {};
-			
+
 			if (data.name !== undefined) {
 				updateData.name = data.name;
 			}
-			
+
 			if (data.permissions !== undefined) {
 				// Validate permissions
-				updateData.permissions = data.permissions.filter(p => 
+				updateData.permissions = data.permissions.filter((p) =>
 					['manage-songs', 'manage-services', 'manage-members', 'manage-church'].includes(p)
 				);
 			}
@@ -190,28 +190,28 @@ export class RolesAPI {
 	/**
 	 * Check if at least one role has each permission
 	 */
-	async validatePermissionCoverage(): Promise<{ 
-		valid: boolean; 
-		missingPermissions: Permission[] 
+	async validatePermissionCoverage(): Promise<{
+		valid: boolean;
+		missingPermissions: Permission[];
 	}> {
 		try {
 			const roles = await this.getRoles();
 			const allPermissions = new Set<Permission>();
-			
-			roles.forEach(role => {
-				role.permissions.forEach(permission => {
+
+			roles.forEach((role) => {
+				role.permissions.forEach((permission) => {
 					allPermissions.add(permission);
 				});
 			});
 
 			const requiredPermissions: Permission[] = [
 				'manage-songs',
-				'manage-services', 
+				'manage-services',
 				'manage-members',
 				'manage-church'
 			];
 
-			const missingPermissions = requiredPermissions.filter(p => !allPermissions.has(p));
+			const missingPermissions = requiredPermissions.filter((p) => !allPermissions.has(p));
 
 			return {
 				valid: missingPermissions.length === 0,

@@ -23,7 +23,7 @@ export class SongsAPI {
 
 			let filter = `church_id = "${this.authContext.currentChurch.id}"`;
 			const filterParts: string[] = [];
-			
+
 			// Handle retired filter
 			if (!options.showRetired) {
 				filterParts.push('(is_retired = false || is_retired = null)');

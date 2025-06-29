@@ -762,9 +762,9 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 		const mediumDiff = Math.abs(actualDistribution.medium - idealDistribution.medium);
 		const slowDiff = Math.abs(actualDistribution.slow - idealDistribution.slow);
 		const avgDiff = (fastDiff + mediumDiff + slowDiff) / 3;
-		
+
 		// Convert to percentage (100% = perfect match, 0% = maximum difference)
-		const tempoDiversity = total > 0 ? Math.max(0, 100 - (avgDiff * 100)) : 0;
+		const tempoDiversity = total > 0 ? Math.max(0, 100 - avgDiff * 100) : 0;
 
 		// Artist diversity
 		const artistsUsed = new Set(
@@ -864,7 +864,8 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 					title.includes(keyword) || tags.some((tag: string) => tag.toLowerCase().includes(keyword))
 			);
 		});
-		const currentSeasonAlignment = allSongs.length > 0 ? (currentSeasonSongs.length / allSongs.length) * 100 : 0;
+		const currentSeasonAlignment =
+			allSongs.length > 0 ? (currentSeasonSongs.length / allSongs.length) * 100 : 0;
 
 		// Upcoming season preparation
 		const upcomingSeasonKeywords = this.getSeasonalKeywords(nextMonth, seasonalContext.hemisphere);
@@ -876,7 +877,8 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 					title.includes(keyword) || tags.some((tag: string) => tag.toLowerCase().includes(keyword))
 			);
 		});
-		const upcomingSeasonPreparation = allSongs.length > 0 ? (upcomingSeasonSongs.length / allSongs.length) * 100 : 0;
+		const upcomingSeasonPreparation =
+			allSongs.length > 0 ? (upcomingSeasonSongs.length / allSongs.length) * 100 : 0;
 
 		const seasonalSuggestions: string[] = [];
 		const currentSeasonName = this.getSeasonName(currentMonth, seasonalContext.hemisphere);

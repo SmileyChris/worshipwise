@@ -51,6 +51,19 @@ export interface AdminAPI {
 	}>;
 }
 
+// Export individual functions from the API
+export const getAdminStats = (pb: PocketBase) => createAdminAPI(pb).getAdminStats;
+export const getUsers = (pb: PocketBase) => createAdminAPI(pb).getUsers;
+export const searchUsers = (pb: PocketBase) => createAdminAPI(pb).searchUsers;
+export const getUsersByRole = (pb: PocketBase) => createAdminAPI(pb).getUsersByRole;
+export const updateUser = (pb: PocketBase) => createAdminAPI(pb).updateUser;
+export const updateUserMembership = (pb: PocketBase) => createAdminAPI(pb).updateUserMembership;
+export const deactivateUser = (pb: PocketBase) => createAdminAPI(pb).deactivateUser;
+export const reactivateUser = (pb: PocketBase) => createAdminAPI(pb).reactivateUser;
+export const deleteUser = (pb: PocketBase) => createAdminAPI(pb).deleteUser;
+export const changeUserRole = (pb: PocketBase) => createAdminAPI(pb).changeUserRole;
+export const getUserActivity = (pb: PocketBase) => createAdminAPI(pb).getUserActivity;
+
 export function createAdminAPI(pb: PocketBase): AdminAPI {
 	return {
 		/**
