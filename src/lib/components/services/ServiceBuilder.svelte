@@ -6,6 +6,7 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import CommentThread from './CommentThread.svelte';
 	import ApprovalWorkflow from './ApprovalWorkflow.svelte';
+	import AISuggestions from './AISuggestions.svelte';
 	import { onMount } from 'svelte';
 	import { flip } from 'svelte/animate';
 
@@ -27,6 +28,7 @@
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 	let showComments = $state(false);
+	let showAISuggestions = $state(true);
 
 	// Computed values
 	let filteredSongs = $derived.by(() => {
@@ -174,6 +176,21 @@
 		}
 	}
 
+	// Add song from AI suggestions
+	async function addSongFromSuggestion(song: Song) {
+		try {
+			const newSong: CreateServiceSongData = {
+				service_id: serviceId,
+				song_id: song.id,
+				order_position: servicesStore.currentServiceSongs.length,
+				section_type: selectedSection
+			};
+			await servicesStore.addSongToService(newSong);
+		} catch (err: unknown) {
+			error = err instanceof Error ? err.message : 'Failed to add song';
+		}
+	}
+
 	// Get song usage status
 	function getSongUsageStatus(song: Song): { color: string; text: string; icon: string } {
 		const status = song.usageStatus || 'available';
@@ -249,66 +266,103 @@
 		</div>
 
 		<div class="flex flex-1 overflow-hidden">
-			<!-- Songs Library -->
-			<div class="w-1/3 border-r border-gray-200 bg-gray-50 p-4">
-				<h3 class="font-title mb-3 text-lg font-medium text-gray-900">Song Library</h3>
-
-				<!-- Search -->
-				<input
-					type="search"
-					placeholder="Search songs..."
-					bind:value={searchQuery}
-					class="focus:border-primary focus:ring-primary mb-3 block w-full rounded-md border-gray-300 shadow-sm"
-				/>
-
-				<!-- Section selector -->
-				<select
-					bind:value={selectedSection}
-					class="focus:border-primary focus:ring-primary mb-4 block w-full rounded-md border-gray-300 shadow-sm"
-				>
-					{#each sectionTypes as type (type)}
-						<option value={type}>{type}</option>
-					{/each}
-				</select>
-
-				<!-- Songs list -->
-				<div class="space-y-2 overflow-y-auto" style="max-height: calc(100vh - 300px);">
-					{#each filteredSongs as song (song.id)}
-						{@const usageStatus = getSongUsageStatus(song)}
-						<div
-							role="button"
-							tabindex="0"
-							draggable="true"
-							ondragstart={(e) => handleSongDragStart(e, song)}
-							class="cursor-move rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-all hover:shadow-md"
+			<!-- Songs Library / AI Suggestions -->
+			<div class="w-1/3 border-r border-gray-200 bg-gray-50 flex flex-col">
+				<!-- Tab Navigation -->
+				<div class="border-b border-gray-200 bg-white">
+					<nav class="flex">
+						<button
+							onclick={() => showAISuggestions = false}
+							class="flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors {!showAISuggestions
+								? 'border-primary text-primary'
+								: 'border-transparent text-gray-500 hover:text-gray-700'}"
 						>
-							<div class="flex items-start justify-between">
-								<div class="min-w-0 flex-1">
-									<h4 class="truncate font-medium text-gray-900">{song.title}</h4>
-									{#if song.artist}
-										<p class="truncate text-sm text-gray-600">{song.artist}</p>
-									{/if}
-									<div class="mt-1 flex items-center gap-2">
-										{#if song.key_signature}
-											<Badge variant="default" size="sm">
-												{song.key_signature}
-											</Badge>
-										{/if}
-										{#if song.tempo}
-											<Badge variant="default" size="sm">
-												{song.tempo} BPM
-											</Badge>
-										{/if}
+							Song Library
+						</button>
+						<button
+							onclick={() => showAISuggestions = true}
+							class="flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors {showAISuggestions
+								? 'border-primary text-primary'
+								: 'border-transparent text-gray-500 hover:text-gray-700'}"
+						>
+							AI Suggestions
+						</button>
+					</nav>
+				</div>
+
+				{#if showAISuggestions}
+					<!-- AI Suggestions Panel -->
+					<div class="flex-1 overflow-hidden">
+						<AISuggestions
+							service={servicesStore.currentService}
+							availableSongs={songsStore.songs}
+							currentSongs={servicesStore.currentServiceSongs.map(ss => ss.expand?.song_id).filter(Boolean)}
+							onAddSong={addSongFromSuggestion}
+						/>
+					</div>
+				{:else}
+					<!-- Song Library -->
+					<div class="flex-1 p-4 overflow-hidden flex flex-col">
+						<h3 class="font-title mb-3 text-lg font-medium text-gray-900">Song Library</h3>
+
+						<!-- Search -->
+						<input
+							type="search"
+							placeholder="Search songs..."
+							bind:value={searchQuery}
+							class="focus:border-primary focus:ring-primary mb-3 block w-full rounded-md border-gray-300 shadow-sm"
+						/>
+
+						<!-- Section selector -->
+						<select
+							bind:value={selectedSection}
+							class="focus:border-primary focus:ring-primary mb-4 block w-full rounded-md border-gray-300 shadow-sm"
+						>
+							{#each sectionTypes as type (type)}
+								<option value={type}>{type}</option>
+							{/each}
+						</select>
+
+						<!-- Songs list -->
+						<div class="flex-1 space-y-2 overflow-y-auto">
+							{#each filteredSongs as song (song.id)}
+								{@const usageStatus = getSongUsageStatus(song)}
+								<div
+									role="button"
+									tabindex="0"
+									draggable="true"
+									ondragstart={(e) => handleSongDragStart(e, song)}
+									class="cursor-move rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-all hover:shadow-md"
+								>
+									<div class="flex items-start justify-between">
+										<div class="min-w-0 flex-1">
+											<h4 class="truncate font-medium text-gray-900">{song.title}</h4>
+											{#if song.artist}
+												<p class="truncate text-sm text-gray-600">{song.artist}</p>
+											{/if}
+											<div class="mt-1 flex items-center gap-2">
+												{#if song.key_signature}
+													<Badge variant="default" size="sm">
+														{song.key_signature}
+													</Badge>
+												{/if}
+												{#if song.tempo}
+													<Badge variant="default" size="sm">
+														{song.tempo} BPM
+													</Badge>
+												{/if}
+											</div>
+										</div>
+										<div class={`rounded px-2 py-1 text-xs font-medium ${usageStatus.color}`}>
+											{usageStatus.icon}
+											{usageStatus.text}
+										</div>
 									</div>
 								</div>
-								<div class={`rounded px-2 py-1 text-xs font-medium ${usageStatus.color}`}>
-									{usageStatus.icon}
-									{usageStatus.text}
-								</div>
-							</div>
+							{/each}
 						</div>
-					{/each}
-				</div>
+					</div>
+				{/if}
 			</div>
 
 			<!-- Service -->
