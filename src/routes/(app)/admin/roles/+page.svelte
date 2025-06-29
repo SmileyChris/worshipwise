@@ -10,6 +10,7 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
+	import FormField from '$lib/components/ui/FormField.svelte';
 	import { Plus, Edit2, Trash2, Shield } from 'lucide-svelte';
 
 	const auth = getAuthStore();
@@ -321,18 +322,21 @@
 		}}
 	>
 		<div class="space-y-4">
-			<div>
-				<label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+			<FormField label="Name" for="name" required>
 				<Input
 					id="name"
 					bind:value={formData.name}
 					placeholder="e.g., Worship Coordinator"
 					required
 				/>
-			</div>
+			</FormField>
 
-			<div>
-				<label for="slug" class="block text-sm font-medium text-gray-700">Slug</label>
+			<FormField 
+				label="Slug" 
+				for="slug" 
+				required
+				helpText="Lowercase letters, numbers, and hyphens only"
+			>
 				<Input
 					id="slug"
 					bind:value={formData.slug}
@@ -340,8 +344,7 @@
 					pattern="^[a-z0-9-]+$"
 					required
 				/>
-				<p class="mt-1 text-xs text-gray-500">Lowercase letters, numbers, and hyphens only</p>
-			</div>
+			</FormField>
 
 			<div>
 				<label class="mb-2 block text-sm font-medium text-gray-700">Permissions</label>
@@ -385,15 +388,13 @@
 			}}
 		>
 			<div class="space-y-4">
-				<div>
-					<label for="edit-name" class="block text-sm font-medium text-gray-700">Name</label>
+				<FormField label="Name" for="edit-name" required>
 					<Input id="edit-name" bind:value={formData.name} required />
-				</div>
+				</FormField>
 
-				<div>
-					<label class="block text-sm font-medium text-gray-700">Slug</label>
-					<p class="mt-1 text-sm text-gray-500">{editingRole.slug} (cannot be changed)</p>
-				</div>
+				<FormField label="Slug">
+					<p class="text-sm text-gray-500">{editingRole.slug} (cannot be changed)</p>
+				</FormField>
 
 				<div>
 					<label class="mb-2 block text-sm font-medium text-gray-700">Permissions</label>

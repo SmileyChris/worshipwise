@@ -4,6 +4,8 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
 	import ServiceBuilder from '$lib/components/services/ServiceBuilder.svelte';
 	import TeamSelector from '$lib/components/services/TeamSelector.svelte';
 	import ServiceCalendar from '$lib/components/services/ServiceCalendar.svelte';
@@ -316,27 +318,25 @@
 		<!-- Services list -->
 		{#if servicesStore.loading}
 			<div class="flex h-64 items-center justify-center">
-				<div class="text-gray-500">Loading services...</div>
+				<LoadingSpinner message="Loading services..." />
 			</div>
 		{:else if servicesStore.services.length === 0}
 			<!-- Welcome message -->
 			<Card>
-				<div class="py-8 text-center">
-					<div class="mb-4 text-6xl">📋</div>
-					<h3 class="font-title mb-2 text-lg font-medium text-gray-900">
-						Plan Your Worship Services
-					</h3>
-					<p class="mb-6 text-gray-500">
-						Create services, track song usage, and collaborate with your team.
-					</p>
-					{#if auth.canManageServices}
-						<Button variant="primary" onclick={openCreateModal}>Create Your First Service</Button>
-					{:else}
-						<p class="text-sm text-gray-400">
-							View services assigned to you by your worship leader.
-						</p>
-					{/if}
-				</div>
+				<EmptyState
+					title="Plan Your Worship Services"
+					message={auth.canManageServices 
+						? "Create services, track song usage, and collaborate with your team."
+						: "View services assigned to you by your worship leader."}
+					action={auth.canManageServices ? {
+						label: "Create Your First Service",
+						onclick: openCreateModal
+					} : undefined}
+				>
+					{#snippet icon()}
+						<div class="text-6xl">📋</div>
+					{/snippet}
+				</EmptyState>
 			</Card>
 		{:else}
 			{#if viewMode === 'calendar'}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Label } from '$lib/types/song';
+	import Button from '$lib/components/ui/Button.svelte';
 
 	interface Props {
 		label: Label;
@@ -31,10 +32,12 @@
 >
 	{label.name}
 	{#if removable}
-		<button
+		<Button
 			onclick={handleRemove}
-			class="hover:bg-opacity-20 ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-current hover:bg-black"
-			aria-label="Remove {label.name}"
+			variant="ghost"
+			size="sm"
+			class="ml-1 h-4 w-4 p-0 rounded-full text-current hover:bg-black hover:bg-opacity-20 border-0"
+			title="Remove {label.name}"
 		>
 			<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
@@ -44,6 +47,6 @@
 					d="M6 18L18 6M6 6l12 12"
 				/>
 			</svg>
-		</button>
+		</Button>
 	{/if}
 </span>

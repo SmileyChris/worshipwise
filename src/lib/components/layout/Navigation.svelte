@@ -3,6 +3,7 @@
 	import { getAuthStore, getQuickstartStore } from '$lib/context/stores.svelte';
 	import ChurchSwitcher from './ChurchSwitcher.svelte';
 	import NotificationBell from '$lib/components/notifications/NotificationBell.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 
 	const auth = getAuthStore();
 	const quickstartStore = getQuickstartStore();
@@ -197,20 +198,22 @@
 								{/if}
 								<hr class="my-1 border-gray-200" />
 							{/if}
-							<button
+							<Button
 								onclick={handleOpenSetupWizard}
-								class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-								role="menuitem"
+								variant="ghost"
+								size="sm"
+								class="w-full justify-start px-4 py-2 h-auto font-normal text-gray-700 hover:bg-gray-100 border-0 rounded-none"
 							>
 								Setup Wizard
-							</button>
-							<button
+							</Button>
+							<Button
 								onclick={handleLogout}
-								class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-								role="menuitem"
+								variant="ghost"
+								size="sm"
+								class="w-full justify-start px-4 py-2 h-auto font-normal text-gray-700 hover:bg-gray-100 border-0 rounded-none"
 							>
 								Sign Out
-							</button>
+							</Button>
 						</div>
 					{/if}
 				</div>
@@ -265,12 +268,14 @@
 					</div>
 					{#each auth.availableChurches as church (church.id)}
 						{#if church.id !== auth.currentChurch?.id}
-							<button
+							<Button
 								onclick={() => auth.switchChurch(church.id)}
-								class="block w-full rounded px-2 py-1 text-left text-sm text-gray-600 hover:bg-gray-100"
+								variant="ghost"
+								size="sm"
+								class="w-full justify-start px-2 py-1 h-auto font-normal text-gray-600 hover:bg-gray-100 border-0"
 							>
 								{church.name}
-							</button>
+							</Button>
 						{/if}
 					{/each}
 				</div>
@@ -282,18 +287,22 @@
 				>
 					Profile Settings
 				</a>
-				<button
+				<Button
 					onclick={handleOpenSetupWizard}
-					class="block w-full px-4 py-2 text-left text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+					variant="ghost"
+					size="md"
+					class="w-full justify-start px-4 py-2 h-auto font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800 border-0 rounded-none"
 				>
 					Setup Wizard
-				</button>
-				<button
+				</Button>
+				<Button
 					onclick={handleLogout}
-					class="block w-full px-4 py-2 text-left text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+					variant="ghost"
+					size="md"
+					class="w-full justify-start px-4 py-2 h-auto font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800 border-0 rounded-none"
 				>
 					Sign Out
-				</button>
+				</Button>
 			</div>
 		</div>
 	</div>

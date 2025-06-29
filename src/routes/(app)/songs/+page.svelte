@@ -7,6 +7,8 @@
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
 	import SongCard from '$lib/components/songs/SongCard.svelte';
 	import CategoryCard from '$lib/components/songs/CategoryCard.svelte';
 	import SongsSidebar from '$lib/components/songs/SongsSidebar.svelte';
@@ -360,9 +362,8 @@
 			{#if viewMode === 'categories'}
 				<!-- Categories View -->
 				{#if categoriesLoading}
-					<div class="py-8 text-center">
-						<div class="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
-						<p class="mt-2 text-sm text-gray-500">Loading categories...</p>
+					<div class="py-8">
+						<LoadingSpinner message="Loading categories..." />
 					</div>
 				{:else if categoriesData && categoriesData.size > 0}
 					<div class="space-y-6">
@@ -380,20 +381,20 @@
 				{:else}
 					<!-- Welcome message for new users -->
 					<Card>
-						<div class="py-8 text-center">
-							<div class="mb-4 text-6xl">🎵</div>
-							<h3 class="mb-2 text-lg font-medium text-gray-900">Welcome to your Song Library</h3>
-							<p class="mb-6 text-gray-500">
-								Get started by adding your first worship song to the library.
-							</p>
-							{#if auth.canManageSongs}
-								<Button variant="primary" onclick={handleAddSong}>Add Your First Song</Button>
-							{:else}
-								<p class="text-sm text-gray-400">
-									Contact your worship leader to add songs to the library.
-								</p>
-							{/if}
-						</div>
+						<EmptyState
+							title="Welcome to your Song Library"
+							message={auth.canManageSongs
+								? "Get started by adding your first worship song to the library."
+								: "Contact your worship leader to add songs to the library."}
+							action={auth.canManageSongs ? {
+								label: "Add Your First Song",
+								onclick: handleAddSong
+							} : undefined}
+						>
+							{#snippet icon()}
+								<div class="text-6xl">🎵</div>
+							{/snippet}
+						</EmptyState>
 					</Card>
 				{/if}
 			{:else}
@@ -401,20 +402,20 @@
 				{#if songs.length === 0 && !loading}
 					<!-- Welcome message for new users -->
 					<Card>
-						<div class="py-8 text-center">
-							<div class="mb-4 text-6xl">🎵</div>
-							<h3 class="mb-2 text-lg font-medium text-gray-900">Welcome to your Song Library</h3>
-							<p class="mb-6 text-gray-500">
-								Get started by adding your first worship song to the library.
-							</p>
-							{#if auth.canManageSongs}
-								<Button variant="primary" onclick={handleAddSong}>Add Your First Song</Button>
-							{:else}
-								<p class="text-sm text-gray-400">
-									Contact your worship leader to add songs to the library.
-								</p>
-							{/if}
-						</div>
+						<EmptyState
+							title="Welcome to your Song Library"
+							message={auth.canManageSongs
+								? "Get started by adding your first worship song to the library."
+								: "Contact your worship leader to add songs to the library."}
+							action={auth.canManageSongs ? {
+								label: "Add Your First Song",
+								onclick: handleAddSong
+							} : undefined}
+						>
+							{#snippet icon()}
+								<div class="text-6xl">🎵</div>
+							{/snippet}
+						</EmptyState>
 					</Card>
 				{:else}
 					<!-- Search and filters -->

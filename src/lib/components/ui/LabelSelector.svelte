@@ -4,6 +4,7 @@
 	import { getAuthStore } from '$lib/context/stores.svelte';
 	import { pb } from '$lib/api/client';
 	import LabelBadge from './LabelBadge.svelte';
+	import Button from './Button.svelte';
 	import type { Label } from '$lib/types/song';
 
 	interface Props {
@@ -120,16 +121,18 @@
 					class="ring-opacity-5 absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black focus:outline-none"
 				>
 					{#each filteredLabels as label (label.id)}
-						<button
+						<Button
 							type="button"
 							onclick={() => addLabel(label)}
-							class="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-gray-100"
+							variant="ghost"
+							size="sm"
+							class="w-full justify-start px-3 py-2 h-auto font-normal hover:bg-gray-100 border-0 rounded-none"
 						>
 							<LabelBadge {label} size="sm" />
 							{#if label.description}
 								<span class="text-sm text-gray-500">{label.description}</span>
 							{/if}
-						</button>
+						</Button>
 					{/each}
 				</div>
 			{/if}

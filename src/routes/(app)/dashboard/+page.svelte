@@ -2,6 +2,8 @@
 	import { getSongsStore, getQuickstartStore } from '$lib/context/stores.svelte';
 	import WelcomeCard from '$lib/components/quickstart/WelcomeCard.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import { Music, Clock, TrendingUp, Users } from 'lucide-svelte';
 
 	const songs = getSongsStore();
@@ -113,16 +115,18 @@
 					{/each}
 				</div>
 			{:else}
-				<div class="py-6 text-center text-gray-500">
-					<Music class="mx-auto mb-4 h-12 w-12 text-gray-300" />
-					<p>No songs added yet</p>
-					<a
-						href="/songs"
-						class="bg-primary hover:bg-primary/90 mt-2 inline-block rounded-md px-4 py-2 text-sm text-white"
-					>
-						Add Your First Song
-					</a>
-				</div>
+				<EmptyState
+					title="No songs added yet"
+					action={{
+						label: "Add Your First Song",
+						onclick: () => window.location.href = '/songs'
+					}}
+					class="py-6"
+				>
+					{#snippet icon()}
+						<Music class="h-12 w-12 text-gray-300" />
+					{/snippet}
+				</EmptyState>
 			{/if}
 		</Card>
 
@@ -147,13 +151,15 @@
 				</a>
 
 				{#if !quickstart.isSetupComplete}
-					<button
+					<Button
 						onclick={() => (quickstart.showSetupWizard = true)}
-						class="flex w-full items-center rounded-md border border-gray-300 px-4 py-3 text-left hover:bg-gray-50"
+						variant="outline"
+						size="md"
+						class="w-full justify-start"
 					>
 						<TrendingUp class="mr-2 h-4 w-4" />
 						Setup Wizard
-					</button>
+					</Button>
 				{:else}
 					<!-- Debug: Setup Complete Indicator -->
 					<div

@@ -1,5 +1,7 @@
 <script lang="ts">
 	/* eslint-disable svelte/no-unused-props */
+	import type { Snippet } from 'svelte';
+	
 	interface Props {
 		variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
 		size?: 'sm' | 'md' | 'lg';
@@ -12,7 +14,9 @@
 		target?: string;
 		title?: string;
 		'data-testid'?: string;
-		children?: import('svelte').Snippet;
+		children?: Snippet;
+		icon?: Snippet;
+		iconPosition?: 'left' | 'right';
 	}
 
 	let {
@@ -27,7 +31,9 @@
 		target = '',
 		title = '',
 		'data-testid': testId = '',
-		children
+		children,
+		icon,
+		iconPosition = 'left'
 	}: Props = $props();
 
 	let baseClasses =
@@ -53,11 +59,11 @@
 	let sizeClasses = $derived.by(() => {
 		switch (size) {
 			case 'sm':
-				return 'h-8 px-3 text-sm';
+				return 'h-8 px-3 text-sm gap-1.5';
 			case 'lg':
-				return 'h-12 px-8 text-lg';
+				return 'h-12 px-8 text-lg gap-3';
 			default:
-				return 'h-10 px-4';
+				return 'h-10 px-4 gap-2';
 		}
 	});
 
@@ -69,7 +75,7 @@
 {#if href}
 	<a {href} {target} {title} class={combinedClasses} data-testid={testId}>
 		{#if loading}
-			<svg class="mr-2 -ml-1 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+			<svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
 				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
 				></circle>
 				<path
@@ -78,10 +84,16 @@
 					d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 				></path>
 			</svg>
+		{:else if icon && iconPosition === 'left'}
+			{@render icon()}
 		{/if}
 
 		{#if children}
 			{@render children()}
+		{/if}
+		
+		{#if icon && iconPosition === 'right' && !loading}
+			{@render icon()}
 		{/if}
 	</a>
 {:else}
@@ -94,7 +106,7 @@
 		data-testid={testId}
 	>
 		{#if loading}
-			<svg class="mr-2 -ml-1 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+			<svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
 				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
 				></circle>
 				<path
@@ -103,10 +115,16 @@
 					d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 				></path>
 			</svg>
+		{:else if icon && iconPosition === 'left'}
+			{@render icon()}
 		{/if}
 
 		{#if children}
 			{@render children()}
+		{/if}
+		
+		{#if icon && iconPosition === 'right' && !loading}
+			{@render icon()}
 		{/if}
 	</button>
 {/if}

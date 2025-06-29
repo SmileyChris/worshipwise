@@ -4,6 +4,7 @@
 
 	import { ChevronDown, Church, Building, Settings, LogOut, Plus, Mail } from 'lucide-svelte';
 	import type { Church as ChurchType } from '$lib/types/church';
+	import Button from '$lib/components/ui/Button.svelte';
 
 	const auth = getAuthStore();
 
@@ -136,10 +137,11 @@
 					{#each auth.availableChurches as church (church.id)}
 						<div class="group relative">
 							<!-- Main church button -->
-							<button
+							<Button
 								onclick={() => handleChurchSwitch(church.id)}
-								class="hover:bg-primary group/item flex w-full cursor-pointer items-center px-4 py-3 text-left transition-colors hover:text-white"
-								role="menuitem"
+								variant="ghost"
+								size="sm"
+								class="w-full justify-start px-4 py-3 h-auto font-normal text-gray-900 hover:bg-primary hover:text-white border-0 rounded-none group/item"
 							>
 								<div class="min-w-0 flex-1">
 									<div class="flex items-center space-x-2">
@@ -166,25 +168,25 @@
 										<div class="bg-primary h-2 w-2 rounded-full"></div>
 									</div>
 								{/if}
-							</button>
+							</Button>
 
 							<!-- Church management buttons -->
 							{#if church.id !== auth.currentChurch?.id && canLeaveChurch()}
 								<div
 									class="absolute top-1/2 right-2 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
 								>
-									<button
+									<Button
 										onclick={(e) => {
 											e.stopPropagation();
 											handleLeaveChurch(church.id);
 										}}
-										class="rounded-md p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+										variant="ghost"
+										size="sm"
+										class="p-1 h-auto text-gray-400 hover:bg-red-50 hover:text-red-600 border-0 {confirmLeave === church.id ? 'text-red-600 bg-red-50' : ''}"
 										title={confirmLeave === church.id ? 'Click again to confirm' : 'Leave church'}
-										class:text-red-600={confirmLeave === church.id}
-										class:bg-red-50={confirmLeave === church.id}
 									>
 										<LogOut class="h-3 w-3" />
-									</button>
+									</Button>
 								</div>
 							{/if}
 						</div>

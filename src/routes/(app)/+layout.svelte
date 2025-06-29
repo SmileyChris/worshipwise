@@ -6,6 +6,7 @@
 	import SystemStatus from '$lib/components/quickstart/SystemStatus.svelte';
 	import SetupWizard from '$lib/components/quickstart/SetupWizard.svelte';
 	import ErrorBoundary from '$lib/components/quickstart/ErrorBoundary.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 
 	let { children } = $props();
 
@@ -51,12 +52,13 @@
 						<p class="mb-8 text-lg text-gray-600">
 							Your system is ready! Let's create your first worship account.
 						</p>
-						<button
+						<Button
 							onclick={() => (quickstartStore.showSetupWizard = true)}
-							class="bg-primary hover:bg-primary/90 inline-flex items-center rounded-md border border-transparent px-6 py-3 text-base font-medium text-white"
+							variant="primary"
+							size="lg"
 						>
 							Get Started
-						</button>
+						</Button>
 					</div>
 				{/if}
 			</main>
