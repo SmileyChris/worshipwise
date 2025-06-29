@@ -5,6 +5,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import CommentThread from './CommentThread.svelte';
+	import ApprovalWorkflow from './ApprovalWorkflow.svelte';
 	import { onMount } from 'svelte';
 	import { flip } from 'svelte/animate';
 
@@ -312,6 +313,14 @@
 
 			<!-- Service -->
 			<div class="flex-1 p-4">
+				<!-- Approval Workflow -->
+				<div class="mb-4">
+					<ApprovalWorkflow 
+						service={servicesStore.currentService} 
+						onUpdate={() => servicesStore.loadService(serviceId)}
+					/>
+				</div>
+
 				<h3 class="font-title mb-3 text-lg font-medium text-gray-900">Service Order</h3>
 
 				<div class="space-y-2">

@@ -20,12 +20,23 @@ export interface Service {
 	estimated_duration?: number;
 	actual_duration?: number;
 	is_template?: boolean;
+	
+	// Approval workflow fields
+	approval_status?: 'not_required' | 'pending_approval' | 'approved' | 'rejected' | 'changes_requested';
+	approval_requested_at?: string;
+	approval_requested_by?: string;
+	approved_by?: string;
+	approval_date?: string;
+	approval_notes?: string;
+	
 	created: string;
 	updated: string;
 
 	// Expanded fields
 	expand?: {
 		worship_leader?: User;
+		approval_requested_by?: User;
+		approved_by?: User;
 	};
 }
 

@@ -372,9 +372,25 @@
 											<p class="mt-1 text-sm text-gray-500">Theme: {service.theme}</p>
 										{/if}
 									</div>
-									<Badge variant={getStatusVariant(service.status || 'draft')}>
-										{service.status || 'draft'}
-									</Badge>
+									<div class="flex flex-col gap-1 items-end">
+										<Badge variant={getStatusVariant(service.status || 'draft')}>
+											{service.status || 'draft'}
+										</Badge>
+										{#if service.approval_status && service.approval_status !== 'not_required'}
+											<Badge 
+												variant={
+													service.approval_status === 'approved' ? 'success' :
+													service.approval_status === 'rejected' ? 'danger' :
+													service.approval_status === 'pending_approval' ? 'warning' :
+													service.approval_status === 'changes_requested' ? 'warning' :
+													'default'
+												}
+												size="sm"
+											>
+												{service.approval_status.replace(/_/g, ' ')}
+											</Badge>
+										{/if}
+									</div>
 								</div>
 
 								{#if service.notes}
