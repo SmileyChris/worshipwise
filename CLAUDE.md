@@ -60,3 +60,4 @@ WorshipWise is a sophisticated worship song tracking system built with SvelteKit
 - NEVER create files unless absolutely necessary
 - ALWAYS prefer editing existing files
 - Create/fix tests after feature changes
+- Commit changes after completing significant features or fixes
