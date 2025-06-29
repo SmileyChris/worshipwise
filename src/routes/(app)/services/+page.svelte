@@ -6,6 +6,7 @@
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import ServiceBuilder from '$lib/components/services/ServiceBuilder.svelte';
 	import TeamSelector from '$lib/components/services/TeamSelector.svelte';
+	import ServiceCalendar from '$lib/components/services/ServiceCalendar.svelte';
 	import type { ServiceTeamSkills } from '$lib/types/service';
 	import { onMount } from 'svelte';
 
@@ -15,6 +16,7 @@
 	let showCreateModal = $state(false);
 	let showBuilder = $state(false);
 	let selectedServiceId = $state<string | null>(null);
+	let viewMode = $state<'grid' | 'calendar'>('grid');
 
 	// Form state for creating services
 	let createForm = $state({
@@ -248,11 +250,27 @@
 				<p class="mt-1 text-sm text-gray-500">Plan and manage your worship services</p>
 			</div>
 
-			{#if auth.canManageServices}
-				<div class="mt-4 flex md:mt-0 md:ml-4">
-					<Button variant="primary" onclick={openCreateModal}>Create New Service</Button>
+			<div class="mt-4 flex items-center gap-4 md:mt-0 md:ml-4">
+				<!-- View toggle -->
+				<div class="flex rounded-lg border border-gray-300 bg-white p-1">
+					<button
+						class="rounded px-3 py-1 text-sm font-medium transition-colors {viewMode === 'grid' ? 'bg-primary text-white' : 'text-gray-700 hover:text-gray-900'}"
+						onclick={() => (viewMode = 'grid')}
+					>
+						Grid
+					</button>
+					<button
+						class="rounded px-3 py-1 text-sm font-medium transition-colors {viewMode === 'calendar' ? 'bg-primary text-white' : 'text-gray-700 hover:text-gray-900'}"
+						onclick={() => (viewMode = 'calendar')}
+					>
+						Calendar
+					</button>
 				</div>
-			{/if}
+
+				{#if auth.canManageServices}
+					<Button variant="primary" onclick={openCreateModal}>Create New Service</Button>
+				{/if}
+			</div>
 		</div>
 
 		<!-- Error message -->
@@ -262,36 +280,38 @@
 			</div>
 		{/if}
 
-		<!-- Quick stats -->
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-4">
-			<Card>
-				<div class="text-center">
-					<div class="font-title text-2xl font-bold text-gray-900">{stats.total}</div>
-					<div class="text-sm text-gray-500">Total Services</div>
-				</div>
-			</Card>
+		<!-- Quick stats (only show in grid view) -->
+		{#if viewMode === 'grid'}
+			<div class="grid grid-cols-1 gap-6 md:grid-cols-4">
+				<Card>
+					<div class="text-center">
+						<div class="font-title text-2xl font-bold text-gray-900">{stats.total}</div>
+						<div class="text-sm text-gray-500">Total Services</div>
+					</div>
+				</Card>
 
-			<Card>
-				<div class="text-center">
-					<div class="font-title text-primary text-2xl font-bold">{stats.draft}</div>
-					<div class="text-sm text-gray-500">Draft</div>
-				</div>
-			</Card>
+				<Card>
+					<div class="text-center">
+						<div class="font-title text-primary text-2xl font-bold">{stats.draft}</div>
+						<div class="text-sm text-gray-500">Draft</div>
+					</div>
+				</Card>
 
-			<Card>
-				<div class="text-center">
-					<div class="font-title text-2xl font-bold text-green-600">{stats.planned}</div>
-					<div class="text-sm text-gray-500">Planned</div>
-				</div>
-			</Card>
+				<Card>
+					<div class="text-center">
+						<div class="font-title text-2xl font-bold text-green-600">{stats.planned}</div>
+						<div class="text-sm text-gray-500">Planned</div>
+					</div>
+				</Card>
 
-			<Card>
-				<div class="text-center">
-					<div class="font-title text-2xl font-bold text-purple-600">{stats.completed}</div>
-					<div class="text-sm text-gray-500">Completed</div>
-				</div>
-			</Card>
-		</div>
+				<Card>
+					<div class="text-center">
+						<div class="font-title text-2xl font-bold text-purple-600">{stats.completed}</div>
+						<div class="text-sm text-gray-500">Completed</div>
+					</div>
+				</Card>
+			</div>
+		{/if}
 
 		<!-- Services list -->
 		{#if servicesStore.loading}
@@ -319,66 +339,80 @@
 				</div>
 			</Card>
 		{:else}
-			<!-- Services grid -->
-			<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-				{#each servicesStore.services as service (service.id)}
-					<Card class="transition-shadow hover:shadow-lg">
-						<div class="p-6">
-							<div class="flex items-start justify-between">
-								<div class="min-w-0 flex-1">
-									<h3 class="truncate text-lg font-medium text-gray-900">
-										{service.title}
-									</h3>
-									<p class="mt-1 text-sm text-gray-600">
-										{formatDate(service.service_date)}
-										{#if service.service_type}
-											• {service.service_type}
+			{#if viewMode === 'calendar'}
+				<!-- Calendar view -->
+				<ServiceCalendar
+					services={servicesStore.services}
+					loading={servicesStore.loading}
+					onServiceClick={(service) => openBuilder(service.id)}
+					onDateClick={(date) => {
+						// Pre-fill the date when creating from calendar
+						createForm.service_date = date.toISOString().split('T')[0];
+						openCreateModal();
+					}}
+				/>
+			{:else}
+				<!-- Services grid -->
+				<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+					{#each servicesStore.services as service (service.id)}
+						<Card class="transition-shadow hover:shadow-lg">
+							<div class="p-6">
+								<div class="flex items-start justify-between">
+									<div class="min-w-0 flex-1">
+										<h3 class="truncate text-lg font-medium text-gray-900">
+											{service.title}
+										</h3>
+										<p class="mt-1 text-sm text-gray-600">
+											{formatDate(service.service_date)}
+											{#if service.service_type}
+												• {service.service_type}
+											{/if}
+										</p>
+										{#if service.theme}
+											<p class="mt-1 text-sm text-gray-500">Theme: {service.theme}</p>
 										{/if}
+									</div>
+									<Badge variant={getStatusVariant(service.status || 'draft')}>
+										{service.status || 'draft'}
+									</Badge>
+								</div>
+
+								{#if service.notes}
+									<p class="mt-3 line-clamp-2 text-sm text-gray-600">
+										{service.notes}
 									</p>
-									{#if service.theme}
-										<p class="mt-1 text-sm text-gray-500">Theme: {service.theme}</p>
-									{/if}
-								</div>
-								<Badge variant={getStatusVariant(service.status || 'draft')}>
-									{service.status || 'draft'}
-								</Badge>
-							</div>
+								{/if}
 
-							{#if service.notes}
-								<p class="mt-3 line-clamp-2 text-sm text-gray-600">
-									{service.notes}
-								</p>
-							{/if}
-
-							<div class="mt-4 flex items-center justify-between">
-								<div class="text-sm text-gray-500">
-									{#if service.estimated_duration}
-										{Math.floor(service.estimated_duration / 60)}:{(service.estimated_duration % 60)
-											.toString()
-											.padStart(2, '0')} estimated
-									{/if}
-								</div>
-								<div class="flex gap-2">
-									<Button variant="primary" size="sm" onclick={() => openBuilder(service.id)}>
-										Edit
-									</Button>
-									{#if service.status === 'draft'}
-										<Button
-											variant="ghost"
-											size="sm"
-											onclick={async () => {
-												await servicesStore.updateService(service.id, { status: 'planned' });
-											}}
-										>
-											Plan
+								<div class="mt-4 flex items-center justify-between">
+									<div class="text-sm text-gray-500">
+										{#if service.estimated_duration}
+											{Math.floor(service.estimated_duration / 60)}:{(service.estimated_duration % 60)
+												.toString()
+												.padStart(2, '0')} estimated
+										{/if}
+									</div>
+									<div class="flex gap-2">
+										<Button variant="primary" size="sm" onclick={() => openBuilder(service.id)}>
+											Edit
 										</Button>
-									{/if}
+										{#if service.status === 'draft'}
+											<Button
+												variant="ghost"
+												size="sm"
+												onclick={async () => {
+													await servicesStore.updateService(service.id, { status: 'planned' });
+												}}
+											>
+												Plan
+											</Button>
+										{/if}
+									</div>
 								</div>
 							</div>
-						</div>
-					</Card>
-				{/each}
-			</div>
+						</Card>
+					{/each}
+				</div>
+			{/if}
 		{/if}
 	</div>
 {/if}
