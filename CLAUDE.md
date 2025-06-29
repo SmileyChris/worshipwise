@@ -4,7 +4,7 @@
 
 WorshipWise is a sophisticated worship song tracking system built with SvelteKit 5 + PocketBase. Single-server deployment where PocketBase serves both API and static frontend.
 
-**Status:** Advanced (50% complete - Sprint 6 finished) - Production-ready authentication, song management, real-time collaboration, analytics dashboard, flexible permission system
+**Status:** Advanced (54% complete - Sprint 6.5 finished) - Production-ready authentication, song management, real-time collaboration, analytics dashboard, flexible permission system
 
 **Stack:** SvelteKit + Static Adapter, Svelte 5 Runes, PocketBase, TypeScript, Tailwind CSS, Vitest, Playwright
 
@@ -31,6 +31,7 @@ WorshipWise is a sophisticated worship song tracking system built with SvelteKit
 
 **Church-Centric:** Multi-tenant with `/setup` flow, timezone-aware operations  
 **Authentication:** PocketBase auth with flexible permission-based system (manage-songs/services/members/church)  
+**Permission System:** Flexible roles with custom permissions + separate skills for worship positions  
 **Song Management:** Usage tracking (green/yellow/red), key transposition, file attachments  
 **Real-Time:** WebSocket collaboration, optimistic UI updates  
 **Analytics:** Usage tracking, heat maps, AI insights, seasonal trending

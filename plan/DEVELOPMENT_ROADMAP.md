@@ -2,10 +2,10 @@
 
 This document tracks the development progress of WorshipWise, a sophisticated worship song management system with advanced features like real-time collaboration, analytics, and usage tracking.
 
-## 🎯 **Current Status: Sprint 6 Complete + Sprint 7 Started**
+## 🎯 **Current Status: Sprint 6.5 Complete + Sprint 7 Started**
 
 **Last Updated**: June 2025  
-**Progress**: 6 of 12 sprints completed (52%) + Sprint 7 ~30% complete  
+**Progress**: 6.5 of 12 sprints completed (54%) + Sprint 7 ~40% complete  
 **Next Up**: Complete Sprint 7 - Enhanced Service Builder
 
 ## Phase 1: Foundation Setup (Sprints 1-2)
@@ -257,9 +257,42 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
   - Service-specific recommendations
   - Leader preference tracking
 
+### Sprint 6.5: Permission System Overhaul ✅ **COMPLETED**
+
+**Goal**: Transform from rigid role-based system to flexible permission-based access control
+
+#### Tasks:
+
+1. **Permission-Based Architecture** ✅
+
+   - ✅ Implement 4 core permissions (manage-songs, manage-services, manage-members, manage-church)
+   - ✅ Create roles collection with custom permission arrays
+   - ✅ Create user_roles junction table for many-to-many relationships
+   - ✅ Built-in leader skill that cannot be deleted (but can be renamed)
+
+2. **Skills System** ✅
+
+   - ✅ Create skills collection for worship positions (guitarist, vocalist, etc.)
+   - ✅ Create user_skills junction table for skill assignments
+   - ✅ Separate skills from permissions for clarity
+   - ✅ Default skills for new churches (leader, guitarist, vocalist, etc.)
+
+3. **Migration and UI Updates** ✅
+   - ✅ Migration scripts to convert existing role-based data
+   - ✅ Complete role and skill management interfaces in admin section
+   - ✅ Update all permission checks throughout the application
+   - ✅ Update auto-retirement logic to use leader skill instead of role
+
+#### Deliverables:
+
+- ✅ Flexible permission system with custom roles
+- ✅ Skills system for worship team positions
+- ✅ Complete admin interfaces for role/skill management
+- ✅ Comprehensive test updates (all 574 tests passing)
+
 ## Phase 4: Enhanced Service Features (Sprints 7-8)
 
-### Sprint 7: Enhanced Service Builder (~30% Complete)
+### Sprint 7: Enhanced Service Builder (~40% Complete)
 
 **Goal**: Advanced service building with templates and team features
 
@@ -275,7 +308,9 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 2. **Team Collaboration**
 
    - ✅ Team member assignment to services (up to 10 members)
-   - [ ] Role-based service permissions
+   - ✅ Skill-based team assignments with TeamSelector component
+   - ✅ Automatic leader skill assignment for worship leader
+   - ✅ Prevents duplicate skill assignments in same service
    - [ ] Comments and feedback system
    - [ ] Approval workflows
 
@@ -288,8 +323,8 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 #### Deliverables:
 
 - ✅ Service templates and duplication (core functionality)
-- 🚧 Team collaboration features (basic assignment only)
-- [ ] Enhanced service planning workflow
+- ✅ Skill-based team collaboration (TeamSelector component)
+- 🚧 Enhanced service planning workflow (in progress)
 - [ ] AI-powered song suggestions in builder
 
 ### Sprint 8: Real-Time Collaboration
@@ -595,7 +630,7 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 
 ## 📊 **Progress Summary**
 
-### **✅ Completed (52% - 6/12 Sprints + Schema Consolidation)**
+### **✅ Completed (54% - 6.5/12 Sprints + Schema Consolidation)**
 
 1. **Sprint 1**: Project Infrastructure ✅
 2. **Sprint 2**: Authentication & Basic UI ✅
@@ -604,13 +639,14 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 5. **Sprint 5**: Analytics Dashboard ✅
 6. **Schema Consolidation**: Database Migration Consolidation ✅
 7. **Sprint 6**: Intelligent Worship Insights ✅
+8. **Sprint 6.5**: Permission System Overhaul ✅
 
 ### **🚧 Current Status**
 
-- **Sprint 7 Progress**: ~30% complete (templates, duplication, team assignment)
+- **Sprint 7 Progress**: ~40% complete (templates, duplication, skill-based team assignment)
 - **Next Priority**: Complete Sprint 7 - Enhanced Service Builder
-- **Production Ready Features**: Complete authentication, song management, analytics, AI-powered insights, smart recommendations, lyrics analysis
-- **Advanced Implementation**: 10,000+ lines of production code including AI integration, real-time updates, advanced analytics
+- **Production Ready Features**: Complete authentication, flexible permission system, song management, analytics, AI-powered insights, smart recommendations, lyrics analysis
+- **Advanced Implementation**: 10,000+ lines of production code including AI integration, real-time updates, advanced analytics, flexible permissions
 
 ### **🎯 Immediate Next Steps (Complete Sprint 7)**
 
@@ -632,18 +668,20 @@ This document tracks the development progress of WorshipWise, a sophisticated wo
 - ✅ **AI Integration**: Mistral API for lyrics analysis and intelligent insights
 - ✅ **Smart Recommendations**: Multi-factor recommendation engine with rotation, seasonal, and popularity analysis
 - ✅ **Responsive Design**: Mobile-first approach, works on all screen sizes
-- ✅ **Role-Based Access**: Musicians, leaders, admins with granular permissions
+- ✅ **Permission-Based Access**: Flexible role system with 4 core permissions (manage-songs/services/members/church)
+- ✅ **Skills System**: Separate skills for worship positions (guitarist, vocalist, etc.)
 - ✅ **Database Schema**: Consolidated migration with church-centric multi-tenant architecture
-- ✅ **Testing Infrastructure**: 541/542 tests passing with dependency injection architecture
+- ✅ **Testing Infrastructure**: 574/575 tests passing with dependency injection architecture
 - ✅ **Documentation**: Complete DATABASE_SCHEMA.md with all collections and relationships
 
 ### **📈 Development Velocity & Maturity**
 
-- **6 sprints completed** with sophisticated implementations (52% project completion)
-- **Advanced feature set**: Includes AI-powered insights, smart recommendations, and lyrics analysis
+- **6.5 sprints completed** with sophisticated implementations (54% project completion)
+- **Advanced feature set**: Includes AI-powered insights, smart recommendations, lyrics analysis, and flexible permissions
 - **Production-ready quality**: Comprehensive error handling, validation, and type safety
-- **Testing infrastructure**: 541/542 tests passing with full dependency injection architecture
+- **Testing infrastructure**: 574/575 tests passing with full dependency injection architecture
 - **Real-world deployment**: Single-server PocketBase architecture ready for production
 - **AI Integration**: Mistral API integration for advanced lyrics and worship analysis
+- **Flexible Permission System**: Complete overhaul from roles to permissions with skills for worship positions
 
 This roadmap provides a structured approach to building WorshipWise while maintaining quality and meeting user needs. Each phase builds upon the previous one, ensuring a solid foundation for the final product.
