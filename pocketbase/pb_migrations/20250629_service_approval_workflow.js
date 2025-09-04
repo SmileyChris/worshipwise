@@ -19,7 +19,7 @@ migrate((app) => {
     maxSelect: 1,
     values: [
       "not_required",
-      "pending_approval", 
+      "pending_approval",
       "approved",
       "rejected",
       "changes_requested"
@@ -33,9 +33,7 @@ migrate((app) => {
     type: "date",
     required: false,
     presentable: false,
-    unique: false,
-    min: "",
-    max: ""
+    unique: false
   });
 
   // Add approval_requested_by field
@@ -48,9 +46,7 @@ migrate((app) => {
     unique: false,
     collectionId: "_pb_users_auth_",
     cascadeDelete: false,
-    minSelect: null,
-    maxSelect: 1,
-    displayFields: ["name", "email"]
+    maxSelect: 1
   });
 
   // Add approved_by field
@@ -63,9 +59,7 @@ migrate((app) => {
     unique: false,
     collectionId: "_pb_users_auth_",
     cascadeDelete: false,
-    minSelect: null,
-    maxSelect: 1,
-    displayFields: ["name", "email"]
+    maxSelect: 1
   });
 
   // Add approval_date field
@@ -75,9 +69,7 @@ migrate((app) => {
     type: "date",
     required: false,
     presentable: false,
-    unique: false,
-    min: "",
-    max: ""
+    unique: false
   });
 
   // Add approval_notes field
@@ -88,7 +80,6 @@ migrate((app) => {
     required: false,
     presentable: false,
     unique: false,
-    min: null,
     max: 1000
   });
 
@@ -177,3 +168,4 @@ migrate((app) => {
     throw e;
   }
 });
+

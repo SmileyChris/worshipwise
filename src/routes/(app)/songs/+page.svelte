@@ -1,21 +1,23 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import { page } from '$app/stores';
-	import { getAuthStore, getSongsStore, getServicesStore } from '$lib/context/stores.svelte';
-	import type { Song, Category } from '$lib/types/song';
-	import Card from '$lib/components/ui/Card.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
-	import Select from '$lib/components/ui/Select.svelte';
-	import Modal from '$lib/components/ui/Modal.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
-	import SongCard from '$lib/components/songs/SongCard.svelte';
+	import { page } from '$app/stores';
 	import CategoryCard from '$lib/components/songs/CategoryCard.svelte';
-	import SongsSidebar from '$lib/components/songs/SongsSidebar.svelte';
+	import SongCard from '$lib/components/songs/SongCard.svelte';
 	import SongForm from '$lib/components/songs/SongForm.svelte';
+	import SongsSidebar from '$lib/components/songs/SongsSidebar.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import Card from '$lib/components/ui/Card.svelte';
 	import CategorySelect from '$lib/components/ui/CategorySelect.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
 	import LabelSelector from '$lib/components/ui/LabelSelector.svelte';
+	import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
+	import Modal from '$lib/components/ui/Modal.svelte';
+	import Select from '$lib/components/ui/Select.svelte';
+	import { getAuthStore, getServicesStore, getSongsStore } from '$lib/context/stores.svelte';
+	import type { Category, Song } from '$lib/types/song';
+	import { onMount } from 'svelte';
+
+	let { data } = $props();
 
 	const auth = getAuthStore();
 	const songsStore = getSongsStore();
@@ -96,22 +98,22 @@
 		}
 	}
 
-    // Load songs on mount
-    onMount(() => {
-        // Deep link: open song form when `?new=1` or `?new=true`
-        const openNew = $page.url.searchParams.get('new');
-        if (openNew === '1' || openNew === 'true') {
-            songsStore.selectSong(null);
-            showSongForm = true;
-        }
+	// Load songs on mount
+	onMount(() => {
+		// Deep link: open song form when `?new=1` or `?new=true`
+		const openNew = $page.url.searchParams.get('new');
+		if (openNew === '1' || openNew === 'true') {
+			songsStore.selectSong(null);
+			showSongForm = true;
+		}
 
-        if (viewMode === 'categories') {
-            loadCategoriesData();
-        } else {
-            songsStore.loadSongs().then(() => {
-                initialLoadComplete = true;
-            });
-        }
+		if (viewMode === 'categories') {
+			loadCategoriesData();
+		} else {
+			songsStore.loadSongs().then(() => {
+				initialLoadComplete = true;
+			});
+		}
 
 		// Load user preferences
 		songsStore.loadUserPreferences();
@@ -140,8 +142,32 @@
 
 	// Watch for view mode changes
 	$effect(() => {
+		// Wait for church context before loading
+		if (!auth.currentChurch) return;
+
 		if (viewMode === 'categories') {
-			loadCategoriesData();
+			// Use preloaded songs from page load if available
+			if (data?.preloadedSongs && Array.isArray(data.preloadedSongs)) {
+				const map = new Map<string, { category: Record<string, unknown>; songs: Song[] }>();
+				for (const song of data.preloadedSongs as Song[]) {
+					const categoryId = song.category as string;
+					const categoryInfo = (song as any).expand?.category;
+					if (!map.has(categoryId)) {
+						const category = categoryInfo || {
+							id: categoryId || 'unknown-category',
+							name: 'Unknown Category'
+						};
+						map.set(categoryId, { category, songs: [] });
+					}
+					map.get(categoryId)!.songs.push(song);
+				}
+				map.forEach(({ songs }) => songs.sort((a, b) => a.title.localeCompare(b.title)));
+				categoriesData = map as unknown as Map<string, { category: Category; songs: Song[] }>;
+				initialLoadComplete = true;
+			} else {
+				loadCategoriesData();
+				initialLoadComplete = true;
+			}
 		} else if (viewMode === 'list' && !initialLoadComplete) {
 			songsStore.loadSongs().then(() => {
 				initialLoadComplete = true;
@@ -150,9 +176,10 @@
 	});
 
 	// Watch for filter changes (avoiding infinite loops by not watching loading state)
+
 	$effect(() => {
 		// Only apply filters after initial load to avoid duplicate calls (only for list view)
-		if (viewMode === 'list' && initialLoadComplete) {
+		if (viewMode === 'list' && initialLoadComplete && auth.currentChurch) {
 			const filters = {
 				search: searchQuery,
 				key: selectedKey,
@@ -392,12 +419,14 @@
 						<EmptyState
 							title="Welcome to your Song Library"
 							message={auth.canManageSongs
-								? "Get started by adding your first worship song to the library."
-								: "Contact your worship leader to add songs to the library."}
-							action={auth.canManageSongs ? {
-								label: "Add Your First Song",
-								onclick: handleAddSong
-							} : undefined}
+								? 'Get started by adding your first worship song to the library.'
+								: 'Contact your worship leader to add songs to the library.'}
+							action={auth.canManageSongs
+								? {
+										label: 'Add Your First Song',
+										onclick: handleAddSong
+									}
+								: undefined}
 						>
 							{#snippet icon()}
 								<div class="text-6xl">🎵</div>
@@ -413,12 +442,14 @@
 						<EmptyState
 							title="Welcome to your Song Library"
 							message={auth.canManageSongs
-								? "Get started by adding your first worship song to the library."
-								: "Contact your worship leader to add songs to the library."}
-							action={auth.canManageSongs ? {
-								label: "Add Your First Song",
-								onclick: handleAddSong
-							} : undefined}
+								? 'Get started by adding your first worship song to the library.'
+								: 'Contact your worship leader to add songs to the library.'}
+							action={auth.canManageSongs
+								? {
+										label: 'Add Your First Song',
+										onclick: handleAddSong
+									}
+								: undefined}
 						>
 							{#snippet icon()}
 								<div class="text-6xl">🎵</div>

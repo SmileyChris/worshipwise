@@ -1,14 +1,14 @@
-import { createSongsAPI, type SongsAPI } from '$lib/api/songs';
 import { createRatingsAPI, type RatingsAPI } from '$lib/api/ratings';
-import type { AuthContext } from '$lib/types/auth';
+import { createSongsAPI, type SongsAPI } from '$lib/api/songs';
 import type { AuthStore as RuntimeAuthStore } from '$lib/stores/auth.svelte';
+import type { AuthContext } from '$lib/types/auth';
 import type {
-	Song,
+	AggregateRatings,
 	CreateSongData,
-	UpdateSongData,
+	Song,
 	SongFilterOptions,
 	SongStats,
-	AggregateRatings
+	UpdateSongData
 } from '$lib/types/song';
 
 class SongsStore {
@@ -124,7 +124,7 @@ class SongsStore {
 			const songIds = result.items.map((song) => song.id);
 			const usageMap = await this.songsApi.getSongsUsageInfo(songIds);
 
-			// Load ratings for all songs
+			// Load ratings for all songs using current auth context
 			const ratingsMap = await this.ratingsApi.getMultipleSongRatings(songIds);
 			this.songRatings = ratingsMap;
 

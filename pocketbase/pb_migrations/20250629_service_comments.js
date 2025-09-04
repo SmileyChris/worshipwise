@@ -1,87 +1,29 @@
 /// <reference path="../pb_types.d.ts" />
 
 migrate((app) => {
-  // Resolve referenced collections
-  const servicesCollection = app.findCollectionByNameOrId("services");
-  if (!servicesCollection) {
+  // Resolve related collection IDs
+  const servicesCol = app.findCollectionByNameOrId("services");
+  if (!servicesCol) {
     throw new Error("services collection not found");
   }
+  const usersCol = app.findCollectionByNameOrId("users");
+  const usersId = usersCol?.id || "_pb_users_auth_";
 
-  // Create service_comments collection (without self-relation initially)
+  // Create service_comments collection (initially without self-relation parent_id)
   const collection = new Collection({
     name: "service_comments",
     type: "base",
     fields: [
-      // Comment text
-      {
-        type: "text",
-        name: "comment",
-        required: true,
-        presentable: false,
-        unique: false,
-        min: 1,
-        max: 2000
-      },
-      // Service relationship
-      {
-        type: "relation",
-        name: "service_id",
-        required: true,
-        presentable: false,
-        unique: false,
-        collectionId: servicesCollection.id,
-        cascadeDelete: true,
-        minSelect: null,
-        maxSelect: 1,
-        displayFields: ["title"]
-      },
-      // User who posted the comment
-      {
-        type: "relation",
-        name: "user_id",
-        required: true,
-        presentable: false,
-        unique: false,
-        collectionId: "_pb_users_auth_",
-        cascadeDelete: false,
-        minSelect: null,
-        maxSelect: 1,
-        displayFields: ["name", "email"]
-      },
-      // Parent comment for threading will be added after initial save
-      // Mentions - users mentioned in the comment
-      {
-        type: "relation",
-        name: "mentions",
-        required: false,
-        presentable: false,
-        unique: false,
-        collectionId: "_pb_users_auth_",
-        cascadeDelete: false,
-        minSelect: null,
-        maxSelect: 10,
-        displayFields: ["name"]
-      },
-      // Edit history tracking
-      {
-        type: "bool",
-        name: "edited",
-        required: false,
-        presentable: false,
-        unique: false
-      },
-      {
-        type: "date",
-        name: "edited_at",
-        required: false,
-        presentable: false,
-        unique: false,
-        min: "",
-        max: ""
-      }
+      { type: "text", name: "comment", required: true, min: 1, max: 2000 },
+      { type: "relation", name: "service_id", required: true, collectionId: servicesCol.id, maxSelect: 1, cascadeDelete: true },
+      { type: "relation", name: "user_id", required: true, collectionId: usersId, maxSelect: 1 },
+      { type: "relation", name: "mentions", collectionId: usersId, maxSelect: 10 },
+      { type: "bool", name: "edited" },
+      { type: "date", name: "edited_at" }
     ],
     indexes: [
       `CREATE INDEX idx_service_comments_service ON service_comments (service_id)`,
+      `CREATE INDEX idx_service_comments_user ON service_comments (user_id)`
       `CREATE INDEX idx_service_comments_user ON service_comments (user_id)`
     ],
     listRule: `
@@ -94,15 +36,16 @@ migrate((app) => {
     `,
     createRule: `
       @request.auth.id != "" && 
-      @request.auth.id = user_id &&
+      user_id = @request.auth.id &&
       service_id.church_id = @request.auth.church_memberships_via_user_id.church_id
     `,
     updateRule: `
-      user_id = @request.auth.id
+      user_id = @request.auth.id &&
+      service_id.church_id = @request.auth.church_memberships_via_user_id.church_id
     `,
     deleteRule: `
-      @request.auth.id = user_id ||
-      @request.auth.church_memberships_via_user_id.permissions ~ "manage-services"
+      (user_id = @request.auth.id && service_id.church_id = @request.auth.church_memberships_via_user_id.church_id) ||
+      (@request.auth.church_memberships_via_user_id.church_id ?= service_id.church_id && @request.auth.church_memberships_via_user_id.permissions ~ "manage-services")
     `,
     options: {}
   });
@@ -110,31 +53,23 @@ migrate((app) => {
   try {
     app.save(collection);
     console.log("Successfully created service_comments collection (base)");
+    console.log("Successfully created service_comments collection (base)");
   } catch (e) {
     console.error("Failed to create service_comments collection:", e);
     throw e;
   }
 
-  // Add self relation parent_id and index in a follow-up update
+  // Add self-relation parent_id field and its index
   try {
     const sc = app.findCollectionByNameOrId("service_comments");
-    if (!sc) {
-      throw new Error("service_comments collection not found after creation");
-    }
+    if (!sc) throw new Error("service_comments collection not found after creation");
 
     const parentField = new Field({
       type: "relation",
       name: "parent_id",
-      required: false,
-      presentable: false,
-      unique: false,
       collectionId: sc.id,
-      cascadeDelete: false,
-      minSelect: null,
-      maxSelect: 1,
-      displayFields: ["comment"]
+      maxSelect: 1
     });
-
     sc.fields = [...sc.fields, parentField];
     sc.indexes = [
       ...sc.indexes,
@@ -142,9 +77,9 @@ migrate((app) => {
     ];
 
     app.save(sc);
-    console.log("Added parent_id field and index to service_comments");
+    console.log("Added parent_id self-relation and index to service_comments");
   } catch (e) {
-    console.error("Failed to add parent_id to service_comments:", e);
+    console.error("Failed to add parent_id field to service_comments:", e);
     throw e;
   }
 }, (app) => {
@@ -160,3 +95,4 @@ migrate((app) => {
     throw e;
   }
 });
+

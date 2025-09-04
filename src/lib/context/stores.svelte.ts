@@ -1,15 +1,15 @@
-import { getContext, setContext } from 'svelte';
-import { createAuthStore, type AuthStore } from '$lib/stores/auth.svelte';
 import { pb } from '$lib/api/client';
-import { createSetupStore, type SetupStore } from '$lib/stores/setup.svelte';
-import { createSongsStore, type SongsStore } from '$lib/stores/songs.svelte';
-import { createServicesStore, type ServicesStore } from '$lib/stores/services.svelte';
 import { createAnalyticsStore, type AnalyticsStore } from '$lib/stores/analytics.svelte';
+import { createAuthStore, type AuthStore } from '$lib/stores/auth.svelte';
+import { createQuickstartStore, type QuickstartStore } from '$lib/stores/quickstart.svelte';
 import {
 	createRecommendationsStore,
 	type RecommendationsStore
 } from '$lib/stores/recommendations.svelte';
-import { createQuickstartStore, type QuickstartStore } from '$lib/stores/quickstart.svelte';
+import { createServicesStore, type ServicesStore } from '$lib/stores/services.svelte';
+import { createSetupStore, type SetupStore } from '$lib/stores/setup.svelte';
+import { createSongsStore, type SongsStore } from '$lib/stores/songs.svelte';
+import { getContext, setContext } from 'svelte';
 
 // Context keys
 const AUTH_STORE_KEY = Symbol('auth-store');
@@ -45,13 +45,13 @@ export function initializeStores(): StoreContext {
 	// Create quickstart store (independent)
 	const quickstart = createQuickstartStore();
 
-    // Create auth-dependent stores with live auth (runes)
-    const songs = createSongsStore(auth);
-    const services = createServicesStore(auth);
+	// Create auth-dependent stores with live auth context getter
+	const songs = createSongsStore(() => auth.getAuthContext());
+	const services = createServicesStore(auth.getAuthContext(), pb);
 
 	// Independent stores
-    const analytics = createAnalyticsStore(auth);
-    const recommendations = createRecommendationsStore(auth.getAuthContext(), pb);
+	const analytics = createAnalyticsStore(auth);
+	const recommendations = createRecommendationsStore(auth.getAuthContext(), pb);
 
 	// Set all contexts
 	setContext(AUTH_STORE_KEY, auth);
