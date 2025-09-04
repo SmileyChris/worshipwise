@@ -130,19 +130,24 @@ test.describe('Initial User Experience', () => {
 	test(
 		'shows validation errors in setup form',
 		async ({ page }) => {
-			test.slow(); // Mark test as slow since it involves multiple UI interactions
+    // Keep timeouts tight; avoid slow mode to prevent long retries
 
 			await page.goto('/setup');
 			await page.waitForLoadState('networkidle');
 
-			// Test step 1 validation - empty church name
-			await page.click('text=Next Step');
-			await expect(page.locator('text=Church name is required')).toBeVisible();
+            // Test step 1 validation - empty church name
+            const next = page.getByRole('button', { name: 'Next Step' });
+            await expect(next).toBeDisabled();
+            // Trigger validation via Enter on the name field (component calls nextStep())
+            await page.getByLabel('Church Name').press('Enter');
+            await expect(page.getByText('Church name is required')).toBeVisible();
 
 			// Fill church name and proceed to step 2
 			await page.fill('[name="churchName"]', 'Test Church');
 			await page.selectOption('select', 'UTC'); // Ensure timezone is set
-			await page.click('text=Next Step');
+            // Wait for the button to become enabled, then click
+            await expect(next).toBeEnabled({ timeout: 5000 });
+            await next.click();
 
 			// Test step 2 validation
 			await page.click('text=Complete Setup');
@@ -162,7 +167,7 @@ test.describe('Initial User Experience', () => {
 			await page.click('text=Complete Setup');
 			await expect(page.locator('text=Passwords do not match')).toBeVisible();
 		},
-		{ timeout: 10000 }
+        { timeout: 15000 }
 	); // Reduce timeout to 10 seconds since we're mocking API calls
 
 	test('preserves form data during navigation', async ({ page }) => {

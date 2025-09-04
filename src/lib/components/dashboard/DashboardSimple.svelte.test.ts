@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import { describe, it, expect } from 'vitest';
 import { renderWithContext } from '../../../../tests/helpers/component-test-utils';
 import { screen } from '@testing-library/svelte';
 import DashboardSimple from './DashboardSimple.svelte';
@@ -18,4 +19,3 @@ describe('DashboardSimple', () => {
     expect(screen.getByText('Open Setup Wizard')).toBeInTheDocument();
   });
 });
-
