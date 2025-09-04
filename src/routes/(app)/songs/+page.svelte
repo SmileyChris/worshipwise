@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+    import { onMount } from 'svelte';
+    import { page } from '$app/stores';
 	import { getAuthStore, getSongsStore, getServicesStore } from '$lib/context/stores.svelte';
 	import type { Song, Category } from '$lib/types/song';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -95,15 +96,22 @@
 		}
 	}
 
-	// Load songs on mount
-	onMount(() => {
-		if (viewMode === 'categories') {
-			loadCategoriesData();
-		} else {
-			songsStore.loadSongs().then(() => {
-				initialLoadComplete = true;
-			});
-		}
+    // Load songs on mount
+    onMount(() => {
+        // Deep link: open song form when `?new=1` or `?new=true`
+        const openNew = $page.url.searchParams.get('new');
+        if (openNew === '1' || openNew === 'true') {
+            songsStore.selectSong(null);
+            showSongForm = true;
+        }
+
+        if (viewMode === 'categories') {
+            loadCategoriesData();
+        } else {
+            songsStore.loadSongs().then(() => {
+                initialLoadComplete = true;
+            });
+        }
 
 		// Load user preferences
 		songsStore.loadUserPreferences();
