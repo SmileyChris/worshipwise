@@ -19,8 +19,10 @@
 	let { service, availableSongs, currentSongs, onAddSong }: Props = $props();
 
 	const auth = getAuthStore();
-	const authContext = auth.getAuthContext();
-	const aiApi = createAISuggestionsAPI(authContext, authContext.pb);
+	const aiApi = $derived.by(() => {
+		const ctx = auth.getAuthContext();
+		return createAISuggestionsAPI(ctx, ctx.pb);
+	});
 
 	let suggestions = $state<SongSuggestion[]>([]);
 	let loading = $state(false);

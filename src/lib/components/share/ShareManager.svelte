@@ -9,8 +9,10 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 
 	const auth = getAuthStore();
-	const authContext = auth.getAuthContext();
-	const shareAPI = createShareAPI(authContext, authContext.pb);
+	const shareAPI = $derived.by(() => {
+		const ctx = auth.getAuthContext();
+		return createShareAPI(ctx, ctx.pb);
+	});
 
 	// State
 	let shareLinks = $state<TeamShareLink[]>([]);

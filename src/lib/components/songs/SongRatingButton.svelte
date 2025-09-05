@@ -14,8 +14,10 @@
 	let { song, showAggregates = true, onRatingChange }: Props = $props();
 
 	const auth = getAuthStore();
-	const authContext = auth.getAuthContext();
-	const ratingsAPI = createRatingsAPI(authContext, authContext.pb);
+	const ratingsAPI = $derived.by(() => {
+		const ctx = auth.getAuthContext();
+		return createRatingsAPI(ctx, ctx.pb);
+	});
 
 	let currentRating = $state<SongRatingValue | null>(null);
 	let isDifficult = $state(false);

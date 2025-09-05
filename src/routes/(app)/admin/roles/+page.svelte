@@ -34,10 +34,11 @@
 	// Permission validation
 	let missingPermissions = $state<Permission[]>([]);
 
-	// Initialize API
+	// Initialize API reactively with runes
 	$effect(() => {
-		if (auth.currentChurch) {
-			rolesAPI = createRolesAPI(auth.getAuthContext(), pb);
+		const ctx = auth.getAuthContext();
+		if (ctx?.currentChurch) {
+			rolesAPI = createRolesAPI(ctx, pb);
 		}
 	});
 

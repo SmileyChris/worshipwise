@@ -41,10 +41,11 @@
 		{ name: 'Lighting', slug: 'lighting', icon: '💡' }
 	];
 
-	// Initialize API
+	// Initialize API reactively with runes
 	$effect(() => {
-		if (auth.currentChurch) {
-			skillsAPI = createSkillsAPI(auth.getAuthContext(), pb);
+		const ctx = auth.getAuthContext();
+		if (ctx?.currentChurch) {
+			skillsAPI = createSkillsAPI(ctx, pb);
 		}
 	});
 

@@ -18,8 +18,10 @@
 	let { open = $bindable(), song = null, onclose, onsuccess }: Props = $props();
 
 	const auth = getAuthStore();
-	const authContext = auth.getAuthContext();
-	const suggestionsAPI = createSuggestionsAPI(authContext, authContext.pb);
+	const suggestionsAPI = $derived.by(() => {
+		const ctx = auth.getAuthContext();
+		return createSuggestionsAPI(ctx, ctx.pb);
+	});
 	const songsStore = getSongsStore();
 
 	let selectedSongId = $state(song?.id || '');

@@ -10,8 +10,10 @@
 	import SuggestSongModal from '$lib/components/songs/SuggestSongModal.svelte';
 
 	const auth = getAuthStore();
-	const authContext = auth.getAuthContext();
-	const suggestionsAPI = createSuggestionsAPI(authContext, authContext.pb);
+	const suggestionsAPI = $derived.by(() => {
+		const ctx = auth.getAuthContext();
+		return createSuggestionsAPI(ctx, ctx.pb);
+	});
 
 	// State
 	let suggestions = $state<SongSuggestion[]>([]);

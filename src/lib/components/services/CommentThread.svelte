@@ -14,7 +14,10 @@
 	let { serviceId, onClose }: Props = $props();
 
 	const auth = getAuthStore();
-	const commentsApi = createServiceCommentsAPI(auth, auth.pb);
+	const commentsApi = $derived.by(() => {
+		const ctx = auth.getAuthContext();
+		return createServiceCommentsAPI(ctx, ctx.pb);
+	});
 
 	// State
 	let comments = $state<ServiceComment[]>([]);
