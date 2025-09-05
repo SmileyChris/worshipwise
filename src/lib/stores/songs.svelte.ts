@@ -1,4 +1,4 @@
-import { createSongsAPI, type SongsAPI } from '$lib/api/songs';
+import { songsApi, type SongsAPI } from '$lib/api/songs';
 import { createRatingsAPI, type RatingsAPI } from '$lib/api/ratings';
 import type { AuthContext } from '$lib/types/auth';
 import { pb } from '$lib/api/client';
@@ -76,11 +76,11 @@ class SongsStore {
 	private songsApi: SongsAPI;
 	private ratingsApi: RatingsAPI;
 
-	constructor(private authContext: AuthContext) {
-		// Create API instances with injected context
-		this.songsApi = createSongsAPI(authContext, authContext.pb);
-		this.ratingsApi = createRatingsAPI(authContext, authContext.pb);
-	}
+    constructor(private authContext: AuthContext) {
+        // Use dynamic proxy so auth context (currentChurch) stays fresh
+        this.songsApi = songsApi as unknown as SongsAPI;
+        this.ratingsApi = createRatingsAPI(authContext, authContext.pb);
+    }
 
 	/**
 	 * Load songs with current filters and pagination
