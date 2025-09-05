@@ -1,4 +1,4 @@
-import { createCategoriesAPI } from '$lib/api/categories.js';
+import { categoriesApi } from '$lib/api/categories.js';
 import { pb } from '$lib/api/client.js';
 import { createSongsAPI } from '$lib/api/songs.js';
 import { createSystemAPI } from '$lib/api/system.js';
@@ -151,10 +151,10 @@ class QuickstartStore {
 		}
 
 		const authContext = auth.getAuthContext();
-		const songsApi = createSongsAPI(authContext);
-		const categoriesApi = createCategoriesAPI(authContext);
+		const songsApi = createSongsAPI(authContext, authContext.pb);
+		const categoriesAPI = categoriesApi;
 
-		await importSampleData(songsApi, categoriesApi);
+		await importSampleData(songsApi, categoriesAPI);
 		this.updateStepStatus('sample-data', 'completed');
 	}
 
@@ -168,10 +168,9 @@ class QuickstartStore {
 			throw new Error('Must be logged in to create categories');
 		}
 
-		const authContext = auth.getAuthContext();
-		const categoriesApi = createCategoriesAPI(authContext);
+		const categoriesAPI = categoriesApi;
 
-		await createDefaultCategories(categoriesApi);
+		await createDefaultCategories(categoriesAPI);
 		this.updateStepStatus('default-categories', 'completed');
 	}
 
@@ -205,8 +204,7 @@ class QuickstartStore {
 			const { createSongsStore } = await import('$lib/stores/songs.svelte.js');
 
 			const auth = createAuthStore();
-			const authContext = auth.getAuthContext();
-			const songsStore = createSongsStore(authContext);
+			const songsStore = createSongsStore(auth);
 
 			await songsStore.loadSongs(true); // Reset to first page
 

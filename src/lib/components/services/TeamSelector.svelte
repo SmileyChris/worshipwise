@@ -30,10 +30,11 @@
 	// Local copy of team assignments
 	let localTeamSkills = $state<ServiceTeamSkills>({ ...teamSkills });
 
-	// Initialize API
+	// Initialize API reactively with runes
 	$effect(() => {
-		if (auth.currentChurch) {
-			skillsAPI = createSkillsAPI(auth.getAuthContext(), pb);
+		const ctx = auth.getAuthContext();
+		if (ctx?.currentChurch) {
+			skillsAPI = createSkillsAPI(ctx, pb);
 		}
 	});
 

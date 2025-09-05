@@ -1,5 +1,10 @@
 import type { QuickstartData } from '$lib/types/quickstart.js';
-import type { CategoriesAPI } from '$lib/api/categories';
+import type { Category } from '$lib/types/song';
+// Accept the proxy-style categories API that infers church from auth
+type CategoriesApiLike = {
+    getCategories: () => Promise<Category[]>;
+    createCategory: (data: { name: string; description?: string; color?: string; sort_order: number }) => Promise<Category>;
+};
 import type { SongsAPI } from '$lib/api/songs';
 
 // Default categories for the church
@@ -148,15 +153,15 @@ export const sampleData: QuickstartData = {
 };
 
 export async function createDefaultCategories(
-	categoriesAPI: CategoriesAPI
+	categoriesAPI: CategoriesApiLike
 ): Promise<{ [key: string]: string }> {
 	console.log('Creating default categories...');
 
 	const categoryMap: { [key: string]: string } = {};
 
 	// First, get existing categories to avoid duplicates
-	try {
-		const existingCategories = await categoriesAPI.getCategories();
+    try {
+        const existingCategories = await categoriesAPI.getCategories();
 		for (const category of existingCategories) {
 			categoryMap[category.name] = category.id;
 			console.log(`Found existing category: ${category.name}`);
@@ -172,8 +177,8 @@ export async function createDefaultCategories(
 			continue;
 		}
 
-		try {
-			const category = await categoriesAPI.createCategory(categoryData);
+        try {
+            const category = await categoriesAPI.createCategory(categoryData);
 			categoryMap[categoryData.name] = category.id;
 			console.log(`Created category: ${categoryData.name}`);
 		} catch (error) {
@@ -186,8 +191,8 @@ export async function createDefaultCategories(
 }
 
 export async function importSampleData(
-	songsAPI: SongsAPI,
-	categoriesAPI: CategoriesAPI
+    songsAPI: SongsAPI,
+    categoriesAPI: CategoriesApiLike
 	// user: Record<string, unknown> // Reserved for future user-specific data
 ): Promise<void> {
 	console.log('Importing sample data...');
