@@ -16,16 +16,14 @@ migrate((app) => {
     required: false,
     presentable: false,
     unique: false,
-    options: {
-      maxSelect: 1,
-      values: [
-        "not_required",
-        "pending_approval", 
-        "approved",
-        "rejected",
-        "changes_requested"
-      ]
-    }
+    maxSelect: 1,
+    values: [
+      "not_required",
+      "pending_approval", 
+      "approved",
+      "rejected",
+      "changes_requested"
+    ]
   });
 
   // Add approval_requested_at field
@@ -36,10 +34,8 @@ migrate((app) => {
     required: false,
     presentable: false,
     unique: false,
-    options: {
-      min: "",
-      max: ""
-    }
+    min: "",
+    max: ""
   });
 
   // Add approval_requested_by field
@@ -50,13 +46,11 @@ migrate((app) => {
     required: false,
     presentable: false,
     unique: false,
-    options: {
-      collectionId: "_pb_users_auth_",
-      cascadeDelete: false,
-      minSelect: null,
-      maxSelect: 1,
-      displayFields: ["name", "email"]
-    }
+    collectionId: "_pb_users_auth_",
+    cascadeDelete: false,
+    minSelect: null,
+    maxSelect: 1,
+    displayFields: ["name", "email"]
   });
 
   // Add approved_by field
@@ -67,13 +61,11 @@ migrate((app) => {
     required: false,
     presentable: false,
     unique: false,
-    options: {
-      collectionId: "_pb_users_auth_",
-      cascadeDelete: false,
-      minSelect: null,
-      maxSelect: 1,
-      displayFields: ["name", "email"]
-    }
+    collectionId: "_pb_users_auth_",
+    cascadeDelete: false,
+    minSelect: null,
+    maxSelect: 1,
+    displayFields: ["name", "email"]
   });
 
   // Add approval_date field
@@ -84,10 +76,8 @@ migrate((app) => {
     required: false,
     presentable: false,
     unique: false,
-    options: {
-      min: "",
-      max: ""
-    }
+    min: "",
+    max: ""
   });
 
   // Add approval_notes field
@@ -98,10 +88,8 @@ migrate((app) => {
     required: false,
     presentable: false,
     unique: false,
-    options: {
-      min: null,
-      max: 1000
-    }
+    min: null,
+    max: 1000
   });
 
   // Try to add the fields

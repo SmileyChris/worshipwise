@@ -1,116 +1,88 @@
 /// <reference path="../pb_types.d.ts" />
 
 migrate((app) => {
-  // Create service_comments collection
+  // Resolve referenced collections
+  const servicesCollection = app.findCollectionByNameOrId("services");
+  if (!servicesCollection) {
+    throw new Error("services collection not found");
+  }
+
+  // Create service_comments collection (without self-relation initially)
   const collection = new Collection({
-    id: "service_comments",
     name: "service_comments",
     type: "base",
     fields: [
       // Comment text
-      new Field({
-        id: "comment",
-        name: "comment",
+      {
         type: "text",
+        name: "comment",
         required: true,
         presentable: false,
         unique: false,
-        options: {
-          min: 1,
-          max: 2000
-        }
-      }),
+        min: 1,
+        max: 2000
+      },
       // Service relationship
-      new Field({
-        id: "service_id",
+      {
+        type: "relation",
         name: "service_id",
-        type: "relation",
         required: true,
         presentable: false,
         unique: false,
-        options: {
-          collectionId: "services",
-          cascadeDelete: true,
-          minSelect: null,
-          maxSelect: 1,
-          displayFields: ["title"]
-        }
-      }),
+        collectionId: servicesCollection.id,
+        cascadeDelete: true,
+        minSelect: null,
+        maxSelect: 1,
+        displayFields: ["title"]
+      },
       // User who posted the comment
-      new Field({
-        id: "user_id",
-        name: "user_id",
+      {
         type: "relation",
+        name: "user_id",
         required: true,
         presentable: false,
         unique: false,
-        options: {
-          collectionId: "_pb_users_auth_",
-          cascadeDelete: false,
-          minSelect: null,
-          maxSelect: 1,
-          displayFields: ["name", "email"]
-        }
-      }),
-      // Parent comment for threading (optional)
-      new Field({
-        id: "parent_id",
-        name: "parent_id",
-        type: "relation",
-        required: false,
-        presentable: false,
-        unique: false,
-        options: {
-          collectionId: "service_comments",
-          cascadeDelete: false,
-          minSelect: null,
-          maxSelect: 1,
-          displayFields: ["comment"]
-        }
-      }),
+        collectionId: "_pb_users_auth_",
+        cascadeDelete: false,
+        minSelect: null,
+        maxSelect: 1,
+        displayFields: ["name", "email"]
+      },
+      // Parent comment for threading will be added after initial save
       // Mentions - users mentioned in the comment
-      new Field({
-        id: "mentions",
-        name: "mentions",
+      {
         type: "relation",
+        name: "mentions",
         required: false,
         presentable: false,
         unique: false,
-        options: {
-          collectionId: "_pb_users_auth_",
-          cascadeDelete: false,
-          minSelect: null,
-          maxSelect: 10,
-          displayFields: ["name"]
-        }
-      }),
+        collectionId: "_pb_users_auth_",
+        cascadeDelete: false,
+        minSelect: null,
+        maxSelect: 10,
+        displayFields: ["name"]
+      },
       // Edit history tracking
-      new Field({
-        id: "edited",
-        name: "edited",
+      {
         type: "bool",
+        name: "edited",
         required: false,
         presentable: false,
-        unique: false,
-        options: {}
-      }),
-      new Field({
-        id: "edited_at",
-        name: "edited_at",
+        unique: false
+      },
+      {
         type: "date",
+        name: "edited_at",
         required: false,
         presentable: false,
         unique: false,
-        options: {
-          min: "",
-          max: ""
-        }
-      })
+        min: "",
+        max: ""
+      }
     ],
     indexes: [
       `CREATE INDEX idx_service_comments_service ON service_comments (service_id)`,
-      `CREATE INDEX idx_service_comments_user ON service_comments (user_id)`,
-      `CREATE INDEX idx_service_comments_parent ON service_comments (parent_id)`
+      `CREATE INDEX idx_service_comments_user ON service_comments (user_id)`
     ],
     listRule: `
       @request.auth.id != "" && 
@@ -126,9 +98,7 @@ migrate((app) => {
       service_id.church_id = @request.auth.church_memberships_via_user_id.church_id
     `,
     updateRule: `
-      @request.auth.id = user_id &&
-      @request.data.user_id = user_id &&
-      @request.data.service_id = service_id
+      user_id = @request.auth.id
     `,
     deleteRule: `
       @request.auth.id = user_id ||
@@ -139,9 +109,42 @@ migrate((app) => {
 
   try {
     app.save(collection);
-    console.log("Successfully created service_comments collection");
+    console.log("Successfully created service_comments collection (base)");
   } catch (e) {
     console.error("Failed to create service_comments collection:", e);
+    throw e;
+  }
+
+  // Add self relation parent_id and index in a follow-up update
+  try {
+    const sc = app.findCollectionByNameOrId("service_comments");
+    if (!sc) {
+      throw new Error("service_comments collection not found after creation");
+    }
+
+    const parentField = new Field({
+      type: "relation",
+      name: "parent_id",
+      required: false,
+      presentable: false,
+      unique: false,
+      collectionId: sc.id,
+      cascadeDelete: false,
+      minSelect: null,
+      maxSelect: 1,
+      displayFields: ["comment"]
+    });
+
+    sc.fields = [...sc.fields, parentField];
+    sc.indexes = [
+      ...sc.indexes,
+      `CREATE INDEX idx_service_comments_parent ON service_comments (parent_id)`
+    ];
+
+    app.save(sc);
+    console.log("Added parent_id field and index to service_comments");
+  } catch (e) {
+    console.error("Failed to add parent_id to service_comments:", e);
     throw e;
   }
 }, (app) => {
