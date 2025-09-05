@@ -1,6 +1,7 @@
 import { createServicesAPI } from '$lib/api/services';
 import type { ServicesAPI } from '$lib/api/services';
 import type { AuthContext } from '$lib/types/auth';
+import type { AuthStore as RuntimeAuthStore } from '$lib/stores/auth.svelte';
 import { pb } from '$lib/api/client';
 import type {
 	Service,
@@ -60,8 +61,25 @@ class ServicesStore {
 
 	hasUnsavedChanges = $derived(this.builderState.isDirty);
 
-	constructor(authContext: AuthContext) {
-		this.servicesApi = createServicesAPI(authContext, pb);
+	// Runes-first: support live auth store or static context
+	private auth: RuntimeAuthStore | null = null;
+	private staticContext: AuthContext | null = null;
+
+	constructor(authInput: RuntimeAuthStore | AuthContext) {
+		if (typeof (authInput as any).getAuthContext === 'function') {
+			this.auth = authInput as RuntimeAuthStore;
+		} else {
+			this.staticContext = authInput as AuthContext;
+		}
+
+		this.servicesApi = $derived.by(() => {
+			const ctx = this.getAuthContext();
+			return createServicesAPI(ctx, pb);
+		});
+	}
+
+	private getAuthContext(): AuthContext {
+		return this.auth ? this.auth.getAuthContext() : (this.staticContext as AuthContext);
 	}
 
 	/**
@@ -606,6 +624,6 @@ class ServicesStore {
 export type { ServicesStore };
 
 // Factory function for creating new store instances
-export function createServicesStore(authContext: AuthContext): ServicesStore {
-	return new ServicesStore(authContext);
+export function createServicesStore(auth: RuntimeAuthStore | AuthContext): ServicesStore {
+	return new ServicesStore(auth);
 }

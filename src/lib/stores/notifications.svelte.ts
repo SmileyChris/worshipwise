@@ -1,5 +1,6 @@
 import { createNotificationsAPI, type NotificationsAPI } from '$lib/api/notifications';
 import type { AuthContext } from '$lib/types/auth';
+import type { AuthStore as RuntimeAuthStore } from '$lib/stores/auth.svelte';
 import type { Notification, NotificationType } from '$lib/types/notification';
 
 class NotificationsStore {
@@ -12,8 +13,25 @@ class NotificationsStore {
 	private notificationsApi: NotificationsAPI;
 	private unsubscribe: (() => void) | null = null;
 
-	constructor(private authContext: AuthContext) {
-		this.notificationsApi = createNotificationsAPI(authContext, authContext.pb);
+	// Runes-first: support live auth store or static context
+	private auth: RuntimeAuthStore | null = null;
+	private staticContext: AuthContext | null = null;
+
+	constructor(authInput: RuntimeAuthStore | AuthContext) {
+		if (typeof (authInput as any).getAuthContext === 'function') {
+			this.auth = authInput as RuntimeAuthStore;
+		} else {
+			this.staticContext = authInput as AuthContext;
+		}
+
+		this.notificationsApi = $derived.by(() => {
+			const ctx = this.getAuthContext();
+			return createNotificationsAPI(ctx, ctx.pb);
+		});
+	}
+
+	private getAuthContext(): AuthContext {
+		return this.auth ? this.auth.getAuthContext() : (this.staticContext as AuthContext);
 	}
 
 	/**
@@ -136,10 +154,11 @@ class NotificationsStore {
 		message: string,
 		data?: Record<string, any>
 	): Promise<void> {
-		if (!this.authContext.currentChurch?.id) return;
+		const ctx = this.getAuthContext();
+		if (!ctx.currentChurch?.id) return;
 
 		try {
-			await this.notificationsApi.createNotificationForChurch(this.authContext.currentChurch.id, {
+			await this.notificationsApi.createNotificationForChurch(ctx.currentChurch.id, {
 				type,
 				title,
 				message,
@@ -165,6 +184,6 @@ class NotificationsStore {
 export type { NotificationsStore };
 
 // Factory function for creating new store instances
-export function createNotificationsStore(authContext: AuthContext): NotificationsStore {
-	return new NotificationsStore(authContext);
+export function createNotificationsStore(auth: RuntimeAuthStore | AuthContext): NotificationsStore {
+	return new NotificationsStore(auth);
 }

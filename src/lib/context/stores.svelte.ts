@@ -45,14 +45,13 @@ export function initializeStores(): StoreContext {
 	// Create quickstart store (independent)
 	const quickstart = createQuickstartStore();
 
-	// Create auth-dependent stores with current auth context
-	const authContext = auth.getAuthContext();
-	const songs = createSongsStore(authContext);
-	const services = createServicesStore(authContext, pb);
+    // Create auth-dependent stores with live auth (runes)
+    const songs = createSongsStore(auth);
+    const services = createServicesStore(auth);
 
 	// Independent stores
-	const analytics = createAnalyticsStore();
-	const recommendations = createRecommendationsStore(authContext, pb);
+    const analytics = createAnalyticsStore();
+    const recommendations = createRecommendationsStore(auth.getAuthContext(), pb);
 
 	// Set all contexts
 	setContext(AUTH_STORE_KEY, auth);

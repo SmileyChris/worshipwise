@@ -8,8 +8,10 @@
 	import Card from '$lib/components/ui/Card.svelte';
 
 	const auth = getAuthStore();
-	const authContext = auth.getAuthContext();
-	const notificationsAPI = createNotificationsAPI(authContext, authContext.pb);
+	const notificationsAPI = $derived.by(() => {
+		const ctx = auth.getAuthContext();
+		return createNotificationsAPI(ctx, ctx.pb);
+	});
 
 	// State
 	let notifications = $state<Notification[]>([]);
