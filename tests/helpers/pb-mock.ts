@@ -49,37 +49,7 @@ export class MockPocketBase {
 	// Reset all mocks
 	reset() {
 		this.services.forEach((service) => {
-			service.getFullList.mockClear();
-			service.getList.mockClear();
-			service.getOne.mockClear();
-			service.getFirstListItem.mockClear();
-			service.create.mockClear();
-			service.update.mockClear();
-			service.delete.mockClear();
-			service.subscribe.mockClear();
-			service.unsubscribe.mockClear();
-			service.authWithPassword.mockClear();
-			service.authRefresh.mockClear();
-			service.requestPasswordReset.mockClear();
-			service.confirmPasswordReset.mockClear();
-			service.authWithOAuth2.mockClear();
-			service.getOneSongs.mockClear();
-			service.updateSong.mockClear();
-			service.getFullListUsageInfo.mockClear();
-			// Reset mock implementations to defaults
-			service.getFullList.mockResolvedValue([]);
-			service.getList.mockResolvedValue({
-				items: [],
-				totalItems: 0,
-				totalPages: 0,
-				page: 1,
-				perPage: 30
-			});
-			service.getOne.mockResolvedValue({});
-			service.getFirstListItem.mockResolvedValue({});
-			service.getOneSongs.mockResolvedValue([]);
-			service.updateSong.mockResolvedValue({});
-			service.getFullListUsageInfo.mockResolvedValue([]);
+			service.reset();
 		});
 		this.authStore.model = null;
 		this.authStore.token = '';
@@ -87,8 +57,8 @@ export class MockPocketBase {
 		this.authStore.clear.mockClear();
 		this.authStore.save.mockClear();
 		this.authStore.onChange.mockClear();
-		// Clear the services map to ensure fresh mocks
-		this.services.clear();
+		this.collection.mockClear();
+		this.autoCancellation.mockClear();
 	}
 }
 
@@ -119,63 +89,78 @@ export class MockRecordService {
 		private collectionName: string,
 		private pb: MockPocketBase
 	) {
+		// Track per-collection mocks once and reuse
 		// Initialize mocks with names for better debugging
-		this.getFullList = vi.fn().mockName(`${collectionName}.getFullList`).mockResolvedValue([]);
-		this.getList = vi
-			.fn()
-			.mockName(`${collectionName}.getList`)
-			.mockResolvedValue({ items: [], totalItems: 0, totalPages: 0, page: 1, perPage: 30 });
-		this.getOne = vi.fn().mockName(`${collectionName}.getOne`).mockResolvedValue({});
-		this.getFirstListItem = vi
-			.fn()
-			.mockName(`${collectionName}.getFirstListItem`)
-			.mockResolvedValue({});
-		this.create = vi.fn().mockName(`${collectionName}.create`).mockResolvedValue({});
-		this.update = vi.fn().mockName(`${collectionName}.update`).mockResolvedValue({});
-		this.delete = vi.fn().mockName(`${collectionName}.delete`).mockResolvedValue(true);
-		this.getFileUrl = vi
-			.fn((recordId: string, filename: string, options?: any) => {
-				const base = 'http://localhost:8090';
-				return `${base}/api/files/${this.collectionName}/${recordId}/${filename}`;
-			})
-			.mockName(`${collectionName}.getFileUrl`);
-		this.subscribe = vi
-			.fn()
-			.mockName(`${collectionName}.subscribe`)
-			.mockResolvedValue(() => {});
-		this.unsubscribe = vi.fn().mockName(`${collectionName}.unsubscribe`).mockResolvedValue(true);
-
+		this.getFullList = vi.fn().mockName(`${collectionName}.getFullList`);
+		this.getList = vi.fn().mockName(`${collectionName}.getList`);
+		this.getOne = vi.fn().mockName(`${collectionName}.getOne`);
+		this.getFirstListItem = vi.fn().mockName(`${collectionName}.getFirstListItem`);
+		this.create = vi.fn().mockName(`${collectionName}.create`);
+		this.update = vi.fn().mockName(`${collectionName}.update`);
+		this.delete = vi.fn().mockName(`${collectionName}.delete`);
+		this.getFileUrl = vi.fn().mockName(`${collectionName}.getFileUrl`);
+		this.subscribe = vi.fn().mockName(`${collectionName}.subscribe`);
+		this.unsubscribe = vi.fn().mockName(`${collectionName}.unsubscribe`);
 		// Auth methods
-		this.authWithPassword = vi
-			.fn()
-			.mockName(`${collectionName}.authWithPassword`)
-			.mockResolvedValue({ record: {}, token: 'mock-token' });
-		this.authRefresh = vi
-			.fn()
-			.mockName(`${collectionName}.authRefresh`)
-			.mockResolvedValue({ record: {}, token: 'mock-token' });
-		this.authWithOAuth2 = vi
-			.fn()
-			.mockName(`${collectionName}.authWithOAuth2`)
-			.mockResolvedValue({ record: {}, token: 'mock-token', meta: {} });
-		this.requestPasswordReset = vi
-			.fn()
-			.mockName(`${collectionName}.requestPasswordReset`)
-			.mockResolvedValue({});
-		this.confirmPasswordReset = vi
-			.fn()
-			.mockName(`${collectionName}.confirmPasswordReset`)
-			.mockResolvedValue({});
-
+		this.authWithPassword = vi.fn().mockName(`${collectionName}.authWithPassword`);
+		this.authRefresh = vi.fn().mockName(`${collectionName}.authRefresh`);
+		this.authWithOAuth2 = vi.fn().mockName(`${collectionName}.authWithOAuth2`);
+		this.requestPasswordReset = vi.fn().mockName(`${collectionName}.requestPasswordReset`);
+		this.confirmPasswordReset = vi.fn().mockName(`${collectionName}.confirmPasswordReset`);
 		// Service-specific methods
-		this.getOneSongs = vi.fn().mockName(`${collectionName}.getOneSongs`).mockResolvedValue([]);
-		this.updateSong = vi.fn().mockName(`${collectionName}.updateSong`).mockResolvedValue({});
-
+		this.getOneSongs = vi.fn().mockName(`${collectionName}.getOneSongs`);
+		this.updateSong = vi.fn().mockName(`${collectionName}.updateSong`);
 		// Song-specific methods
-		this.getFullListUsageInfo = vi
-			.fn()
-			.mockName(`${collectionName}.getFullListUsageInfo`)
-			.mockResolvedValue([]);
+		this.getFullListUsageInfo = vi.fn().mockName(`${collectionName}.getFullListUsageInfo`);
+
+		this.applyDefaultImplementations();
+	}
+
+	private applyDefaultImplementations() {
+		this.getFullList.mockResolvedValue([]);
+		this.getList.mockResolvedValue({ items: [], totalItems: 0, totalPages: 0, page: 1, perPage: 30 });
+		this.getOne.mockResolvedValue({});
+		this.getFirstListItem.mockResolvedValue({});
+		this.create.mockResolvedValue({});
+		this.update.mockResolvedValue({});
+		this.delete.mockResolvedValue(true);
+		this.getFileUrl.mockImplementation((recordId: string, filename: string) => {
+			const base = 'http://localhost:8090';
+			return `${base}/api/files/${this.collectionName}/${recordId}/${filename}`;
+		});
+		this.subscribe.mockResolvedValue(() => {});
+		this.unsubscribe.mockResolvedValue(true);
+		this.authWithPassword.mockResolvedValue({ record: {}, token: 'mock-token' });
+		this.authRefresh.mockResolvedValue({ record: {}, token: 'mock-token' });
+		this.authWithOAuth2.mockResolvedValue({ record: {}, token: 'mock-token', meta: {} });
+		this.requestPasswordReset.mockResolvedValue({});
+		this.confirmPasswordReset.mockResolvedValue({});
+		this.getOneSongs.mockResolvedValue([]);
+		this.updateSong.mockResolvedValue({});
+		this.getFullListUsageInfo.mockResolvedValue([]);
+	}
+
+	reset() {
+		this.getFullList.mockReset();
+		this.getList.mockReset();
+		this.getOne.mockReset();
+		this.getFirstListItem.mockReset();
+		this.create.mockReset();
+		this.update.mockReset();
+		this.delete.mockReset();
+		this.getFileUrl.mockReset();
+		this.subscribe.mockReset();
+		this.unsubscribe.mockReset();
+		this.authWithPassword.mockReset();
+		this.authRefresh.mockReset();
+		this.authWithOAuth2.mockReset();
+		this.requestPasswordReset.mockReset();
+		this.confirmPasswordReset.mockReset();
+		this.getOneSongs.mockReset();
+		this.updateSong.mockReset();
+		this.getFullListUsageInfo.mockReset();
+
+		this.applyDefaultImplementations();
 	}
 
 	// Helper methods for setting up mock responses

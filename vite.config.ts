@@ -2,9 +2,23 @@ import tailwindcss from '@tailwindcss/vite';
 import { svelteTesting } from '@testing-library/svelte/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import { fileURLToPath } from 'url';
+import { resolve } from 'path';
+
+const pocketbaseStub = resolve(
+	fileURLToPath(new URL('.', import.meta.url)),
+	'tests/helpers/stubs/pocketbase.ts'
+);
 
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
+	resolve: process.env.VITEST
+		? {
+			alias: {
+				pocketbase: pocketbaseStub
+			}
+		}
+		: undefined,
 	test: {
 		pool: 'forks',
 		fileParallelism: false,
