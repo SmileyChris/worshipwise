@@ -50,7 +50,7 @@ export function initializeStores(): StoreContext {
     const services = createServicesStore(auth);
 
 	// Independent stores
-    const analytics = createAnalyticsStore();
+    const analytics = createAnalyticsStore(auth);
     const recommendations = createRecommendationsStore(auth.getAuthContext(), pb);
 
 	// Set all contexts

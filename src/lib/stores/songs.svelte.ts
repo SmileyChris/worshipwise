@@ -1,8 +1,7 @@
-import { songsApi, type SongsAPI } from '$lib/api/songs';
+import { createSongsAPI, type SongsAPI } from '$lib/api/songs';
 import { createRatingsAPI, type RatingsAPI } from '$lib/api/ratings';
 import type { AuthContext } from '$lib/types/auth';
 import type { AuthStore as RuntimeAuthStore } from '$lib/stores/auth.svelte';
-import { pb } from '$lib/api/client';
 import type {
 	Song,
 	CreateSongData,
@@ -82,16 +81,17 @@ class SongsStore {
 	private staticContext: AuthContext | null = null;
 
 	constructor(authInput: RuntimeAuthStore | AuthContext) {
-		// Use dynamic proxy so auth context (currentChurch) stays fresh
-		this.songsApi = songsApi as unknown as SongsAPI;
-
 		if (typeof (authInput as any).getAuthContext === 'function') {
 			this.auth = authInput as RuntimeAuthStore;
 		} else {
 			this.staticContext = authInput as AuthContext;
 		}
 
-		// Ratings API reacts to auth changes
+		// APIs react to auth changes
+		this.songsApi = $derived.by(() => {
+			const ctx = this.getAuthContext();
+			return createSongsAPI(ctx, ctx.pb);
+		});
 		this.ratingsApi = $derived.by(() => {
 			const ctx = this.getAuthContext();
 			return createRatingsAPI(ctx, ctx.pb);

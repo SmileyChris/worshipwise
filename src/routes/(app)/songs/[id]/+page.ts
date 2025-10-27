@@ -1,17 +1,22 @@
 import { error } from '@sveltejs/kit';
-import { songsApi } from '$lib/api/songs';
+import { pb } from '$lib/api/client';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ params }) => {
 	try {
-		const song = await songsApi.getSong(params.id);
+		const song = await pb.collection('songs').getOne(params.id, {
+			expand: 'created_by,category,labels'
+		});
 
 		if (!song) {
 			throw error(404, 'Song not found');
 		}
 
 		// Load usage history for this song
-		const usageHistory = await songsApi.getSongUsageHistory(params.id);
+		const usageHistory = await pb.collection('song_usage').getFullList({
+			filter: `song_id = "${params.id}"`,
+			sort: '-used_date'
+		});
 
 		return {
 			song,

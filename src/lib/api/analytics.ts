@@ -738,32 +738,3 @@ export class AnalyticsAPI {
 export function createAnalyticsAPI(authContext: AuthContext, pb: PocketBase): AnalyticsAPI {
 	return new AnalyticsAPI(authContext, pb);
 }
-
-// Import for legacy proxy (will be removed in future migration)
-import { getAuthStore } from '$lib/context/stores.svelte';
-
-// Dynamic accessor that always uses current auth state
-class AnalyticsAPIProxy {
-	private get api() {
-		const auth = getAuthStore();
-		const authContext = auth.getAuthContext();
-		return new AnalyticsAPI(authContext, authContext.pb);
-	}
-
-	getOverview = (dateFrom?: string, dateTo?: string) => this.api.getOverview(dateFrom, dateTo);
-	getSongUsageStats = (limit?: number, dateFrom?: string, dateTo?: string) =>
-		this.api.getSongUsageStats(limit, dateFrom, dateTo);
-	getServiceTypeStats = (dateFrom?: string, dateTo?: string) =>
-		this.api.getServiceTypeStats(dateFrom, dateTo);
-	getKeyUsageStats = (dateFrom?: string, dateTo?: string) =>
-		this.api.getKeyUsageStats(dateFrom, dateTo);
-	getUsageTrends = (dateFrom?: string, dateTo?: string, interval?: 'week' | 'month') =>
-		this.api.getUsageTrends(dateFrom, dateTo, interval);
-	getWorshipLeaderStats = (limit?: number, dateFrom?: string, dateTo?: string) =>
-		this.api.getWorshipLeaderStats(limit, dateFrom, dateTo);
-	exportToCSV = (type: 'songs' | 'services' | 'leaders', dateFrom?: string, dateTo?: string) =>
-		this.api.exportToCSV(type, dateFrom, dateTo);
-}
-
-// Export singleton instance for backward compatibility
-export const analyticsApi = new AnalyticsAPIProxy();

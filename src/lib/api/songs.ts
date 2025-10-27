@@ -587,37 +587,3 @@ export class SongsAPI {
 export function createSongsAPI(authContext: AuthContext, pb: PocketBase): SongsAPI {
 	return new SongsAPI(authContext, pb);
 }
-
-// Import for legacy proxy (will be removed in future migration)
-import { getAuthStore } from '$lib/context/stores.svelte';
-
-// Dynamic accessor that always uses current auth state
-class SongsAPIProxy {
-	private get api() {
-		const auth = getAuthStore();
-		const authContext = auth.getAuthContext();
-		return new SongsAPI(authContext, authContext.pb);
-	}
-
-	getSongs = (options?: SongFilterOptions) => this.api.getSongs(options);
-	getAvailableSongs = (weeksToCheck?: number) => this.api.getAvailableSongs(weeksToCheck);
-	getSong = (id: string) => this.api.getSong(id);
-	getSongsPaginated = (page: number, perPage: number, options?: SongFilterOptions) =>
-		this.api.getSongsPaginated(page, perPage, options);
-	createSong = (data: CreateSongData) => this.api.createSong(data);
-	updateSong = (id: string, data: UpdateSongData) => this.api.updateSong(id, data);
-	deleteSong = (id: string) => this.api.deleteSong(id);
-	retireSong = (id: string, reason?: string) => this.api.retireSong(id, reason);
-	unretireSong = (id: string) => this.api.unretireSong(id);
-	searchSongs = (query: string) => this.api.searchSongs(query);
-	getSongLastUsage = (songId: string) => this.api.getSongLastUsage(songId);
-	getSongsUsageInfo = (songIds: string[]) => this.api.getSongsUsageInfo(songIds);
-	getSongUsageHistory = (songId: string) => this.api.getSongUsageHistory(songId);
-	getPopularSongs = (limit?: number) => this.api.getPopularSongs(limit);
-	getPersonalPopularSongs = (userId: string, limit?: number) =>
-		this.api.getPersonalPopularSongs(userId, limit);
-	subscribe = (callback: (data: unknown) => void) => this.api.subscribe(callback);
-}
-
-// Export singleton instance for backward compatibility
-export const songsApi = new SongsAPIProxy();

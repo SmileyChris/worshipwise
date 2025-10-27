@@ -1,4 +1,4 @@
-import { categoriesApi } from '$lib/api/categories.js';
+import { createCategoriesAPI } from '$lib/api/categories.js';
 import { pb } from '$lib/api/client.js';
 import { createSongsAPI } from '$lib/api/songs.js';
 import { createSystemAPI } from '$lib/api/system.js';
@@ -152,7 +152,17 @@ class QuickstartStore {
 
 		const authContext = auth.getAuthContext();
 		const songsApi = createSongsAPI(authContext, authContext.pb);
-		const categoriesAPI = categoriesApi;
+		const baseCategories = createCategoriesAPI(authContext.pb);
+		const categoriesAPI = {
+			getCategories: () =>
+				authContext.currentChurch?.id
+					? baseCategories.getCategories(authContext.currentChurch.id)
+					: Promise.resolve([]),
+			createCategory: (data: { name: string; description?: string; color?: string; sort_order: number }) => {
+				if (!authContext.currentChurch?.id) throw new Error('No church selected');
+				return baseCategories.createCategory(data, authContext.currentChurch.id);
+			}
+		};
 
 		await importSampleData(songsApi, categoriesAPI);
 		this.updateStepStatus('sample-data', 'completed');
@@ -168,7 +178,18 @@ class QuickstartStore {
 			throw new Error('Must be logged in to create categories');
 		}
 
-		const categoriesAPI = categoriesApi;
+		const authContext = auth.getAuthContext();
+		const baseCategories = createCategoriesAPI(authContext.pb);
+		const categoriesAPI = {
+			getCategories: () =>
+				authContext.currentChurch?.id
+					? baseCategories.getCategories(authContext.currentChurch.id)
+					: Promise.resolve([]),
+			createCategory: (data: { name: string; description?: string; color?: string; sort_order: number }) => {
+				if (!authContext.currentChurch?.id) throw new Error('No church selected');
+				return baseCategories.createCategory(data, authContext.currentChurch.id);
+			}
+		};
 
 		await createDefaultCategories(categoriesAPI);
 		this.updateStepStatus('default-categories', 'completed');

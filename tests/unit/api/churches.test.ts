@@ -182,7 +182,7 @@ describe('Churches API', () => {
 	});
 
 	describe('createChurch', () => {
-		it('should create a new church with owner membership', async () => {
+		it('should create a new church with admin membership and derived hemisphere', async () => {
 			const churchData = {
 				name: 'New Church',
 				slug: 'new-church',
@@ -201,17 +201,48 @@ describe('Churches API', () => {
 			const result = await churchesApi.createChurch(churchData);
 
 			expect(result).toEqual(mockCreatedChurch);
-			expect(mockPb.collection('churches').create).toHaveBeenCalledWith(expect.objectContaining({
+		expect(mockPb.collection('churches').create).toHaveBeenCalledWith(expect.objectContaining({
 				...churchData,
 				owner_user_id: 'user_1',
+				hemisphere: expect.any(String),
 				subscription_type: 'free',
-				subscription_status: 'active'
+				subscription_status: 'active',
+				settings: expect.objectContaining({ time_zone: churchData.timezone })
 			}));
-			expect(mockPb.collection('church_memberships').create).toHaveBeenCalledWith(expect.objectContaining({
+		expect(mockPb.collection('church_memberships').create).toHaveBeenCalledWith(expect.objectContaining({
 				church_id: 'church_new',
 				user_id: 'user_1',
-				role: 'owner'
+				role: 'admin'
 			}));
+		});
+
+		it('should generate a unique slug when taken', async () => {
+			const churchData = {
+				name: 'New Church',
+				slug: 'new-church',
+				address: '456 New St',
+				city: 'New City',
+				state: 'NC',
+				country: 'Test Country',
+				timezone: 'America/Los_Angeles'
+			};
+
+			const mockCreatedChurch = mockChurch({ ...churchData, id: 'church_new_1' });
+			mockPb.authStore.model = mockUser({ id: 'user_1' });
+			// First check returns existing church for 'new-church', second check fails => available for 'new-church-1'
+			mockPb.collection('churches').getFirstListItem
+				.mockResolvedValueOnce(mockChurch({ slug: 'new-church' }))
+				.mockRejectedValueOnce(new Error('Not found'));
+
+			mockPb.collection('churches').mockCreate(mockCreatedChurch);
+			mockPb.collection('church_memberships').mockCreate({});
+
+			const result = await churchesApi.createChurch(churchData as any);
+
+			expect(result).toEqual(mockCreatedChurch);
+			expect(mockPb.collection('churches').create).toHaveBeenCalledWith(
+				expect.objectContaining({ slug: 'new-church-1' })
+			);
 		});
 	});
 

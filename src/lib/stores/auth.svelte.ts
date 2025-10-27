@@ -441,7 +441,18 @@ class AuthStore {
 				.map((m) => m.expand?.church_id)
 				.filter(Boolean) as unknown as Church[];
 
-			// Set current membership - default to first one if none set
+			// Restore selection from localStorage if available
+			if (typeof localStorage !== 'undefined') {
+				const savedId = localStorage.getItem('current_church_id');
+				if (savedId) {
+					const saved = memberships.find((m) => (m as any).church_id === savedId);
+					if (saved) {
+						this.currentMembership = saved as unknown as ChurchMembership;
+					}
+				}
+			}
+
+			// Fallback: keep existing if still valid, else default to first
 			if (!this.currentMembership && memberships.length > 0) {
 				this.currentMembership = memberships[0] as unknown as ChurchMembership;
 			}
@@ -464,8 +475,11 @@ class AuthStore {
 
 		this.churchLoading = true;
 		try {
-			// Set current membership to the target church membership
+			// Set current membership to the target church membership and persist selection
 			this.currentMembership = targetMembership;
+			if (typeof localStorage !== 'undefined') {
+				localStorage.setItem('current_church_id', churchId);
+			}
 
 			// Reload permissions for new church context
 			await this.loadPermissions();
@@ -519,6 +533,12 @@ class AuthStore {
 
 			// Reload churches and switch context if necessary
 			await this.loadUserChurches();
+
+			// Clear saved selection if it referenced the left church
+			if (typeof localStorage !== 'undefined') {
+				const savedId = localStorage.getItem('current_church_id');
+				if (savedId === churchId) localStorage.removeItem('current_church_id');
+			}
 
 			console.log('Left church successfully');
 		} catch (error: unknown) {

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { categoriesApi } from '$lib/api/categories';
+	import { createCategoriesAPI } from '$lib/api/categories';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 	import type { Category } from '$lib/types/song';
 
 	interface Props {
@@ -25,11 +26,20 @@
 	let loading = $state(true);
 	let error = $state('');
 
+	const auth = getAuthStore();
+
 	async function loadCategories() {
 		loading = true;
 		try {
-			categories = await categoriesApi.getCategories();
-			error = '';
+			const ctx = auth.getAuthContext();
+			if (!ctx.currentChurch?.id) {
+				categories = [];
+				error = 'Select a church to load categories';
+			} else {
+				const api = createCategoriesAPI(ctx.pb);
+				categories = await api.getCategories(ctx.currentChurch.id);
+				error = '';
+			}
 		} catch (err) {
 			error = 'Failed to load categories';
 			console.error('Error loading categories:', err);

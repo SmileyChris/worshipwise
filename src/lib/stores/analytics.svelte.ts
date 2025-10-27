@@ -1,12 +1,6 @@
-import {
-	analyticsApi,
-	type AnalyticsOverview,
-	type SongUsageStats,
-	type ServiceTypeStats,
-	type KeyUsageStats,
-	type UsageTrend,
-	type WorshipLeaderStats
-} from '$lib/api/analytics';
+import { createAnalyticsAPI, type AnalyticsAPI, type AnalyticsOverview, type SongUsageStats, type ServiceTypeStats, type KeyUsageStats, type UsageTrend, type WorshipLeaderStats } from '$lib/api/analytics';
+import type { AuthContext } from '$lib/types/auth';
+import type { AuthStore as RuntimeAuthStore } from '$lib/stores/auth.svelte';
 
 class AnalyticsStore {
 	// Reactive state using Svelte 5 runes
@@ -37,6 +31,27 @@ class AnalyticsStore {
 
 	// Export loading state
 	exportLoading = $state<boolean>(false);
+
+	private analyticsApi: AnalyticsAPI;
+	private auth: RuntimeAuthStore | null = null;
+	private staticContext: AuthContext | null = null;
+
+	constructor(authInput: RuntimeAuthStore | AuthContext) {
+		if (typeof (authInput as any).getAuthContext === 'function') {
+			this.auth = authInput as RuntimeAuthStore;
+		} else {
+			this.staticContext = authInput as AuthContext;
+		}
+
+		this.analyticsApi = $derived.by(() => {
+			const ctx = this.getAuthContext();
+			return createAnalyticsAPI(ctx, ctx.pb);
+		});
+	}
+
+	private getAuthContext(): AuthContext {
+		return this.auth ? this.auth.getAuthContext() : (this.staticContext as AuthContext);
+	}
 
 	// Derived computed values
 	hasData = $derived.by(() => {
@@ -104,7 +119,7 @@ class AnalyticsStore {
 	 */
 	async loadOverview(): Promise<void> {
 		try {
-			this.overview = await analyticsApi.getOverview(
+			this.overview = await this.analyticsApi.getOverview(
 				this.dateRange.from || undefined,
 				this.dateRange.to || undefined
 			);
@@ -119,7 +134,7 @@ class AnalyticsStore {
 	 */
 	async loadSongUsageStats(limit = 20): Promise<void> {
 		try {
-			this.songUsageStats = await analyticsApi.getSongUsageStats(
+			this.songUsageStats = await this.analyticsApi.getSongUsageStats(
 				limit,
 				this.dateRange.from || undefined,
 				this.dateRange.to || undefined
@@ -135,7 +150,7 @@ class AnalyticsStore {
 	 */
 	async loadServiceTypeStats(): Promise<void> {
 		try {
-			this.serviceTypeStats = await analyticsApi.getServiceTypeStats(
+			this.serviceTypeStats = await this.analyticsApi.getServiceTypeStats(
 				this.dateRange.from || undefined,
 				this.dateRange.to || undefined
 			);
@@ -150,7 +165,7 @@ class AnalyticsStore {
 	 */
 	async loadKeyUsageStats(): Promise<void> {
 		try {
-			this.keyUsageStats = await analyticsApi.getKeyUsageStats(
+			this.keyUsageStats = await this.analyticsApi.getKeyUsageStats(
 				this.dateRange.from || undefined,
 				this.dateRange.to || undefined
 			);
@@ -165,7 +180,7 @@ class AnalyticsStore {
 	 */
 	async loadUsageTrends(): Promise<void> {
 		try {
-			this.usageTrends = await analyticsApi.getUsageTrends(
+			this.usageTrends = await this.analyticsApi.getUsageTrends(
 				this.dateRange.from || undefined,
 				this.dateRange.to || undefined,
 				this.trendInterval
@@ -181,7 +196,7 @@ class AnalyticsStore {
 	 */
 	async loadWorshipLeaderStats(limit = 10): Promise<void> {
 		try {
-			this.worshipLeaderStats = await analyticsApi.getWorshipLeaderStats(
+			this.worshipLeaderStats = await this.analyticsApi.getWorshipLeaderStats(
 				limit,
 				this.dateRange.from || undefined,
 				this.dateRange.to || undefined
@@ -228,7 +243,7 @@ class AnalyticsStore {
 		this.error = null;
 
 		try {
-			const csvData = await analyticsApi.exportToCSV(
+			const csvData = await this.analyticsApi.exportToCSV(
 				type,
 				this.dateRange.from || undefined,
 				this.dateRange.to || undefined
@@ -389,6 +404,6 @@ class AnalyticsStore {
 export type { AnalyticsStore };
 
 // Factory function for creating new store instances
-export function createAnalyticsStore(): AnalyticsStore {
-	return new AnalyticsStore();
+export function createAnalyticsStore(auth: RuntimeAuthStore | AuthContext): AnalyticsStore {
+	return new AnalyticsStore(auth);
 }

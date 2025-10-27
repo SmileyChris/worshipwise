@@ -2,13 +2,15 @@ import PocketBase from 'pocketbase';
 import { browser } from '$app/environment';
 
 // Create PocketBase instance
-// When serving from PocketBase in production, use relative URL (same origin)
-// In development, use localhost:8090
-const url = browser
-	? window.location.origin.includes('localhost:5173')
-		? 'http://localhost:8090'
-		: window.location.origin
-	: 'http://localhost:8090';
+// Respect VITE_PB_URL override for tests/E2E; otherwise choose sensible default
+const override = import.meta.env.VITE_PB_URL as string | undefined;
+const url = override
+  ? override
+  : browser
+    ? window.location.origin.includes('localhost:5173')
+      ? 'http://localhost:8090'
+      : window.location.origin
+    : 'http://localhost:8090';
 
 export const pb = new PocketBase(url);
 

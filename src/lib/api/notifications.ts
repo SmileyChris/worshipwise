@@ -13,24 +13,23 @@ export class NotificationsAPI {
 	/**
 	 * Get user's notifications
 	 */
-	async getNotifications(unreadOnly = false): Promise<Notification[]> {
+	async getNotifications(unreadOnly = false, limit = 50): Promise<Notification[]> {
 		try {
 			if (!this.authContext.user?.id) {
 				throw new Error('No user context');
 			}
 
-			let filter = `user_id = "${this.authContext.user.id}"`;
+			let filter = `user_id.id = "${this.authContext.user.id}"`;
 			if (unreadOnly) {
 				filter += ' && (is_read = false || is_read = null)';
 			}
 
-			const records = await this.pb.collection(this.collection).getFullList({
-				filter,
-				sort: '-created',
-				expand: 'church_id'
-			});
+				const result = await this.pb.collection(this.collection).getList(1, limit, {
+					filter,
+					expand: 'church_id'
+				});
 
-			return records as unknown as Notification[];
+			return result.items as unknown as Notification[];
 		} catch (error) {
 			console.error('Failed to fetch notifications:', error);
 			throw error;
@@ -47,7 +46,7 @@ export class NotificationsAPI {
 			}
 
 			const result = await this.pb.collection(this.collection).getList(1, 1, {
-				filter: `user_id = "${this.authContext.user.id}" && (is_read = false || is_read = null)`,
+				filter: `user_id.id = "${this.authContext.user.id}" && (is_read = false || is_read = null)`,
 				fields: 'id'
 			});
 
@@ -143,9 +142,9 @@ export class NotificationsAPI {
 		}
 
 		// Subscribe to notifications for current user
-		return this.pb
-			.collection(this.collection)
-			.subscribe(`user_id = "${this.authContext.user.id}"`, callback);
+			return this.pb
+				.collection(this.collection)
+				.subscribe(`user_id.id = "${this.authContext.user.id}"`, callback);
 	}
 }
 

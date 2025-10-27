@@ -62,17 +62,18 @@
 				.replace(/[^a-z0-9]+/g, '-')
 				.replace(/^-+|-+$/g, '');
 
-			const newChurch = await churchesAPI.createChurch({
-				name: formData.name.trim(),
-				slug,
-				city: formData.city.trim() || undefined,
-				state: formData.state.trim() || undefined,
-				country: formData.country.trim() || undefined,
-				timezone: formData.timezone
-			});
+            const newChurch = await churchesAPI.createChurch({
+                name: formData.name.trim(),
+                slug,
+                city: formData.city.trim() || undefined,
+                state: formData.state.trim() || undefined,
+                country: formData.country.trim() || undefined,
+                timezone: formData.timezone
+            });
 
-			// Switch to the new church
-			await auth.switchChurch(newChurch.id);
+            // Refresh user's churches, then switch to the new church so UI reflects instantly
+            await auth.loadUserChurches();
+            await auth.switchChurch(newChurch.id);
 
 			// Navigate to dashboard
 			goto('/dashboard');

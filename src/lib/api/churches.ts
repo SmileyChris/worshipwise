@@ -186,8 +186,27 @@ export function createChurchesAPI(pb: PocketBase): ChurchesAPI {
 		 * Create new church
 		 */
 		async createChurch(data: CreateChurchData): Promise<Church> {
+			// Ensure a unique slug (derive from name if missing)
+			let baseSlug = (data.slug || data.name)
+				.toLowerCase()
+				.replace(/[^a-z0-9\s-]/g, '')
+				.replace(/\s+/g, '-')
+				.replace(/-+/g, '-')
+				.trim();
+			if (!baseSlug) baseSlug = 'church';
+			let slug = baseSlug;
+			let counter = 1;
+			while (!(await isSlugAvailable(slug))) {
+				slug = `${baseSlug}-${counter}`;
+				counter++;
+			}
+
+			// Ensure required derived fields
+			const hemisphere = detectHemisphereFromTimezone(data.timezone);
 			const church = await pb.collection('churches').create({
 				...data,
+				slug,
+				hemisphere,
 				subscription_type: 'free',
 				subscription_status: 'active',
 				max_users: 10,
@@ -196,7 +215,7 @@ export function createChurchesAPI(pb: PocketBase): ChurchesAPI {
 				owner_user_id: pb.authStore.model?.id,
 				settings: {
 					default_service_types: ['Sunday Morning', 'Sunday Evening'],
-					time_zone: 'Pacific/Auckland',
+					time_zone: data.timezone || 'UTC',
 					week_start: 'sunday',
 					repetition_window_days: 30,
 					allow_member_song_creation: true,
@@ -206,11 +225,11 @@ export function createChurchesAPI(pb: PocketBase): ChurchesAPI {
 				is_active: true
 			});
 
-			// Create owner membership
+			// Create admin membership for the creator
 			await pb.collection('church_memberships').create({
 				church_id: church.id,
 				user_id: pb.authStore.model?.id,
-				role: 'owner',
+				role: 'admin',
 				permissions: [
 					'songs:create',
 					'songs:edit',

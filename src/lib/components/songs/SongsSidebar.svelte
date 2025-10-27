@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { songsApi } from '$lib/api/songs';
+	import { createSongsAPI } from '$lib/api/songs';
 	import { getAuthStore } from '$lib/context/stores.svelte';
 	import type { Song } from '$lib/types/song';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -9,6 +9,10 @@
 	import ShareManager from '$lib/components/share/ShareManager.svelte';
 
 	const auth = getAuthStore();
+	const songsAPI = $derived.by(() => {
+		const ctx = auth.getAuthContext();
+		return createSongsAPI(ctx, ctx.pb);
+	});
 
 	interface Props {
 		onAddToService?: (song: Song) => void;
@@ -40,8 +44,8 @@
 		try {
 			// Load overall popular songs and personal popular songs in parallel
 			const [popular, personalPopular] = await Promise.all([
-				songsApi.getPopularSongs(5),
-				auth.user ? songsApi.getPersonalPopularSongs(auth.user.id, 5) : Promise.resolve([])
+				songsAPI.getPopularSongs(5),
+				auth.user ? songsAPI.getPersonalPopularSongs(auth.user.id, 5) : Promise.resolve([])
 			]);
 
 			popularSongs = popular;

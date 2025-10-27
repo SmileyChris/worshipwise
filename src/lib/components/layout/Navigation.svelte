@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page as pageStore } from '$app/stores';
-	import { getAuthStore, getQuickstartStore } from '$lib/context/stores.svelte';
-	import ChurchSwitcher from './ChurchSwitcher.svelte';
+    import { getAuthStore, getQuickstartStore } from '$lib/context/stores.svelte';
 	import NotificationBell from '$lib/components/notifications/NotificationBell.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 
@@ -39,9 +38,23 @@
 		await auth.logout();
 	}
 
-	function toggleUserMenu() {
-		userMenuOpen = !userMenuOpen;
-	}
+    async function handleSwitchChurch(churchId: string) {
+        if (churchId === auth.currentChurch?.id) return;
+        try {
+            await auth.switchChurch(churchId);
+            userMenuOpen = false;
+            // Optionally emit a refresh event for reactive listeners
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('worshipwise:church-switched', { detail: { churchId } }));
+            }
+        } catch (err) {
+            console.error('Failed to switch church:', err);
+        }
+    }
+
+    function toggleUserMenu() {
+        userMenuOpen = !userMenuOpen;
+    }
 
 	function closeUserMenu() {
 		userMenuOpen = false;
@@ -107,20 +120,17 @@
 
 			<!-- User menu -->
 			<div class="flex items-center space-x-4">
-				<!-- Church switcher -->
-				<ChurchSwitcher />
+            <!-- Church switcher moved into user menu -->
 
 				<!-- Notifications -->
 				<NotificationBell />
 
-				<!-- User info -->
+				<!-- User info (no duplicated church name; ChurchSwitcher shows it) -->
 				<div class="hidden sm:flex sm:items-center sm:space-x-2">
 					<div class="text-sm">
 						<p class="font-medium text-gray-900">{auth.displayName}</p>
 						{#if auth.currentChurch}
-							<p class="text-xs text-gray-500">
-								{auth.currentChurch.name}
-							</p>
+							<p class="text-xs text-gray-500">{auth.currentChurch.name}</p>
 						{/if}
 					</div>
 				</div>
@@ -150,14 +160,36 @@
 							aria-labelledby="user-menu-button"
 							tabindex="-1"
 						>
-							<a
-								href="/profile"
-								class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-								role="menuitem"
-								onclick={closeUserMenu}
-							>
-								Profile Settings
-							</a>
+                        <!-- Church switcher inside user menu -->
+                        <div class="px-4 pt-2 pb-1 flex items-center justify-between">
+                            <p class="text-xs font-medium tracking-wider text-gray-500 uppercase">Church</p>
+                            <a href="/churches/add" class="text-gray-500 hover:text-gray-700" title="Add church">+</a>
+                        </div>
+
+                        <div class="px-2 py-1">
+                            {#each auth.availableChurches as church (church.id)}
+                                <button
+                                    class="flex w-full items-center px-2 py-1.5 text-left text-sm rounded {church.id === auth.currentChurch?.id ? 'bg-primary/5 text-primary font-semibold' : 'text-gray-700 hover:bg-gray-100'}"
+                                    onclick={() => handleSwitchChurch(church.id)}
+                                >
+                                    {#if church.id === auth.currentChurch?.id}
+                                        <span class="mr-2">✓</span>
+                                    {:else}
+                                        <span class="mr-2 opacity-0">✓</span>
+                                    {/if}
+                                    <span class="truncate">{church.name}</span>
+                                </button>
+                            {/each}
+                        </div>
+
+                        <a
+                            href="/profile"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            role="menuitem"
+                            onclick={closeUserMenu}
+                        >
+                            Profile Settings
+                        </a>
 							{#if auth.canManageChurch || auth.canManageMembers}
 								<hr class="my-1 border-gray-200" />
 								{#if auth.canManageMembers}
@@ -264,28 +296,26 @@
 				</div>
 			</div>
 
-			<!-- Church switcher for mobile -->
-			{#if auth.hasMultipleChurches}
-				<div class="mt-3 px-4">
-					<div class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase">
-						Switch Church
-					</div>
-					{#each auth.availableChurches as church (church.id)}
-						{#if church.id !== auth.currentChurch?.id}
-							<Button
-								onclick={() => auth.switchChurch(church.id)}
-								variant="ghost"
-								size="sm"
-								fullWidth
-								align="left"
-								class="px-2 py-1 h-auto font-normal text-gray-600 hover:bg-gray-100 border-0"
-							>
-								{church.name}
-							</Button>
-						{/if}
-					{/each}
+			<!-- Church section for mobile -->
+			<div class="mt-3 px-4">
+				<div class="mb-2 flex items-center justify-between">
+					<p class="text-xs font-medium tracking-wider text-gray-500 uppercase">Church</p>
+					<a href="/churches/add" class="text-gray-500 hover:text-gray-700" title="Add church">+</a>
 				</div>
-			{/if}
+				{#each auth.availableChurches as church (church.id)}
+					<button
+						onclick={() => handleSwitchChurch(church.id)}
+						class="flex w-full items-center rounded px-2 py-2 text-left text-sm {church.id === auth.currentChurch?.id ? 'bg-primary/5 text-primary font-semibold' : 'text-gray-700 hover:bg-gray-100'}"
+					>
+						{#if church.id === auth.currentChurch?.id}
+							<span class="mr-2">✓</span>
+						{:else}
+							<span class="mr-2 opacity-0">✓</span>
+						{/if}
+						<span class="truncate">{church.name}</span>
+					</button>
+				{/each}
+			</div>
 			<div class="mt-3 space-y-1">
 				<a
 					href="/profile"
