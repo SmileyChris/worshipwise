@@ -10,9 +10,7 @@ export default defineConfig({
 		fileParallelism: false,
 		poolOptions: {
 			forks: {
-				maxForks: 1,
-				minForks: 1,
-				memoryLimit: '1GB'
+				singleFork: true
 			}
 		},
 		projects: [

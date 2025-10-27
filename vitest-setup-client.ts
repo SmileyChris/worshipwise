@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import { cleanup } from '@testing-library/svelte';
 import { vi, beforeEach, afterEach } from 'vitest';
 
 // Import pb-mock for client tests
@@ -57,7 +58,10 @@ beforeEach(() => {
 	vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-// Reset modules after each test to prevent stale rune state
+// Reset modules and cleanup DOM after each test
 afterEach(() => {
+	cleanup();
 	vi.resetModules();
+	vi.clearAllMocks();
+	vi.clearAllTimers();
 });
