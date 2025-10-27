@@ -67,7 +67,7 @@ describe('NotificationsAPI', () => {
 
 			expect(mockPb.collection).toHaveBeenCalledWith('notifications');
 			expect(mockPb.getFullList).toHaveBeenCalledWith({
-				filter: 'user_id = "user-1"',
+				filter: 'user_id.id = "user-1"',
 				sort: '-created',
 				expand: 'church_id'
 			});
@@ -94,7 +94,7 @@ describe('NotificationsAPI', () => {
 			const result = await notificationsAPI.getNotifications(true);
 
 			expect(mockPb.getFullList).toHaveBeenCalledWith({
-				filter: 'user_id = "user-1" && (is_read = false || is_read = null)',
+				filter: 'user_id.id = "user-1" && (is_read = false || is_read = null)',
 				sort: '-created',
 				expand: 'church_id'
 			});
@@ -115,7 +115,7 @@ describe('NotificationsAPI', () => {
 			const result = await notificationsAPI.getUnreadCount();
 
 			expect(mockPb.getList).toHaveBeenCalledWith(1, 1, {
-				filter: 'user_id = "user-1" && (is_read = false || is_read = null)',
+				filter: 'user_id.id = "user-1" && (is_read = false || is_read = null)',
 				fields: 'id'
 			});
 			expect(result).toBe(5);
@@ -210,7 +210,7 @@ describe('NotificationsAPI', () => {
 			const callback = vi.fn();
 			const unsubscribe = await notificationsAPI.subscribe(callback);
 
-			expect(mockPb.subscribe).toHaveBeenCalledWith('user_id = "user-1"', callback);
+			expect(mockPb.subscribe).toHaveBeenCalledWith('user_id.id = "user-1"', callback);
 			expect(unsubscribe).toBe(mockUnsubscribe);
 		});
 

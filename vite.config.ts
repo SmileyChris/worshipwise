@@ -6,6 +6,15 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
 	test: {
+		pool: 'forks',
+		fileParallelism: false,
+		poolOptions: {
+			forks: {
+				maxForks: 1,
+				minForks: 1,
+				memoryLimit: '1GB'
+			}
+		},
 		projects: [
 			{
 				extends: './vite.config.ts',

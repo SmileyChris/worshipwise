@@ -9,6 +9,8 @@ import {
 	type UsageTrend,
 	type WorshipLeaderStats
 } from '$lib/api/analytics';
+import { mockAuthContext } from '$tests/helpers/mock-builders';
+import type { AuthContext } from '$lib/types/auth';
 
 // Mock the analytics API
 vi.mock('$lib/api/analytics', () => ({
@@ -20,7 +22,16 @@ vi.mock('$lib/api/analytics', () => ({
 		getUsageTrends: vi.fn(),
 		getWorshipLeaderStats: vi.fn(),
 		exportToCSV: vi.fn()
-	}
+	},
+	createAnalyticsAPI: vi.fn(() => ({
+		getOverview: vi.fn(),
+		getSongUsageStats: vi.fn(),
+		getServiceTypeStats: vi.fn(),
+		getKeyUsageStats: vi.fn(),
+		getUsageTrends: vi.fn(),
+		getWorshipLeaderStats: vi.fn(),
+		exportToCSV: vi.fn()
+	}))
 }));
 
 const mockedAnalyticsApi = analyticsApi as unknown as {
@@ -124,10 +135,17 @@ describe('AnalyticsStore', () => {
 	];
 
 	let analyticsStore: AnalyticsStore;
+	let authContext: AuthContext;
 
 	beforeEach(() => {
+		// Create mock auth context
+		authContext = mockAuthContext({
+			church: { id: 'church-1', name: 'Test Church' },
+			user: { id: 'user-1' }
+		});
+
 		// Create fresh store instance for each test
-		analyticsStore = createAnalyticsStore();
+		analyticsStore = createAnalyticsStore(authContext);
 
 		// Reset all mocks
 		vi.clearAllMocks();
