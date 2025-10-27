@@ -263,8 +263,8 @@ describe('Churches API', () => {
 	describe('getChurchMembers', () => {
 		it('should return church members with expanded user data', async () => {
 			const mockMembers = [
-				mockMembership({ role: 'admin', expand: { user_id: mockUser({ name: 'Admin' }) } }),
-				mockMembership({ role: 'member', expand: { user_id: mockUser({ name: 'Member' }) } })
+				mockMembership({ expand: { user_id: mockUser({ name: 'Admin' }) } }),
+				mockMembership({ expand: { user_id: mockUser({ name: 'Member' }) } })
 			];
 
 			mockPb.collection('church_memberships').mockGetFullList(mockMembers);
@@ -284,7 +284,7 @@ describe('Churches API', () => {
 		it('should create church invitation', async () => {
 			const inviteData = {
 				email: 'newuser@test.com',
-				role: 'member' as const,
+				role: 'musician' as const,
 				permissions: ['services:view']
 			};
 

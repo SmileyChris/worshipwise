@@ -202,10 +202,12 @@ export function createChurchesAPI(pb: PocketBase): ChurchesAPI {
 			}
 
 			// Ensure required derived fields
-			const hemisphere = detectHemisphereFromTimezone(data.timezone);
+			const timezone = data.timezone || 'America/New_York';
+			const hemisphere = detectHemisphereFromTimezone(timezone);
 			const church = await pb.collection('churches').create({
 				...data,
 				slug,
+				timezone,
 				hemisphere,
 				subscription_type: 'free',
 				subscription_status: 'active',

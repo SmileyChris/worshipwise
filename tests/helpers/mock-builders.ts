@@ -2,6 +2,7 @@ import type { User, AuthContext } from '$lib/types/auth';
 import type { Church, ChurchMembership } from '$lib/types/church';
 import type { Song } from '$lib/types/song';
 import type { Service, ServiceSong } from '$lib/types/service';
+import { mockPb } from './pb-mock';
 
 // Simple factory functions with sensible defaults
 let userIdCounter = 0;
@@ -73,44 +74,14 @@ export function mockChurch(overrides: Partial<Church> = {}): Church {
 	};
 }
 
-// Helper to get default permissions by role
-function getDefaultPermissions(role: string): string[] {
-	switch (role) {
-		case 'admin':
-		case 'pastor':
-			return [
-				'songs:create',
-				'songs:edit',
-				'songs:delete',
-				'services:create',
-				'services:edit',
-				'services:delete',
-				'users:invite',
-				'users:manage',
-				'users:remove',
-				'church:settings',
-				'church:billing'
-			];
-		case 'leader':
-			return ['songs:create', 'songs:edit', 'services:create', 'services:edit', 'services:delete'];
-		case 'musician':
-			return ['services:view', 'songs:view'];
-		default:
-			return ['services:view'];
-	}
-}
-
 // Church Membership Mock Factory
 export function mockMembership(overrides: Partial<ChurchMembership> = {}): ChurchMembership {
 	const id = overrides.id || `membership-${++membershipIdCounter}`;
-	const role = overrides.role || 'member';
 
 	return {
 		id,
 		church_id: overrides.church_id || 'church-1',
 		user_id: overrides.user_id || 'user-1',
-		role,
-		permissions: overrides.permissions || getDefaultPermissions(role),
 		status: overrides.status || 'active',
 		preferred_keys: overrides.preferred_keys || [],
 		notification_preferences: overrides.notification_preferences || {
@@ -208,14 +179,15 @@ export function createMany<T>(
 }
 
 // Convenience functions for common patterns
+// Note: Role-based permissions are now in the user_roles table
 export const mockAdmin = (overrides: Partial<ChurchMembership> = {}) =>
-	mockMembership({ ...overrides, role: 'admin' });
+	mockMembership({ ...overrides });
 
 export const mockLeader = (overrides: Partial<ChurchMembership> = {}) =>
-	mockMembership({ ...overrides, role: 'leader' });
+	mockMembership({ ...overrides });
 
 export const mockMusician = (overrides: Partial<ChurchMembership> = {}) =>
-	mockMembership({ ...overrides, role: 'musician' });
+	mockMembership({ ...overrides });
 
 // Auth Context Helper
 export function mockAuthContext(
@@ -242,7 +214,8 @@ export function mockAuthContext(
 		currentChurch: church,
 		isAuthenticated: true,
 		token: 'test-token',
-		isValid: true
+		isValid: true,
+		pb: mockPb as any
 	};
 }
 

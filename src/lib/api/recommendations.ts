@@ -107,8 +107,8 @@ export interface RecommendationsAPI {
 		worshipLeaderId?: string;
 		limit?: number;
 	}): Promise<SongRecommendation[]>;
-	getWorshipFlowSuggestions(currentSongs: ServiceSong[]): Promise<WorshipFlowSuggestion[]>;
-	analyzeServiceBalance(serviceSongs: ServiceSong[]): Promise<ServiceBalanceAnalysis>;
+	getWorshipFlowSuggestions(serviceId?: string): Promise<WorshipFlowSuggestion[]>;
+	analyzeServiceBalance(serviceId: string): Promise<ServiceBalanceAnalysis>;
 	getSeasonalTrends(year?: number): Promise<SeasonalTrend[]>;
 	getWorshipInsights(dateRange?: { start: Date; end: Date }): Promise<WorshipInsights>;
 	getKeyCompatibilityRecommendations(currentKeys: string[]): Promise<SongRecommendation[]>;
@@ -118,14 +118,9 @@ export interface RecommendationsAPI {
 		recommendations: string[];
 	}>;
 	getComparativePeriodAnalysis(
-		period1: ComparativePeriod,
-		period2: ComparativePeriod
-	): Promise<{
-		period1Stats: any;
-		period2Stats: any;
-		changes: any;
-		insights: string[];
-	}>;
+		currentStart: Date,
+		currentEnd: Date
+	): Promise<ComparativePeriod>;
 }
 
 class RecommendationsApiImpl implements RecommendationsAPI {
@@ -1226,6 +1221,36 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 			day: 'numeric'
 		};
 		return `${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', options)}`;
+	}
+
+	/**
+	 * Get key compatibility recommendations
+	 * TODO: Implement full logic for key compatibility analysis
+	 */
+	async getKeyCompatibilityRecommendations(currentKeys: string[]): Promise<SongRecommendation[]> {
+		// Stub implementation - returns empty array
+		// Full implementation would analyze songs in compatible keys based on circle of fifths
+		console.warn('getKeyCompatibilityRecommendations: Not yet fully implemented');
+		return [];
+	}
+
+	/**
+	 * Analyze rotation health
+	 * TODO: Implement full logic for rotation health analysis
+	 */
+	async getRotationHealthAnalysis(): Promise<{
+		overusedSongs: Array<{ songId: string; title: string; usageCount: number }>;
+		underusedSongs: Array<{ songId: string; title: string; daysSinceLastUse: number }>;
+		recommendations: string[];
+	}> {
+		// Stub implementation - returns empty arrays
+		// Full implementation would analyze song rotation patterns
+		console.warn('getRotationHealthAnalysis: Not yet fully implemented');
+		return {
+			overusedSongs: [],
+			underusedSongs: [],
+			recommendations: []
+		};
 	}
 }
 

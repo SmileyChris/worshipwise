@@ -1,6 +1,6 @@
 <script lang="ts">
 	interface Props {
-		variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger';
+		variant?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
 		color?: 'default' | 'red' | 'yellow' | 'blue' | 'green' | 'gray';
 		size?: 'sm' | 'md';
 		class?: string;
@@ -39,10 +39,12 @@
 		switch (variant) {
 			case 'primary':
 				return 'bg-primary/10 text-primary';
+			case 'secondary':
+				return 'bg-secondary/10 text-secondary';
 			case 'success':
 				return 'bg-green-100 text-green-800';
 			case 'warning':
-				return 'bg-secondary/10 text-secondary';
+				return 'bg-yellow-100 text-yellow-800';
 			case 'danger':
 				return 'bg-red-100 text-red-800';
 			default:

@@ -29,8 +29,9 @@
 		isAuthenticated: false,
 		user: null,
 		currentChurch: null,
-		membership: null,
-		membershipRole: 'musician',
+		currentMembership: null,
+		token: '',
+		isValid: false,
 		permissions: {
 			canViewSongs: true,
 			canManageSongs: false,
@@ -47,7 +48,7 @@
 		canViewAnalytics: false,
 		canManageChurch: false,
 		canManageMembers: false
-	};
+	} as any;
 
 	// Filtered songs
 	let filteredSongs = $derived.by(() => {
