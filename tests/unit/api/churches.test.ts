@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MockPocketBase } from '../../helpers/pb-mock';
 import { createMockUser, createMockAuthContext } from '../../helpers/test-utils';
 import { mockUser, mockChurch, mockMembership } from '../../helpers/mock-builders';
@@ -13,13 +13,14 @@ describe('Churches API', () => {
 		// Create fresh mock instance for each test
 		mockPb = new MockPocketBase();
 
-		// Mock the client module to return our fresh instance
-		vi.doMock('$lib/api/client', () => ({
-			pb: mockPb
-		}));
-
 		// Create API instance with mock pb instance
 		churchesApi = createChurchesAPI(mockPb);
+	});
+
+	afterEach(() => {
+		// Clean up mock PocketBase to prevent memory accumulation
+		mockPb.reset();
+		vi.clearAllMocks();
 	});
 
 	describe('hasChurches', () => {
