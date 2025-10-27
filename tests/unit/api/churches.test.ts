@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { MockPocketBase } from '../../helpers/pb-mock';
 import { createMockUser, createMockAuthContext } from '../../helpers/test-utils';
 import { mockUser, mockChurch, mockMembership } from '../../helpers/mock-builders';
@@ -9,18 +9,18 @@ describe('Churches API', () => {
 	let churchesApi: ChurchesAPI;
 	let mockPb: MockPocketBase;
 
-	beforeEach(() => {
-		// Create fresh mock instance for each test
+	// Create mock instance once and reuse
+	beforeAll(() => {
 		mockPb = new MockPocketBase();
+	});
+
+	beforeEach(() => {
+		// Reset mocks before each test
+		mockPb.reset();
+		vi.clearAllMocks();
 
 		// Create API instance with mock pb instance
 		churchesApi = createChurchesAPI(mockPb);
-	});
-
-	afterEach(() => {
-		// Clean up mock PocketBase to prevent memory accumulation
-		mockPb.reset();
-		vi.clearAllMocks();
 	});
 
 	describe('hasChurches', () => {
