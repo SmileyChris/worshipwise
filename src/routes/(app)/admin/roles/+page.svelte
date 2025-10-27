@@ -326,6 +326,7 @@
 			<FormField label="Name" for="name" required>
 				<Input
 					id="name"
+					name="name"
 					bind:value={formData.name}
 					placeholder="e.g., Worship Coordinator"
 					required
@@ -390,7 +391,7 @@
 		>
 			<div class="space-y-4">
 				<FormField label="Name" for="edit-name" required>
-					<Input id="edit-name" bind:value={formData.name} required />
+					<Input id="edit-name" name="edit-name" bind:value={formData.name} required />
 				</FormField>
 
 				<FormField label="Slug">

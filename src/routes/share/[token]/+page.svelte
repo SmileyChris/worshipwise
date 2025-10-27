@@ -162,6 +162,7 @@
 		<!-- Search -->
 		<Card padding={false} class="p-4">
 			<Input
+				name="search"
 				placeholder="Search songs by title or artist..."
 				bind:value={searchQuery}
 				class="w-full"

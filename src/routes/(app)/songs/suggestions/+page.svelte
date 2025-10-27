@@ -168,7 +168,7 @@
 			<label for="status-filter" class="text-sm font-medium text-gray-700">
 				Filter by status:
 			</label>
-			<Select id="status-filter" bind:value={statusFilter} options={filterOptions} class="w-48" />
+			<Select id="status-filter" name="status-filter" bind:value={statusFilter} options={filterOptions} class="w-48" />
 		</div>
 	</Card>
 

@@ -328,7 +328,7 @@
 		<div class="space-y-4">
 			<div>
 				<label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-				<Input id="name" bind:value={formData.name} placeholder="e.g., Lead Guitarist" required />
+				<Input id="name" name="name" bind:value={formData.name} placeholder="e.g., Lead Guitarist" required />
 			</div>
 
 			<div>
@@ -390,7 +390,7 @@
 			<div class="space-y-4">
 				<div>
 					<label for="edit-name" class="block text-sm font-medium text-gray-700">Name</label>
-					<Input id="edit-name" bind:value={formData.name} required />
+					<Input id="edit-name" name="edit-name" bind:value={formData.name} required />
 				</div>
 
 				<div>

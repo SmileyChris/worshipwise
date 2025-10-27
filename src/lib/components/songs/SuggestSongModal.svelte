@@ -93,6 +93,7 @@
 				</label>
 				<Select
 					id="song-select"
+					name="song-select"
 					bind:value={selectedSongId}
 					options={songOptions}
 					placeholder="Choose a song..."
