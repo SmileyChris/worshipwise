@@ -21,24 +21,10 @@ const mockAuthContext: AuthContext = {
 	isAuthenticated: true,
 	user: { id: 'user-1', email: 'test@example.com', name: 'Test User' } as any,
 	currentChurch: { id: 'church-1', name: 'Test Church' } as any,
-	membership: { church_id: 'church-1', role: 'leader' } as any,
-	membershipRole: 'leader',
-	permissions: {
-		canViewSongs: true,
-		canManageSongs: true,
-		canViewServices: true,
-		canManageServices: true,
-		canViewAnalytics: true,
-		canManageChurch: false,
-		canManageMembers: false
-	},
-	canViewSongs: true,
-	canManageSongs: true,
-	canViewServices: true,
-	canManageServices: true,
-	canViewAnalytics: true,
-	canManageChurch: false,
-	canManageMembers: false
+	currentMembership: { id: 'membership-1', church_id: 'church-1', user_id: 'user-1', status: 'active' } as any,
+	token: 'test-token',
+	isValid: true,
+	permissions: new Set(['manage-songs', 'manage-services'])
 };
 
 describe('RatingsAPI', () => {
