@@ -61,14 +61,13 @@ describe('NotificationsAPI', () => {
 				}
 			];
 
-			mockPb.getFullList.mockResolvedValue(mockNotifications);
+			mockPb.getList.mockResolvedValue({ items: mockNotifications, totalItems: 2, totalPages: 1, page: 1, perPage: 50 });
 
 			const result = await notificationsAPI.getNotifications();
 
 			expect(mockPb.collection).toHaveBeenCalledWith('notifications');
-			expect(mockPb.getFullList).toHaveBeenCalledWith({
+			expect(mockPb.getList).toHaveBeenCalledWith(1, 50, {
 				filter: 'user_id.id = "user-1"',
-				sort: '-created',
 				expand: 'church_id'
 			});
 			expect(result).toEqual(mockNotifications);
@@ -89,13 +88,12 @@ describe('NotificationsAPI', () => {
 				}
 			];
 
-			mockPb.getFullList.mockResolvedValue(mockUnreadNotifications);
+			mockPb.getList.mockResolvedValue({ items: mockUnreadNotifications, totalItems: 1, totalPages: 1, page: 1, perPage: 50 });
 
 			const result = await notificationsAPI.getNotifications(true);
 
-			expect(mockPb.getFullList).toHaveBeenCalledWith({
+			expect(mockPb.getList).toHaveBeenCalledWith(1, 50, {
 				filter: 'user_id.id = "user-1" && (is_read = false || is_read = null)',
-				sort: '-created',
 				expand: 'church_id'
 			});
 			expect(result).toEqual(mockUnreadNotifications);
@@ -151,7 +149,7 @@ describe('NotificationsAPI', () => {
 				{ id: 'notif-2', is_read: false }
 			];
 
-			mockPb.getFullList.mockResolvedValue(unreadNotifications);
+			mockPb.getList.mockResolvedValue({ items: unreadNotifications, totalItems: 2, totalPages: 1, page: 1, perPage: 50 });
 			mockPb.update.mockResolvedValue({ is_read: true });
 
 			await notificationsAPI.markAllAsRead();

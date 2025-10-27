@@ -32,21 +32,25 @@ class AnalyticsStore {
 	// Export loading state
 	exportLoading = $state<boolean>(false);
 
-	private analyticsApi: AnalyticsAPI;
 	private auth: RuntimeAuthStore | null = null;
 	private staticContext: AuthContext | null = null;
+	private staticApi: AnalyticsAPI | null = null;
+
+	// Use $derived for reactive auth, fallback to staticApi for tests
+	private analyticsApi = $derived.by(() => {
+		if (this.staticApi) return this.staticApi;
+		const ctx = this.getAuthContext();
+		return createAnalyticsAPI(ctx, ctx.pb);
+	});
 
 	constructor(authInput: RuntimeAuthStore | AuthContext) {
 		if (typeof (authInput as any).getAuthContext === 'function') {
 			this.auth = authInput as RuntimeAuthStore;
 		} else {
+			// For static context (tests), create API directly
 			this.staticContext = authInput as AuthContext;
+			this.staticApi = createAnalyticsAPI(this.staticContext, this.staticContext.pb);
 		}
-
-		this.analyticsApi = $derived.by(() => {
-			const ctx = this.getAuthContext();
-			return createAnalyticsAPI(ctx, ctx.pb);
-		});
 	}
 
 	private getAuthContext(): AuthContext {

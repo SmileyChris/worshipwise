@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest';
 import { createAnalyticsStore, type AnalyticsStore } from './analytics.svelte';
 import {
-	analyticsApi,
+	createAnalyticsAPI,
 	type AnalyticsOverview,
 	type SongUsageStats,
 	type ServiceTypeStats,
@@ -14,35 +14,8 @@ import type { AuthContext } from '$lib/types/auth';
 
 // Mock the analytics API
 vi.mock('$lib/api/analytics', () => ({
-	analyticsApi: {
-		getOverview: vi.fn(),
-		getSongUsageStats: vi.fn(),
-		getServiceTypeStats: vi.fn(),
-		getKeyUsageStats: vi.fn(),
-		getUsageTrends: vi.fn(),
-		getWorshipLeaderStats: vi.fn(),
-		exportToCSV: vi.fn()
-	},
-	createAnalyticsAPI: vi.fn(() => ({
-		getOverview: vi.fn(),
-		getSongUsageStats: vi.fn(),
-		getServiceTypeStats: vi.fn(),
-		getKeyUsageStats: vi.fn(),
-		getUsageTrends: vi.fn(),
-		getWorshipLeaderStats: vi.fn(),
-		exportToCSV: vi.fn()
-	}))
+	createAnalyticsAPI: vi.fn()
 }));
-
-const mockedAnalyticsApi = analyticsApi as unknown as {
-	getOverview: MockedFunction<any>;
-	getSongUsageStats: MockedFunction<any>;
-	getServiceTypeStats: MockedFunction<any>;
-	getKeyUsageStats: MockedFunction<any>;
-	getUsageTrends: MockedFunction<any>;
-	getWorshipLeaderStats: MockedFunction<any>;
-	exportToCSV: MockedFunction<any>;
-};
 
 // Note: DOM export functionality is tested at the API level
 // Browser-specific DOM manipulation is skipped in unit tests
@@ -136,6 +109,7 @@ describe('AnalyticsStore', () => {
 
 	let analyticsStore: AnalyticsStore;
 	let authContext: AuthContext;
+	let mockAnalyticsAPI: any;
 
 	beforeEach(() => {
 		// Create mock auth context
@@ -143,6 +117,20 @@ describe('AnalyticsStore', () => {
 			church: { id: 'church-1', name: 'Test Church' },
 			user: { id: 'user-1' }
 		});
+
+		// Create mock API with all methods
+		mockAnalyticsAPI = {
+			getOverview: vi.fn(),
+			getSongUsageStats: vi.fn(),
+			getServiceTypeStats: vi.fn(),
+			getKeyUsageStats: vi.fn(),
+			getUsageTrends: vi.fn(),
+			getWorshipLeaderStats: vi.fn(),
+			exportToCSV: vi.fn()
+		};
+
+		// Mock the createAnalyticsAPI factory to return our mock
+		(createAnalyticsAPI as any).mockReturnValue(mockAnalyticsAPI);
 
 		// Create fresh store instance for each test
 		analyticsStore = createAnalyticsStore(authContext);
@@ -153,12 +141,12 @@ describe('AnalyticsStore', () => {
 
 	describe('loadAnalytics', () => {
 		it('should load all analytics data successfully', async () => {
-			mockedAnalyticsApi.getOverview.mockResolvedValue(mockOverview);
-			mockedAnalyticsApi.getSongUsageStats.mockResolvedValue(mockSongUsageStats);
-			mockedAnalyticsApi.getServiceTypeStats.mockResolvedValue(mockServiceTypeStats);
-			mockedAnalyticsApi.getKeyUsageStats.mockResolvedValue(mockKeyUsageStats);
-			mockedAnalyticsApi.getUsageTrends.mockResolvedValue(mockUsageTrends);
-			mockedAnalyticsApi.getWorshipLeaderStats.mockResolvedValue(mockWorshipLeaderStats);
+			mockAnalyticsAPI.getOverview.mockResolvedValue(mockOverview);
+			mockAnalyticsAPI.getSongUsageStats.mockResolvedValue(mockSongUsageStats);
+			mockAnalyticsAPI.getServiceTypeStats.mockResolvedValue(mockServiceTypeStats);
+			mockAnalyticsAPI.getKeyUsageStats.mockResolvedValue(mockKeyUsageStats);
+			mockAnalyticsAPI.getUsageTrends.mockResolvedValue(mockUsageTrends);
+			mockAnalyticsAPI.getWorshipLeaderStats.mockResolvedValue(mockWorshipLeaderStats);
 
 			await analyticsStore.loadAnalytics();
 
@@ -173,15 +161,15 @@ describe('AnalyticsStore', () => {
 		});
 
 		it('should handle loading state correctly', async () => {
-			mockedAnalyticsApi.getOverview.mockImplementation(async () => {
+			mockAnalyticsAPI.getOverview.mockImplementation(async () => {
 				expect(analyticsStore.loading).toBe(true);
 				return mockOverview;
 			});
-			mockedAnalyticsApi.getSongUsageStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getServiceTypeStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getKeyUsageStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getUsageTrends.mockResolvedValue([]);
-			mockedAnalyticsApi.getWorshipLeaderStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getSongUsageStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getServiceTypeStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getKeyUsageStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getUsageTrends.mockResolvedValue([]);
+			mockAnalyticsAPI.getWorshipLeaderStats.mockResolvedValue([]);
 
 			await analyticsStore.loadAnalytics();
 
@@ -190,7 +178,7 @@ describe('AnalyticsStore', () => {
 
 		it('should handle errors when loading analytics', async () => {
 			const error = new Error('Network error');
-			mockedAnalyticsApi.getOverview.mockRejectedValue(error);
+			mockAnalyticsAPI.getOverview.mockRejectedValue(error);
 
 			await analyticsStore.loadAnalytics();
 
@@ -201,22 +189,22 @@ describe('AnalyticsStore', () => {
 		it('should pass date range to API calls', async () => {
 			analyticsStore.dateRange = { from: '2024-01-01', to: '2024-12-31' };
 
-			mockedAnalyticsApi.getOverview.mockResolvedValue(mockOverview);
-			mockedAnalyticsApi.getSongUsageStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getServiceTypeStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getKeyUsageStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getUsageTrends.mockResolvedValue([]);
-			mockedAnalyticsApi.getWorshipLeaderStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getOverview.mockResolvedValue(mockOverview);
+			mockAnalyticsAPI.getSongUsageStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getServiceTypeStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getKeyUsageStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getUsageTrends.mockResolvedValue([]);
+			mockAnalyticsAPI.getWorshipLeaderStats.mockResolvedValue([]);
 
 			await analyticsStore.loadAnalytics();
 
-			expect(mockedAnalyticsApi.getOverview).toHaveBeenCalledWith('2024-01-01', '2024-12-31');
-			expect(mockedAnalyticsApi.getSongUsageStats).toHaveBeenCalledWith(
+			expect(mockAnalyticsAPI.getOverview).toHaveBeenCalledWith('2024-01-01', '2024-12-31');
+			expect(mockAnalyticsAPI.getSongUsageStats).toHaveBeenCalledWith(
 				20,
 				'2024-01-01',
 				'2024-12-31'
 			);
-			expect(mockedAnalyticsApi.getServiceTypeStats).toHaveBeenCalledWith(
+			expect(mockAnalyticsAPI.getServiceTypeStats).toHaveBeenCalledWith(
 				'2024-01-01',
 				'2024-12-31'
 			);
@@ -225,25 +213,25 @@ describe('AnalyticsStore', () => {
 
 	describe('individual load methods', () => {
 		it('should load overview data', async () => {
-			mockedAnalyticsApi.getOverview.mockResolvedValue(mockOverview);
+			mockAnalyticsAPI.getOverview.mockResolvedValue(mockOverview);
 
 			await analyticsStore.loadOverview();
 
 			expect(analyticsStore.overview).toEqual(mockOverview);
-			expect(mockedAnalyticsApi.getOverview).toHaveBeenCalledWith(undefined, undefined);
+			expect(mockAnalyticsAPI.getOverview).toHaveBeenCalledWith(undefined, undefined);
 		});
 
 		it('should load song usage stats with custom limit', async () => {
-			mockedAnalyticsApi.getSongUsageStats.mockResolvedValue(mockSongUsageStats);
+			mockAnalyticsAPI.getSongUsageStats.mockResolvedValue(mockSongUsageStats);
 
 			await analyticsStore.loadSongUsageStats(50);
 
 			expect(analyticsStore.songUsageStats).toEqual(mockSongUsageStats);
-			expect(mockedAnalyticsApi.getSongUsageStats).toHaveBeenCalledWith(50, undefined, undefined);
+			expect(mockAnalyticsAPI.getSongUsageStats).toHaveBeenCalledWith(50, undefined, undefined);
 		});
 
 		it('should load service type stats', async () => {
-			mockedAnalyticsApi.getServiceTypeStats.mockResolvedValue(mockServiceTypeStats);
+			mockAnalyticsAPI.getServiceTypeStats.mockResolvedValue(mockServiceTypeStats);
 
 			await analyticsStore.loadServiceTypeStats();
 
@@ -251,7 +239,7 @@ describe('AnalyticsStore', () => {
 		});
 
 		it('should load key usage stats', async () => {
-			mockedAnalyticsApi.getKeyUsageStats.mockResolvedValue(mockKeyUsageStats);
+			mockAnalyticsAPI.getKeyUsageStats.mockResolvedValue(mockKeyUsageStats);
 
 			await analyticsStore.loadKeyUsageStats();
 
@@ -260,21 +248,21 @@ describe('AnalyticsStore', () => {
 
 		it('should load usage trends with trend interval', async () => {
 			analyticsStore.trendInterval = 'month';
-			mockedAnalyticsApi.getUsageTrends.mockResolvedValue(mockUsageTrends);
+			mockAnalyticsAPI.getUsageTrends.mockResolvedValue(mockUsageTrends);
 
 			await analyticsStore.loadUsageTrends();
 
 			expect(analyticsStore.usageTrends).toEqual(mockUsageTrends);
-			expect(mockedAnalyticsApi.getUsageTrends).toHaveBeenCalledWith(undefined, undefined, 'month');
+			expect(mockAnalyticsAPI.getUsageTrends).toHaveBeenCalledWith(undefined, undefined, 'month');
 		});
 
 		it('should load worship leader stats with custom limit', async () => {
-			mockedAnalyticsApi.getWorshipLeaderStats.mockResolvedValue(mockWorshipLeaderStats);
+			mockAnalyticsAPI.getWorshipLeaderStats.mockResolvedValue(mockWorshipLeaderStats);
 
 			await analyticsStore.loadWorshipLeaderStats(5);
 
 			expect(analyticsStore.worshipLeaderStats).toEqual(mockWorshipLeaderStats);
-			expect(mockedAnalyticsApi.getWorshipLeaderStats).toHaveBeenCalledWith(
+			expect(mockAnalyticsAPI.getWorshipLeaderStats).toHaveBeenCalledWith(
 				5,
 				undefined,
 				undefined
@@ -283,7 +271,7 @@ describe('AnalyticsStore', () => {
 
 		it('should handle errors in individual load methods', async () => {
 			const error = new Error('API error');
-			mockedAnalyticsApi.getOverview.mockRejectedValue(error);
+			mockAnalyticsAPI.getOverview.mockRejectedValue(error);
 
 			await expect(analyticsStore.loadOverview()).rejects.toThrow('API error');
 		});
@@ -291,46 +279,46 @@ describe('AnalyticsStore', () => {
 
 	describe('date range filtering', () => {
 		it('should set date range and reload analytics', async () => {
-			mockedAnalyticsApi.getOverview.mockResolvedValue(mockOverview);
-			mockedAnalyticsApi.getSongUsageStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getServiceTypeStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getKeyUsageStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getUsageTrends.mockResolvedValue([]);
-			mockedAnalyticsApi.getWorshipLeaderStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getOverview.mockResolvedValue(mockOverview);
+			mockAnalyticsAPI.getSongUsageStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getServiceTypeStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getKeyUsageStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getUsageTrends.mockResolvedValue([]);
+			mockAnalyticsAPI.getWorshipLeaderStats.mockResolvedValue([]);
 
 			await analyticsStore.setDateRange('2024-01-01', '2024-12-31');
 
 			expect(analyticsStore.dateRange.from).toBe('2024-01-01');
 			expect(analyticsStore.dateRange.to).toBe('2024-12-31');
-			expect(mockedAnalyticsApi.getOverview).toHaveBeenCalledWith('2024-01-01', '2024-12-31');
+			expect(mockAnalyticsAPI.getOverview).toHaveBeenCalledWith('2024-01-01', '2024-12-31');
 		});
 
 		it('should clear date range and reload analytics', async () => {
 			analyticsStore.dateRange = { from: '2024-01-01', to: '2024-12-31' };
 
-			mockedAnalyticsApi.getOverview.mockResolvedValue(mockOverview);
-			mockedAnalyticsApi.getSongUsageStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getServiceTypeStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getKeyUsageStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getUsageTrends.mockResolvedValue([]);
-			mockedAnalyticsApi.getWorshipLeaderStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getOverview.mockResolvedValue(mockOverview);
+			mockAnalyticsAPI.getSongUsageStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getServiceTypeStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getKeyUsageStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getUsageTrends.mockResolvedValue([]);
+			mockAnalyticsAPI.getWorshipLeaderStats.mockResolvedValue([]);
 
 			await analyticsStore.clearDateRange();
 
 			expect(analyticsStore.dateRange.from).toBe(null);
 			expect(analyticsStore.dateRange.to).toBe(null);
-			expect(mockedAnalyticsApi.getOverview).toHaveBeenCalledWith(undefined, undefined);
+			expect(mockAnalyticsAPI.getOverview).toHaveBeenCalledWith(undefined, undefined);
 		});
 	});
 
 	describe('trend interval', () => {
 		it('should set trend interval and reload trends', async () => {
-			mockedAnalyticsApi.getUsageTrends.mockResolvedValue(mockUsageTrends);
+			mockAnalyticsAPI.getUsageTrends.mockResolvedValue(mockUsageTrends);
 
 			await analyticsStore.setTrendInterval('month');
 
 			expect(analyticsStore.trendInterval).toBe('month');
-			expect(mockedAnalyticsApi.getUsageTrends).toHaveBeenCalledWith(undefined, undefined, 'month');
+			expect(mockAnalyticsAPI.getUsageTrends).toHaveBeenCalledWith(undefined, undefined, 'month');
 		});
 
 		it('should not reload trends if interval is the same', async () => {
@@ -338,24 +326,24 @@ describe('AnalyticsStore', () => {
 
 			await analyticsStore.setTrendInterval('week');
 
-			expect(mockedAnalyticsApi.getUsageTrends).not.toHaveBeenCalled();
+			expect(mockAnalyticsAPI.getUsageTrends).not.toHaveBeenCalled();
 		});
 	});
 
 	describe('data export', () => {
 		it('should call export API and handle loading state', async () => {
 			const csvData = 'song,count\nAmazing Grace,15\n';
-			mockedAnalyticsApi.exportToCSV.mockResolvedValue(csvData);
+			mockAnalyticsAPI.exportToCSV.mockResolvedValue(csvData);
 
 			await analyticsStore.exportData('songs');
 
 			expect(analyticsStore.exportLoading).toBe(false);
-			expect(mockedAnalyticsApi.exportToCSV).toHaveBeenCalledWith('songs', undefined, undefined);
+			expect(mockAnalyticsAPI.exportToCSV).toHaveBeenCalledWith('songs', undefined, undefined);
 		});
 
 		it('should handle export errors', async () => {
 			const error = new Error('Export failed');
-			mockedAnalyticsApi.exportToCSV.mockRejectedValue(error);
+			mockAnalyticsAPI.exportToCSV.mockRejectedValue(error);
 
 			await analyticsStore.exportData('songs');
 
@@ -366,11 +354,11 @@ describe('AnalyticsStore', () => {
 		it('should pass date range to export API', async () => {
 			analyticsStore.dateRange = { from: '2024-01-01', to: '2024-12-31' };
 			const csvData = 'data';
-			mockedAnalyticsApi.exportToCSV.mockResolvedValue(csvData);
+			mockAnalyticsAPI.exportToCSV.mockResolvedValue(csvData);
 
 			await analyticsStore.exportData('leaders');
 
-			expect(mockedAnalyticsApi.exportToCSV).toHaveBeenCalledWith(
+			expect(mockAnalyticsAPI.exportToCSV).toHaveBeenCalledWith(
 				'leaders',
 				'2024-01-01',
 				'2024-12-31'
@@ -380,46 +368,46 @@ describe('AnalyticsStore', () => {
 
 	describe('refresh sections', () => {
 		it('should refresh overview section', async () => {
-			mockedAnalyticsApi.getOverview.mockResolvedValue(mockOverview);
+			mockAnalyticsAPI.getOverview.mockResolvedValue(mockOverview);
 
 			await analyticsStore.refreshSection('overview');
 
-			expect(mockedAnalyticsApi.getOverview).toHaveBeenCalled();
+			expect(mockAnalyticsAPI.getOverview).toHaveBeenCalled();
 			expect(analyticsStore.error).toBe(null);
 		});
 
 		it('should refresh songs section', async () => {
-			mockedAnalyticsApi.getSongUsageStats.mockResolvedValue(mockSongUsageStats);
+			mockAnalyticsAPI.getSongUsageStats.mockResolvedValue(mockSongUsageStats);
 
 			await analyticsStore.refreshSection('songs');
 
-			expect(mockedAnalyticsApi.getSongUsageStats).toHaveBeenCalled();
+			expect(mockAnalyticsAPI.getSongUsageStats).toHaveBeenCalled();
 		});
 
 		it('should refresh all sections', async () => {
 			const sections = ['overview', 'songs', 'services', 'keys', 'trends', 'leaders'] as const;
-			mockedAnalyticsApi.getOverview.mockResolvedValue(mockOverview);
-			mockedAnalyticsApi.getSongUsageStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getServiceTypeStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getKeyUsageStats.mockResolvedValue([]);
-			mockedAnalyticsApi.getUsageTrends.mockResolvedValue([]);
-			mockedAnalyticsApi.getWorshipLeaderStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getOverview.mockResolvedValue(mockOverview);
+			mockAnalyticsAPI.getSongUsageStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getServiceTypeStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getKeyUsageStats.mockResolvedValue([]);
+			mockAnalyticsAPI.getUsageTrends.mockResolvedValue([]);
+			mockAnalyticsAPI.getWorshipLeaderStats.mockResolvedValue([]);
 
 			for (const section of sections) {
 				await analyticsStore.refreshSection(section);
 			}
 
-			expect(mockedAnalyticsApi.getOverview).toHaveBeenCalled();
-			expect(mockedAnalyticsApi.getSongUsageStats).toHaveBeenCalled();
-			expect(mockedAnalyticsApi.getServiceTypeStats).toHaveBeenCalled();
-			expect(mockedAnalyticsApi.getKeyUsageStats).toHaveBeenCalled();
-			expect(mockedAnalyticsApi.getUsageTrends).toHaveBeenCalled();
-			expect(mockedAnalyticsApi.getWorshipLeaderStats).toHaveBeenCalled();
+			expect(mockAnalyticsAPI.getOverview).toHaveBeenCalled();
+			expect(mockAnalyticsAPI.getSongUsageStats).toHaveBeenCalled();
+			expect(mockAnalyticsAPI.getServiceTypeStats).toHaveBeenCalled();
+			expect(mockAnalyticsAPI.getKeyUsageStats).toHaveBeenCalled();
+			expect(mockAnalyticsAPI.getUsageTrends).toHaveBeenCalled();
+			expect(mockAnalyticsAPI.getWorshipLeaderStats).toHaveBeenCalled();
 		});
 
 		it('should handle errors when refreshing sections', async () => {
 			const error = new Error('Refresh failed');
-			mockedAnalyticsApi.getOverview.mockRejectedValue(error);
+			mockAnalyticsAPI.getOverview.mockRejectedValue(error);
 
 			await analyticsStore.refreshSection('overview');
 
