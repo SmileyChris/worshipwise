@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { updateUser, getUserActivity, type UserWithMembership } from '$lib/api/admin';
+	import {
+		updateUser,
+		updateUserMembership,
+		getUserActivity,
+		type UserWithMembership
+	} from '$lib/api/admin';
 	import type { User } from '$lib/types/auth';
 	import type { ChurchMembership } from '$lib/types/church';
 	import Modal from '$lib/components/ui/Modal.svelte';
@@ -7,7 +12,6 @@
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
-	import { onMount } from 'svelte';
 	import { getAuthStore } from '$lib/context/stores.svelte';
 
 	interface Props {
@@ -93,8 +97,7 @@
 					membershipUpdates.is_active = formData.isActive;
 
 				if (Object.keys(membershipUpdates).length > 0) {
-					// TODO: Update membership through proper API
-					console.log('Membership updates:', membershipUpdates);
+					await updateUserMembership(pb, user.membership.id, membershipUpdates);
 				}
 			}
 
@@ -114,13 +117,7 @@
 		onclose();
 	}
 
-	onMount(() => {
-		if (open) {
-			loadUserActivity();
-		}
-	});
-
-	// Load activity when modal opens
+	// Load activity when modal opens (handles both initial mount and reopening)
 	$effect(() => {
 		if (open) {
 			loadUserActivity();

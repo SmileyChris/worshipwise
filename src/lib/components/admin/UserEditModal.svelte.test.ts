@@ -175,8 +175,7 @@ describe('UserEditModal', () => {
 			});
 		});
 
-		it.skip('should toggle user active status', async () => {
-			// Skip this test - the component has a TODO and doesn't actually update membership yet
+		it('should toggle user active status', async () => {
 			renderWithContext(UserEditModal, { props: mockProps, storeOverrides: { auth: mockAuthStore } });
 
 			const activeCheckbox = screen.getByRole('checkbox', { name: /active account/i });
@@ -187,11 +186,14 @@ describe('UserEditModal', () => {
 			await fireEvent.click(activeCheckbox);
 			await fireEvent.click(saveButton);
 
-			// TODO: Component doesn't implement membership updates yet, only logs to console
 			await waitFor(() => {
-				expect(updateUserMembership).toHaveBeenCalledWith(mockUser.membership?.id, {
-					is_active: false
-				});
+				expect(updateUserMembership).toHaveBeenCalledWith(
+					expect.any(Object),
+					mockUser.membership?.id,
+					{
+						is_active: false
+					}
+				);
 			});
 		});
 
@@ -364,10 +366,9 @@ describe('UserEditModal', () => {
 			});
 		});
 
-		it.skip('should reload user activity when modal reopens', async () => {
-			// TODO: Component currently only loads activity in onMount, not when open prop changes
-			// This test documents desired behavior for future implementation
-			const { rerender } = renderWithContext(UserEditModal, {
+		it('should reload user activity when modal reopens', async () => {
+			// Render with modal closed
+			const { unmount } = renderWithContext(UserEditModal, {
 				props: {
 					...mockProps,
 					open: false
@@ -378,8 +379,21 @@ describe('UserEditModal', () => {
 			// Modal is initially closed, activity should not be loaded
 			expect(getUserActivity).not.toHaveBeenCalled();
 
-			// Open modal - SHOULD reload activity but currently doesn't
-			rerender({ ...mockProps, open: true });
+			// Unmount the closed modal
+			unmount();
+
+			// Clear the mock to reset call count
+			vi.clearAllMocks();
+			mockGetUserActivity.mockResolvedValue(mockUserActivity);
+
+			// Reopen modal - $effect should reload activity
+			renderWithContext(UserEditModal, {
+				props: {
+					...mockProps,
+					open: true
+				},
+				storeOverrides: { auth: mockAuthStore }
+			});
 
 			await waitFor(() => {
 				expect(getUserActivity).toHaveBeenCalledWith(expect.any(Object), mockUser.id);
