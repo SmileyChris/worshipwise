@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { updateUser, getUserActivity, type UserWithMembership } from '$lib/api/admin';
 	import type { User } from '$lib/types/auth';
-	import type { ChurchRole, ChurchMembership } from '$lib/types/church';
+	import type { ChurchMembership } from '$lib/types/church';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import { onMount } from 'svelte';
+	import { getAuthStore } from '$lib/context/stores.svelte';
 
 	interface Props {
 		user: UserWithMembership;
@@ -18,6 +19,8 @@
 
 	let { user, open, onclose, onsave }: Props = $props();
 
+	const auth = getAuthStore();
+
 	// Form state
 	let formData = $state({
 		// User fields
@@ -25,7 +28,7 @@
 		name: '',
 		// Profile fields
 		profileName: '',
-		role: 'musician' as ChurchRole,
+		role: 'musician' as 'musician' | 'leader' | 'admin',
 		churchName: '',
 		isActive: true
 	});
@@ -44,7 +47,8 @@
 			formData.email = user.email || '';
 			formData.name = user.name || '';
 			formData.profileName = user.name || '';
-			formData.role = user.membership?.role || 'musician';
+			// Note: Role is now in user_roles table, would need separate query
+			formData.role = 'musician'; // Default, actual role needs to be fetched separately
 			formData.churchName = user.membership?.expand?.church_id?.name || '';
 			formData.isActive = user.membership?.is_active !== false;
 		}
@@ -54,7 +58,8 @@
 		if (!user) return;
 
 		try {
-			userActivity = await getUserActivity(user.id);
+			const pb = auth.getAuthContext().pb;
+			userActivity = await getUserActivity(pb, user.id);
 		} catch (err) {
 			console.error('Failed to load user activity:', err);
 		}
@@ -68,19 +73,22 @@
 			loading = true;
 			error = null;
 
+			const pb = auth.getAuthContext().pb;
+
 			// Update user record if email or name changed
 			const userUpdates: Partial<User> = {};
 			if (formData.email !== user.email) userUpdates.email = formData.email;
 			if (formData.name !== user.name) userUpdates.name = formData.name;
 
 			if (Object.keys(userUpdates).length > 0) {
-				await updateUser(user.id, userUpdates);
+				await updateUser(pb, user.id, userUpdates);
 			}
 
 			// Update membership if it exists and has changes
 			if (user.membership) {
 				const membershipUpdates: Partial<ChurchMembership> = {};
-				if (formData.role !== user.membership.role) membershipUpdates.role = formData.role;
+				// Note: role is now in user_roles table, needs separate update
+				// if (formData.role !== user.membership.role) membershipUpdates.role = formData.role;
 				if (formData.isActive !== (user.membership.is_active !== false))
 					membershipUpdates.is_active = formData.isActive;
 

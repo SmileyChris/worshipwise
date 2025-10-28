@@ -1,5 +1,5 @@
 import { pb } from '$lib/api/client';
-import type { Church, ChurchRole } from '$lib/types/church';
+import type { Church } from '$lib/types/church';
 import { getDefaultPermissions, getDefaultChurchSettings } from '$lib/types/church';
 
 /**
@@ -95,7 +95,7 @@ export class ChurchMigration {
 				church_id: churchId,
 				user_id: (user as { id: string }).id,
 				role: role,
-				permissions: getDefaultPermissions(role),
+				permissions: getDefaultPermissions(role as 'leader' | 'musician' | 'admin'),
 				status: 'active' as const,
 				preferred_keys: (user as { preferred_keys?: unknown }).preferred_keys || [],
 				notification_preferences: (user as { notification_preferences?: unknown })
@@ -231,7 +231,7 @@ export class ChurchMigration {
 	/**
 	 * Map legacy user roles to church roles
 	 */
-	private static mapUserRoleToChurchRole(userRole: string): ChurchRole {
+	private static mapUserRoleToChurchRole(userRole: string): string {
 		switch (userRole) {
 			case 'admin':
 				return 'admin';

@@ -4,12 +4,14 @@
 
 ## Current Test Status
 
-**Total Tests**: 541/542 passing (99.8% pass rate) ✅  
-**Store Tests**: All 7 stores fully migrated to dependency injection  
-**Component Tests**: Using Testing Library with DI patterns  
-**E2E Tests**: Playwright setup ready  
-**Performance**: Zero memory leaks, ~25s for full test suite  
+**Total Tests**: 610/612 passing (99.67% pass rate) ✅
+**Store Tests**: All 7 stores fully migrated to dependency injection
+**Component Tests**: Using Testing Library with DI patterns
+**E2E Tests**: Playwright setup ready
+**Performance**: Zero memory leaks, ~33s for full test suite
 **Architecture**: 100% dependency injection - no singletons
+
+**Skipped Tests**: 2 tests with TODO comments for future enhancements (non-blocking)
 
 ## Testing Stack
 
@@ -262,10 +264,10 @@ test('creates new song', async ({ page }) => {
 
 ### After (Complete Dependency Injection)
 
-- **Test Success Rate**: 541/542 tests passing (99.8%)
+- **Test Success Rate**: 610/612 tests passing (99.67%)
 - **Memory Performance**: Zero memory leaks
 - **Test Isolation**: Perfect - each test gets fresh instances
-- **Performance**: ~25s for entire suite
+- **Performance**: ~33s for entire suite
 - **Maintenance**: Easy to mock, test, and extend
 
 ### Key Improvements

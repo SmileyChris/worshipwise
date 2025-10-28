@@ -318,11 +318,11 @@
 				<!-- Recommendations by Type -->
 				<div class="space-y-6">
 					<!-- Rotation Recommendations -->
-					{#if recommendationsStore.rotationRecommendations().length > 0}
+					{#if recommendationsStore.rotationRecommendations.length > 0}
 						<Card>
 							<h3 class="font-title mb-4 text-lg font-semibold">Rotation Recommendations</h3>
 							<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-								{#each recommendationsStore.rotationRecommendations() as recommendation (recommendation.songId)}
+								{#each recommendationsStore.rotationRecommendations as recommendation (recommendation.songId)}
 									<SongRecommendationCard {recommendation} />
 								{/each}
 							</div>
@@ -330,11 +330,11 @@
 					{/if}
 
 					<!-- Seasonal Recommendations -->
-					{#if recommendationsStore.seasonalRecommendations().length > 0}
+					{#if recommendationsStore.seasonalRecommendations.length > 0}
 						<Card>
 							<h3 class="font-title mb-4 text-lg font-semibold">Seasonal Recommendations</h3>
 							<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-								{#each recommendationsStore.seasonalRecommendations() as recommendation (recommendation.songId)}
+								{#each recommendationsStore.seasonalRecommendations as recommendation (recommendation.songId)}
 									<SongRecommendationCard {recommendation} />
 								{/each}
 							</div>

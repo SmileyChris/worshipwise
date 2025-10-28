@@ -61,7 +61,7 @@ export class SkillsAPI {
 				filter: `church_id = "${this.authContext.currentChurch.id}" && slug = "leader" && is_builtin = true`
 			});
 
-			return (skills.items[0] as Skill) || null;
+			return (skills.items[0] as unknown as Skill) || null;
 		} catch (error) {
 			console.error('Failed to fetch leader skill:', error);
 			return null;

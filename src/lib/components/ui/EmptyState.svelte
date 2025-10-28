@@ -11,6 +11,7 @@
 			onclick: () => void;
 		};
 		class?: string;
+		children?: Snippet;
 	}
 
 	let {
@@ -18,7 +19,8 @@
 		message = '',
 		icon,
 		action,
-		class: className = ''
+		class: className = '',
+		children
 	}: Props = $props();
 </script>
 
@@ -36,7 +38,11 @@
 	{#if message}
 		<p class="mt-2 text-sm text-gray-500">{message}</p>
 	{/if}
-	
+
+	{#if children}
+		{@render children()}
+	{/if}
+
 	{#if action}
 		<div class="mt-6">
 			<Button onclick={action.onclick} variant="primary">

@@ -18,15 +18,15 @@ vi.mock('$app/environment', () => ({
 }));
 
 // Mock churches API
+const mockChurchesAPI = {
+	getPendingInvites: vi.fn().mockResolvedValue([]),
+	acceptInvitation: vi.fn().mockResolvedValue({}),
+	declineInvitation: vi.fn().mockResolvedValue({})
+};
+
 vi.mock('$lib/api/churches', () => {
-	const mockAPI = {
-		getPendingInvites: vi.fn().mockResolvedValue([]),
-		acceptInvitation: vi.fn().mockResolvedValue({}),
-		declineInvitation: vi.fn().mockResolvedValue({})
-	};
 	return {
-		ChurchesAPI: mockAPI,
-		createChurchesAPI: vi.fn(() => mockAPI)
+		createChurchesAPI: vi.fn(() => mockChurchesAPI)
 	};
 });
 
@@ -789,8 +789,7 @@ describe('AuthStore', () => {
 			];
 
 			// Mock the import to return our mocked methods
-			const { ChurchesAPI } = await import('$lib/api/churches');
-			(ChurchesAPI.getPendingInvites as any) = vi.fn().mockResolvedValue(mockInvites);
+			(mockChurchesAPI.getPendingInvites as any) = vi.fn().mockResolvedValue(mockInvites);
 
 			auth.user = { id: 'user1', email: 'test@example.com' } as User;
 
@@ -801,8 +800,7 @@ describe('AuthStore', () => {
 		});
 
 		it('should handle pending invites loading error', async () => {
-			const { ChurchesAPI } = await import('$lib/api/churches');
-			(ChurchesAPI.getPendingInvites as any) = vi
+			(mockChurchesAPI.getPendingInvites as any) = vi
 				.fn()
 				.mockRejectedValue(new Error('Failed to load'));
 
@@ -815,21 +813,19 @@ describe('AuthStore', () => {
 		});
 
 		it('should not load invites if no user email', async () => {
-			const { ChurchesAPI } = await import('$lib/api/churches');
-			(ChurchesAPI.getPendingInvites as any) = vi.fn();
+			(mockChurchesAPI.getPendingInvites as any) = vi.fn();
 
 			auth.user = { id: 'user1' } as User; // No email
 
 			await auth.loadPendingInvites();
 
-			expect(ChurchesAPI.getPendingInvites).not.toHaveBeenCalled();
+			expect(mockChurchesAPI.getPendingInvites).not.toHaveBeenCalled();
 			expect(auth.pendingInvites).toEqual([]);
 		});
 
 		it('should accept invitation successfully', async () => {
 			const mockChurch = { id: 'church1', name: 'Test Church' };
-			const { ChurchesAPI } = await import('$lib/api/churches');
-			(ChurchesAPI.acceptInvitation as any) = vi.fn().mockResolvedValue(mockChurch);
+			(mockChurchesAPI.acceptInvitation as any) = vi.fn().mockResolvedValue(mockChurch);
 
 			// Mock loadUserChurches and loadPendingInvites
 			auth.loadUserChurches = vi.fn().mockResolvedValue(undefined);
@@ -838,7 +834,7 @@ describe('AuthStore', () => {
 
 			await auth.acceptInvitation('test-token');
 
-			expect(ChurchesAPI.acceptInvitation).toHaveBeenCalledWith('test-token');
+			expect(mockChurchesAPI.acceptInvitation).toHaveBeenCalledWith('test-token');
 			expect(auth.loadUserChurches).toHaveBeenCalled();
 			expect(auth.loadPendingInvites).toHaveBeenCalled();
 			expect(auth.switchChurch).toHaveBeenCalledWith('church1');
@@ -847,8 +843,7 @@ describe('AuthStore', () => {
 		});
 
 		it('should handle accept invitation error', async () => {
-			const { ChurchesAPI } = await import('$lib/api/churches');
-			(ChurchesAPI.acceptInvitation as any) = vi
+			(mockChurchesAPI.acceptInvitation as any) = vi
 				.fn()
 				.mockRejectedValue(new Error('Already a member'));
 
@@ -859,22 +854,20 @@ describe('AuthStore', () => {
 		});
 
 		it('should decline invitation successfully', async () => {
-			const { ChurchesAPI } = await import('$lib/api/churches');
-			(ChurchesAPI.declineInvitation as any) = vi.fn().mockResolvedValue(undefined);
+			(mockChurchesAPI.declineInvitation as any) = vi.fn().mockResolvedValue(undefined);
 
 			auth.loadPendingInvites = vi.fn().mockResolvedValue(undefined);
 
 			await auth.declineInvitation('test-token');
 
-			expect(ChurchesAPI.declineInvitation).toHaveBeenCalledWith('test-token');
+			expect(mockChurchesAPI.declineInvitation).toHaveBeenCalledWith('test-token');
 			expect(auth.loadPendingInvites).toHaveBeenCalled();
 			expect(auth.loading).toBe(false);
 			expect(auth.error).toBeNull();
 		});
 
 		it('should handle decline invitation error', async () => {
-			const { ChurchesAPI } = await import('$lib/api/churches');
-			(ChurchesAPI.declineInvitation as any) = vi
+			(mockChurchesAPI.declineInvitation as any) = vi
 				.fn()
 				.mockRejectedValue(new Error('Invalid token'));
 

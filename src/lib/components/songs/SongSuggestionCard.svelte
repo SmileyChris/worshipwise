@@ -20,7 +20,7 @@
 	let canDelete = $derived(suggestion.suggested_by === auth.user?.id || auth.canManageChurch);
 
 	// Status badge variant
-	let statusVariant = $derived.by(() => {
+	let statusVariant: 'success' | 'danger' | 'secondary' = $derived.by(() => {
 		switch (suggestion.status) {
 			case 'approved':
 				return 'success';

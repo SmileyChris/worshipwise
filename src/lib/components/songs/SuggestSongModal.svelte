@@ -117,10 +117,11 @@
 			</label>
 			<TextArea
 				id="notes"
-				bind:value={notes}
-				placeholder="Why do you think this song would be good for our church?"
-				rows="4"
-				maxlength="1000"
+				value={notes}
+			oninput={(e) => notes = (e.target as HTMLTextAreaElement).value}
+			placeholder="Why do you think this song would be good for our church?"
+			rows={4}
+			maxlength={1000}
 			/>
 			<p class="mt-1 text-xs text-gray-500">
 				{notes.length}/1000 characters

@@ -21,9 +21,7 @@ vi.mock('$lib/context/stores.svelte', () => ({
 			mockAuthContext({
 				user: { id: 'user-1', email: 'test@example.com', name: 'Test User' },
 				church: { id: 'church-1', name: 'Test Church' },
-				membership: { church_id: 'church-1' },
-				permissions: new Set(['manage-songs', 'manage-services']),
-				hasLeaderSkill: () => true
+				membership: { church_id: 'church-1' }
 			})
 	}))
 }));

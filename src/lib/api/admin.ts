@@ -52,17 +52,17 @@ export interface AdminAPI {
 }
 
 // Export individual functions from the API
-export const getAdminStats = (pb: PocketBase) => createAdminAPI(pb).getAdminStats;
-export const getUsers = (pb: PocketBase) => createAdminAPI(pb).getUsers;
-export const searchUsers = (pb: PocketBase) => createAdminAPI(pb).searchUsers;
-export const getUsersByRole = (pb: PocketBase) => createAdminAPI(pb).getUsersByRole;
-export const updateUser = (pb: PocketBase) => createAdminAPI(pb).updateUser;
-export const updateUserMembership = (pb: PocketBase) => createAdminAPI(pb).updateUserMembership;
-export const deactivateUser = (pb: PocketBase) => createAdminAPI(pb).deactivateUser;
-export const reactivateUser = (pb: PocketBase) => createAdminAPI(pb).reactivateUser;
-export const deleteUser = (pb: PocketBase) => createAdminAPI(pb).deleteUser;
-export const changeUserRole = (pb: PocketBase) => createAdminAPI(pb).changeUserRole;
-export const getUserActivity = (pb: PocketBase) => createAdminAPI(pb).getUserActivity;
+export const getAdminStats = (pb: PocketBase) => createAdminAPI(pb).getAdminStats();
+export const getUsers = (pb: PocketBase, page?: number, perPage?: number, filter?: string, sort?: string) => createAdminAPI(pb).getUsers(page, perPage, filter, sort);
+export const searchUsers = (pb: PocketBase, query: string, page?: number, perPage?: number) => createAdminAPI(pb).searchUsers(query, page, perPage);
+export const getUsersByRole = (pb: PocketBase, role: string, page?: number, perPage?: number) => createAdminAPI(pb).getUsersByRole(role, page, perPage);
+export const updateUser = (pb: PocketBase, userId: string, userData: Partial<User>) => createAdminAPI(pb).updateUser(userId, userData);
+export const updateUserMembership = (pb: PocketBase, membershipId: string, membershipData: Partial<ChurchMembership>) => createAdminAPI(pb).updateUserMembership(membershipId, membershipData);
+export const deactivateUser = (pb: PocketBase, userId: string) => createAdminAPI(pb).deactivateUser(userId);
+export const reactivateUser = (pb: PocketBase, userId: string) => createAdminAPI(pb).reactivateUser(userId);
+export const deleteUser = (pb: PocketBase, userId: string) => createAdminAPI(pb).deleteUser(userId);
+export const changeUserRole = (pb: PocketBase, userId: string, newRole: 'musician' | 'leader' | 'admin') => createAdminAPI(pb).changeUserRole(userId, newRole);
+export const getUserActivity = (pb: PocketBase, userId: string) => createAdminAPI(pb).getUserActivity(userId);
 
 export function createAdminAPI(pb: PocketBase): AdminAPI {
 	return {

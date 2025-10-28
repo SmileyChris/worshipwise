@@ -296,7 +296,7 @@
 						<AISuggestions
 							service={servicesStore.currentService}
 							availableSongs={songsStore.songs}
-							currentSongs={servicesStore.currentServiceSongs.map(ss => ss.expand?.song_id).filter(Boolean)}
+							currentSongs={servicesStore.currentServiceSongs.map(ss => ss.expand?.song_id).filter((s): s is Song => s !== undefined)}
 							onAddSong={addSongFromSuggestion}
 						/>
 					</div>

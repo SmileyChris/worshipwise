@@ -12,6 +12,7 @@ describe('ServiceCalendar', () => {
 			title: 'Sunday Morning Service',
 			service_date: new Date().toISOString(),
 			service_type: 'Sunday Morning',
+			worship_leader: 'user1',
 			status: 'planned',
 			created: new Date().toISOString(),
 			updated: new Date().toISOString()
@@ -22,6 +23,7 @@ describe('ServiceCalendar', () => {
 			title: 'Wednesday Night',
 			service_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
 			service_type: 'Wednesday Night',
+			worship_leader: 'user1',
 			status: 'draft',
 			created: new Date().toISOString(),
 			updated: new Date().toISOString()
@@ -81,8 +83,8 @@ describe('ServiceCalendar', () => {
 		const currentDate = new Date();
 		// Find buttons by their SVG content since aria-label isn't being passed through
 		const buttons = screen.getAllByRole('button');
-		const prevButton = buttons.find(btn => btn.querySelector('svg path[d*="M15 19l-7-7"]'));
-		const nextButton = buttons.find(btn => btn.querySelector('svg path[d*="M9 5l7 7"]'));
+		const prevButton = buttons.find(btn => btn.querySelector('svg path[d*="M15 19l-7-7"]'))!;
+		const nextButton = buttons.find(btn => btn.querySelector('svg path[d*="M9 5l7 7"]'))!;
 
 		// Go to previous month
 		await fireEvent.click(prevButton);
@@ -106,7 +108,7 @@ describe('ServiceCalendar', () => {
 
 		// Find buttons by their content
 		const buttons = screen.getAllByRole('button');
-		const prevButton = buttons.find(btn => btn.querySelector('svg path[d*="M15 19l-7-7"]'));
+		const prevButton = buttons.find(btn => btn.querySelector('svg path[d*="M15 19l-7-7"]'))!;
 		const todayButton = screen.getByText('Today');
 
 		// Navigate away
@@ -145,8 +147,8 @@ describe('ServiceCalendar', () => {
 
 		// Click on a date button (find one that's in current month)
 		const dateButtons = screen.getAllByRole('button');
-		const currentMonthButton = dateButtons.find(btn => 
-			btn.textContent === '15' && !btn.disabled
+		const currentMonthButton = dateButtons.find(btn =>
+			btn.textContent === '15' && !(btn as HTMLButtonElement).disabled
 		);
 
 		if (currentMonthButton) {
@@ -186,6 +188,7 @@ describe('ServiceCalendar', () => {
 				title: 'Morning Service',
 				service_date: sameDay,
 				service_type: 'Sunday Morning',
+				worship_leader: 'user1',
 				status: 'planned',
 				created: sameDay,
 				updated: sameDay
@@ -196,6 +199,7 @@ describe('ServiceCalendar', () => {
 				title: 'Evening Service',
 				service_date: sameDay,
 				service_type: 'Sunday Evening',
+				worship_leader: 'user1',
 				status: 'planned',
 				created: sameDay,
 				updated: sameDay
@@ -206,6 +210,7 @@ describe('ServiceCalendar', () => {
 				title: 'Youth Service',
 				service_date: sameDay,
 				service_type: 'Youth Service',
+				worship_leader: 'user1',
 				status: 'draft',
 				created: sameDay,
 				updated: sameDay

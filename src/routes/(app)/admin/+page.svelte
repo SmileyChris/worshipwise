@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { pb } from '$lib/api/client';
 	import { getAdminStats, type AdminStats } from '$lib/api/admin';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -12,7 +13,7 @@
 		try {
 			loading = true;
 			error = null;
-			stats = await getAdminStats();
+			stats = await getAdminStats(pb);
 		} catch (err: unknown) {
 			console.error('Failed to load admin stats:', err);
 			error = err instanceof Error ? err.message : 'Failed to load statistics';

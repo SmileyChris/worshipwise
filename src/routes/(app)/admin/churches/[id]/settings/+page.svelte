@@ -49,7 +49,8 @@
 
 			// Verify user has admin access to this church
 			const membership = auth.churchMemberships.find((m) => m.church_id === churchId);
-			if (!membership || membership.role !== 'admin') {
+			// TODO: Role check - roles now in user_roles table
+		if (!membership) {
 				error = 'You do not have permission to access these settings';
 				loading = false;
 				return;

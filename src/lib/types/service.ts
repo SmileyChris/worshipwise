@@ -1,6 +1,7 @@
 // Service related types for WorshipWise
 import type { User } from './auth';
 import type { Song } from './song';
+import type { ServiceStatus, ServiceApprovalStatus } from './common';
 
 export interface Service {
 	id: string;
@@ -16,13 +17,13 @@ export interface Service {
 	is_completed?: boolean;
 	is_archived?: boolean;
 	// Optional advanced fields (may not exist in all environments)
-	status?: 'draft' | 'planned' | 'in_progress' | 'completed' | 'archived';
+	status?: ServiceStatus;
 	estimated_duration?: number;
 	actual_duration?: number;
 	is_template?: boolean;
-	
+
 	// Approval workflow fields
-	approval_status?: 'not_required' | 'pending_approval' | 'approved' | 'rejected' | 'changes_requested';
+	approval_status?: ServiceApprovalStatus;
 	approval_requested_at?: string;
 	approval_requested_by?: string;
 	approved_by?: string;
@@ -95,6 +96,15 @@ export interface UpdateServiceData {
 	estimated_duration?: number;
 	actual_duration?: number;
 	is_template?: boolean;
+	// Approval workflow fields
+	approval_status?: Service['approval_status'];
+	approval_requested_at?: string;
+	approval_requested_by?: string;
+	approved_by?: string;
+	approved_at?: string;
+	approval_date?: string;
+	approval_notes?: string;
+	rejection_reason?: string;
 }
 
 export interface CreateServiceSongData {

@@ -35,8 +35,7 @@ export function renderWithContext<T extends Record<string, any>>(
 	const defaultChurch = currentChurch || mockChurch({ id: 'church1', name: 'Test Church' });
 	const defaultMembership = mockMembership({
 		user_id: defaultUser.id,
-		church_id: defaultChurch.id,
-		role: 'admin'
+		church_id: defaultChurch.id
 	});
 
 	const authContext = mockAuthContext({
@@ -82,7 +81,7 @@ export function renderWithContextAndRunes<T extends Record<string, any>>(
 	testFn: (rendered: ReturnType<typeof renderWithContext>) => void
 ) {
 	return testWithRunes(() => {
-		const rendered = renderWithContext(Component, options);
+		const rendered = renderWithContext(Component, options as any);
 
 		// Ensure all reactive state is flushed
 		flushSync();

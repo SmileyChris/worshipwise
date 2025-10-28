@@ -234,7 +234,7 @@
 					Reject
 				</Button>
 				<Button
-					variant="warning"
+					variant="outline"
 					size="sm"
 					onclick={() => openApprovalModal('request_changes')}
 					disabled={submitting}
@@ -330,10 +330,11 @@
 			</label>
 			<TextArea
 				id="approval-notes"
-				bind:value={approvalNotes}
+				value={approvalNotes}
+				oninput={(e) => approvalNotes = (e.target as HTMLTextAreaElement).value}
 				rows={4}
 				placeholder={
-					approvalAction === 'request_changes' 
+					approvalAction === 'request_changes'
 						? 'Describe what changes are needed...'
 						: 'Add any notes about this decision...'
 				}
@@ -353,7 +354,7 @@
 				variant={
 					approvalAction === 'approve' ? 'success' :
 					approvalAction === 'reject' ? 'danger' :
-					'warning'
+					'outline'
 				}
 				onclick={submitApprovalDecision}
 				disabled={submitting || (approvalAction === 'request_changes' && !approvalNotes.trim())}

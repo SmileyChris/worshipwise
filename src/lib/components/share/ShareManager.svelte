@@ -22,7 +22,7 @@
 
 	// New link form
 	let accessType = $state<'ratings' | 'suggestions' | 'both'>('ratings');
-	let expiresInDays = $state(30);
+	let expiresInDays = $state('30');
 
 	const accessTypeOptions = [
 		{ value: 'ratings', label: 'Ratings Only' },
@@ -31,10 +31,10 @@
 	];
 
 	const expiryOptions = [
-		{ value: 7, label: '7 days' },
-		{ value: 14, label: '14 days' },
-		{ value: 30, label: '30 days' },
-		{ value: 90, label: '90 days' }
+		{ value: '7', label: '7 days' },
+		{ value: '14', label: '14 days' },
+		{ value: '30', label: '30 days' },
+		{ value: '90', label: '90 days' }
 	];
 
 	// Load existing share links
@@ -59,7 +59,7 @@
 		try {
 			const newLink = await shareAPI.createShareLink({
 				access_type: accessType,
-				expires_in_days: expiresInDays
+				expires_in_days: parseInt(expiresInDays, 10)
 			});
 
 			shareLinks = [newLink, ...shareLinks];
@@ -119,14 +119,14 @@
 					<label for="access-type" class="mb-1 block text-xs font-medium text-gray-600">
 						Access Type
 					</label>
-					<Select id="access-type" bind:value={accessType} options={accessTypeOptions} size="sm" />
+					<Select id="access-type" bind:value={accessType} options={accessTypeOptions} name="access-type" />
 				</div>
 
 				<div>
 					<label for="expires-in" class="mb-1 block text-xs font-medium text-gray-600">
 						Expires In
 					</label>
-					<Select id="expires-in" bind:value={expiresInDays} options={expiryOptions} size="sm" />
+					<Select id="expires-in" bind:value={expiresInDays} options={expiryOptions} name="expires-in" />
 				</div>
 
 				<div class="flex items-end">

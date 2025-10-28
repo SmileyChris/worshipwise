@@ -41,7 +41,7 @@ describe('SetupStore', () => {
 
 		// Get access to the mocked API
 		const { createChurchesAPI } = await import('$lib/api/churches');
-		mockChurchesAPI = createChurchesAPI(mockPb);
+		mockChurchesAPI = createChurchesAPI(mockPb as any);
 
 		// Reset all mocks
 		vi.clearAllMocks();

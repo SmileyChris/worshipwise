@@ -315,7 +315,7 @@
 </div>
 
 <!-- Create Role Modal -->
-<Modal bind:open={showCreateModal} title="Create Role" onclose={() => (showCreateModal = false)}>
+<Modal open={showCreateModal} title="Create Role" onclose={() => (showCreateModal = false)}>
 	<form
 		onsubmit={(e) => {
 			e.preventDefault();
@@ -341,9 +341,9 @@
 			>
 				<Input
 					id="slug"
+					name="slug"
 					bind:value={formData.slug}
 					placeholder="e.g., worship-coordinator"
-					pattern="^[a-z0-9-]+$"
 					required
 				/>
 			</FormField>

@@ -20,7 +20,7 @@ describe('Churches API', () => {
 		vi.clearAllMocks();
 
 		// Create API instance with mock pb instance
-		churchesApi = createChurchesAPI(mockPb);
+		churchesApi = createChurchesAPI(mockPb as any);
 	});
 
 	describe('hasChurches', () => {
@@ -196,6 +196,10 @@ describe('Churches API', () => {
 
 			const mockCreatedChurch = mockChurch({ ...churchData, id: 'church_new' });
 			mockPb.authStore.model = mockUser({ id: 'user_1' });
+
+			// Mock slug availability check (slug is available)
+			mockPb.collection('churches').getFirstListItem.mockRejectedValue(new Error('Not found'));
+
 			mockPb.collection('churches').mockCreate(mockCreatedChurch);
 			mockPb.collection('church_memberships').mockCreate({});
 

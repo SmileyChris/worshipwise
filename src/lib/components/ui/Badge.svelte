@@ -1,10 +1,13 @@
 <script lang="ts">
+	import type { BadgeVariant, BadgeColor, BadgeSize } from '$lib/types/ui';
+	import type { Snippet } from 'svelte';
+
 	interface Props {
-		variant?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
-		color?: 'default' | 'red' | 'yellow' | 'blue' | 'green' | 'gray';
-		size?: 'sm' | 'md';
+		variant?: BadgeVariant;
+		color?: BadgeColor;
+		size?: BadgeSize;
 		class?: string;
-		children?: import('svelte').Snippet;
+		children?: Snippet;
 	}
 
 	let {

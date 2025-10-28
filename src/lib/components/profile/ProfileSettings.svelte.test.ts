@@ -4,6 +4,8 @@ import '@testing-library/jest-dom/vitest';
 import ProfileSettings from './ProfileSettings.svelte';
 import { renderWithContext } from '../../../../tests/helpers/component-test-utils';
 import { mockUser, mockChurch } from '../../../../tests/helpers/mock-builders';
+import type { User } from '$lib/types/auth';
+import type { ChurchMembership } from '$lib/types/church';
 
 // Mock PocketBase client
 const mockPbUpdate = vi.fn();
@@ -56,8 +58,8 @@ describe('ProfileSettings', () => {
 		id: 'membership1',
 		church_id: 'church1',
 		user_id: 'user1',
-		role: 'musician',
 		status: 'active',
+		is_active: true,
 		created: '2024-01-01T00:00:00Z',
 		updated: '2024-01-01T00:00:00Z'
 	};

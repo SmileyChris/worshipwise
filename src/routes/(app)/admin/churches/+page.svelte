@@ -274,7 +274,8 @@
 								<div class="flex items-center space-x-2">
 									<span class="text-sm text-gray-600">Your role:</span>
 									<Badge variant={details.isCurrentUserAdmin ? 'success' : 'default'}>
-										{auth.currentMembership?.role || 'member'}
+										<!-- TODO: Role display - roles now in user_roles table -->
+									Member
 									</Badge>
 									{#if details.isOnlyAdmin}
 										<Badge variant="warning" class="text-xs">Only Admin</Badge>

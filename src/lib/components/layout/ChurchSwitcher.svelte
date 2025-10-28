@@ -179,7 +179,7 @@
 								>
 									<Button
 										onclick={(e) => {
-											e.stopPropagation();
+											e?.stopPropagation();
 											handleLeaveChurch(church.id);
 										}}
 										variant="ghost"

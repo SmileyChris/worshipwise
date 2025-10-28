@@ -9,7 +9,7 @@ import type {
 	WorshipInsights
 } from '$lib/api/recommendations';
 import { MockPocketBase } from '$tests/helpers/pb-mock';
-import { mockAuthContext } from '$tests/helpers/mock-builders';
+import { mockAuthContext, mockChurch } from '$tests/helpers/mock-builders';
 import type { AuthContext } from '$lib/types/auth';
 
 // Mock the recommendations API
@@ -208,20 +208,19 @@ describe('RecommendationsStore', () => {
 		vi.clearAllMocks();
 		mockPb = new MockPocketBase();
 		authContext = mockAuthContext({
-			pb: mockPb as any,
 			user: { id: 'user-1' },
 			church: { id: 'church-1', name: 'Test Church' },
 			membership: {
 				church_id: 'church-1',
 				user_id: 'user-1',
 				expand: {
-					church_id: { id: 'church-1', name: 'Test Church' }
+					church_id: mockChurch({ id: 'church-1', name: 'Test Church' })
 				}
 			}
 		});
 
 		// Create fresh store instance for each test
-		recommendationsStore = createRecommendationsStore(authContext);
+		recommendationsStore = createRecommendationsStore(authContext, mockPb as any);
 
 		// Get access to the mocked API
 		const { createRecommendationsAPI } = vi.mocked(await import('$lib/api/recommendations'));

@@ -154,6 +154,7 @@ export const createMockAuthContext = (
 	overrides: {
 		user?: Partial<any>;
 		church?: Partial<any>;
+		pb?: any;
 	} = {}
 ) => {
 	const mockUser = {
@@ -171,7 +172,33 @@ export const createMockAuthContext = (
 	const mockChurchData = {
 		id: 'church_test123',
 		name: 'Test Church',
+		slug: 'test-church',
+		timezone: 'America/New_York',
+		hemisphere: 'northern' as const,
+		subscription_type: 'free' as const,
+		subscription_status: 'active' as const,
+		max_users: 10,
+		max_songs: 100,
+		max_storage_mb: 100,
+		settings: {
+			default_service_types: ['Sunday Morning'],
+			week_start: 'sunday' as const,
+			repetition_window_days: 28,
+			allow_member_song_creation: true,
+			auto_approve_members: false,
+			default_key_signatures: ['C', 'D', 'E', 'F', 'G', 'A']
+		},
+		owner_user_id: 'user123',
+		is_active: true,
+		created: new Date().toISOString(),
+		updated: new Date().toISOString(),
 		...overrides.church
+	};
+
+	// Create a minimal mock PocketBase if not provided
+	const mockPb = overrides.pb || {
+		collection: vi.fn(),
+		authStore: { model: mockUser, token: 'test-token' }
 	};
 
 	return {
@@ -180,6 +207,7 @@ export const createMockAuthContext = (
 		currentMembership: null,
 		isAuthenticated: true,
 		token: 'test-token',
-		isValid: true
+		isValid: true,
+		pb: mockPb
 	};
 };

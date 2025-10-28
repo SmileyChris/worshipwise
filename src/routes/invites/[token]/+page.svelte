@@ -106,7 +106,7 @@
 		error = null;
 
 		try {
-			await ChurchesAPI.declineInvitation(data.token);
+			await auth.declineInvitation(data.token);
 			declined = true;
 		} catch (err) {
 			console.error('Failed to decline invitation:', err);
@@ -165,7 +165,7 @@
 					</div>
 				</div>
 			</Card>
-		{:else if expirationInfo().isExpired}
+		{:else if expirationInfo.isExpired}
 			<!-- Expired state -->
 			<Card class="text-center">
 				<div class="p-8">
@@ -268,7 +268,7 @@
 									Invitation expires
 								</h3>
 								<p class="text-sm text-gray-600">
-									In {expirationInfo().daysRemaining} days ({expirationInfo().expiresAt.toLocaleDateString()})
+									In {expirationInfo.daysRemaining} days ({expirationInfo.expiresAt.toLocaleDateString()})
 								</p>
 							</div>
 						</div>

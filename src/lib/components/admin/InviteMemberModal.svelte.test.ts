@@ -22,21 +22,20 @@ vi.mock('$lib/api/client', async () => {
 });
 
 // Mock the API
+const mockChurchesAPI = {
+	inviteUser: vi.fn()
+};
+
 vi.mock('$lib/api/churches', () => {
-	const mockAPI = {
-		inviteUser: vi.fn()
-	};
 	return {
-		ChurchesAPI: mockAPI,
-		createChurchesAPI: vi.fn(() => mockAPI)
+		createChurchesAPI: vi.fn(() => mockChurchesAPI)
 	};
 });
 
 describe('InviteMemberModal', () => {
 	beforeEach(async () => {
 		vi.clearAllMocks();
-		const { ChurchesAPI } = await import('$lib/api/churches');
-		(ChurchesAPI.inviteUser as any).mockReset();
+		(mockChurchesAPI.inviteUser as any).mockReset();
 	});
 
 	it('should render invite form when open', () => {
@@ -125,8 +124,7 @@ describe('InviteMemberModal', () => {
 	it('should send invitation with correct data', async () => {
 		const onclose = vi.fn();
 		const onsuccess = vi.fn();
-		const { ChurchesAPI } = await import('$lib/api/churches');
-		(ChurchesAPI.inviteUser as any).mockResolvedValue(undefined);
+		(mockChurchesAPI.inviteUser as any).mockResolvedValue(undefined);
 
 		renderWithContext(InviteMemberModal, {
 			props: {
@@ -155,7 +153,7 @@ describe('InviteMemberModal', () => {
 		await fireEvent.click(submitButton);
 
 		// Check API was called with correct data
-		expect(ChurchesAPI.inviteUser).toHaveBeenCalledWith('church1', {
+		expect(mockChurchesAPI.inviteUser).toHaveBeenCalledWith('church1', {
 			email: 'newuser@example.com',
 			role: 'leader',
 			permissions: [
@@ -200,8 +198,7 @@ describe('InviteMemberModal', () => {
 
 	it('should handle API errors', async () => {
 		const errorMessage = 'Failed to send invitation';
-		const { ChurchesAPI } = await import('$lib/api/churches');
-		(ChurchesAPI.inviteUser as any).mockRejectedValue(new Error(errorMessage));
+		(mockChurchesAPI.inviteUser as any).mockRejectedValue(new Error(errorMessage));
 
 		renderWithContext(InviteMemberModal, {
 			props: {
@@ -254,8 +251,7 @@ describe('InviteMemberModal', () => {
 		const invitePromise = new Promise<void>((resolve) => {
 			resolveInvite = resolve;
 		});
-		const { ChurchesAPI } = await import('$lib/api/churches');
-		(ChurchesAPI.inviteUser as any).mockReturnValue(invitePromise);
+		(mockChurchesAPI.inviteUser as any).mockReturnValue(invitePromise);
 
 		renderWithContext(InviteMemberModal, {
 			props: {
@@ -290,8 +286,7 @@ describe('InviteMemberModal', () => {
 	});
 
 	it('should assign correct permissions based on role', async () => {
-		const { ChurchesAPI } = await import('$lib/api/churches');
-		(ChurchesAPI.inviteUser as any).mockResolvedValue(undefined);
+		(mockChurchesAPI.inviteUser as any).mockResolvedValue(undefined);
 
 		renderWithContext(InviteMemberModal, {
 			props: {
@@ -314,7 +309,7 @@ describe('InviteMemberModal', () => {
 
 		await fireEvent.click(submitButton);
 
-		expect(ChurchesAPI.inviteUser).toHaveBeenCalledWith(
+		expect(mockChurchesAPI.inviteUser).toHaveBeenCalledWith(
 			'church1',
 			expect.objectContaining({
 				role: 'musician',

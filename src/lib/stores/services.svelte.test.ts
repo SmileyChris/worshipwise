@@ -64,7 +64,7 @@ describe('ServicesStore', () => {
 		});
 
 		// Create fresh store instance with auth context
-		servicesStore = createServicesStore(authContext, mockPb);
+		servicesStore = createServicesStore(authContext);
 	});
 
 	describe('loadServices', () => {

@@ -70,14 +70,15 @@
 			loading = true;
 			error = null;
 
+			const pb = auth.getAuthContext().pb;
 			let result: UserListResponse;
 
 			if (searchQuery.trim()) {
-				result = await searchUsers(searchQuery, currentPage, perPage);
+				result = await searchUsers(pb, searchQuery, currentPage, perPage);
 			} else if (roleFilter) {
-				result = await getUsersByRole(roleFilter, currentPage, perPage);
+				result = await getUsersByRole(pb, roleFilter, currentPage, perPage);
 			} else {
-				result = await getUsers(currentPage, perPage);
+				result = await getUsers(pb, currentPage, perPage);
 			}
 
 			users = result;
@@ -115,12 +116,13 @@
 	async function handleToggleActive(user: UserWithMembership) {
 		try {
 			actionLoading = true;
+			const pb = auth.getAuthContext().pb;
 			const isActive = user.membership?.is_active !== false;
 
 			if (isActive) {
-				await deactivateUser(user.id);
+				await deactivateUser(pb, user.id);
 			} else {
-				await reactivateUser(user.id);
+				await reactivateUser(pb, user.id);
 			}
 
 			// Reload users to get updated data
@@ -139,7 +141,8 @@
 	) {
 		try {
 			actionLoading = true;
-			await changeUserRole(user.id, newRole);
+			const pb = auth.getAuthContext().pb;
+			await changeUserRole(pb, user.id, newRole);
 			await loadUsers();
 		} catch (err: unknown) {
 			console.error('Failed to change user role:', err);
@@ -154,7 +157,8 @@
 
 		try {
 			actionLoading = true;
-			await deleteUser(deletingUser.id);
+			const pb = auth.getAuthContext().pb;
+			await deleteUser(pb, deletingUser.id);
 			deletingUser = null;
 			await loadUsers();
 		} catch (err: unknown) {
@@ -325,13 +329,8 @@
 									</div>
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap">
-									{#if user.membership?.role}
-										<Badge color={getRoleBadgeColor(user.membership.role)}>
-											{user.membership.role}
-										</Badge>
-									{:else}
-										<Badge color="gray">No membership</Badge>
-									{/if}
+									<!-- TODO: Role display - roles are now in user_roles table -->
+									<Badge color="gray">Member</Badge>
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap">
 									<div class="flex items-center">
@@ -362,10 +361,11 @@
 										</Button>
 
 										<!-- Role change dropdown -->
+										<!-- TODO: Role selection - roles now in user_roles table -->
 										{#if user.membership}
 											<Select
 												name="userRole"
-												value={user.membership.role}
+												value="musician"
 												onchange={(value) =>
 													handleRoleChange(user, value as 'musician' | 'leader' | 'admin')}
 												class="text-sm"

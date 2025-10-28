@@ -1,24 +1,26 @@
 <script lang="ts">
 	/* eslint-disable svelte/no-unused-props */
 	import type { Snippet } from 'svelte';
-	
+	import type { ButtonVariant, ButtonSize, ButtonType, ButtonIconPosition, ButtonAlign } from '$lib/types/ui';
+
 	interface Props {
-		variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline' | 'success';
-		size?: 'sm' | 'md' | 'lg';
+		variant?: ButtonVariant;
+		size?: ButtonSize;
 		disabled?: boolean;
 		loading?: boolean;
-		type?: 'button' | 'submit' | 'reset';
+		type?: ButtonType;
 		class?: string;
-		onclick?: () => void;
+		onclick?: (e?: MouseEvent) => void;
 		href?: string;
 		target?: string;
 		title?: string;
 		'data-testid'?: string;
+		'aria-label'?: string;
 		children?: Snippet;
 		icon?: Snippet;
-		iconPosition?: 'left' | 'right';
+		iconPosition?: ButtonIconPosition;
 		fullWidth?: boolean;
-		align?: 'left' | 'center' | 'right';
+		align?: ButtonAlign;
 		grow?: boolean;
 		iconOnly?: boolean;
 	}

@@ -4,7 +4,12 @@ import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi, type MockedFunction } from 'vitest';
 import InitialSetup from './InitialSetup.svelte';
-import { ChurchesAPI } from '$lib/api/churches';
+import type { ChurchesAPI } from '$lib/api/churches';
+
+// Mock API
+const mockChurchesAPI = {
+	initialSetup: vi.fn()
+};
 
 // Mock dependencies
 vi.mock('$app/navigation', () => ({
@@ -12,12 +17,8 @@ vi.mock('$app/navigation', () => ({
 }));
 
 vi.mock('$lib/api/churches', () => {
-	const mockAPI = {
-		initialSetup: vi.fn()
-	};
 	return {
-		ChurchesAPI: mockAPI,
-		createChurchesAPI: vi.fn(() => mockAPI)
+		createChurchesAPI: vi.fn(() => mockChurchesAPI)
 	};
 });
 
@@ -257,7 +258,7 @@ describe('InitialSetup', () => {
 				address: ''
 			};
 
-			(ChurchesAPI.initialSetup as any).mockResolvedValue({ success: true });
+			(mockChurchesAPI.initialSetup as any).mockResolvedValue({ success: true });
 
 			const nameInput = screen.getByLabelText(/Full Name/i);
 			const emailInput = screen.getByLabelText(/Email Address/i);
@@ -272,13 +273,13 @@ describe('InitialSetup', () => {
 			const completeButton = screen.getByRole('button', { name: /complete setup/i });
 			await user.click(completeButton);
 
-			expect(ChurchesAPI.initialSetup).toHaveBeenCalledWith(mockSetupData);
+			expect(mockChurchesAPI.initialSetup).toHaveBeenCalledWith(mockSetupData);
 			expect(mockedSetupStore.markSetupCompleted).toHaveBeenCalled();
 			expect(mockedGoto).toHaveBeenCalledWith('/dashboard');
 		});
 
 		it('should handle setup errors', async () => {
-			(ChurchesAPI.initialSetup as any).mockRejectedValue(new Error('Setup failed'));
+			(mockChurchesAPI.initialSetup as any).mockRejectedValue(new Error('Setup failed'));
 
 			const nameInput = screen.getByLabelText(/Full Name/i);
 			const emailInput = screen.getByLabelText(/Email Address/i);
@@ -354,7 +355,7 @@ describe('InitialSetup', () => {
 			});
 
 			it('should proceed when all fields are valid', async () => {
-				(ChurchesAPI.initialSetup as any).mockResolvedValue({ success: true });
+				(mockChurchesAPI.initialSetup as any).mockResolvedValue({ success: true });
 
 				const nameInput = screen.getByLabelText(/Full Name/i);
 				const emailInput = screen.getByLabelText(/Email Address/i);
@@ -369,13 +370,13 @@ describe('InitialSetup', () => {
 				const completeButton = screen.getByRole('button', { name: /complete setup/i });
 				await user.click(completeButton);
 
-				expect(ChurchesAPI.initialSetup).toHaveBeenCalled();
+				expect(mockChurchesAPI.initialSetup).toHaveBeenCalled();
 			});
 		});
 
 		describe('Enter Key Functionality', () => {
 			it('should submit form when Enter is pressed in any field with valid data', async () => {
-				(ChurchesAPI.initialSetup as any).mockResolvedValue({ success: true });
+				(mockChurchesAPI.initialSetup as any).mockResolvedValue({ success: true });
 
 				const nameInput = screen.getByLabelText(/Full Name/i);
 				const emailInput = screen.getByLabelText(/Email Address/i);
@@ -390,7 +391,7 @@ describe('InitialSetup', () => {
 				// Test Enter in each field
 				await user.type(nameInput, '{Enter}');
 
-				expect(ChurchesAPI.initialSetup).toHaveBeenCalled();
+				expect(mockChurchesAPI.initialSetup).toHaveBeenCalled();
 				expect(mockedSetupStore.markSetupCompleted).toHaveBeenCalled();
 				expect(mockedGoto).toHaveBeenCalledWith('/dashboard');
 			});
@@ -405,11 +406,11 @@ describe('InitialSetup', () => {
 				await user.type(passwordInput, '{Enter}');
 
 				expect(screen.getByText('Admin email is required')).toBeInTheDocument();
-				expect(ChurchesAPI.initialSetup).not.toHaveBeenCalled();
+				expect(mockChurchesAPI.initialSetup).not.toHaveBeenCalled();
 			});
 
 			it('should submit when Enter is pressed in email field with valid data', async () => {
-				(ChurchesAPI.initialSetup as any).mockResolvedValue({ success: true });
+				(mockChurchesAPI.initialSetup as any).mockResolvedValue({ success: true });
 
 				const nameInput = screen.getByLabelText(/Full Name/i);
 				const emailInput = screen.getByLabelText(/Email Address/i);
@@ -423,11 +424,11 @@ describe('InitialSetup', () => {
 
 				await user.type(emailInput, '{Enter}');
 
-				expect(ChurchesAPI.initialSetup).toHaveBeenCalled();
+				expect(mockChurchesAPI.initialSetup).toHaveBeenCalled();
 			});
 
 			it('should submit when Enter is pressed in password fields with valid data', async () => {
-				(ChurchesAPI.initialSetup as any).mockResolvedValue({ success: true });
+				(mockChurchesAPI.initialSetup as any).mockResolvedValue({ success: true });
 
 				const nameInput = screen.getByLabelText(/Full Name/i);
 				const emailInput = screen.getByLabelText(/Email Address/i);
@@ -440,11 +441,11 @@ describe('InitialSetup', () => {
 				await user.type(confirmInput, 'password123');
 
 				// Clear previous calls
-				(ChurchesAPI.initialSetup as any).mockClear();
+				(mockChurchesAPI.initialSetup as any).mockClear();
 
 				await user.type(confirmInput, '{Enter}');
 
-				expect(ChurchesAPI.initialSetup).toHaveBeenCalled();
+				expect(mockChurchesAPI.initialSetup).toHaveBeenCalled();
 			});
 		});
 	});

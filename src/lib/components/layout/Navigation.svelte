@@ -288,7 +288,8 @@
 				<div class="ml-3 flex-1">
 					<div class="text-base font-medium text-gray-800">{auth.displayName}</div>
 					<div class="text-sm text-gray-500 capitalize">
-						{auth.currentMembership?.role || 'member'}
+						<!-- TODO: Role display - roles now in user_roles table -->
+					Member
 					</div>
 					{#if auth.currentChurch}
 						<div class="mt-1 text-xs text-gray-400">{auth.currentChurch.name}</div>

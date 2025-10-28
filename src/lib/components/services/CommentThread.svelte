@@ -34,10 +34,10 @@
 	let unsubscribe: (() => void) | null = null;
 
 	// Group comments by thread
-	let commentThreads = $derived(() => {
+	let commentThreads = $derived.by(() => {
 		const rootComments = comments.filter(c => !c.parent_id);
 		const childMap = new Map<string, ServiceComment[]>();
-		
+
 		comments.filter(c => c.parent_id).forEach(comment => {
 			const siblings = childMap.get(comment.parent_id!) || [];
 			siblings.push(comment);
@@ -246,7 +246,8 @@
 									<!-- Edit mode -->
 									<div class="mt-2 space-y-2">
 										<TextArea
-											bind:value={editText}
+											value={editText}
+											oninput={(e) => editText = (e.target as HTMLTextAreaElement).value}
 											rows={3}
 											class="w-full"
 											placeholder="Edit your comment..."
@@ -327,7 +328,8 @@
 											<!-- Edit mode -->
 											<div class="mt-2 space-y-2">
 												<TextArea
-													bind:value={editText}
+													value={editText}
+											oninput={(e) => editText = (e.target as HTMLTextAreaElement).value}
 													rows={2}
 													class="w-full"
 													placeholder="Edit your reply..."
@@ -384,7 +386,8 @@
 						{#if replyingTo === thread.root.id}
 							<div class="mt-4 ml-11">
 								<TextArea
-									bind:value={replyText}
+									value={replyText}
+									oninput={(e) => replyText = (e.target as HTMLTextAreaElement).value}
 									rows={2}
 									class="w-full"
 									placeholder="Write a reply..."
@@ -425,7 +428,8 @@
 	<!-- New comment form -->
 	<div class="border-t border-gray-200 p-4">
 		<TextArea
-			bind:value={newComment}
+			value={newComment}
+			oninput={(e) => newComment = (e.target as HTMLTextAreaElement).value}
 			rows={3}
 			class="w-full"
 			placeholder="Write a comment..."

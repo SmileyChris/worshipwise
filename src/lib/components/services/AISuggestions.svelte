@@ -243,7 +243,7 @@
 						<div class="flex items-center justify-between">
 							<div class="flex flex-wrap gap-1">
 								{#each suggestion.tags as tag (tag)}
-									<Badge variant="default" size="xs">{tag}</Badge>
+									<Badge variant="default" size="sm">{tag}</Badge>
 								{/each}
 							</div>
 							<Button

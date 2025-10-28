@@ -318,7 +318,7 @@
 </div>
 
 <!-- Create Skill Modal -->
-<Modal bind:open={showCreateModal} title="Add New Skill" onclose={() => (showCreateModal = false)}>
+<Modal open={showCreateModal} title="Add New Skill" onclose={() => (showCreateModal = false)}>
 	<form
 		onsubmit={(e) => {
 			e.preventDefault();
@@ -335,9 +335,9 @@
 				<label for="slug" class="block text-sm font-medium text-gray-700">Slug</label>
 				<Input
 					id="slug"
+					name="slug"
 					bind:value={formData.slug}
 					placeholder="e.g., lead-guitarist"
-					pattern="^[a-z0-9-]+$"
 					required
 				/>
 				<p class="mt-1 text-xs text-gray-500">

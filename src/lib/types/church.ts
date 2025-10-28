@@ -1,4 +1,12 @@
 import type { User } from './auth';
+import type {
+	SubscriptionType,
+	SubscriptionStatus,
+	MembershipStatus,
+	Hemisphere,
+	WeekStart,
+	BuiltInRole
+} from './common';
 
 export interface Church {
 	id: string;
@@ -10,9 +18,9 @@ export interface Church {
 	state?: string;
 	country?: string;
 	timezone: string;
-	hemisphere: 'northern' | 'southern';
-	subscription_type: 'free' | 'basic' | 'premium';
-	subscription_status: 'active' | 'trial' | 'suspended' | 'cancelled';
+	hemisphere: Hemisphere;
+	subscription_type: SubscriptionType;
+	subscription_status: SubscriptionStatus;
 	max_users: number;
 	max_songs: number;
 	max_storage_mb: number;
@@ -32,7 +40,7 @@ export interface Church {
 
 export interface ChurchSettings {
 	default_service_types: string[];
-	week_start: 'sunday' | 'monday';
+	week_start: WeekStart;
 	repetition_window_days: number;
 	allow_member_song_creation: boolean;
 	auto_approve_members: boolean;
@@ -45,7 +53,7 @@ export interface ChurchMembership {
 	id: string;
 	church_id: string;
 	user_id: string;
-	status: 'active' | 'pending' | 'suspended';
+	status: MembershipStatus;
 	preferred_keys?: string[];
 	notification_preferences?: NotificationPreferences;
 	invited_by?: string;
@@ -129,12 +137,12 @@ export interface InitialChurchSetup {
 
 export interface InviteUserData {
 	email: string;
-	role: 'admin' | 'leader' | 'musician';
+	role: BuiltInRole;
 	permissions?: string[];
 }
 
 export interface UpdateMembershipData {
-	status?: 'active' | 'suspended';
+	status?: MembershipStatus;
 	preferred_keys?: string[];
 	notification_preferences?: NotificationPreferences;
 }
@@ -157,7 +165,7 @@ export function getDefaultChurchSettings(): ChurchSettings {
 /**
  * Detect hemisphere from timezone string
  */
-export function detectHemisphereFromTimezone(timezone: string): 'northern' | 'southern' {
+export function detectHemisphereFromTimezone(timezone: string): Hemisphere {
 	const southernTimezones = [
 		// Australia & Oceania
 		'Australia/',
@@ -229,7 +237,7 @@ export function getTimezoneAwareDefaults(timezone: string): Partial<ChurchSettin
 /**
  * Get default permissions for a role
  */
-export function getDefaultPermissions(role: 'admin' | 'leader' | 'musician'): string[] {
+export function getDefaultPermissions(role: BuiltInRole): string[] {
 	switch (role) {
 		case 'admin':
 			return ['manage-songs', 'manage-services', 'manage-members', 'manage-church'];

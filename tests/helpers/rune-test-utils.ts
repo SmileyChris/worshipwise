@@ -13,7 +13,8 @@ export function testWithRunes<T>(testFn: () => T): T {
 			result = testFn();
 
 			// Return cleanup function if provided by test
-			return typeof result === 'function' ? result : undefined;
+			// Cast to proper type to satisfy $effect.root signature
+			return (typeof result === 'function' ? result : undefined) as (() => void) | void;
 		});
 
 		// Flush any pending effects synchronously
@@ -79,9 +80,9 @@ export function testComponentWithRunes<T extends Record<string, any>>(
 ): void {
 	const { props = {} as T, target = document.body, test } = options;
 
-	testWithRunes(() => {
+	testWithRunes(async () => {
 		// Import mount/unmount from svelte for proper lifecycle
-		const { mount, unmount } = require('svelte');
+		const { mount, unmount } = await import('svelte');
 
 		const component = mount(Component, {
 			target,

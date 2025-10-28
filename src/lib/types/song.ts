@@ -1,3 +1,5 @@
+import type { SongUsageStatus, SongComplexity, SuggestionStatus } from './common';
+
 export interface Category {
 	id: string;
 	name: string;
@@ -38,7 +40,7 @@ export interface LyricsAnalysis {
 	emotional_tone: string;
 	service_placement: string;
 	seasonal_appropriateness: string[];
-	complexity_level: 'Simple' | 'Moderate' | 'Complex';
+	complexity_level: SongComplexity;
 	summary: string;
 	analyzed_at: string;
 	confidence_score?: number;
@@ -74,7 +76,7 @@ export interface Song {
 	// Usage tracking (computed client-side)
 	lastUsedDate?: Date | null;
 	daysSinceLastUsed?: number;
-	usageStatus?: 'available' | 'caution' | 'recent';
+	usageStatus?: SongUsageStatus;
 
 	// Expanded relations
 	expand?: {
@@ -139,8 +141,6 @@ export interface SongUsage {
 	created: string;
 	updated: string;
 }
-
-export type SongUsageStatus = 'available' | 'caution' | 'recent';
 
 export interface SongWithUsageStatus extends Song {
 	usageStatus: SongUsageStatus;
@@ -211,7 +211,7 @@ export interface SongSuggestion {
 	church_id: string;
 	suggested_by: string;
 	notes?: string;
-	status: 'pending' | 'approved' | 'rejected';
+	status: SuggestionStatus;
 	created: string;
 	updated: string;
 

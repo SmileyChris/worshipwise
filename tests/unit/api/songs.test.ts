@@ -17,8 +17,8 @@ describe('Songs API', () => {
 		}));
 
 		// Create API instance with mock auth context and pb instance
-		const authContext = createMockAuthContext();
-		songsApi = new SongsAPI(authContext, mockPb);
+		const authContext = createMockAuthContext({ pb: mockPb });
+		songsApi = new SongsAPI(authContext, mockPb as any);
 	});
 
 	describe('getSongs', () => {

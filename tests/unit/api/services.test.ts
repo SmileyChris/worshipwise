@@ -24,9 +24,10 @@ describe('Services API', () => {
 
 		// Create API instance with mock auth context and pb instance
 		const authContext = createMockAuthContext({
-			user: { id: 'user_1', name: 'Test User' }
+			user: { id: 'user_1', name: 'Test User' },
+			pb: mockPb
 		});
-		servicesApi = new ServicesAPI(authContext, mockPb);
+		servicesApi = new ServicesAPI(authContext, mockPb as any);
 	});
 
 	describe('getServices', () => {

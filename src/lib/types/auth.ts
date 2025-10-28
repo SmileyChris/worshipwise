@@ -1,5 +1,6 @@
 import type { Church, ChurchMembership } from './church';
 import type { Permission, UserRole, UserSkill } from './permissions';
+import type { RegisterRole } from './common';
 
 export interface User {
 	id: string;
@@ -22,7 +23,7 @@ export interface RegisterData {
 	password: string;
 	passwordConfirm: string;
 	name: string;
-	role?: 'musician' | 'leader';
+	role?: RegisterRole;
 }
 
 export interface PasswordResetRequest {

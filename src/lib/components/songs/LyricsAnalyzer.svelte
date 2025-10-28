@@ -52,10 +52,10 @@
 	// Load existing labels on mount
 	onMount(async () => {
 		const churchId = auth.currentChurch?.id;
-		hasAIFeatures = await hasAIFeaturesEnabled(churchId);
+		hasAIFeatures = await hasAIFeaturesEnabled(pb, churchId);
 
 		if (hasAIFeatures) {
-			mistralClient = await createChurchMistralClient(churchId);
+			mistralClient = await createChurchMistralClient(pb, churchId);
 		}
 
 		try {
