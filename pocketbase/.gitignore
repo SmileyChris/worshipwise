@@ -3,6 +3,7 @@ pb_data/
 
 # PocketBase executable (downloaded by install script)
 pocketbase
+pocketbase-*
 
 # Log files
 *.log

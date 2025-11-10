@@ -24,7 +24,6 @@ migrate((app) => {
     indexes: [
       `CREATE INDEX idx_service_comments_service ON service_comments (service_id)`,
       `CREATE INDEX idx_service_comments_user ON service_comments (user_id)`
-      `CREATE INDEX idx_service_comments_user ON service_comments (user_id)`
     ],
     listRule: `
       @request.auth.id != "" && 
@@ -52,7 +51,6 @@ migrate((app) => {
 
   try {
     app.save(collection);
-    console.log("Successfully created service_comments collection (base)");
     console.log("Successfully created service_comments collection (base)");
   } catch (e) {
     console.error("Failed to create service_comments collection:", e);
