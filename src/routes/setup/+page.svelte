@@ -27,7 +27,7 @@
 		</div>
 	</div>
 {:else if setupStore.setupRequired}
-	<InitialSetup />
+	<InitialSetup {setupStore} />
 {:else}
 	<div
 		class="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100"

@@ -3,15 +3,21 @@
 	import { goto } from '$app/navigation';
 	import { createChurchesAPI } from '$lib/api/churches';
 	import { pb } from '$lib/api/client';
-	import { createSetupStore } from '$lib/stores/setup.svelte';
+	import type { SetupStore } from '$lib/stores/setup.svelte';
 	import type { InitialChurchSetup } from '$lib/types/church';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import { Clock } from 'lucide-svelte';
 
-	// Initialize setup store and API
-	const setupStore = createSetupStore();
+	// Accept setupStore as a prop for better testability and context integration
+	interface Props {
+		setupStore: SetupStore;
+	}
+
+	let { setupStore }: Props = $props();
+
+	// Initialize API
 	const churchesAPI = createChurchesAPI(pb);
 
 	let loading = $state<boolean>(false);

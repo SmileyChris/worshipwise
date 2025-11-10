@@ -1,5 +1,5 @@
 import { goto } from '$app/navigation';
-import { createSetupStore } from '$lib/stores/setup.svelte';
+import { createSetupStore, type SetupStore } from '$lib/stores/setup.svelte';
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi, type MockedFunction } from 'vitest';
@@ -22,30 +22,28 @@ vi.mock('$lib/api/churches', () => {
 	};
 });
 
-vi.mock('$lib/stores/setup.svelte', () => ({
-	createSetupStore: vi.fn(() => ({
-		markSetupCompleted: vi.fn()
-	}))
-}));
-
 const mockedGoto = goto as MockedFunction<typeof goto>;
-const mockedCreateSetupStore = createSetupStore as MockedFunction<any>;
-const mockedSetupStore = {
-	markSetupCompleted: vi.fn()
-};
 
 describe('InitialSetup', () => {
 	const user = userEvent.setup();
+	let mockSetupStore: SetupStore;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-		// Make sure createSetupStore returns our mocked store
-		mockedCreateSetupStore.mockReturnValue(mockedSetupStore);
+		// Create a mock setup store for each test
+		mockSetupStore = {
+			setupRequired: true,
+			loading: false,
+			error: null,
+			checkSetupRequired: vi.fn().mockResolvedValue(true),
+			markSetupCompleted: vi.fn(),
+			clearError: vi.fn()
+		} as SetupStore;
 	});
 
 	describe('Step 1 - Church Information', () => {
 		it('should render step 1 with required fields only', () => {
-			render(InitialSetup);
+			render(InitialSetup, { setupStore: mockSetupStore });
 
 			// Check header with logo
 			expect(screen.getByAltText('WorshipWise')).toBeInTheDocument();
@@ -64,14 +62,14 @@ describe('InitialSetup', () => {
 		});
 
 		it('should disable next button when church name is empty', () => {
-			render(InitialSetup);
+			render(InitialSetup, { setupStore: mockSetupStore });
 
 			const nextButton = screen.getByRole('button', { name: /next step/i });
 			expect(nextButton).toBeDisabled();
 		});
 
 		it('should disable next button when timezone is not selected', async () => {
-			render(InitialSetup);
+			render(InitialSetup, { setupStore: mockSetupStore });
 
 			const churchNameInput = screen.getByLabelText(/Church Name/i);
 			await user.type(churchNameInput, 'Test Church');
@@ -85,7 +83,7 @@ describe('InitialSetup', () => {
 		});
 
 		it('should enable next button when both required fields are filled', async () => {
-			render(InitialSetup);
+			render(InitialSetup, { setupStore: mockSetupStore });
 
 			const churchNameInput = screen.getByLabelText(/Church Name/i);
 			const timezoneSelect = screen.getByLabelText(/Timezone/i);
@@ -98,7 +96,7 @@ describe('InitialSetup', () => {
 		});
 
 		it('should show hemisphere indicator when timezone is selected', async () => {
-			render(InitialSetup);
+			render(InitialSetup, { setupStore: mockSetupStore });
 
 			const timezoneSelect = screen.getByLabelText(/Timezone/i);
 			await user.selectOptions(timezoneSelect, 'America/New_York');
@@ -107,7 +105,7 @@ describe('InitialSetup', () => {
 		});
 
 		it('should show southern hemisphere for Australia timezone', async () => {
-			render(InitialSetup);
+			render(InitialSetup, { setupStore: mockSetupStore });
 
 			const timezoneSelect = screen.getByLabelText(/Timezone/i);
 			await user.selectOptions(timezoneSelect, 'Australia/Sydney');
@@ -116,7 +114,7 @@ describe('InitialSetup', () => {
 		});
 
 		it('should proceed to step 2 when next button is clicked with valid data', async () => {
-			render(InitialSetup);
+			render(InitialSetup, { setupStore: mockSetupStore });
 
 			const churchNameInput = screen.getByLabelText(/Church Name/i);
 			const timezoneSelect = screen.getByLabelText(/Timezone/i);
@@ -131,7 +129,7 @@ describe('InitialSetup', () => {
 		});
 
 		it('should proceed to step 2 when Enter is pressed in church name field with valid data', async () => {
-			render(InitialSetup);
+			render(InitialSetup, { setupStore: mockSetupStore });
 
 			const churchNameInput = screen.getByLabelText(/Church Name/i);
 			const timezoneSelect = screen.getByLabelText(/Timezone/i);
@@ -145,7 +143,7 @@ describe('InitialSetup', () => {
 		});
 
 		it('should not proceed to step 2 when Enter is pressed with invalid data', async () => {
-			render(InitialSetup);
+			render(InitialSetup, { setupStore: mockSetupStore });
 
 			const churchNameInput = screen.getByLabelText(/Church Name/i);
 			await user.type(churchNameInput, '{Enter}');
@@ -156,7 +154,7 @@ describe('InitialSetup', () => {
 		});
 
 		it('should focus admin name field after advancing to step 2', async () => {
-			render(InitialSetup);
+			render(InitialSetup, { setupStore: mockSetupStore });
 
 			const churchNameInput = screen.getByLabelText(/Church Name/i);
 			const timezoneSelect = screen.getByLabelText(/Timezone/i);
@@ -175,7 +173,7 @@ describe('InitialSetup', () => {
 
 	describe('Step 2 - Admin Account', () => {
 		beforeEach(async () => {
-			render(InitialSetup);
+			render(InitialSetup, { setupStore: mockSetupStore });
 
 			// Fill step 1 and proceed
 			const churchNameInput = screen.getByLabelText(/Church Name/i);
@@ -274,7 +272,7 @@ describe('InitialSetup', () => {
 			await user.click(completeButton);
 
 			expect(mockChurchesAPI.initialSetup).toHaveBeenCalledWith(mockSetupData);
-			expect(mockedSetupStore.markSetupCompleted).toHaveBeenCalled();
+			expect(mockSetupStore.markSetupCompleted).toHaveBeenCalled();
 			expect(mockedGoto).toHaveBeenCalledWith('/dashboard');
 		});
 
@@ -392,7 +390,7 @@ describe('InitialSetup', () => {
 				await user.type(nameInput, '{Enter}');
 
 				expect(mockChurchesAPI.initialSetup).toHaveBeenCalled();
-				expect(mockedSetupStore.markSetupCompleted).toHaveBeenCalled();
+				expect(mockSetupStore.markSetupCompleted).toHaveBeenCalled();
 				expect(mockedGoto).toHaveBeenCalledWith('/dashboard');
 			});
 
