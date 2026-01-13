@@ -7,6 +7,10 @@ import type {
 	AggregateRatings
 } from '$lib/types/song';
 
+// Module-level cache to share ratings across instances and components
+const userRatingCache = new Map<string, Map<string, SongRating | null>>(); // userId -> songId -> rating (or null if fetched and not found)
+const aggregateRatingCache = new Map<string, AggregateRatings>(); // songId -> aggregate
+
 export class RatingsAPI {
 	private collection = 'song_ratings';
 
@@ -24,22 +28,90 @@ export class RatingsAPI {
 				throw new Error('No church or user context');
 			}
 
+			const userId = this.authContext.user.id;
+			
+			// Check cache
+			if (!userRatingCache.has(userId)) {
+				userRatingCache.set(userId, new Map());
+			}
+			const userCache = userRatingCache.get(userId)!;
+			
+			if (userCache.has(songId)) {
+				return userCache.get(songId) || null;
+			}
+
 			const record = await this.pb
 				.collection(this.collection)
 				.getFirstListItem(
-					`song_id = "${songId}" && user_id = "${this.authContext.user.id}" && church_id = "${this.authContext.currentChurch.id}"`
+					`song_id = "${songId}" && user_id = "${userId}" && church_id = "${this.authContext.currentChurch.id}"`
 				);
 
-			return record as unknown as SongRating;
+			const rating = record as unknown as SongRating;
+			userCache.set(songId, rating);
+			return rating;
 		} catch (error: any) {
 			if (error?.status === 404) {
 				// No rating found
+				const userId = this.authContext.user?.id;
+				if (userId) {
+					if (!userRatingCache.has(userId)) {
+						userRatingCache.set(userId, new Map());
+					}
+					userRatingCache.get(userId)!.set(songId, null);
+				}
 				return null;
 			}
-			console.error('Failed to fetch user rating:', error);
 			throw error;
 		}
 	}
+
+	/**
+	 * Get user's ratings for multiple songs
+	 */
+	async getUserRatingsForSongs(songIds: string[]): Promise<Map<string, SongRating>> {
+		const ratingsMap = new Map<string, SongRating>();
+
+		if (songIds.length === 0) return ratingsMap;
+
+		try {
+			if (!this.authContext.currentChurch?.id || !this.authContext.user?.id) {
+				throw new Error('No church or user context');
+			}
+
+			const userId = this.authContext.user.id;
+			if (!userRatingCache.has(userId)) {
+				userRatingCache.set(userId, new Map());
+			}
+			const userCache = userRatingCache.get(userId)!;
+
+			// Build filter for all song IDs
+			const idFilters = songIds.map((id) => `song_id = "${id}"`).join(' || ');
+
+			const records = await this.pb.collection(this.collection).getFullList({
+				filter: `(${idFilters}) && user_id = "${userId}" && church_id = "${this.authContext.currentChurch.id}"`
+			});
+
+			// Populate map and cache
+			records.forEach((record) => {
+				const rating = record as unknown as SongRating;
+				ratingsMap.set(record.song_id, rating);
+				userCache.set(record.song_id, rating);
+			});
+
+			// Mark missing songs as null in cache
+			songIds.forEach(id => {
+				if (!ratingsMap.has(id)) {
+					userCache.set(id, null);
+				}
+			});
+
+			return ratingsMap;
+		} catch (error) {
+			console.error('Failed to fetch user ratings for songs:', error);
+			return ratingsMap;
+		}
+	}
+
 
 	/**
 	 * Get all ratings for a song
@@ -66,6 +138,10 @@ export class RatingsAPI {
 	 * Get aggregate ratings for a song
 	 */
 	async getAggregateRatings(songId: string): Promise<AggregateRatings> {
+		if (aggregateRatingCache.has(songId)) {
+			return aggregateRatingCache.get(songId)!;
+		}
+
 		const ratings = await this.getSongRatings(songId);
 
 		const aggregate: AggregateRatings = {
@@ -94,6 +170,7 @@ export class RatingsAPI {
 			}
 		});
 
+		aggregateRatingCache.set(songId, aggregate);
 		return aggregate;
 	}
 
@@ -152,6 +229,11 @@ export class RatingsAPI {
 				}
 			});
 
+			// Update cache
+			ratingsMap.forEach((aggregate, songId) => {
+				aggregateRatingCache.set(songId, aggregate);
+			});
+
 			return ratingsMap;
 		} catch (error) {
 			console.error('Failed to fetch multiple song ratings:', error);
@@ -192,7 +274,19 @@ export class RatingsAPI {
 					.collection(this.collection)
 					.update(existingRating.id, updateData);
 
-				return record as unknown as SongRating;
+				const rating = record as unknown as SongRating;
+
+				// Update user cache
+				const userId = this.authContext.user.id;
+				if (!userRatingCache.has(userId)) {
+					userRatingCache.set(userId, new Map());
+				}
+				userRatingCache.get(userId)!.set(songId, rating);
+
+				// Invalidate aggregate cache
+				aggregateRatingCache.delete(songId);
+
+				return rating;
 			} else {
 				// Create new rating
 				const createData = {
@@ -204,7 +298,19 @@ export class RatingsAPI {
 				};
 
 				const record = await this.pb.collection(this.collection).create(createData);
-				return record as unknown as SongRating;
+				const rating = record as unknown as SongRating;
+				
+				// Update user cache
+				const userId = this.authContext.user.id;
+				if (!userRatingCache.has(userId)) {
+					userRatingCache.set(userId, new Map());
+				}
+				userRatingCache.get(userId)!.set(songId, rating);
+
+				// Invalidate aggregate cache
+				aggregateRatingCache.delete(songId);
+
+				return rating;
 			}
 		} catch (error) {
 			console.error('Failed to set rating:', error);
@@ -221,6 +327,15 @@ export class RatingsAPI {
 
 			if (existingRating) {
 				await this.pb.collection(this.collection).delete(existingRating.id);
+				
+				// Update user cache
+				const userId = this.authContext.user?.id;
+				if (userId && userRatingCache.has(userId)) {
+					userRatingCache.get(userId)!.set(songId, null);
+				}
+
+				// Invalidate aggregate cache
+				aggregateRatingCache.delete(songId);
 			}
 		} catch (error) {
 			console.error('Failed to delete rating:', error);

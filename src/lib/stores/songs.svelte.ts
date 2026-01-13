@@ -457,6 +457,88 @@ class SongsStore {
 	}
 
 	/**
+	 * Get songs grouped by label (theme)
+	 */
+	async getSongsByLabel(): Promise<
+		Map<string, { label: { id: string; name: string; color?: string }; songs: Song[] }>
+	> {
+		try {
+			// Load all songs with expanded labels
+			const allSongs = await this.songsApi.getSongs({});
+
+			// Group songs by label
+			const labelMap = new Map<
+				string,
+				{ label: { id: string; name: string; color?: string }; songs: Song[] }
+			>();
+
+			allSongs.forEach((song) => {
+				const hasLabels = song.labels && song.labels.length > 0;
+				const expandedLabels = song.expand?.labels || [];
+
+				if (!hasLabels) {
+					// Handle uncategorized
+					const noLabelId = 'uncategorized';
+					if (!labelMap.has(noLabelId)) {
+						labelMap.set(noLabelId, {
+							label: {
+								id: noLabelId,
+								name: 'Uncategorized',
+								color: 'gray'
+							},
+							songs: []
+						});
+					}
+					labelMap.get(noLabelId)!.songs.push(song);
+				} else {
+					// Add song to each of its label groups
+					song.labels!.forEach((labelId) => {
+						const labelInfo = expandedLabels.find((l) => l.id === labelId);
+						
+						if (!labelMap.has(labelId)) {
+							const label = labelInfo || {
+								id: labelId,
+								name: 'Unknown Label',
+								color: undefined
+							};
+							labelMap.set(labelId, {
+								label: {
+									id: label.id,
+									name: label.name,
+									color: label.color
+								},
+								songs: []
+							});
+						}
+						labelMap.get(labelId)!.songs.push(song);
+					});
+				}
+			});
+
+			// Sort songs within each label by title
+			labelMap.forEach(({ songs }) => {
+				songs.sort((a, b) => a.title.localeCompare(b.title));
+			});
+			
+			// Sort the map itself by label name (needs conversion to array and back usually, but Map preserves insertion order)
+			// We will sort keys and rebuild map
+			const sortedMap = new Map(
+				[...labelMap.entries()].sort((a, b) => {
+					// Put Uncategorized at the end
+					if (a[0] === 'uncategorized') return 1;
+					if (b[0] === 'uncategorized') return -1;
+					return a[1].label.name.localeCompare(b[1].label.name);
+				})
+			);
+
+			return sortedMap;
+		} catch (error) {
+			console.error('Failed to get songs by label:', error);
+			throw error;
+		}
+	}
+
+	/**
 	 * Load user's favorite and difficult songs
 	 */
 	async loadUserPreferences(): Promise<void> {

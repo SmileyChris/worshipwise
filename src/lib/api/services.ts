@@ -70,7 +70,7 @@ export class ServicesAPI {
 			const records = await this.pb.collection(this.collection).getFullList({
 				filter,
 				sort: options.sort || '-service_date',
-				expand: 'worship_leader,team_members,created_by'
+				expand: 'worship_leader,team_members,created_by,service_songs_via_service_id'
 			});
 
 			return records as unknown as Service[];
@@ -86,11 +86,30 @@ export class ServicesAPI {
 	async getService(id: string): Promise<Service> {
 		try {
 			const record = await this.pb.collection(this.collection).getOne(id, {
-				expand: 'worship_leader,team_members,created_by'
+				expand: 'worship_leader,team_members,created_by,service_songs_via_service_id'
 			});
 			return record as unknown as Service;
 		} catch (error) {
 			console.error('Failed to fetch service:', error);
+			throw error;
+		}
+	}
+
+	/**
+	 * Get upcoming services
+	 */
+	async getUpcomingServices(limit = 10): Promise<Service[]> {
+		try {
+			const today = new Date().toISOString().split('T')[0];
+			const records = await this.pb.collection(this.collection).getFullList({
+				filter: `service_date >= "${today}" && is_template = false`,
+				sort: 'service_date',
+				expand: 'worship_leader,team_members,created_by,service_songs_via_service_id'
+			});
+
+			return (records as unknown as Service[]).slice(0, limit);
+		} catch (error) {
+			console.error('Failed to fetch upcoming services:', error);
 			throw error;
 		}
 	}
@@ -344,26 +363,6 @@ export class ServicesAPI {
 		}
 	}
 
-	/**
-	 * Get upcoming services
-	 */
-	async getUpcomingServices(limit = 10): Promise<Service[]> {
-		try {
-			const today = new Date().toISOString().split('T')[0];
-
-			const records = await this.pb.collection(this.collection).getFullList({
-				filter: `service_date >= "${today}" && is_template = false`,
-				sort: 'service_date',
-				limit,
-				expand: 'worship_leader'
-			});
-
-			return records as unknown as Service[];
-		} catch (error) {
-			console.error('Failed to fetch upcoming services:', error);
-			throw error;
-		}
-	}
 
 	/**
 	 * Get service templates

@@ -38,6 +38,7 @@ export interface Service {
 		worship_leader?: User;
 		approval_requested_by?: User;
 		approved_by?: User;
+		service_songs_via_service_id?: ServiceSong[];
 	};
 }
 
