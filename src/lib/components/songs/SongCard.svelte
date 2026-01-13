@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Song } from '$lib/types/song';
+	import type { Song, SongRating, AggregateRatings } from '$lib/types/song';
 	import { getAuthStore } from '$lib/context/stores.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -15,6 +15,7 @@
 		onAddToService?: (song: Song) => void;
 		isInCurrentService?: boolean;
 		isEditingService?: boolean;
+		ratingsLoading?: boolean;
 		class?: string;
 	}
 
@@ -28,6 +29,7 @@
 		onAddToService = () => {},
 		isInCurrentService = false,
 		isEditingService = false,
+		ratingsLoading = false,
 		class: className = ''
 	}: Props = $props();
 
@@ -85,184 +87,98 @@
 </script>
 
 <div
-	class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md {className}"
+	class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-300 hover:border-primary/20 hover:shadow-xl {className}"
 >
-	<div class="flex items-start justify-between">
+	<div class="flex items-start justify-between gap-4">
 		<div class="min-w-0 flex-1">
 			<!-- Song title and artist -->
-			<h3 class="font-title truncate text-lg font-semibold">
-				<a href="/songs/{song.id}" class="hover:text-primary text-gray-900 transition-colors">
+			<h3 class="font-title truncate text-xl font-bold text-gray-900 group-hover:text-primary transition-colors">
+				<a href="/songs/{song.id}">
 					{song.title}
 				</a>
 			</h3>
 			{#if song.artist}
-				<p class="truncate text-sm text-gray-600">{song.artist}</p>
+				<p class="truncate text-sm font-medium text-gray-500 mt-0.5">{song.artist}</p>
 			{/if}
 
-			<!-- Category and Labels -->
-			<div class="mt-2 flex flex-wrap items-center gap-2">
+			<!-- Category and Usage -->
+			<div class="mt-4 flex flex-wrap items-center gap-2">
 				{#if song.expand?.category}
 					<CategoryBadge category={song.expand.category} size="sm" />
 				{/if}
 
-				{#if song.expand?.labels && song.expand.labels.length > 0}
-					{#each song.expand.labels as label (label.id)}
-						<LabelBadge {label} size="sm" />
-					{/each}
+				{#if usageStatusInfo && usageStatusInfo.text}
+					<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {usageStatusInfo.colors}">
+						{usageStatusInfo.text}
+					</span>
 				{/if}
 			</div>
 
-			<!-- Metadata badges -->
-			<div class="mt-2 flex flex-wrap items-center gap-2">
+			<!-- Metadata Row -->
+			<div class="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-400">
 				{#if song.key_signature}
-					<Badge variant="primary">
-						Key: {song.key_signature}
-					</Badge>
+					<div class="flex items-center gap-1.5">
+						<div class="w-2 h-2 rounded-full bg-primary/40"></div>
+						<span class="font-bold text-gray-700">{song.key_signature}</span>
+					</div>
 				{/if}
 
 				{#if song.tempo}
-					<Badge variant="default">
-						{song.tempo} BPM
-					</Badge>
+					<div class="flex items-center gap-1.5 border-l border-gray-100 pl-4">
+						<span class="font-medium">{song.tempo} <span class="text-[10px] uppercase">BPM</span></span>
+					</div>
 				{/if}
 
 				{#if formattedDuration}
-					<Badge variant="default">
-						{formattedDuration}
-					</Badge>
-				{/if}
-
-				{#if usageStatusInfo && usageStatusInfo.text}
-					<Badge
-						variant={usageStatusInfo.status === 'green'
-							? 'success'
-							: usageStatusInfo.status === 'yellow'
-								? 'warning'
-								: 'danger'}
-					>
-						{usageStatusInfo.text}
-					</Badge>
+					<div class="flex items-center gap-1.5 border-l border-gray-100 pl-4">
+						<span class="font-medium">{formattedDuration}</span>
+					</div>
 				{/if}
 			</div>
 
-			<!-- Tags -->
-			{#if song.tags && song.tags.length > 0}
-				<div class="mt-2 flex flex-wrap gap-1">
-					{#each song.tags as tag (tag)}
-						<Badge variant="default" size="sm">
-							{tag}
-						</Badge>
-					{/each}
-				</div>
-			{/if}
-
-			<!-- Files indicators -->
-			{#if song.chord_chart || song.audio_file || (song.sheet_music && song.sheet_music.length > 0)}
-				<div class="mt-2 flex items-center gap-3 text-sm text-gray-500">
-					{#if song.chord_chart}
-						<span class="flex items-center gap-1">
-							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-								/>
-							</svg>
-							Chords
-						</span>
-					{/if}
-
-					{#if song.audio_file}
-						<span class="flex items-center gap-1">
-							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-								/>
-							</svg>
-							Audio
-						</span>
-					{/if}
-
-					{#if song.sheet_music && song.sheet_music.length > 0}
-						<span class="flex items-center gap-1">
-							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-								/>
-							</svg>
-							Sheet Music ({song.sheet_music.length})
-						</span>
-					{/if}
-				</div>
-			{/if}
-
-			<!-- CCLI info -->
-			{#if song.ccli_number}
-				<p class="mt-1 text-xs text-gray-400">CCLI: {song.ccli_number}</p>
-			{/if}
-
-			<!-- Retired status -->
-			{#if song.is_retired}
-				<div class="mt-2">
-					<Badge variant="warning" size="sm">
-						Retired {#if song.retired_reason === 'all_thumbs_down'}(75%+ leaders thumbs down){/if}
-					</Badge>
-				</div>
-			{/if}
-
-			<!-- Rating button -->
-			<div class="mt-3">
+			<!-- Rating -->
+			<div class="mt-3 pt-3 border-t border-gray-50">
 				<SongRatingButton {song} showAggregates={true} />
 			</div>
 		</div>
 
-		<!-- Actions -->
-		{#if showActions}
-			<div class="ml-4 flex flex-shrink-0 flex-col gap-2">
-				<Button
-					variant="ghost"
-					size="sm"
-					href="/songs/{song.id}"
-					class="text-gray-600 hover:text-gray-800"
-				>
-					View Details
-				</Button>
-
+		<!-- Action Sidebar -->
+		<div class="flex flex-shrink-0 flex-col items-end gap-3">
+			<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
 				{#if canEdit}
-					<Button
-						variant="ghost"
-						size="sm"
+					<button
 						onclick={() => onEdit(song)}
-						class="text-gray-600 hover:text-gray-800"
+						class="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
+						aria-label="Edit Song"
+						title="Edit Song"
 					>
-						Edit
-					</Button>
-				{/if}
-
-				{#if auth.canManageServices}
-					{#if isEditingService}
-						<Button
-							variant={isInCurrentService ? 'secondary' : 'primary'}
-							size="sm"
-							onclick={() => onAddToService(song)}
-							disabled={isInCurrentService}
-						>
-							{isInCurrentService ? 'In Service' : 'Add to Service'}
-						</Button>
-					{:else}
-						<Button variant="secondary" size="sm" onclick={() => onAddToService(song)}>
-							Add to Service
-						</Button>
-					{/if}
+						<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+						</svg>
+					</button>
 				{/if}
 			</div>
-		{/if}
+
+			{#if auth.canManageServices && isEditingService}
+				<Button
+					variant={isInCurrentService ? 'secondary' : 'primary'}
+					size="sm"
+					onclick={() => onAddToService(song)}
+					disabled={isInCurrentService}
+					class="rounded-xl px-4 py-2 {isInCurrentService ? 'bg-gray-100 text-gray-400 border-transparent' : 'shadow-md shadow-primary/20'}"
+				>
+					{isInCurrentService ? 'Added' : 'Add'}
+				</Button>
+			{/if}
+		</div>
 	</div>
+
+	<!-- Labels footer if present -->
+	{#if song.expand?.labels && song.expand.labels.length > 0}
+		<div class="mt-3 flex flex-wrap gap-1">
+			{#each song.expand.labels as label (label.id)}
+				<LabelBadge {label} size="sm" />
+			{/each}
+		</div>
+	{/if}
 </div>

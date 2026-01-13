@@ -9,9 +9,10 @@
 		song: Song;
 		showAggregates?: boolean;
 		onRatingChange?: (rating: SongRatingValue | null) => void;
+		ratingsLoading?: boolean;
 	}
 
-	let { song, showAggregates = true, onRatingChange }: Props = $props();
+	let { song, showAggregates = true, onRatingChange, ratingsLoading = false }: Props = $props();
 
 	const auth = getAuthStore();
 	const ratingsAPI = $derived.by(() => {
@@ -113,8 +114,11 @@
 		}
 	}
 
-	onMount(() => {
-		loadRatings();
+	// Watch for loading state change or initial mount
+	$effect(() => {
+		if (!ratingsLoading) {
+			loadRatings();
+		}
 	});
 </script>
 
