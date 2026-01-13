@@ -7,18 +7,17 @@
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
-	import ServiceBuilder from '$lib/components/services/ServiceBuilder.svelte';
+	import ServiceCard from '$lib/components/services/ServiceCard.svelte';
 	import TeamSelector from '$lib/components/services/TeamSelector.svelte';
 	import ServiceCalendar from '$lib/components/services/ServiceCalendar.svelte';
 	import type { ServiceTeamSkills } from '$lib/types/service';
 	import { onMount } from 'svelte';
+	import { Calendar, Layers, CheckCircle, Clock } from 'lucide-svelte';
 
 	const auth = getAuthStore();
 	const servicesStore = getServicesStore();
 
 	let showCreateModal = $state(false);
-	let showBuilder = $state(false);
-	let selectedServiceId = $state<string | null>(null);
 	let viewMode = $state<'grid' | 'calendar'>('grid');
 
 	// Form state for creating services
@@ -48,37 +47,27 @@
 		'Outreach'
 	] as const;
 
-	// Load services on mount and set default date
 	onMount(async () => {
 		await servicesStore.loadServices();
 		updateDefaultServiceDate();
 	});
 
-	// Calculate next available Sunday
 	function findNextAvailableSunday(): string {
-		// Use local date to avoid timezone issues
 		const today = new Date();
-		today.setHours(0, 0, 0, 0); // Start of day
+		today.setHours(0, 0, 0, 0);
 
 		const services = servicesStore.services;
-
-		// Get existing service dates (convert to date strings for comparison)
 		const existingDates = new Set(services.map((s) => s.service_date).filter(Boolean));
 
-		// Start from next Sunday (or today if it's Sunday)
 		let nextSunday = new Date(today);
-		const todayDayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-
-		// Calculate days until next Sunday
+		const todayDayOfWeek = today.getDay();
 		const daysUntilSunday = todayDayOfWeek === 0 ? 0 : 7 - todayDayOfWeek;
 		nextSunday.setDate(today.getDate() + daysUntilSunday);
 
-		// Keep checking Sundays until we find one without a service
 		let attempts = 0;
-		const maxAttempts = 52; // Don't check more than a year ahead
+		const maxAttempts = 52;
 
 		while (attempts < maxAttempts) {
-			// Format as YYYY-MM-DD for comparison
 			const year = nextSunday.getFullYear();
 			const month = String(nextSunday.getMonth() + 1).padStart(2, '0');
 			const day = String(nextSunday.getDate()).padStart(2, '0');
@@ -87,39 +76,24 @@
 			if (!existingDates.has(dateString)) {
 				return dateString;
 			}
-
-			// Move to next Sunday
 			nextSunday.setDate(nextSunday.getDate() + 7);
 			attempts++;
 		}
-
-		// Fallback to next Sunday if all are taken (unlikely)
-		const fallbackSunday = new Date(today);
-		const fallbackDaysUntilSunday = todayDayOfWeek === 0 ? 7 : 7 - todayDayOfWeek;
-		fallbackSunday.setDate(today.getDate() + fallbackDaysUntilSunday);
-
-		const year = fallbackSunday.getFullYear();
-		const month = String(fallbackSunday.getMonth() + 1).padStart(2, '0');
-		const day = String(fallbackSunday.getDate()).padStart(2, '0');
-		return `${year}-${month}-${day}`;
+		return today.toISOString().split('T')[0];
 	}
 
-	// Update the default service date when services change
 	function updateDefaultServiceDate() {
 		if (createForm.service_date === '') {
 			createForm.service_date = findNextAvailableSunday();
 		}
 	}
 
-	// Update default date when services change
 	$effect(() => {
 		if (servicesStore.services.length >= 0) {
-			// Trigger when services are loaded
 			updateDefaultServiceDate();
 		}
 	});
 
-	// Stats from store
 	let stats = $derived.by(() => {
 		const services = servicesStore.services;
 		return {
@@ -141,23 +115,11 @@
 
 		try {
 			const newService = await servicesStore.createService({
-				title: createForm.title,
-				service_date: createForm.service_date,
-				service_type: createForm.service_type,
-				theme: createForm.theme || undefined,
-				notes: createForm.notes || undefined,
-				worship_leader: createForm.worship_leader,
-				team_skills: createForm.team_skills,
-				estimated_duration: createForm.estimated_duration,
+				...createForm,
 				status: 'draft'
 			});
-
-			// Reset form with next available Sunday
 			resetCreateForm();
-
 			showCreateModal = false;
-
-			// Open builder for the new service
 			goto(`/services/${newService.id}`);
 		} catch (err: unknown) {
 			error = err instanceof Error ? err.message : 'Failed to create service';
@@ -170,52 +132,18 @@
 		goto(`/services/${serviceId}`);
 	}
 
-	function closeBuilder() {
-		showBuilder = false;
-		selectedServiceId = null;
-	}
-
-	function formatDate(dateString: string): string {
-		return new Date(dateString).toLocaleDateString();
-	}
-
-	function getStatusVariant(
-		status: string
-	): 'default' | 'primary' | 'success' | 'warning' | 'danger' {
-		switch (status) {
-			case 'draft':
-				return 'default';
-			case 'planned':
-				return 'primary';
-			case 'completed':
-				return 'success';
-			case 'in_progress':
-				return 'warning';
-			case 'archived':
-				return 'default';
-			default:
-				return 'default';
-		}
-	}
-
-	// Get friendly date description for form
 	function getDateDescription(dateString: string): string {
 		if (!dateString) return '';
-
 		const date = new Date(dateString);
 		const today = new Date();
 		const diffTime = date.getTime() - today.getTime();
 		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
 		if (diffDays === 0) return '(Today)';
 		if (diffDays === 1) return '(Tomorrow)';
 		if (diffDays > 0 && diffDays <= 7) return `(In ${diffDays} days)`;
-		if (diffDays > 7 && diffDays <= 14) return '(Next week)';
-
 		return '';
 	}
 
-	// Reset form to defaults with fresh next Sunday calculation
 	function resetCreateForm() {
 		createForm = {
 			title: '',
@@ -229,7 +157,6 @@
 		};
 	}
 
-	// Open create modal with fresh form
 	function openCreateModal() {
 		resetCreateForm();
 		showCreateModal = true;
@@ -240,193 +167,139 @@
 	<title>Services - WorshipWise</title>
 </svelte:head>
 
-	<div class="space-y-6">
-		<!-- Page header -->
-		<div class="md:flex md:items-center md:justify-between">
-			<div class="min-w-0 flex-1">
-				<h2 class="font-title text-2xl font-bold text-gray-900 sm:text-3xl">Services</h2>
-				<p class="mt-1 text-sm text-gray-500">Plan and manage your worship services</p>
-			</div>
-
-			<div class="mt-4 flex items-center gap-4 md:mt-0 md:ml-4">
-				<!-- View toggle -->
-				<div class="flex rounded-lg border border-gray-300 bg-white p-1">
-					<button
-						class="rounded px-3 py-1 text-sm font-medium transition-colors {viewMode === 'grid' ? 'bg-primary text-white' : 'text-gray-700 hover:text-gray-900'}"
-						onclick={() => (viewMode = 'grid')}
-					>
-						Grid
-					</button>
-					<button
-						class="rounded px-3 py-1 text-sm font-medium transition-colors {viewMode === 'calendar' ? 'bg-primary text-white' : 'text-gray-700 hover:text-gray-900'}"
-						onclick={() => (viewMode = 'calendar')}
-					>
-						Calendar
-					</button>
-				</div>
-
-				{#if auth.canManageServices}
-					<Button variant="primary" onclick={openCreateModal}>Create New Service</Button>
-				{/if}
-			</div>
+<div class="space-y-8">
+	<!-- Page header -->
+	<div class="md:flex md:items-center md:justify-between">
+		<div class="min-w-0 flex-1">
+			<h2 class="font-title text-3xl font-bold text-gray-900">Services</h2>
+			<p class="mt-1 text-gray-500">Plan and manage your worship services</p>
 		</div>
 
-		<!-- Error message -->
-		{#if error}
-			<div class="rounded-lg bg-red-50 p-4 text-red-800">
-				{error}
-			</div>
-		{/if}
-
-		<!-- Quick stats (only show in grid view) -->
-		{#if viewMode === 'grid'}
-			<div class="grid grid-cols-1 gap-6 md:grid-cols-4">
-				<Card>
-					<div class="text-center">
-						<div class="font-title text-2xl font-bold text-gray-900">{stats.total}</div>
-						<div class="text-sm text-gray-500">Total Services</div>
-					</div>
-				</Card>
-
-				<Card>
-					<div class="text-center">
-						<div class="font-title text-primary text-2xl font-bold">{stats.draft}</div>
-						<div class="text-sm text-gray-500">Draft</div>
-					</div>
-				</Card>
-
-				<Card>
-					<div class="text-center">
-						<div class="font-title text-2xl font-bold text-green-600">{stats.planned}</div>
-						<div class="text-sm text-gray-500">Planned</div>
-					</div>
-				</Card>
-
-				<Card>
-					<div class="text-center">
-						<div class="font-title text-2xl font-bold text-purple-600">{stats.completed}</div>
-						<div class="text-sm text-gray-500">Completed</div>
-					</div>
-				</Card>
-			</div>
-		{/if}
-
-		<!-- Services list -->
-		{#if servicesStore.loading}
-			<div class="flex h-64 items-center justify-center">
-				<LoadingSpinner message="Loading services..." />
-			</div>
-		{:else if servicesStore.services.length === 0}
-			<!-- Welcome message -->
-			<Card>
-				<EmptyState
-					title="Plan Your Worship Services"
-					message={auth.canManageServices 
-						? "Create services, track song usage, and collaborate with your team."
-						: "View services assigned to you by your worship leader."}
-					action={auth.canManageServices ? {
-						label: "Create Your First Service",
-						onclick: openCreateModal
-					} : undefined}
+		<div class="mt-4 flex items-center gap-4 md:mt-0 md:ml-4">
+			<div class="flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
+				<button
+					class="rounded-lg px-4 py-1.5 text-sm font-semibold transition-all {viewMode === 'grid' ? 'bg-primary text-white shadow-md' : 'text-gray-600 hover:text-gray-900'}"
+					onclick={() => (viewMode = 'grid')}
 				>
-					{#snippet icon()}
-						<div class="text-6xl">📋</div>
-					{/snippet}
-				</EmptyState>
-			</Card>
-		{:else}
-			{#if viewMode === 'calendar'}
-				<!-- Calendar view -->
-				<ServiceCalendar
-					services={servicesStore.services}
-					loading={servicesStore.loading}
-					onServiceClick={(service) => openBuilder(service.id)}
-					onDateClick={(date) => {
-						// Pre-fill the date when creating from calendar
-						createForm.service_date = date.toISOString().split('T')[0];
-						openCreateModal();
-					}}
-				/>
-			{:else}
-				<!-- Services grid -->
-				<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-					{#each servicesStore.services as service (service.id)}
-						<Card class="transition-shadow hover:shadow-lg">
-							<div class="p-6">
-								<div class="flex items-start justify-between">
-									<div class="min-w-0 flex-1">
-										<h3 class="truncate text-lg font-medium text-gray-900">
-											{service.title}
-										</h3>
-										<p class="mt-1 text-sm text-gray-600">
-											{formatDate(service.service_date)}
-											{#if service.service_type}
-												• {service.service_type}
-											{/if}
-										</p>
-										{#if service.theme}
-											<p class="mt-1 text-sm text-gray-500">Theme: {service.theme}</p>
-										{/if}
-									</div>
-									<div class="flex flex-col gap-1 items-end">
-										<Badge variant={getStatusVariant(service.status || 'draft')}>
-											{service.status || 'draft'}
-										</Badge>
-										{#if service.approval_status && service.approval_status !== 'not_required'}
-											<Badge 
-												variant={
-													service.approval_status === 'approved' ? 'success' :
-													service.approval_status === 'rejected' ? 'danger' :
-													service.approval_status === 'pending_approval' ? 'warning' :
-													service.approval_status === 'changes_requested' ? 'warning' :
-													'default'
-												}
-												size="sm"
-											>
-												{service.approval_status.replace(/_/g, ' ')}
-											</Badge>
-										{/if}
-									</div>
-								</div>
+					Grid
+				</button>
+				<button
+					class="rounded-lg px-4 py-1.5 text-sm font-semibold transition-all {viewMode === 'calendar' ? 'bg-primary text-white shadow-md' : 'text-gray-600 hover:text-gray-900'}"
+					onclick={() => (viewMode = 'calendar')}
+				>
+					Calendar
+				</button>
+			</div>
 
-								{#if service.notes}
-									<p class="mt-3 line-clamp-2 text-sm text-gray-600">
-										{service.notes}
-									</p>
-								{/if}
-
-								<div class="mt-4 flex items-center justify-between">
-									<div class="text-sm text-gray-500">
-										{#if service.estimated_duration}
-											{Math.floor(service.estimated_duration / 60)}:{(service.estimated_duration % 60)
-												.toString()
-												.padStart(2, '0')} estimated
-										{/if}
-									</div>
-									<div class="flex gap-2">
-										<Button variant="primary" size="sm" onclick={() => openBuilder(service.id)}>
-											Edit
-										</Button>
-										{#if service.status === 'draft'}
-											<Button
-												variant="ghost"
-												size="sm"
-												onclick={async () => {
-													await servicesStore.updateService(service.id, { status: 'planned' });
-												}}
-											>
-												Plan
-											</Button>
-										{/if}
-									</div>
-								</div>
-							</div>
-						</Card>
-					{/each}
-				</div>
+			{#if auth.canManageServices}
+				<Button variant="primary" onclick={openCreateModal} class="shadow-lg shadow-primary/20">
+					Plan New Service
+				</Button>
 			{/if}
-		{/if}
+		</div>
 	</div>
+
+	{#if error}
+		<div class="rounded-xl bg-red-50 p-4 text-red-800 border border-red-100 italic">
+			{error}
+		</div>
+	{/if}
+
+	<!-- Quick stats -->
+	{#if viewMode === 'grid'}
+		<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+			<Card class="bg-white border-transparent shadow-sm">
+				<div class="flex items-center gap-4">
+					<div class="bg-gray-100 p-2.5 rounded-xl">
+						<Calendar class="h-5 w-5 text-gray-600" />
+					</div>
+					<div>
+						<div class="text-2xl font-bold text-gray-900 leading-none">{stats.total}</div>
+						<div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Total</div>
+					</div>
+				</div>
+			</Card>
+
+			<Card class="bg-white border-transparent shadow-sm">
+				<div class="flex items-center gap-4">
+					<div class="bg-blue-50 p-2.5 rounded-xl">
+						<Layers class="h-5 w-5 text-blue-600" />
+					</div>
+					<div>
+						<div class="text-2xl font-bold text-gray-900 leading-none">{stats.draft}</div>
+						<div class="text-[10px] text-blue-400 font-bold uppercase tracking-wider mt-1">Drafts</div>
+					</div>
+				</div>
+			</Card>
+
+			<Card class="bg-white border-transparent shadow-sm">
+				<div class="flex items-center gap-4">
+					<div class="bg-green-50 p-2.5 rounded-xl">
+						<Clock class="h-5 w-5 text-green-600" />
+					</div>
+					<div>
+						<div class="text-2xl font-bold text-gray-900 leading-none">{stats.planned}</div>
+						<div class="text-[10px] text-green-400 font-bold uppercase tracking-wider mt-1">Planned</div>
+					</div>
+				</div>
+			</Card>
+
+			<Card class="bg-white border-transparent shadow-sm">
+				<div class="flex items-center gap-4">
+					<div class="bg-purple-50 p-2.5 rounded-xl">
+						<CheckCircle class="h-5 w-5 text-purple-600" />
+					</div>
+					<div>
+						<div class="text-2xl font-bold text-gray-900 leading-none">{stats.completed}</div>
+						<div class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mt-1">Done</div>
+					</div>
+				</div>
+			</Card>
+		</div>
+	{/if}
+
+	<!-- Services list -->
+	{#if servicesStore.loading}
+		<div class="flex h-64 items-center justify-center">
+			<LoadingSpinner message="Loading services..." />
+		</div>
+	{:else if servicesStore.services.length === 0}
+		<Card>
+			<EmptyState
+				title="No services found"
+				message={auth.canManageServices 
+					? "Start your first worship plan today."
+					: "Contact your leader to get assigned to a service."}
+				action={auth.canManageServices ? {
+					label: "Plan First Service",
+					onclick: openCreateModal
+				} : undefined}
+			>
+				{#snippet icon()}
+					<div class="text-6xl">📋</div>
+				{/snippet}
+			</EmptyState>
+		</Card>
+	{:else}
+		{#if viewMode === 'calendar'}
+			<ServiceCalendar
+				services={servicesStore.services}
+				loading={servicesStore.loading}
+				onServiceClick={(service) => openBuilder(service.id)}
+				onDateClick={(date) => {
+					createForm.service_date = date.toISOString().split('T')[0];
+					openCreateModal();
+				}}
+			/>
+		{:else}
+			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+				{#each servicesStore.services as service (service.id)}
+					<ServiceCard {service} onclick={() => openBuilder(service.id)} />
+				{/each}
+			</div>
+		{/if}
+	{/if}
+</div>
 
 <!-- Create service modal -->
 <Modal open={showCreateModal} title="Create New Service" onclose={() => (showCreateModal = false)}>

@@ -14,9 +14,10 @@
 		availableSongs: Song[];
 		currentSongs: Song[];
 		onAddSong: (song: Song) => void;
+		isPlanning?: boolean;
 	}
 
-	let { service, availableSongs, currentSongs, onAddSong }: Props = $props();
+	let { service, availableSongs, currentSongs, onAddSong, isPlanning = true }: Props = $props();
 
 	const auth = getAuthStore();
 	const aiApi = $derived.by(() => {
@@ -106,15 +107,17 @@
 	<div class="p-4 border-b border-gray-200">
 		<div class="flex items-center justify-between mb-2">
 			<h3 class="font-title text-lg font-medium text-gray-900">AI Song Suggestions</h3>
-			<Button
-				variant="ghost"
-				size="sm"
-				onclick={() => (showOptions = !showOptions)}
-			>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-				</svg>
-			</Button>
+			{#if isPlanning}
+				<Button
+					variant="ghost"
+					size="sm"
+					onclick={() => (showOptions = !showOptions)}
+				>
+					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+					</svg>
+				</Button>
+			{/if}
 		</div>
 
 		{#if showOptions}
@@ -183,35 +186,37 @@
 			</div>
 		{/if}
 
-		<div class="flex gap-2 mt-3">
-			<Button
-				variant="primary"
-				size="sm"
-				onclick={generateSuggestions}
-				disabled={loading}
-				class="flex-1"
-			>
-				{#if loading}
-					<div class="border-white mx-auto h-4 w-4 animate-spin rounded-full border-b-2"></div>
-				{:else}
-					<svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+		{#if isPlanning}
+			<div class="flex gap-2 mt-3">
+				<Button
+					variant="primary"
+					size="sm"
+					onclick={generateSuggestions}
+					disabled={loading}
+					class="flex-1"
+				>
+					{#if loading}
+						<div class="border-white mx-auto h-4 w-4 animate-spin rounded-full border-b-2"></div>
+					{:else}
+						<svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+						</svg>
+						Generate Suggestions
+					{/if}
+				</Button>
+				<Button
+					variant="secondary"
+					size="sm"
+					onclick={getComplementarySuggestions}
+					disabled={loading || currentSongs.length === 0}
+					title="Get songs that complement your current selection"
+				>
+					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2z" />
 					</svg>
-					Generate Suggestions
-				{/if}
-			</Button>
-			<Button
-				variant="secondary"
-				size="sm"
-				onclick={getComplementarySuggestions}
-				disabled={loading || currentSongs.length === 0}
-				title="Get songs that complement your current selection"
-			>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2z" />
-				</svg>
-			</Button>
-		</div>
+				</Button>
+			</div>
+		{/if}
 	</div>
 
 	<div class="flex-1 overflow-y-auto p-4">
@@ -246,13 +251,15 @@
 									<Badge variant="default" size="sm">{tag}</Badge>
 								{/each}
 							</div>
-							<Button
-								variant="primary"
-								size="sm"
-								onclick={() => onAddSong(suggestion.song)}
-							>
-								Add to Service
-							</Button>
+							{#if isPlanning}
+								<Button
+									variant="primary"
+									size="sm"
+									onclick={() => onAddSong(suggestion.song)}
+								>
+									Add to Service
+								</Button>
+							{/if}
 						</div>
 					</div>
 				{/each}
