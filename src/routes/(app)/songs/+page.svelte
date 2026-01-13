@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import CategoryCard from '$lib/components/songs/CategoryCard.svelte';
 	import SongCard from '$lib/components/songs/SongCard.svelte';
 	import SongForm from '$lib/components/songs/SongForm.svelte';
 	import SongsSidebar from '$lib/components/songs/SongsSidebar.svelte';
@@ -15,7 +14,9 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import { getAuthStore, getServicesStore, getSongsStore } from '$lib/context/stores.svelte';
 	import type { Category, Song } from '$lib/types/song';
+	import { createRatingsAPI } from '$lib/api/ratings';
 	import { onMount } from 'svelte';
+	import { Music, CheckCircle, Clock, PlusCircle, Search, Users } from 'lucide-svelte';
 
 	let { data } = $props();
 
@@ -29,7 +30,7 @@
 	let songToDelete = $state<Song | null>(null);
 
 	// View state
-	let viewMode = $state<'list' | 'categories'>('categories');
+	let viewMode = $state<'list' | 'themes'>('themes');
 
 	// Search state
 	let searchQuery = $state('');
@@ -42,9 +43,9 @@
 	let showDifficult = $state(false);
 	let initialLoadComplete = $state(false);
 
-	// Category data
-	let categoriesData = $state<Map<string, { category: Category; songs: Song[] }> | null>(null);
-	let categoriesLoading = $state(false);
+	// Theme data
+	let themesData = $state<Map<string, { label: { id: string; name: string; color?: string }; songs: Song[] }> | null>(null);
+	let themesLoading = $state(false);
 
 	// Reactive data from store
 	let songs = $derived(songsStore.songs);
@@ -57,6 +58,14 @@
 	let hasPrevPage = $derived(songsStore.hasPrevPage);
 	let selectedSong = $derived(songsStore.selectedSong);
 	let availableKeys = $derived(songsStore.availableKeys);
+
+	// Ratings state
+	let ratingsLoading = $state(false);
+	
+	const ratingsAPI = $derived.by(() => {
+		const ctx = auth.getAuthContext();
+		return createRatingsAPI(ctx, ctx.pb);
+	});
 
 	// Service editing state
 	let currentService = $derived(servicesStore.currentService);
@@ -83,18 +92,15 @@
 		...availableKeys.map((key: string) => ({ value: key, label: key }))
 	]);
 
-	// Load category data
-	async function loadCategoriesData() {
-		categoriesLoading = true;
+	// Load theme data
+	async function loadThemesData() {
+		themesLoading = true;
 		try {
-			categoriesData = (await songsStore.getSongsByCategory()) as unknown as Map<
-				string,
-				{ category: Category; songs: Song[] }
-			>;
+			themesData = await songsStore.getSongsByLabel();
 		} catch (error) {
-			console.error('Failed to load categories data:', error);
+			console.error('Failed to load themes data:', error);
 		} finally {
-			categoriesLoading = false;
+			themesLoading = false;
 		}
 	}
 
@@ -107,8 +113,8 @@
 			showSongForm = true;
 		}
 
-		if (viewMode === 'categories') {
-			loadCategoriesData();
+		if (viewMode === 'themes') {
+			loadThemesData();
 		} else {
 			songsStore.loadSongs().then(() => {
 				initialLoadComplete = true;
@@ -145,29 +151,9 @@
 		// Wait for church context before loading
 		if (!auth.currentChurch) return;
 
-		if (viewMode === 'categories') {
-			// Use preloaded songs from page load if available
-			if (data?.preloadedSongs && Array.isArray(data.preloadedSongs)) {
-				const map = new Map<string, { category: Record<string, unknown>; songs: Song[] }>();
-				for (const song of data.preloadedSongs as Song[]) {
-					const categoryId = song.category as string;
-					const categoryInfo = (song as any).expand?.category;
-					if (!map.has(categoryId)) {
-						const category = categoryInfo || {
-							id: categoryId || 'unknown-category',
-							name: 'Unknown Category'
-						};
-						map.set(categoryId, { category, songs: [] });
-					}
-					map.get(categoryId)!.songs.push(song);
-				}
-				map.forEach(({ songs }) => songs.sort((a, b) => a.title.localeCompare(b.title)));
-				categoriesData = map as unknown as Map<string, { category: Category; songs: Song[] }>;
-				initialLoadComplete = true;
-			} else {
-				loadCategoriesData();
-				initialLoadComplete = true;
-			}
+		if (viewMode === 'themes') {
+			loadThemesData();
+			initialLoadComplete = true;
 		} else if (viewMode === 'list' && !initialLoadComplete) {
 			songsStore.loadSongs().then(() => {
 				initialLoadComplete = true;
@@ -201,6 +187,37 @@
 
 			// Cleanup timeout on next effect run
 			return () => clearTimeout(timeoutId);
+		}
+	});
+
+	// Fetch ratings for visible songs
+	$effect(() => {
+		const visibleSongs: Song[] = [];
+		
+		if (viewMode === 'list' && songs.length > 0) {
+			visibleSongs.push(...songs);
+		} else if (viewMode === 'themes' && themesData) {
+			for (const { songs: themeSongs } of themesData.values()) {
+				visibleSongs.push(...themeSongs);
+			}
+		}
+
+		if (visibleSongs.length > 0 && auth.currentChurch) {
+			ratingsLoading = true;
+			const songIds = visibleSongs.map(s => s.id);
+			
+			// Fetch ratings to populate cache
+			// We don't store the result here because the API module caches it
+			// and child components will read from cache
+			Promise.all([
+				ratingsAPI.getUserRatingsForSongs(songIds),
+				ratingsAPI.getMultipleSongRatings(songIds)
+			]).then(() => {
+				ratingsLoading = false;
+			}).catch(err => {
+				console.error('Failed to pre-fetch ratings:', err);
+				ratingsLoading = false;
+			});
 		}
 	});
 
@@ -273,345 +290,275 @@
 	<title>Songs - WorshipWise</title>
 </svelte:head>
 
-<div class="space-y-6">
+<div class="space-y-8">
 	<!-- Page header -->
 	<div class="md:flex md:items-center md:justify-between">
 		<div class="min-w-0 flex-1">
-			<h2
-				class="font-title text-2xl leading-7 font-bold text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight"
-			>
-				Song Library
-			</h2>
-			<p class="mt-1 text-sm text-gray-500">Manage your worship songs and track usage patterns</p>
+			<h2 class="font-title text-3xl font-bold text-gray-900">Song Library</h2>
+			<p class="mt-1 text-gray-500">Manage your worship songs and track usage patterns</p>
 		</div>
 
 		<div class="mt-4 flex items-center gap-4 md:mt-0 md:ml-4">
-			<!-- Suggestions Link -->
-			<Button variant="ghost" href="/songs/suggestions" class="text-primary">
-				View Suggestions
-			</Button>
-
 			<!-- View Toggle -->
-			<div class="flex rounded-lg border border-gray-300 bg-gray-50 p-1">
+			<div class="flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
 				<button
-					onclick={() => (viewMode = 'categories')}
-					class="rounded-md px-3 py-1 text-sm font-medium transition-colors {viewMode ===
-					'categories'
-						? 'text-primary bg-white shadow-sm'
-						: 'text-gray-500 hover:text-gray-700'}"
+					onclick={() => (viewMode = 'themes')}
+					class="rounded-lg px-4 py-1.5 text-sm font-semibold transition-all {viewMode === 'themes'
+						? 'bg-primary text-white shadow-md'
+						: 'text-gray-600 hover:text-gray-900'}"
 				>
-					Categories
+					Themes
 				</button>
 				<button
 					onclick={() => (viewMode = 'list')}
-					class="rounded-md px-3 py-1 text-sm font-medium transition-colors {viewMode === 'list'
-						? 'text-primary bg-white shadow-sm'
-						: 'text-gray-500 hover:text-gray-700'}"
+					class="rounded-lg px-4 py-1.5 text-sm font-semibold transition-all {viewMode === 'list'
+						? 'bg-primary text-white shadow-md'
+						: 'text-gray-600 hover:text-gray-900'}"
 				>
 					List
 				</button>
 			</div>
 
 			{#if auth.canManageSongs}
-				<Button variant="primary" onclick={handleAddSong}>Add New Song</Button>
+				<Button variant="primary" onclick={handleAddSong} class="shadow-lg shadow-primary/20">Add New Song</Button>
 			{/if}
 		</div>
 	</div>
 
-	<!-- Service Editing Banner -->
-	{#if isEditingService && currentService}
-		<Card class="bg-primary/5 border-primary/20">
-			<div class="flex items-center justify-between">
-				<div class="flex items-center gap-3">
-					<div class="bg-primary h-3 w-3 animate-pulse rounded-full"></div>
-					<div>
-						<p class="text-primary/90 text-sm font-medium">
-							Currently editing: <span class="font-semibold">{currentService.title}</span>
-						</p>
-						<p class="text-primary/80 text-xs">
-							Click "Add to Service" to add songs to this service
-						</p>
-					</div>
+	<!-- Stats cards -->
+	<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+		<Card class="bg-gradient-to-br from-indigo-50 to-white border-indigo-100">
+			<div class="flex items-center gap-4">
+				<div class="bg-indigo-100 p-3 rounded-xl">
+					<Music class="h-6 w-6 text-indigo-600" />
 				</div>
-				<Button
-					variant="ghost"
-					size="sm"
-					href="/services/{currentService.id}"
-					class="text-primary/80 hover:text-primary"
-				>
-					Go to Service
-				</Button>
+				<div>
+					<div class="text-2xl font-bold text-gray-900 leading-none">{stats.totalSongs}</div>
+					<div class="text-xs text-indigo-500 font-bold uppercase tracking-wider mt-1">Total Songs</div>
+				</div>
 			</div>
 		</Card>
-	{/if}
 
-	<!-- Error display -->
-	{#if error}
-		<div class="rounded-md bg-red-50 p-4">
-			<div class="flex">
-				<div class="flex-shrink-0">
-					<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-						<path
-							fill-rule="evenodd"
-							d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-							clip-rule="evenodd"
-						/>
-					</svg>
+		<Card class="bg-gradient-to-br from-green-50 to-white border-green-100">
+			<div class="flex items-center gap-4">
+				<div class="bg-green-100 p-3 rounded-xl">
+					<CheckCircle class="h-6 w-6 text-green-600" />
 				</div>
-				<div class="ml-3">
-					<p class="text-sm text-red-800">{error}</p>
-					<Button variant="ghost" size="sm" onclick={clearError} class="mt-2">Dismiss</Button>
+				<div>
+					<div class="text-2xl font-bold text-gray-900 leading-none">{stats.availableSongs}</div>
+					<div class="text-xs text-green-500 font-bold uppercase tracking-wider mt-1">Ready to Use</div>
 				</div>
 			</div>
+		</Card>
+
+		<Card class="bg-gradient-to-br from-amber-50 to-white border-amber-100">
+			<div class="flex items-center gap-4">
+				<div class="bg-amber-100 p-3 rounded-xl">
+					<Clock class="h-6 w-6 text-amber-600" />
+				</div>
+				<div>
+					<div class="text-2xl font-bold text-gray-900 leading-none">{stats.recentlyUsed}</div>
+					<div class="text-xs text-amber-500 font-bold uppercase tracking-wider mt-1">Used Recently</div>
+				</div>
+			</div>
+		</Card>
+	</div>
+
+	<!-- Service Editing Banner -->
+	{#if isEditingService && currentService}
+		<div class="bg-primary px-6 py-4 rounded-2xl shadow-lg shadow-primary/10 flex items-center justify-between text-white">
+			<div class="flex items-center gap-4">
+				<div class="bg-white/20 p-2 rounded-full animate-pulse">
+					<PlusCircle class="h-5 w-5" />
+				</div>
+				<div>
+					<p class="font-bold">Planning: {currentService.title}</p>
+					<p class="text-xs text-white/80 italic">Select songs from the library to add them to this service.</p>
+				</div>
+			</div>
+			<Button
+				variant="ghost"
+				size="sm"
+				href="/services/{currentService.id}"
+				class="bg-white/10 hover:bg-white/20 text-white border-white/20"
+			>
+				Return to Plan
+			</Button>
 		</div>
 	{/if}
 
-	<!-- Main Layout with Sidebar -->
-	<div class="lg:grid lg:grid-cols-12 lg:gap-8">
-		<!-- Main Content -->
-		<div class="lg:col-span-9">
-			<!-- Stats cards (shown for both views) -->
-			<div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
-				<Card>
-					<div class="text-center">
-						<div class="font-title text-2xl font-bold text-gray-900">{stats.totalSongs}</div>
-						<div class="text-sm text-gray-500">Total Songs</div>
-					</div>
-				</Card>
-
-				<Card>
-					<div class="text-center">
-						<div class="font-title text-2xl font-bold text-green-600">{stats.availableSongs}</div>
-						<div class="text-sm text-gray-500">Available Songs</div>
-					</div>
-				</Card>
-
-				<Card>
-					<div class="text-center">
-						<div class="font-title text-2xl font-bold text-yellow-600">{stats.recentlyUsed}</div>
-						<div class="text-sm text-gray-500">Recently Used</div>
-					</div>
-				</Card>
-			</div>
-
-			{#if viewMode === 'categories'}
-				<!-- Categories View -->
-				{#if categoriesLoading}
-					<div class="py-8">
-						<LoadingSpinner message="Loading categories..." />
-					</div>
-				{:else if categoriesData && categoriesData.size > 0}
+	<!-- Main Layout -->
+	<div class="lg:grid lg:grid-cols-12 lg:gap-10">
+		<div class="lg:col-span-9 space-y-8">
+			{#if viewMode === 'list'}
+				<!-- Search and filters -->
+				<Card class="bg-gray-50/50 border-gray-100">
 					<div class="space-y-6">
-						{#each [...categoriesData.entries()] as [categoryId, { category, songs }] (categoryId)}
-							<CategoryCard
-								{category}
-								{songs}
-								onEditSong={handleEditSong}
-								onAddToService={handleAddToService}
-								{isEditingService}
-								{songsInCurrentService}
+						<div class="relative">
+							<Search class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+							<input
+								type="text"
+								placeholder="Search songs by title, artist, or theme..."
+								bind:value={searchQuery}
+								class="w-full pl-10 pr-4 py-3 bg-white border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
 							/>
+						</div>
+
+						<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+							<div class="space-y-2">
+								<label for="filter-category" class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Category</label>
+								<CategorySelect
+									id="filter-category"
+									bind:value={selectedCategory}
+									placeholder="All categories"
+								/>
+							</div>
+
+							<div class="space-y-2">
+								<label for="filter-key" class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Key Signature</label>
+								<Select
+									id="filter-key"
+									name="key_filter"
+									bind:value={selectedKey}
+									options={keyOptions}
+									placeholder="Any Key"
+								/>
+							</div>
+
+							<div class="space-y-2">
+								<label for="filter-sort" class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Sort By</label>
+								<Select
+									id="filter-sort"
+									name="sort"
+									bind:value={selectedSort}
+									options={sortOptions}
+								/>
+							</div>
+						</div>
+
+						<div class="flex flex-wrap gap-4 pt-2">
+							<label class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-100 rounded-lg cursor-pointer hover:border-primary transition-colors">
+								<input type="checkbox" bind:checked={showFavorites} class="text-primary rounded" />
+								<span class="text-sm font-medium text-gray-600">Favorites</span>
+							</label>
+							<label class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-100 rounded-lg cursor-pointer hover:border-primary transition-colors">
+								<input type="checkbox" bind:checked={showDifficult} class="text-primary rounded" />
+								<span class="text-sm font-medium text-gray-600">Complex</span>
+							</label>
+							<label class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-100 rounded-lg cursor-pointer hover:border-primary transition-colors">
+								<input type="checkbox" bind:checked={showRetired} class="text-primary rounded" />
+								<span class="text-sm font-medium text-gray-600">Show Retired</span>
+							</label>
+						</div>
+					</div>
+				</Card>
+			{/if}
+
+			<!-- Songs Content -->
+			{#if viewMode === 'themes'}
+				{#if themesLoading}
+					<div class="flex flex-col items-center justify-center h-64">
+						<LoadingSpinner />
+						<p class="mt-4 text-gray-500 font-medium">Sorting your library...</p>
+					</div>
+				{:else if themesData && themesData.size > 0}
+					<div class="space-y-8">
+						{#each [...themesData.entries()] as [labelId, { label, songs }] (labelId)}
+							<section>
+								<div class="flex items-baseline gap-3 mb-4">
+									<h3 class="font-title text-xl font-bold text-gray-900 flex items-center gap-2">
+										{#if label.color}
+											<div class="w-3 h-3 rounded-full" style="background-color: {label.color}"></div>
+										{/if}
+										{label.name}
+									</h3>
+									<span class="text-sm text-gray-400 font-medium">{songs.length} songs</span>
+								</div>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									{#each songs as song (song.id)}
+										<SongCard
+											{song}
+											onEdit={handleEditSong}
+											onAddToService={handleAddToService}
+											{isEditingService}
+											isInCurrentService={songsInCurrentService.has(song.id)}
+											{ratingsLoading}
+										/>
+									{/each}
+								</div>
+							</section>
 						{/each}
 					</div>
 				{:else}
-					<!-- Welcome message for new users -->
-					<Card>
+					<Card padding={false} class="overflow-hidden">
 						<EmptyState
-							title="Welcome to your Song Library"
-							message={auth.canManageSongs
-								? 'Get started by adding your first worship song to the library.'
-								: 'Contact your worship leader to add songs to the library.'}
-							action={auth.canManageSongs
-								? {
-										label: 'Add Your First Song',
-										onclick: handleAddSong
-									}
-								: undefined}
-						>
-							{#snippet icon()}
-								<div class="text-6xl">🎵</div>
-							{/snippet}
-						</EmptyState>
+							title="Empty Library"
+							message="Start adding songs to build your worship library."
+							action={{ label: 'Add First Song', onclick: handleAddSong }}
+						/>
 					</Card>
 				{/if}
 			{:else}
 				<!-- List View -->
-				{#if songs.length === 0 && !loading}
-					<!-- Welcome message for new users -->
-					<Card>
+				{#if loading && songs.length === 0}
+					<div class="flex flex-col items-center justify-center h-64">
+						<LoadingSpinner />
+					</div>
+				{:else if songs.length === 0}
+					<Card padding={false} class="overflow-hidden">
 						<EmptyState
-							title="Welcome to your Song Library"
-							message={auth.canManageSongs
-								? 'Get started by adding your first worship song to the library.'
-								: 'Contact your worship leader to add songs to the library.'}
-							action={auth.canManageSongs
-								? {
-										label: 'Add Your First Song',
-										onclick: handleAddSong
-									}
-								: undefined}
-						>
-							{#snippet icon()}
-								<div class="text-6xl">🎵</div>
-							{/snippet}
-						</EmptyState>
+							title="No songs found"
+							message="Try adjusting your filters or search query."
+							action={{ label: 'Clear Filters', onclick: () => { searchQuery = ''; selectedCategory = ''; selectedKey = ''; showFavorites = false; showRetired = false; } }}
+						/>
 					</Card>
 				{:else}
-					<!-- Search and filters -->
-					<Card padding={false} class="p-4">
-						<div class="space-y-4">
-							<!-- Search bar -->
-							<div class="flex-1">
-								<Input
-									name="search"
-									placeholder="Search songs by title or artist..."
-									bind:value={searchQuery}
-									class="w-full"
-								/>
-							</div>
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						{#each songs as song (song.id)}
+							<SongCard
+								{song}
+								onEdit={handleEditSong}
+								onAddToService={handleAddToService}
+								{isEditingService}
+								isInCurrentService={songsInCurrentService.has(song.id)}
+								{ratingsLoading}
+							/>
+						{/each}
+					</div>
 
-							<!-- Toggle filters -->
-							<div class="flex flex-wrap gap-3">
-								<label class="flex cursor-pointer items-center gap-2">
-									<input
-										type="checkbox"
-										bind:checked={showRetired}
-										class="text-primary focus:ring-primary rounded border-gray-300"
-									/>
-									<span class="text-sm font-medium text-gray-700">Show Retired Songs</span>
-								</label>
-
-								<label class="flex cursor-pointer items-center gap-2">
-									<input
-										type="checkbox"
-										bind:checked={showFavorites}
-										class="text-primary focus:ring-primary rounded border-gray-300"
-									/>
-									<span class="text-sm font-medium text-gray-700">My Favorites</span>
-								</label>
-
-								<label class="flex cursor-pointer items-center gap-2">
-									<input
-										type="checkbox"
-										bind:checked={showDifficult}
-										class="text-primary focus:ring-primary rounded border-gray-300"
-									/>
-									<span class="text-sm font-medium text-gray-700">Difficult Songs</span>
-								</label>
-							</div>
-
-							<!-- Filters row -->
-							<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-								<div>
-									<label for="filter-category" class="mb-1 block text-sm font-medium text-gray-700"
-										>Category</label
-									>
-									<CategorySelect
-										id="filter-category"
-										bind:value={selectedCategory}
-										placeholder="All categories"
-									/>
-								</div>
-
-								<div>
-									<label for="filter-labels" class="mb-1 block text-sm font-medium text-gray-700"
-										>Labels</label
-									>
-									<LabelSelector id="filter-labels" bind:selectedLabelIds />
-								</div>
-
-								<div>
-									<label for="filter-key" class="mb-1 block text-sm font-medium text-gray-700"
-										>Key</label
-									>
-									<Select
-										id="filter-key"
-										name="key_filter"
-										bind:value={selectedKey}
-										options={keyOptions}
-										placeholder="All keys"
-									/>
-								</div>
-
-								<div>
-									<label for="filter-sort" class="mb-1 block text-sm font-medium text-gray-700"
-										>Sort</label
-									>
-									<Select
-										id="filter-sort"
-										name="sort"
-										bind:value={selectedSort}
-										options={sortOptions}
-									/>
-								</div>
+					{#if totalPages > 1}
+						<div class="flex items-center justify-between pt-6">
+							<p class="text-sm text-gray-500 font-medium whitespace-nowrap">
+								Page <span class="text-gray-900">{currentPage}</span> of <span class="text-gray-900">{totalPages}</span>
+							</p>
+							<div class="flex gap-2">
+								<Button variant="outline" size="sm" onclick={handlePrevPage} disabled={!hasPrevPage || loading}>Previous</Button>
+								<Button variant="outline" size="sm" onclick={handleNextPage} disabled={!hasNextPage || loading}>Next</Button>
 							</div>
 						</div>
-					</Card>
-
-					<!-- Songs grid -->
-					{#if loading}
-						<div class="py-8 text-center">
-							<div
-								class="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"
-							></div>
-							<p class="mt-2 text-sm text-gray-500">Loading songs...</p>
-						</div>
-					{:else}
-						<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-							{#each songs as song (song.id)}
-								<SongCard
-									{song}
-									onEdit={handleEditSong}
-									onAddToService={handleAddToService}
-									{isEditingService}
-									isInCurrentService={songsInCurrentService.has(song.id)}
-								/>
-							{/each}
-						</div>
-
-						<!-- Pagination -->
-						{#if totalPages > 1}
-							<Card padding={false} class="p-4">
-								<div class="flex items-center justify-between">
-									<div class="text-sm text-gray-500">
-										Page {currentPage} of {totalPages}
-									</div>
-
-									<div class="flex gap-2">
-										<Button
-											variant="secondary"
-											size="sm"
-											onclick={handlePrevPage}
-											disabled={!hasPrevPage || loading}
-										>
-											Previous
-										</Button>
-
-										<Button
-											variant="secondary"
-											size="sm"
-											onclick={handleNextPage}
-											disabled={!hasNextPage || loading}
-										>
-											Next
-										</Button>
-									</div>
-								</div>
-							</Card>
-						{/if}
 					{/if}
 				{/if}
 			{/if}
 		</div>
 
 		<!-- Sidebar -->
-		<div class="mt-6 lg:col-span-3 lg:mt-0">
-			<SongsSidebar
-				onAddToService={handleAddToService}
-				{isEditingService}
-				{songsInCurrentService}
-			/>
-		</div>
+		<aside class="lg:col-span-3 space-y-8">
+			<Card padding={false} class="overflow-hidden border-transparent shadow-sm">
+				<div class="p-5 bg-primary text-white">
+					<h3 class="font-bold flex items-center gap-2">
+						<Users class="h-4 w-4" />
+						Insights
+					</h3>
+				</div>
+				<div class="p-5 bg-white">
+					<SongsSidebar
+						onAddToService={handleAddToService}
+						{isEditingService}
+						{songsInCurrentService}
+					/>
+				</div>
+			</Card>
+		</aside>
 	</div>
 </div>
 

@@ -1,14 +1,18 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { createSongsAPI } from '$lib/api/songs';
-	import { getAuthStore } from '$lib/context/stores.svelte';
+	import { getAuthStore, getSongsStore } from '$lib/context/stores.svelte';
 	import type { Song } from '$lib/types/song';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import ShareManager from '$lib/components/share/ShareManager.svelte';
+	import { Music, Activity, Compass, Users, CheckCircle, PlusCircle } from 'lucide-svelte';
 
 	const auth = getAuthStore();
+	const songsStore = getSongsStore();
+	const stats = $derived(songsStore.stats);
+
 	const songsAPI = $derived.by(() => {
 		const ctx = auth.getAuthContext();
 		return createSongsAPI(ctx, ctx.pb);
@@ -42,7 +46,6 @@
 		error = '';
 
 		try {
-			// Load overall popular songs and personal popular songs in parallel
 			const [popular, personalPopular] = await Promise.all([
 				songsAPI.getPopularSongs(5),
 				auth.user ? songsAPI.getPersonalPopularSongs(auth.user.id, 5) : Promise.resolve([])
@@ -66,17 +69,35 @@
 </script>
 
 <div class="space-y-6">
-	{#if loading}
-		<Card>
-			<div class="animate-pulse">
-				<div class="mb-3 h-4 w-3/4 rounded bg-gray-200"></div>
-				<div class="space-y-2">
-					<div class="h-3 rounded bg-gray-200"></div>
-					<div class="h-3 w-5/6 rounded bg-gray-200"></div>
-					<div class="h-3 w-4/6 rounded bg-gray-200"></div>
+	<!-- Library Health -->
+	<div class="space-y-3">
+		<h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 px-1">
+			<Activity class="h-3 w-3" />
+			Library Health
+		</h3>
+		<div class="grid grid-cols-1 gap-2">
+			<div class="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm">
+				<div class="flex items-center gap-2">
+					<Compass class="h-4 w-4 text-primary" />
+					<span class="text-sm font-medium text-gray-600">Top Key</span>
 				</div>
+				<span class="text-sm font-bold text-gray-900">{stats.mostUsedKey || 'N/A'}</span>
 			</div>
-		</Card>
+			<div class="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm">
+				<div class="flex items-center gap-2">
+					<Activity class="h-4 w-4 text-primary" />
+					<span class="text-sm font-medium text-gray-600">Avg Tempo</span>
+				</div>
+				<span class="text-sm font-bold text-gray-900">{stats.averageTempo ? `${stats.averageTempo} BPM` : 'N/A'}</span>
+			</div>
+		</div>
+	</div>
+
+	{#if loading}
+		<div class="animate-pulse space-y-4">
+			<div class="h-32 bg-gray-100 rounded-2xl"></div>
+			<div class="h-32 bg-gray-100 rounded-2xl"></div>
+		</div>
 	{:else if error}
 		<Card>
 			<div class="py-4 text-center">
@@ -85,118 +106,45 @@
 			</div>
 		</Card>
 	{:else}
-		<!-- Overall Popular Songs -->
-		<Card>
-			<h3 class="font-title mb-4 text-lg font-semibold text-gray-900">Popular Songs</h3>
-			{#if popularSongs.length > 0}
-				<div class="space-y-3">
-					{#each popularSongs as song, index (song.id)}
-						<div class="flex items-start justify-between">
-							<div class="min-w-0 flex-1">
-								<div class="flex items-center gap-2">
-									<span
-										class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-600"
-									>
-										{index + 1}
-									</span>
-									<div class="min-w-0 flex-1">
-										<p class="truncate text-sm font-medium text-gray-900">
-											<a href="/songs/{song.id}" class="hover:text-primary transition-colors">
-												{song.title}
-											</a>
-										</p>
-										{#if song.artist}
-											<p class="truncate text-xs text-gray-500">{song.artist}</p>
-										{/if}
-									</div>
-								</div>
-
-								{#if song.expand?.song_usage_via_song && song.expand.song_usage_via_song.length > 0}
-									<div class="mt-1 ml-7">
-										<Badge size="sm" variant="default">
-											{formatUsageCount(song.expand.song_usage_via_song.length)}
-										</Badge>
-									</div>
-								{/if}
-							</div>
-
-							{#if isEditingService}
-								<Button
-									size="sm"
-									variant={songsInCurrentService.has(song.id) ? 'secondary' : 'primary'}
-									onclick={() => onAddToService(song)}
-									disabled={songsInCurrentService.has(song.id)}
-									class="ml-2 flex-shrink-0"
-								>
-									{songsInCurrentService.has(song.id) ? '✓' : '+'}
-								</Button>
-							{/if}
+		<!-- Popular Songs -->
+		<div class="space-y-4">
+			<h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 px-1">
+				<Users class="h-3 w-3" />
+				Trending
+			</h3>
+			
+			{#each popularSongs as song, index (song.id)}
+				<div class="group flex items-center justify-between p-2 hover:bg-white hover:shadow-md hover:border-gray-100 rounded-xl transition-all border border-transparent">
+					<div class="flex items-center gap-3 min-w-0">
+						<span class="text-xs font-black text-gray-300 group-hover:text-primary transition-colors pr-1">{(index+1).toString().padStart(2, '0')}</span>
+						<div class="min-w-0">
+							<p class="text-sm font-bold text-gray-900 truncate">{song.title}</p>
+							<p class="text-[10px] text-gray-400 truncate">{song.artist || 'Unknown'}</p>
 						</div>
-					{/each}
-				</div>
-			{:else}
-				<div class="py-6 text-center text-gray-500">
-					<div class="mb-2 text-2xl">📊</div>
-					<p class="text-sm">No usage data yet</p>
-				</div>
-			{/if}
-		</Card>
-
-		<!-- Personal Popular Songs -->
-		{#if auth.user && personalPopularSongs.length > 0}
-			<Card>
-				<h3 class="font-title mb-4 text-lg font-semibold text-gray-900">Your Favorites</h3>
-				<div class="space-y-3">
-					{#each personalPopularSongs as song, index (song.id)}
-						<div class="flex items-start justify-between">
-							<div class="min-w-0 flex-1">
-								<div class="flex items-center gap-2">
-									<span
-										class="bg-primary/10 text-primary flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium"
-									>
-										{index + 1}
-									</span>
-									<div class="min-w-0 flex-1">
-										<p class="truncate text-sm font-medium text-gray-900">
-											<a href="/songs/{song.id}" class="hover:text-primary transition-colors">
-												{song.title}
-											</a>
-										</p>
-										{#if song.artist}
-											<p class="truncate text-xs text-gray-500">{song.artist}</p>
-										{/if}
-									</div>
-								</div>
-
-								{#if song.expand?.song_usage_via_song && song.expand.song_usage_via_song.length > 0}
-									<div class="mt-1 ml-7">
-										<Badge size="sm" class="bg-primary/10 text-primary">
-											{formatUsageCount(song.expand.song_usage_via_song.length)}
-										</Badge>
-									</div>
-								{/if}
-							</div>
-
-							{#if isEditingService}
-								<Button
-									size="sm"
-									variant={songsInCurrentService.has(song.id) ? 'secondary' : 'primary'}
-									onclick={() => onAddToService(song)}
-									disabled={songsInCurrentService.has(song.id)}
-									class="ml-2 flex-shrink-0"
-								>
-									{songsInCurrentService.has(song.id) ? '✓' : '+'}
-								</Button>
+					</div>
+					
+					{#if isEditingService}
+						<button
+							onclick={() => onAddToService(song)}
+							disabled={songsInCurrentService.has(song.id)}
+							class="p-1.5 rounded-lg border border-gray-100 text-gray-400 hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all text-xs {songsInCurrentService.has(song.id) ? 'bg-green-50 text-green-500 border-green-100' : ''}"
+						>
+							{#if songsInCurrentService.has(song.id)}
+								<CheckCircle class="h-3.5 w-3.5" />
+							{:else}
+								<PlusCircle class="h-3.5 w-3.5" />
 							{/if}
-						</div>
-					{/each}
+						</button>
+					{/if}
 				</div>
-			</Card>
-		{/if}
+			{/each}
+		</div>
 
 		<!-- Share Manager (for leaders/admins) -->
 		{#if auth.canManageSongs}
-			<ShareManager />
+			<div class="pt-4">
+				<ShareManager />
+			</div>
 		{/if}
 	{/if}
 </div>
