@@ -32,6 +32,8 @@
 					return 'bg-primary/10 text-primary';
 				case 'green':
 					return 'bg-green-100 text-green-800';
+				case 'purple':
+					return 'bg-purple-50 text-purple-600';
 				case 'gray':
 					return 'bg-gray-100 text-gray-800';
 				default:

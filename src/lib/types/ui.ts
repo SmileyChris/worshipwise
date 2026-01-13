@@ -23,7 +23,7 @@ export type BadgeVariant =
 /**
  * Badge color options (alternative to variant)
  */
-export type BadgeColor = 'default' | 'red' | 'yellow' | 'blue' | 'green' | 'gray';
+export type BadgeColor = 'default' | 'red' | 'yellow' | 'blue' | 'green' | 'purple' | 'gray';
 
 /**
  * Badge size options
@@ -111,7 +111,7 @@ export function isBadgeVariant(value: string): value is BadgeVariant {
 }
 
 export function isBadgeColor(value: string): value is BadgeColor {
-	return ['default', 'red', 'yellow', 'blue', 'green', 'gray'].includes(value);
+	return ['default', 'red', 'yellow', 'blue', 'green', 'purple', 'gray'].includes(value);
 }
 
 export function isBadgeSize(value: string): value is BadgeSize {

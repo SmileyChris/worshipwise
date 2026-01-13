@@ -63,6 +63,6 @@
 	});
 </script>
 
-<div class="relative {className}">
+<div class="relative w-full h-full {className}">
 	<canvas bind:this={canvasElement}></canvas>
 </div>
