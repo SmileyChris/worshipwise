@@ -192,42 +192,14 @@
                         </a>
 							{#if auth.isAdmin || auth.canManageMembers}
 								<hr class="my-1 border-gray-200" />
-								{#if auth.canManageMembers}
-									<a
-										href="/admin/members"
-										class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-										role="menuitem"
-										onclick={closeUserMenu}
-									>
-										Manage Members
-									</a>
-								{/if}
-								{#if auth.isAdmin}
-									<a
-										href="/admin/roles"
-										class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-										role="menuitem"
-										onclick={closeUserMenu}
-									>
-										Manage Roles
-									</a>
-									<a
-										href="/admin/skills"
-										class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-										role="menuitem"
-										onclick={closeUserMenu}
-									>
-										Manage Skills
-									</a>
-									<a
-										href="/admin/settings"
-										class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-										role="menuitem"
-										onclick={closeUserMenu}
-									>
-										Church Settings
-									</a>
-								{/if}
+								<a
+									href="/admin"
+									class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+									role="menuitem"
+									onclick={closeUserMenu}
+								>
+									Church Administration
+								</a>
 								<hr class="my-1 border-gray-200" />
 							{/if}
 							<Button
@@ -324,6 +296,14 @@
 				>
 					Profile Settings
 				</a>
+				{#if auth.isAdmin || auth.canManageMembers}
+					<a
+						href="/admin"
+						class="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+					>
+						Church Administration
+					</a>
+				{/if}
 				<Button
 					onclick={handleOpenSetupWizard}
 					variant="ghost"

@@ -8,15 +8,15 @@
 
 	const auth = getAuthStore();
 
-	// Redirect if not admin
+	// Redirect if not admin or member manager
 	$effect(() => {
-		if (browser && auth.isValid && !auth.isAdmin) {
+		if (browser && auth.isValid && !auth.isAdmin && !auth.canManageMembers) {
 			goto('/dashboard');
 		}
 	});
 </script>
 
-{#if auth.isAdmin}
+{#if auth.isAdmin || auth.canManageMembers}
 	<div class="admin-layout">
 		<!-- Admin page header -->
 		<div class="mb-6 border-b border-gray-200 pb-4">
@@ -55,18 +55,50 @@
 						? 'border-primary text-primary'
 						: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
 				>
-					Member Management
+					Members
 				</a>
-				<a
-					href="/admin/settings"
-					class="border-b-2 px-1 py-2 text-sm font-medium whitespace-nowrap {$page.url.pathname.startsWith(
-						'/admin/settings'
-					)
-						? 'border-primary text-primary'
-						: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
-				>
-					Church Settings
-				</a>
+				{#if auth.isAdmin}
+					<a
+						href="/admin/roles"
+						class="border-b-2 px-1 py-2 text-sm font-medium whitespace-nowrap {$page.url.pathname.startsWith(
+							'/admin/roles'
+						)
+							? 'border-primary text-primary'
+							: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
+					>
+						Roles
+					</a>
+					<a
+						href="/admin/skills"
+						class="border-b-2 px-1 py-2 text-sm font-medium whitespace-nowrap {$page.url.pathname.startsWith(
+							'/admin/skills'
+						)
+							? 'border-primary text-primary'
+							: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
+					>
+						Skills
+					</a>
+					<a
+						href="/admin/songs/categorize"
+						class="border-b-2 px-1 py-2 text-sm font-medium whitespace-nowrap {$page.url.pathname.startsWith(
+							'/admin/songs'
+						)
+							? 'border-primary text-primary'
+							: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
+					>
+						Categorize Songs
+					</a>
+					<a
+						href="/admin/settings"
+						class="border-b-2 px-1 py-2 text-sm font-medium whitespace-nowrap {$page.url.pathname.startsWith(
+							'/admin/settings'
+						)
+							? 'border-primary text-primary'
+							: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
+					>
+						Church Settings
+					</a>
+				{/if}
 			</nav>
 		</div>
 

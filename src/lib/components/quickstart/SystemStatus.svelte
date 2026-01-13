@@ -40,14 +40,3 @@
 	</div>
 {/if}
 
-<!-- Debug info in development -->
-{#if import.meta.env.DEV}
-	<details class="mb-4">
-		<summary class="cursor-pointer text-xs text-gray-500">System Status Debug</summary>
-		<pre class="mt-2 overflow-auto rounded bg-gray-100 p-2 text-xs">{JSON.stringify(
-				store.systemStatus,
-				null,
-				2
-			)}</pre>
-	</details>
-{/if}

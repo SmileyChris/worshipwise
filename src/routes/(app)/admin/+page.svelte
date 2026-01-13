@@ -173,20 +173,25 @@
 		<Card>
 			<div class="p-6">
 				<h3 class="font-title mb-4 text-lg font-medium text-gray-900">Quick Actions</h3>
-				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 					<Button href="/admin/members" variant="outline" class="justify-start">
 						<span class="mr-2">👥</span>
 						Manage Users
 					</Button>
 
-					<Button onclick={() => loadStats()} variant="outline" class="justify-start">
-						<span class="mr-2">🔄</span>
-						Refresh Stats
+					<Button href="/admin/roles" variant="outline" class="justify-start">
+						<span class="mr-2">🔐</span>
+						Manage Roles
 					</Button>
 
-					<Button href="/analytics" variant="outline" class="justify-start">
-						<span class="mr-2">📊</span>
-						View Analytics
+					<Button href="/admin/skills" variant="outline" class="justify-start">
+						<span class="mr-2">🎸</span>
+						Manage Skills
+					</Button>
+
+					<Button href="/admin/settings" variant="outline" class="justify-start">
+						<span class="mr-2">⛪</span>
+						Church Settings
 					</Button>
 				</div>
 			</div>
