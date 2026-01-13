@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getAuthStore, getServicesStore } from '$lib/context/stores.svelte';
+	import { goto } from '$app/navigation';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -157,8 +158,7 @@
 			showCreateModal = false;
 
 			// Open builder for the new service
-			selectedServiceId = newService.id;
-			showBuilder = true;
+			goto(`/services/${newService.id}`);
 		} catch (err: unknown) {
 			error = err instanceof Error ? err.message : 'Failed to create service';
 		} finally {
@@ -167,8 +167,7 @@
 	}
 
 	function openBuilder(serviceId: string) {
-		selectedServiceId = serviceId;
-		showBuilder = true;
+		goto(`/services/${serviceId}`);
 	}
 
 	function closeBuilder() {
@@ -241,9 +240,6 @@
 	<title>Services - WorshipWise</title>
 </svelte:head>
 
-{#if showBuilder && selectedServiceId}
-	<ServiceBuilder serviceId={selectedServiceId} onClose={closeBuilder} />
-{:else}
 	<div class="space-y-6">
 		<!-- Page header -->
 		<div class="md:flex md:items-center md:justify-between">
@@ -431,7 +427,6 @@
 			{/if}
 		{/if}
 	</div>
-{/if}
 
 <!-- Create service modal -->
 <Modal open={showCreateModal} title="Create New Service" onclose={() => (showCreateModal = false)}>

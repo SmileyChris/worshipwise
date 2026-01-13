@@ -190,7 +190,7 @@
                         >
                             Profile Settings
                         </a>
-							{#if auth.canManageChurch || auth.canManageMembers}
+							{#if auth.isAdmin || auth.canManageMembers}
 								<hr class="my-1 border-gray-200" />
 								{#if auth.canManageMembers}
 									<a
@@ -202,7 +202,7 @@
 										Manage Members
 									</a>
 								{/if}
-								{#if auth.canManageChurch}
+								{#if auth.isAdmin}
 									<a
 										href="/admin/roles"
 										class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -220,7 +220,7 @@
 										Manage Skills
 									</a>
 									<a
-										href="/admin/churches"
+										href="/admin/settings"
 										class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
 										role="menuitem"
 										onclick={closeUserMenu}

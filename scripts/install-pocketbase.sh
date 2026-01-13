@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="${POCKETBASE_VERSION:-0.32.0}"
+VERSION="${POCKETBASE_VERSION:-0.35.1}"
 TARGET_DIR="pocketbase"
 mkdir -p "${TARGET_DIR}"
 

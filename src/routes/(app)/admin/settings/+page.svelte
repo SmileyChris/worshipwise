@@ -9,12 +9,14 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
-	import { Settings, Key, AlertCircle, Check, X } from 'lucide-svelte';
+	import { Settings, Key, AlertCircle, Check, X, Link, Download } from 'lucide-svelte';
 	import type { Church } from '$lib/types/church';
 
 	const auth = getAuthStore();
 
-	let church = $state<(Church & { mistral_api_key?: string }) | null>(null);
+	let church = $state<(Church & { mistral_api_key?: string; elvanto_api_key?: string; last_elvanto_sync?: string }) | null>(
+		null
+	);
 	let loading = $state(true);
 	let saving = $state(false);
 	let error = $state<string | null>(null);
@@ -25,6 +27,13 @@
 	let showApiKey = $state(false);
 	let testingApiKey = $state(false);
 	let apiKeyValid = $state<boolean | null>(null);
+
+	// Elvanto
+	let elvantoApiKey = $state('');
+	let showElvantoKey = $state(false);
+	let elvantoKeyConfigured = $state(false);
+	let importing = $state(false);
+	let importResult = $state<{ services: number; songs: number } | null>(null);
 
 	// Check if there's a global API key
 	const hasGlobalKey = !!env.PUBLIC_MISTRAL_API_KEY;
@@ -56,9 +65,16 @@
 			// Load church data with API key
 			const churchData = await pb
 				.collection('churches')
-				.getOne<Church & { mistral_api_key?: string }>(currentChurch.id);
+				.getOne<Church & { mistral_api_key?: string; elvanto_api_key?: string; last_elvanto_sync?: string }>(currentChurch.id);
 			church = churchData;
 			mistralApiKey = churchData.mistral_api_key || '';
+			mistralApiKey = churchData.mistral_api_key || '';
+			
+			// Handle Elvanto key as write-only
+			if (churchData.elvanto_api_key) {
+				elvantoKeyConfigured = true;
+			}
+			elvantoApiKey = ''; // Never display the key value
 		} catch (err) {
 			console.error('Failed to load church settings:', err);
 			error = err instanceof Error ? err.message : 'Failed to load church settings';
@@ -75,10 +91,22 @@
 		success = null;
 
 		try {
-			// Update church with new API key
-			await pb.collection('churches').update(church.id, {
+			const updateData: any = {
 				mistral_api_key: mistralApiKey.trim() || null
-			});
+			};
+
+			// Only update Elvanto key if user entered something
+			if (elvantoApiKey.trim()) {
+				updateData.elvanto_api_key = elvantoApiKey.trim();
+			} else if (elvantoApiKey === '' && !elvantoKeyConfigured) {
+				// If explicitly cleared (though we don't have a clear button yet, but for safety)
+				// actually, if empty and not configured, maybe we want to send null?
+				// But given the logic "Wait-Only", empty means "no change" typically unless explicit "Clear" action.
+				// For now, only send if populated.
+			}
+
+			// Update church with new API key
+			await pb.collection('churches').update(church.id, updateData);
 
 			success = 'Settings saved successfully';
 
@@ -127,6 +155,59 @@
 	function clearApiKey() {
 		mistralApiKey = '';
 		apiKeyValid = null;
+	}
+
+	async function handleImport() {
+		if (!elvantoKeyConfigured && !elvantoApiKey) return;
+		
+		importing = true;
+		error = null;
+		success = null;
+		importResult = null;
+		
+		try {
+            console.log("Starting Import...");
+            console.log("Auth Store Valid:", pb.authStore.isValid);
+            console.log("Auth Token present:", !!pb.authStore.token);
+            if(pb.authStore.model) console.log("User ID:", pb.authStore.model.id);
+
+			if (!church) throw new Error("Church context missing");
+
+			// Use PB client to ensure we hit the correct backend URL
+			const data = await pb.send(`/api/elvanto/import/${church.id}`, {
+				method: 'POST'
+			});
+			
+			// pb.send throws if status >= 400
+			
+			success = `Successfully imported ${data.importedServices} services and ${data.importedSongs} songs!`;
+			importResult = { services: data.importedServices, songs: data.importedSongs };
+			
+			// Reload settings to update last sync time
+			await loadChurchSettings();
+		} catch(err: any) {
+			console.error("Import error:", err);
+			
+			// Extract detailed error from PocketBase ClientResponseError
+			// It typically has: message, status, data
+			if (err.data && err.data.error) {
+				error = err.data.error; // Custom error string from our backend hook
+			} else if (err.message) {
+				error = err.message;
+			} else if (err.response && err.response.message) {
+                // older SDK or raw response structure
+                error = err.response.message;
+            } else {
+				error = 'Import failed. Check console for details.';
+			}
+            
+            // If the error includes "stack", log it
+            if (err.data && err.data.stack) {
+                console.error("Backend Stack:", err.data.stack);
+            }
+		} finally {
+			importing = false;
+		}
 	}
 </script>
 
@@ -302,6 +383,92 @@
 								</li>
 							</ul>
 						</div>
+					</div>
+				</div>
+
+				<div class="border-t pt-6">
+					<div class="mb-4 flex items-center gap-2">
+						<Link class="h-5 w-5 text-gray-500" />
+						<h2 class="text-lg font-semibold">Integrations</h2>
+					</div>
+
+					<div class="space-y-4">
+						<!-- Elvanto API Key Input -->
+						<div>
+							<div class="mb-2 flex items-center justify-between">
+								<label for="elvanto-key" class="block text-sm font-medium text-gray-700">
+									Elvanto API Key
+								</label>
+								{#if elvantoKeyConfigured}
+									<Badge variant="success" class="text-xs">
+										<Check class="mr-1 h-3 w-3" />
+										Key Configured
+									</Badge>
+								{/if}
+							</div>
+
+							<div class="relative">
+								<input
+									id="elvanto-key"
+									type={showElvantoKey ? 'text' : 'password'}
+									bind:value={elvantoApiKey}
+									placeholder={elvantoKeyConfigured ? 'Enter new key to update...' : 'Enter your Elvanto API Key'}
+									class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+									disabled={saving}
+								/>
+
+								{#if elvantoApiKey}
+									<button
+										type="button"
+										onclick={() => (showElvantoKey = !showElvantoKey)}
+										class="absolute top-1/2 right-2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+									>
+										{#if showElvantoKey}
+											<X class="h-4 w-4" />
+										{:else}
+											<Key class="h-4 w-4" />
+										{/if}
+									</button>
+								{/if}
+							</div>
+							<p class="mt-2 text-sm text-gray-500">
+								Used to import services and songs from Elvanto.
+								{#if elvantoKeyConfigured}
+									(Leave empty to keep existing key)
+								{/if}
+							</p>
+						</div>
+
+						{#if elvantoKeyConfigured}
+							<div class="mt-4 border-t border-gray-200 pt-4">
+								<div class="flex items-center justify-between">
+									<div>
+										<h4 class="text-sm font-medium text-gray-900">Import Data</h4>
+										<p class="text-sm text-gray-500">Import services and songs from Elvanto (last 6 months)</p>
+									</div>
+									<Button variant="outline" onclick={handleImport} disabled={importing || saving}>
+										{#if importing}
+											Importing...
+										{:else}
+											<div class="flex items-center">
+												<Download class="mr-2 h-4 w-4" />
+												Import Now
+											</div>
+										{/if}
+									</Button>
+								</div>
+								{#if importResult}
+									<div class="mt-2 text-sm text-green-600">
+										Imported {importResult.services} services and {importResult.songs} songs.
+									</div>
+								{/if}
+								{#if church && church.last_elvanto_sync}
+									 <p class="mt-2 text-xs text-gray-400">
+										Last sync: {new Date(church.last_elvanto_sync).toLocaleString()}
+									 </p>
+								{/if}
+							</div>
+						{/if}
 					</div>
 				</div>
 

@@ -361,9 +361,9 @@ class AuthStore {
 	canManageChurch = $derived(this.hasPermission('manage-church'));
 
 	/**
-	 * Check if user is admin (has manage-church permission)
+	 * Check if user is admin (has manage-church permission OR is the church owner)
 	 */
-	isAdmin = $derived(this.hasPermission('manage-church'));
+	isAdmin = $derived(this.hasPermission('manage-church') || this.currentChurch?.owner_user_id === this.user?.id);
 
 	/**
 	 * Check if user is a worship leader (has leader skill)
