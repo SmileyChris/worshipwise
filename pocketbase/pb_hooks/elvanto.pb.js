@@ -53,10 +53,9 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 		if (!apiKey) return e.json(400, { error: 'Elvanto API Key not configured.' });
 
 		// 1. Fetch Services with Plans
-		// We limit to last 6 months for initial import to avoid timeout, or paginated.
-		// Let's try last 3 months for safety or parameterized? Defaults to 3 months.
+		// We limit to last 2 years for initial import.
 		const d = new Date();
-		d.setMonth(d.getMonth() - 6);
+		d.setFullYear(d.getFullYear() - 2);
 		const startDate = d.toISOString().split('T')[0];
 
 		const data = elvantoFetch('services/getAll', apiKey, {

@@ -444,7 +444,7 @@
 								<div class="flex items-center justify-between">
 									<div>
 										<h4 class="text-sm font-medium text-gray-900">Import Data</h4>
-										<p class="text-sm text-gray-500">Import services and songs from Elvanto (last 6 months)</p>
+										<p class="text-sm text-gray-500">Import services and songs from Elvanto (last 2 years)</p>
 									</div>
 									<Button variant="outline" onclick={handleImport} disabled={importing || saving}>
 										{#if importing}
