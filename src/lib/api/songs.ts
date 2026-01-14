@@ -521,6 +521,84 @@ export class SongsAPI {
 	}
 
 	/**
+	 * Get top songs based on the last rolling 3 months, compared to the previous 3 months
+	 */
+	async getTopSongs(limit = 10): Promise<{ song: Song; currentRank: number; previousRank: number | null; usageCount: number }[]> {
+		try {
+			// Calculate dates
+			const now = new Date();
+			const threeMonthsAgo = new Date();
+			threeMonthsAgo.setMonth(now.getMonth() - 3);
+			const sixMonthsAgo = new Date();
+			sixMonthsAgo.setMonth(now.getMonth() - 6);
+
+			// Fetch usage for the last 6 months
+			const usageStats = await this.pb.collection('song_usage').getFullList({
+				filter: `used_date >= "${sixMonthsAgo.toISOString()}"`,
+				fields: 'song_id,used_date',
+				sort: 'used_date'
+			});
+
+			// Aggregate counts for current and previous periods
+			const currentPeriodCounts = new Map<string, number>();
+			const previousPeriodCounts = new Map<string, number>();
+
+			usageStats.forEach((usage) => {
+				const usageDate = new Date(usage.used_date);
+				if (usageDate >= threeMonthsAgo) {
+					currentPeriodCounts.set(usage.song_id, (currentPeriodCounts.get(usage.song_id) || 0) + 1);
+				} else {
+					previousPeriodCounts.set(usage.song_id, (previousPeriodCounts.get(usage.song_id) || 0) + 1);
+				}
+			});
+
+			// Rank songs in current period
+			const currentRankings = Array.from(currentPeriodCounts.entries())
+				.sort((a, b) => b[1] - a[1])
+				.map(([songId, count], index) => ({ songId, count, rank: index + 1 }));
+
+			// Rank songs in previous period (we need rankings for all songs to compare)
+			const previousRankings = Array.from(previousPeriodCounts.entries())
+				.sort((a, b) => b[1] - a[1])
+				.map(([songId, count], index) => ({ songId, count, rank: index + 1 }));
+
+			// Get top N from current period
+			const topSongs = currentRankings.slice(0, limit);
+
+			if (topSongs.length === 0) {
+				return [];
+			}
+
+			// Fetch song details
+			const songIdsFilter = topSongs.map(({ songId }) => `id = "${songId}"`).join(' || ');
+			const songs = await this.pb.collection(this.collection).getFullList({
+				filter: `is_active = true && (${songIdsFilter})`,
+				expand: 'created_by,category,labels'
+			});
+
+			// Combine data
+			return topSongs.map(({ songId, count, rank }) => {
+				const song = songs.find((s) => s.id === songId);
+				const prevRank = previousRankings.find((p) => p.songId === songId)?.rank || null;
+
+				// Skip if song not found (shouldn't happen unless deleted/inactive)
+				if (!song) return null;
+
+				return {
+					song: song as unknown as Song,
+					currentRank: rank,
+					previousRank: prevRank,
+					usageCount: count
+				};
+			}).filter(item => item !== null) as { song: Song; currentRank: number; previousRank: number | null; usageCount: number }[];
+
+		} catch (error) {
+			console.error('Failed to fetch top songs:', error);
+			return [];
+		}
+	}
+
+	/**
 	 * Get personal popular songs for a specific user
 	 */
 	async getPersonalPopularSongs(userId: string, limit = 10): Promise<Song[]> {

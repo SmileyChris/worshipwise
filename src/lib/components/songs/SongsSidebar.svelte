@@ -7,7 +7,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import ShareManager from '$lib/components/share/ShareManager.svelte';
-	import { Music, Activity, Compass, Users, CheckCircle, PlusCircle } from 'lucide-svelte';
+	import { Music, Activity, Compass, Users, CheckCircle, PlusCircle, TrendingUp, TrendingDown, Minus } from 'lucide-svelte';
 
 	const auth = getAuthStore();
 	const songsStore = getSongsStore();
@@ -31,31 +31,31 @@
 	}: Props = $props();
 
 	// State
-	let popularSongs = $state<Song[]>([]);
-	let personalPopularSongs = $state<Song[]>([]);
+	interface TopSongItem {
+		song: Song;
+		currentRank: number;
+		previousRank: number | null;
+		usageCount: number;
+	}
+
+	let topSongs = $state<TopSongItem[]>([]);
 	let loading = $state(true);
 	let error = $state('');
 
 	// Load popular songs data
 	onMount(async () => {
-		await loadPopularSongs();
+		await loadTopSongs();
 	});
 
-	async function loadPopularSongs() {
+	async function loadTopSongs() {
 		loading = true;
 		error = '';
 
 		try {
-			const [popular, personalPopular] = await Promise.all([
-				songsAPI.getPopularSongs(5),
-				auth.user ? songsAPI.getPersonalPopularSongs(auth.user.id, 5) : Promise.resolve([])
-			]);
-
-			popularSongs = popular;
-			personalPopularSongs = personalPopular;
+			topSongs = await songsAPI.getTopSongs(10);
 		} catch (err) {
-			console.error('Failed to load popular songs:', err);
-			error = 'Failed to load popular songs';
+			console.error('Failed to load top songs:', err);
+			error = 'Failed to load top songs';
 		} finally {
 			loading = false;
 		}
@@ -65,6 +65,14 @@
 	function formatUsageCount(count: number): string {
 		if (count === 1) return '1 use';
 		return `${count} uses`;
+	}
+
+	function getRankChange(item: TopSongItem) {
+		if (item.previousRank === null) return 'new';
+		const change = item.previousRank - item.currentRank;
+		if (change > 0) return 'up';
+		if (change < 0) return 'down';
+		return 'same';
 	}
 </script>
 
@@ -102,34 +110,62 @@
 		<Card>
 			<div class="py-4 text-center">
 				<p class="text-sm text-red-600">{error}</p>
-				<Button size="sm" variant="ghost" onclick={loadPopularSongs} class="mt-2">Try Again</Button>
+				<Button size="sm" variant="ghost" onclick={loadTopSongs} class="mt-2">Try Again</Button>
 			</div>
 		</Card>
 	{:else}
-		<!-- Popular Songs -->
+		<!-- Top Songs -->
 		<div class="space-y-4">
-			<h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 px-1">
-				<Users class="h-3 w-3" />
-				Trending
-			</h3>
+			<div class="flex items-center justify-between px-1">
+				<h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+					<Users class="h-3 w-3" />
+					Top Songs (3 Months)
+				</h3>
+			</div>
 			
-			{#each popularSongs as song, index (song.id)}
+			{#each topSongs as item (item.song.id)}
+				{@const change = getRankChange(item)}
 				<div class="group flex items-center justify-between p-2 hover:bg-white hover:shadow-md hover:border-gray-100 rounded-xl transition-all border border-transparent">
 					<div class="flex items-center gap-3 min-w-0">
-						<span class="text-xs font-black text-gray-300 group-hover:text-primary transition-colors pr-1">{(index+1).toString().padStart(2, '0')}</span>
+						<!-- Rank & Change -->
+						<div class="flex flex-col items-center justify-center w-8">
+							<span class="text-sm font-bold text-gray-900 leading-none">{item.currentRank}</span>
+							{#if change === 'new'}
+								<span class="text-[10px] font-bold text-green-600 uppercase mt-0.5">New</span>
+							{:else if change === 'up'}
+								<div class="flex items-center text-green-600 mt-0.5">
+									<TrendingUp class="h-3 w-3" />
+									<span class="text-[10px] font-bold ml-0.5">{item.previousRank! - item.currentRank}</span>
+								</div>
+							{:else if change === 'down'}
+								<div class="flex items-center text-red-500 mt-0.5">
+									<TrendingDown class="h-3 w-3" />
+									<span class="text-[10px] font-bold ml-0.5">{item.currentRank - item.previousRank!}</span>
+								</div>
+							{:else}
+								<Minus class="h-3 w-3 text-gray-300 mt-0.5" />
+							{/if}
+						</div>
+
 						<div class="min-w-0">
-							<p class="text-sm font-bold text-gray-900 truncate">{song.title}</p>
-							<p class="text-[10px] text-gray-400 truncate">{song.artist || 'Unknown'}</p>
+							<p class="text-sm font-bold text-gray-900 truncate">{item.song.title}</p>
+							<div class="flex items-center gap-2 text-[10px] text-gray-500">
+								{#if item.song.artist}
+									<span class="truncate max-w-[80px]">{item.song.artist}</span>
+									<span class="text-gray-300">•</span>
+								{/if}
+								<span>{formatUsageCount(item.usageCount)}</span>
+							</div>
 						</div>
 					</div>
 					
 					{#if isEditingService}
 						<button
-							onclick={() => onAddToService(song)}
-							disabled={songsInCurrentService.has(song.id)}
-							class="p-1.5 rounded-lg border border-gray-100 text-gray-400 hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all text-xs {songsInCurrentService.has(song.id) ? 'bg-green-50 text-green-500 border-green-100' : ''}"
+							onclick={() => onAddToService(item.song)}
+							disabled={songsInCurrentService.has(item.song.id)}
+							class="p-1.5 rounded-lg border border-gray-100 text-gray-400 hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all text-xs {songsInCurrentService.has(item.song.id) ? 'bg-green-50 text-green-500 border-green-100' : ''}"
 						>
-							{#if songsInCurrentService.has(song.id)}
+							{#if songsInCurrentService.has(item.song.id)}
 								<CheckCircle class="h-3.5 w-3.5" />
 							{:else}
 								<PlusCircle class="h-3.5 w-3.5" />
