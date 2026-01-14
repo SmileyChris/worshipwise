@@ -4,6 +4,10 @@
 		Chart,
 		CategoryScale,
 		LinearScale,
+		BarController,
+		LineController,
+		PieController,
+		DoughnutController,
 		BarElement,
 		LineElement,
 		PointElement,
@@ -11,6 +15,7 @@
 		Title,
 		Tooltip,
 		Legend,
+		Filler,
 		type ChartConfiguration
 	} from 'chart.js';
 
@@ -18,13 +23,18 @@
 	Chart.register(
 		CategoryScale,
 		LinearScale,
+		BarController,
+		LineController,
+		PieController,
+		DoughnutController,
 		BarElement,
 		LineElement,
 		PointElement,
 		ArcElement,
 		Title,
 		Tooltip,
-		Legend
+		Legend,
+		Filler
 	);
 
 	interface Props {
