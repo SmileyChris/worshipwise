@@ -171,9 +171,9 @@
 				<Card padding={false} class="overflow-hidden">
 					<div class="divide-y divide-gray-100">
 						{#each songsStore.songs.slice(0, 6) as song}
-							<button 
-								class="w-full text-left p-4 hover:bg-gray-50 flex items-center justify-between group transition-colors" 
-								onclick={() => (window.location.href = `/songs/${song.id}`)}
+							<a
+								href="/songs/{song.id}"
+								class="w-full text-left p-4 hover:bg-gray-50 flex items-center justify-between group transition-colors block"
 							>
 								<div class="min-w-0">
 									<p class="font-bold text-gray-900 truncate group-hover:text-primary transition-colors">{song.title}</p>
@@ -184,7 +184,7 @@
 										{song.key_signature}
 									</span>
 								{/if}
-							</button>
+							</a>
 						{/each}
 						
 						{#if songsStore.songs.length === 0}

@@ -32,11 +32,11 @@
 			case 'completed':
 				return { label: 'Done', color: 'purple' as const };
 			case 'planned':
-				return { label: 'Planned', color: 'blue' as const };
+				return { label: 'Planned', color: 'green' as const };
 			case 'in_progress':
 				return { label: 'In Progress', color: 'yellow' as const };
 			case 'draft':
-				return { label: 'Draft', color: 'gray' as const };
+				return { label: 'Draft', color: 'blue' as const };
 			default:
 				return { label: status, color: 'gray' as const };
 		}
