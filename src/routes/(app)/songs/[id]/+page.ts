@@ -3,6 +3,8 @@ import { pb } from '$lib/api/client';
 import { createAnalyticsAPI, type UsageTrend } from '$lib/api/analytics';
 import type { PageLoad } from './$types';
 
+export const ssr = false;
+
 export const load: PageLoad = async ({ params }) => {
 	try {
 		const song = await pb.collection('songs').getOne(params.id, {
@@ -28,11 +30,11 @@ export const load: PageLoad = async ({ params }) => {
 		const dateFrom = sixMonthsAgo.toISOString().split('T')[0];
 
 		// Create minimal auth context for analytics API
-		// Note: This is a simplified context for server-side loading
+		// Note: This is a simplified context for the load function
 		const authContext = {
 			pb,
 			currentChurch: { id: churchId },
-			user: null,
+			user: pb.authStore.model,
 			membership: null
 		};
 
@@ -56,12 +58,15 @@ export const load: PageLoad = async ({ params }) => {
 			song,
 			usageHistory,
 			songUsageTrend,
-			averageUsageTrend
+			averageUsageTrend,
+			id: params.id
 		};
 	} catch (err: unknown) {
 		if (err && typeof err === 'object' && 'status' in err && err.status === 404) {
 			throw error(404, 'Song not found');
 		}
+		console.error('Error loading song:', err);
 		throw error(500, 'Failed to load song details');
 	}
 };
+
