@@ -314,8 +314,11 @@ class SongsStore {
 	 */
 	private async updateStats(): Promise<void> {
 		try {
-			const allSongs = await this.loadAllSongs();
-			this.updateStatsFromSongs(allSongs);
+			const [allSongs, usageStats] = await Promise.all([
+				this.loadAllSongs(),
+				this.songsApi.getUsageComparisonStats()
+			]);
+			this.updateStatsFromSongs(allSongs, usageStats);
 		} catch (error) {
 			console.error('Failed to update stats:', error);
 		}
@@ -324,18 +327,23 @@ class SongsStore {
 	/**
 	 * Update statistics from a provided songs array (avoids re-fetching)
 	 */
-	private updateStatsFromSongs(allSongs: Song[]): void {
+	private updateStatsFromSongs(
+		allSongs: Song[],
+		usageStats?: { currentPeriod: number; previousPeriod: number }
+	): void {
 		this.stats = {
 			totalSongs: allSongs.length,
-			availableSongs: allSongs.filter((song) => !this.isRecentlyUsed(song)).length,
+			availableSongs: allSongs.filter((song) => song.usageStatus === 'available').length,
 			recentlyUsed: allSongs.filter((song) => this.isRecentlyUsed(song)).length,
+			uniqueSongsLast6Months: usageStats?.currentPeriod,
+			uniqueSongsPrevious6Months: usageStats?.previousPeriod,
 			mostUsedKey: this.getMostUsedKey(allSongs),
 			averageTempo: this.getAverageTempo(allSongs)
 		};
 	}
 
 	/**
-	 * Check if song was recently used (within last week for worship scheduling)
+	 * Check if song was recently used (within last 2 weeks)
 	 */
 	private isRecentlyUsed(song: Song): boolean {
 		return song.usageStatus === 'recent';
@@ -343,17 +351,13 @@ class SongsStore {
 
 	/**
 	 * Calculate usage status based on days since last use
-	 * Weekly-focused for worship scheduling:
-	 * - recent (red): Used in last 7 days (last week)
-	 * - caution (yellow): Used 8-21 days ago (2-3 weeks)
-	 * - available (green): 22-179 days (available for rotation)
+	 * - recent (red): Used in last 14 days (last 2 weeks)
+	 * - available (green): 14-179 days (available for rotation)
 	 * - stale (gray): 180+ days (6+ months, consider refreshing)
 	 */
 	private calculateUsageStatus(daysSince: number): 'available' | 'caution' | 'recent' | 'stale' {
-		if (daysSince < 7) {
-			return 'recent'; // Used last week
-		} else if (daysSince < 21) {
-			return 'caution'; // Used 1-3 weeks ago
+		if (daysSince < 14) {
+			return 'recent'; // Used last 2 weeks
 		} else if (daysSince < 180) {
 			return 'available'; // Good to use
 		} else {
@@ -478,11 +482,14 @@ class SongsStore {
 		Map<string, { label: { id: string; name: string; color?: string }; songs: Song[] }>
 	> {
 		try {
-			// Load all songs with expanded labels
-			const allSongs = await this.songsApi.getSongs({});
+			// Load all songs with expanded labels and usage stats
+			const [allSongs, usageStats] = await Promise.all([
+				this.songsApi.getSongs({}),
+				this.songsApi.getUsageComparisonStats()
+			]);
 
-			// Update stats with all songs
-			this.updateStatsFromSongs(allSongs);
+			// Update stats with all songs and usage stats
+			this.updateStatsFromSongs(allSongs, usageStats);
 
 			// Group songs by label
 			const labelMap = new Map<

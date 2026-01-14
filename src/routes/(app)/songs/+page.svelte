@@ -357,8 +357,17 @@
 					<Clock class="h-6 w-6 text-amber-600" />
 				</div>
 				<div>
-					<div class="text-2xl font-bold text-gray-900 leading-none">{stats.recentlyUsed}</div>
-					<div class="text-xs text-amber-500 font-bold uppercase tracking-wider mt-1">Used Recently</div>
+					<div class="text-2xl font-bold text-gray-900 leading-none">
+						{stats.uniqueSongsLast6Months ?? 0}
+					</div>
+					<div class="text-xs text-amber-500 font-bold uppercase tracking-wider mt-1">
+						Used Last 6 Months
+					</div>
+					{#if stats.uniqueSongsPrevious6Months !== undefined}
+						<div class="text-xs text-gray-500 mt-1 font-medium">
+							vs {stats.uniqueSongsPrevious6Months} prev.
+						</div>
+					{/if}
 				</div>
 			</div>
 		</Card>

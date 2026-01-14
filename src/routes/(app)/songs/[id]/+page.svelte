@@ -102,6 +102,35 @@
 			recentUses
 		};
 	});
+
+	// Leader usage stats
+	let leaderStats = $derived.by(() => {
+		const stats = new Map<string, { name: string; count: number }>();
+		const total = usageHistory.length;
+
+		for (const usage of usageHistory) {
+			const leaderId = usage.worship_leader;
+			const leaderName = usage.expand?.worship_leader?.name || 'Unknown Leader';
+
+			if (leaderId) {
+				const current = stats.get(leaderId) || { name: leaderName, count: 0 };
+				current.count++;
+				if (current.name === 'Unknown Leader' && leaderName !== 'Unknown Leader') {
+					current.name = leaderName;
+				}
+				stats.set(leaderId, current);
+			}
+		}
+
+		return Array.from(stats.entries())
+			.map(([id, { name, count }]) => ({
+				id,
+				name,
+				count,
+				percentage: total > 0 ? Math.round((count / total) * 100) : 0
+			}))
+			.sort((a, b) => b.count - a.count);
+	});
 </script>
 
 <svelte:head>
@@ -391,6 +420,38 @@
 					</div>
 				</div>
 			</Card>
+
+			<!-- Top Leaders -->
+			{#if leaderStats.length > 0}
+				<Card>
+					<h2 class="font-title mb-4 text-lg font-semibold text-gray-900">Top Leaders</h2>
+					<div class="space-y-4">
+						{#each leaderStats.slice(0, 5) as leader}
+							<div class="space-y-1">
+								<div class="flex items-center justify-between text-sm">
+									<div class="flex items-center gap-2">
+										<div
+											class="bg-primary/10 text-primary flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium"
+										>
+											{leader.name.charAt(0)}
+										</div>
+										<span class="font-medium text-gray-900">{leader.name}</span>
+									</div>
+									<div class="flex items-center gap-2">
+										<span class="text-xs text-gray-500">{leader.percentage}%</span>
+										<Badge variant="default" class="bg-gray-100 text-gray-700">
+											{leader.count}
+										</Badge>
+									</div>
+								</div>
+								<div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+									<div class="bg-primary/60 h-full" style="width: {leader.percentage}%"></div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				</Card>
+			{/if}
 
 			<!-- Recent Usage History -->
 			{#if usageHistory.length > 0}

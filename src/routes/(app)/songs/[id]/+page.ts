@@ -18,7 +18,8 @@ export const load: PageLoad = async ({ params }) => {
 		// Load usage history for this song
 		const usageHistory = await pb.collection('song_usage').getFullList({
 			filter: `song_id = "${params.id}"`,
-			sort: '-used_date'
+			sort: '-used_date',
+			expand: 'worship_leader,service_id'
 		});
 
 		// Get church ID from song

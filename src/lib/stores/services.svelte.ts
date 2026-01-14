@@ -412,36 +412,6 @@ class ServicesStore {
 	}
 
 	/**
-	 * Complete a service and trigger usage tracking
-	 */
-	async completeService(id: string, actualDuration?: number): Promise<void> {
-		this.loading = true;
-		this.error = null;
-
-		try {
-			const completedService = await this.servicesApi.completeService(id, actualDuration);
-
-			// Update in local array
-			const index = this.services.findIndex((service) => service.id === id);
-			if (index !== -1) {
-				this.services[index] = completedService;
-			}
-
-			// Update current service if it's the one being completed
-			if (this.currentService?.id === id) {
-				this.currentService = completedService;
-				this.builderState.service = completedService;
-			}
-		} catch (error: unknown) {
-			console.error('Failed to complete service:', error);
-			this.error = this.getErrorMessage(error);
-			throw error;
-		} finally {
-			this.loading = false;
-		}
-	}
-
-	/**
 	 * Check song availability based on recent usage
 	 */
 	async checkSongAvailability(songIds: string[]): Promise<Map<string, SongAvailability>> {

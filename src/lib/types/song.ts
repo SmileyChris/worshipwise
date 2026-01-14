@@ -167,6 +167,8 @@ export interface SongStats {
 	totalSongs: number;
 	availableSongs: number;
 	recentlyUsed: number;
+	uniqueSongsLast6Months?: number;
+	uniqueSongsPrevious6Months?: number;
 	mostUsedKey?: string;
 	averageTempo?: number;
 }

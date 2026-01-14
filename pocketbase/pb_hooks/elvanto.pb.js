@@ -183,6 +183,8 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 
 					newUser.set('email', person.email);
 					newUser.set('name', fullName);
+					// Set a random password because users collection requires it
+					newUser.set('password', $security.randomString(30));
 					newUser.set('verified', false);
 					newUser.set('created', new Date().toISOString());
 					newUser.set('updated', new Date().toISOString());
@@ -451,31 +453,23 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 							);
 
 							// Create SongUsage (Log)
-							// This is append-only usually, but let's check duplicates
-							// Schema: (song_id, service_id) doesn't explicitly force unique in PB schema shown (index?)
-							// usage has NO unique index on song/service/date in Step 28.
-							// But we should probably avoid adding if it exists for this service/song combination?
-							// Actually usage is historical. One song could be used twice?
-							// Let's just check if a usage record exists for this service and song.
-							try {
-								$app.findFirstRecordByFilter(
-									'song_usage',
-									'service_id = {:sid} && song_id = {:sjid}',
-									{
-										sid: serviceRecord.id,
-										sjid: songRecord.id
-									}
-								);
-							} catch (e) {
-								// Not found, create
-								const usage = new Record($app.findCollectionByNameOrId('song_usage'));
-								usage.set('church_id', church.id);
-								usage.set('song_id', songRecord.id);
-								usage.set('service_id', serviceRecord.id);
-								usage.set('used_date', svcData.service_date);
-								usage.set('worship_leader', worshipLeaderId); // Use the service's worship leader
-								$app.save(usage);
-							}
+							// We use upsert to ensure the worship_leader is updated if it changed
+							upsertRecord(
+								'song_usage',
+								'service_id = {:sid} && song_id = {:sjid}',
+								{
+									sid: serviceRecord.id,
+									sjid: songRecord.id
+								},
+								{
+									church_id: church.id,
+									song_id: songRecord.id,
+									service_id: serviceRecord.id,
+									used_date: svcData.service_date,
+									worship_leader: worshipLeaderId
+								},
+								$app
+							);
 
 							importedSongs++;
 						}
@@ -491,7 +485,8 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 		return e.json(200, {
 			success: true,
 			importedServices,
-			importedSongs
+			importedSongs,
+			importedLeaders: uniqueLeaders.size
 		});
 	} catch (err) {
 		$app.logger().error('Elvanto Import Error', err);

@@ -660,6 +660,53 @@ export class SongsAPI {
 	}
 
 	/**
+	 * Get usage comparison stats (unique songs used in current 6 months vs previous 6 months)
+	 */
+	async getUsageComparisonStats(): Promise<{ currentPeriod: number; previousPeriod: number }> {
+		try {
+			// Calculate dates
+			const now = new Date();
+			const sixMonthsAgo = new Date();
+			sixMonthsAgo.setMonth(now.getMonth() - 6);
+			const twelveMonthsAgo = new Date();
+			twelveMonthsAgo.setMonth(now.getMonth() - 12);
+
+			// Ensure user has a current church
+			if (!this.authContext.currentChurch?.id) {
+				return { currentPeriod: 0, previousPeriod: 0 };
+			}
+
+			// Fetch usage for the last 12 months for current church
+			const usageStats = await this.pb.collection('song_usage').getFullList({
+				filter: `church_id = "${this.authContext.currentChurch.id}" && used_date >= "${twelveMonthsAgo.toISOString()}"`,
+				fields: 'song_id,used_date',
+				sort: 'used_date'
+			});
+
+			// Count unique songs for each period
+			const currentPeriodSongs = new Set<string>();
+			const previousPeriodSongs = new Set<string>();
+
+			usageStats.forEach((usage) => {
+				const usageDate = new Date(usage.used_date);
+				if (usageDate >= sixMonthsAgo) {
+					currentPeriodSongs.add(usage.song_id);
+				} else {
+					previousPeriodSongs.add(usage.song_id);
+				}
+			});
+
+			return {
+				currentPeriod: currentPeriodSongs.size,
+				previousPeriod: previousPeriodSongs.size
+			};
+		} catch (error) {
+			console.error('Failed to fetch usage comparison stats:', error);
+			return { currentPeriod: 0, previousPeriod: 0 };
+		}
+	}
+
+	/**
 	 * Get personal popular songs for a specific user
 	 */
 	async getPersonalPopularSongs(userId: string, limit = 10): Promise<Song[]> {
