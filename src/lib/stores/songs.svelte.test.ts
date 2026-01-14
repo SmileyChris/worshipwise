@@ -5,10 +5,15 @@ import { mockPb } from '$tests/helpers/pb-mock';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createSongsStore, type SongsStore } from './songs.svelte';
 import { createSongsAPI } from '$lib/api/songs';
+import { createRatingsAPI } from '$lib/api/ratings';
 
-// Mock the songs API module
+// Mock the API modules
 vi.mock('$lib/api/songs', () => ({
 	createSongsAPI: vi.fn()
+}));
+
+vi.mock('$lib/api/ratings', () => ({
+	createRatingsAPI: vi.fn()
 }));
 
 describe('SongsStore', () => {
@@ -39,18 +44,25 @@ describe('SongsStore', () => {
 		totalItems: 1,
 		totalPages: 1,
 		page: 1,
-		perPage: 20
+		perPage: 100
 	};
 
 	// Mock API methods
 	const mockSongsAPI = {
-		getSongsPaginated: vi.fn(),
-		getSongsUsageInfo: vi.fn(),
+		getSongsEnrichedPaginated: vi.fn(),
 		getSongs: vi.fn(),
 		createSong: vi.fn(),
 		updateSong: vi.fn(),
 		deleteSong: vi.fn(),
+		getUsageComparisonStats: vi.fn(),
 		subscribe: vi.fn()
+	};
+
+	const mockRatingsAPI = {
+		getUserRatingsForSongs: vi.fn(),
+		getMultipleSongRatings: vi.fn(),
+		setRating: vi.fn(),
+		deleteRating: vi.fn()
 	};
 
 	beforeEach(() => {
@@ -70,6 +82,9 @@ describe('SongsStore', () => {
 		// Mock createSongsAPI to return our mock API
 		(createSongsAPI as any).mockReturnValue(mockSongsAPI);
 
+		// Mock createRatingsAPI to return our mock ratings API
+		(createRatingsAPI as any).mockReturnValue(mockRatingsAPI);
+
 		// Create fresh store instance with test auth context
 		songsStore = createSongsStore(authContext);
 
@@ -79,23 +94,27 @@ describe('SongsStore', () => {
 
 	describe('loadSongs', () => {
 		it('should load songs with usage information successfully', async () => {
-			// Mock the songs paginated result
-			mockSongsAPI.getSongsPaginated.mockResolvedValue(mockPaginatedResult);
+			// Mock the enriched songs paginated result
+			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
 
-			// Mock the usage info
-			const usageMap = new Map([
-				['song-1', { lastUsed: new Date('2024-01-01T00:00:00Z'), daysSince: 30 }]
-			]);
-			mockSongsAPI.getSongsUsageInfo.mockResolvedValue(usageMap);
+			// Mock the user ratings
+			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
+
+			// Mock stats call
+			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+				totalSongs: 1,
+				availableSongs: 1,
+				recentlyUsed: 0
+			});
 
 			await songsStore.loadSongs();
 
 			expect(songsStore.songs).toHaveLength(1);
 			expect(songsStore.songs[0]).toEqual({
 				...testSong,
-				lastUsedDate: new Date('2024-01-01T00:00:00Z'),
-				daysSinceLastUsed: expect.any(Number),
-				usageStatus: expect.any(String)
+				lastUsedDate: null,
+				daysSinceLastUsed: Infinity,
+				usageStatus: 'stale'
 			});
 			expect(songsStore.totalPages).toBe(1);
 			expect(songsStore.totalItems).toBe(1);
@@ -105,10 +124,13 @@ describe('SongsStore', () => {
 		});
 
 		it('should handle songs without usage information', async () => {
-			mockSongsAPI.getSongsPaginated.mockResolvedValue(mockPaginatedResult);
-			// Mock empty usage data
-			const emptyUsageMap = new Map([['song-1', { lastUsed: null, daysSince: Infinity }]]);
-			mockSongsAPI.getSongsUsageInfo.mockResolvedValue(emptyUsageMap);
+			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
+			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
+			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+				totalSongs: 1,
+				availableSongs: 1,
+				recentlyUsed: 0
+			});
 
 			await songsStore.loadSongs();
 
@@ -116,14 +138,19 @@ describe('SongsStore', () => {
 				...testSong,
 				lastUsedDate: null,
 				daysSinceLastUsed: Infinity,
-				usageStatus: 'available'
+				usageStatus: 'stale'
 			});
 		});
 
 		it('should reset page when resetPage is true', async () => {
 			songsStore.currentPage = 3;
-			mockSongsAPI.getSongsPaginated.mockResolvedValue(mockPaginatedResult);
-			mockSongsAPI.getSongsUsageInfo.mockResolvedValue(new Map());
+			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
+			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
+			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+				totalSongs: 1,
+				availableSongs: 1,
+				recentlyUsed: 0
+			});
 
 			await songsStore.loadSongs(true);
 
@@ -131,11 +158,16 @@ describe('SongsStore', () => {
 		});
 
 		it('should handle loading state correctly', async () => {
-			mockSongsAPI.getSongsPaginated.mockImplementation(async () => {
+			mockSongsAPI.getSongsEnrichedPaginated.mockImplementation(async () => {
 				expect(songsStore.loading).toBe(true);
 				return mockPaginatedResult;
 			});
-			mockSongsAPI.getSongsUsageInfo.mockResolvedValue(new Map());
+			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
+			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+				totalSongs: 1,
+				availableSongs: 1,
+				recentlyUsed: 0
+			});
 
 			await songsStore.loadSongs();
 
@@ -144,7 +176,7 @@ describe('SongsStore', () => {
 
 		it('should handle errors when loading songs', async () => {
 			const error = new Error('Network error');
-			mockSongsAPI.getSongsPaginated.mockRejectedValue(error);
+			mockSongsAPI.getSongsEnrichedPaginated.mockRejectedValue(error);
 
 			await songsStore.loadSongs();
 
@@ -158,12 +190,17 @@ describe('SongsStore', () => {
 			songsStore.perPage = 10;
 			songsStore.filters = { search: 'test', key: 'C', tags: ['hymn'], sort: 'title' };
 
-			mockSongsAPI.getSongsPaginated.mockResolvedValue(mockPaginatedResult);
-			mockSongsAPI.getSongsUsageInfo.mockResolvedValue(new Map());
+			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
+			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
+			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+				totalSongs: 1,
+				availableSongs: 1,
+				recentlyUsed: 0
+			});
 
 			await songsStore.loadSongs();
 
-			expect(mockSongsAPI.getSongsPaginated).toHaveBeenCalledWith(2, 10, {
+			expect(mockSongsAPI.getSongsEnrichedPaginated).toHaveBeenCalledWith(2, 10, {
 				search: 'test',
 				key: 'C',
 				tags: ['hymn'],
@@ -203,8 +240,13 @@ describe('SongsStore', () => {
 				tempo: 130
 			};
 			mockSongsAPI.createSong.mockResolvedValue(testSong);
-			mockSongsAPI.getSongsPaginated.mockResolvedValue(mockPaginatedResult);
-			mockSongsAPI.getSongsUsageInfo.mockResolvedValue(new Map());
+			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
+			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
+			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+				totalSongs: 1,
+				availableSongs: 1,
+				recentlyUsed: 0
+			});
 
 			const result = await songsStore.createSong(createData);
 
@@ -212,7 +254,7 @@ describe('SongsStore', () => {
 			expect(songsStore.loading).toBe(false);
 			expect(songsStore.error).toBe(null);
 			expect(mockSongsAPI.createSong).toHaveBeenCalledWith(createData);
-			expect(mockSongsAPI.getSongsPaginated).toHaveBeenCalled(); // loadSongs called
+			expect(mockSongsAPI.getSongsEnrichedPaginated).toHaveBeenCalled(); // loadSongs called
 		});
 
 		it('should handle errors when creating song', async () => {
@@ -306,17 +348,22 @@ describe('SongsStore', () => {
 
 	describe('search and filtering', () => {
 		it('should search songs', async () => {
-			mockSongsAPI.getSongsPaginated.mockResolvedValue(mockPaginatedResult);
-			mockSongsAPI.getSongsUsageInfo.mockResolvedValue(new Map());
+			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
+			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
+			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+				totalSongs: 1,
+				availableSongs: 1,
+				recentlyUsed: 0
+			});
 			mockSongsAPI.getSongs.mockResolvedValue([]);
 
 			await songsStore.searchSongs('Amazing');
 
 			expect(songsStore.filters.search).toBe('Amazing');
 			expect(songsStore.currentPage).toBe(1); // Reset to page 1
-			expect(mockSongsAPI.getSongsPaginated).toHaveBeenCalledWith(
+			expect(mockSongsAPI.getSongsEnrichedPaginated).toHaveBeenCalledWith(
 				1,
-				20,
+				100,
 				expect.objectContaining({
 					search: 'Amazing'
 				})
@@ -325,8 +372,13 @@ describe('SongsStore', () => {
 
 		it('should apply filters', async () => {
 			const newFilters: Partial<SongFilterOptions> = { key: 'C', tags: ['hymn'] };
-			mockSongsAPI.getSongsPaginated.mockResolvedValue(mockPaginatedResult);
-			mockSongsAPI.getSongsUsageInfo.mockResolvedValue(new Map());
+			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
+			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
+			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+				totalSongs: 1,
+				availableSongs: 1,
+				recentlyUsed: 0
+			});
 			mockSongsAPI.getSongs.mockResolvedValue([]);
 
 			await songsStore.applyFilters(newFilters);
@@ -342,8 +394,13 @@ describe('SongsStore', () => {
 
 		it('should clear filters', async () => {
 			songsStore.filters = { search: 'test', key: 'C', tags: ['hymn'], sort: 'artist' };
-			mockSongsAPI.getSongsPaginated.mockResolvedValue(mockPaginatedResult);
-			mockSongsAPI.getSongsUsageInfo.mockResolvedValue(new Map());
+			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
+			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
+			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+				totalSongs: 1,
+				availableSongs: 1,
+				recentlyUsed: 0
+			});
 			mockSongsAPI.getSongs.mockResolvedValue([]);
 
 			await songsStore.clearFilters();
@@ -364,49 +421,72 @@ describe('SongsStore', () => {
 			songsStore.totalPages = 5;
 			// Mock API response that updates current page
 			const mockResult = { ...mockPaginatedResult, page: 2, totalPages: 5 };
-			mockSongsAPI.getSongsPaginated.mockResolvedValue(mockResult);
-			mockSongsAPI.getSongsUsageInfo.mockResolvedValue(new Map());
+			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockResult);
+			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
+			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+				totalSongs: 1,
+				availableSongs: 1,
+				recentlyUsed: 0
+			});
 			mockSongsAPI.getSongs.mockResolvedValue([]);
 		});
 
 		it('should navigate to next page', async () => {
 			const nextPageResult = { ...mockPaginatedResult, page: 3, totalPages: 5 };
-			mockSongsAPI.getSongsPaginated.mockResolvedValue(nextPageResult);
+			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(nextPageResult);
+			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
+			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+				totalSongs: 1,
+				availableSongs: 1,
+				recentlyUsed: 0
+			});
 
 			await songsStore.nextPage();
 
 			expect(songsStore.currentPage).toBe(3);
-			expect(mockSongsAPI.getSongsPaginated).toHaveBeenCalledWith(
+			expect(mockSongsAPI.getSongsEnrichedPaginated).toHaveBeenCalledWith(
 				3,
-				20,
+				100,
 				expect.objectContaining({})
 			);
 		});
 
 		it('should navigate to previous page', async () => {
 			const prevPageResult = { ...mockPaginatedResult, page: 1, totalPages: 5 };
-			mockSongsAPI.getSongsPaginated.mockResolvedValue(prevPageResult);
+			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(prevPageResult);
+			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
+			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+				totalSongs: 1,
+				availableSongs: 1,
+				recentlyUsed: 0
+			});
 
 			await songsStore.prevPage();
 
 			expect(songsStore.currentPage).toBe(1);
-			expect(mockSongsAPI.getSongsPaginated).toHaveBeenCalledWith(
+			expect(mockSongsAPI.getSongsEnrichedPaginated).toHaveBeenCalledWith(
 				1,
-				20,
+				100,
 				expect.objectContaining({})
 			);
 		});
 
 		it('should go to specific page', async () => {
 			const targetPageResult = { ...mockPaginatedResult, page: 4, totalPages: 5 };
-			mockSongsAPI.getSongsPaginated.mockResolvedValue(targetPageResult);
+			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(targetPageResult);
+			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
+			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+				totalSongs: 1,
+				availableSongs: 1,
+				recentlyUsed: 0
+			});
 
 			await songsStore.goToPage(4);
 
 			expect(songsStore.currentPage).toBe(4);
-			expect(mockSongsAPI.getSongsPaginated).toHaveBeenCalledWith(
+			expect(mockSongsAPI.getSongsEnrichedPaginated).toHaveBeenCalledWith(
 				4,
-				20,
+				100,
 				expect.objectContaining({})
 			);
 		});
@@ -422,7 +502,7 @@ describe('SongsStore', () => {
 			expect(songsStore.currentPage).toBe(initialPage);
 
 			// Should not call API for same page
-			expect(mockSongsAPI.getSongsPaginated).not.toHaveBeenCalled();
+			expect(mockSongsAPI.getSongsEnrichedPaginated).not.toHaveBeenCalled();
 		});
 	});
 
@@ -434,18 +514,13 @@ describe('SongsStore', () => {
 			// Access private method through store instance
 			const store = songsStore as any;
 
-			// Recent: used in last 7 days (last week)
+			// Recent: used in last 14 days (last 2 weeks)
 			expect(store.calculateUsageStatus(0)).toBe('recent');
-			expect(store.calculateUsageStatus(3)).toBe('recent');
-			expect(store.calculateUsageStatus(6)).toBe('recent');
+			expect(store.calculateUsageStatus(7)).toBe('recent');
+			expect(store.calculateUsageStatus(13)).toBe('recent');
 
-			// Caution: used 7-20 days ago (1-3 weeks)
-			expect(store.calculateUsageStatus(7)).toBe('caution');
-			expect(store.calculateUsageStatus(14)).toBe('caution');
-			expect(store.calculateUsageStatus(20)).toBe('caution');
-
-			// Available: 21-179 days (available for rotation)
-			expect(store.calculateUsageStatus(21)).toBe('available');
+			// Available: 14-179 days (available for rotation)
+			expect(store.calculateUsageStatus(14)).toBe('available');
 			expect(store.calculateUsageStatus(60)).toBe('available');
 			expect(store.calculateUsageStatus(179)).toBe('available');
 

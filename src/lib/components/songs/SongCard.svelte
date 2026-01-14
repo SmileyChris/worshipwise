@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Song, SongRating, AggregateRatings } from '$lib/types/song';
+	import type { Song, SongRating, SongRatingValue, AggregateRatings } from '$lib/types/song';
 	import { getAuthStore } from '$lib/context/stores.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -18,6 +18,7 @@
 		isInCurrentService?: boolean;
 		isEditingService?: boolean;
 		ratingsLoading?: boolean;
+		userRating?: { rating: SongRatingValue; is_difficult?: boolean } | null;
 		class?: string;
 	}
 
@@ -33,6 +34,7 @@
 		isInCurrentService = false,
 		isEditingService = false,
 		ratingsLoading = false,
+		userRating = null,
 		class: className = ''
 	}: Props = $props();
 
@@ -92,33 +94,41 @@
 	// Check if user can edit this song
 	let canEdit = $derived(auth.canManageSongs || song.created_by === auth.user?.id);
 
-	// Load aggregate ratings
-	let aggregates = $state<AggregateRatings | null>(null);
+	// Use aggregate ratings from song object (from enriched view)
+	// If song doesn't have aggregates (old data), initialize to zeros
+	let aggregates = $state<AggregateRatings>({
+		thumbsUp: song.thumbs_up ?? 0,
+		thumbsDown: song.thumbs_down ?? 0,
+		neutral: song.neutral ?? 0,
+		totalRatings: song.total_ratings ?? 0,
+		difficultCount: song.difficult_count ?? 0
+	});
+
+	// Update aggregates when song prop changes
+	$effect(() => {
+		aggregates = {
+			thumbsUp: song.thumbs_up ?? 0,
+			thumbsDown: song.thumbs_down ?? 0,
+			neutral: song.neutral ?? 0,
+			totalRatings: song.total_ratings ?? 0,
+			difficultCount: song.difficult_count ?? 0
+		};
+	});
 
 	const ratingsAPI = $derived.by(() => {
 		const ctx = auth.getAuthContext();
 		return createRatingsAPI(ctx, ctx.pb);
 	});
 
-	// Function to reload aggregates
-	async function reloadAggregates() {
+	// Reload aggregates when rating changes (fetches fresh data)
+	async function handleRatingChange() {
 		try {
-			aggregates = await ratingsAPI.getAggregateRatings(song.id);
+			const freshAggregates = await ratingsAPI.getAggregateRatings(song.id);
+			// Update the local aggregates with fresh data
+			aggregates = freshAggregates;
 		} catch (err) {
-			console.error('Failed to load aggregate ratings:', err);
+			console.error('Failed to reload aggregate ratings:', err);
 		}
-	}
-
-	// Load ratings when component mounts or ratingsLoading changes
-	$effect(() => {
-		if (!ratingsLoading) {
-			reloadAggregates();
-		}
-	});
-
-	// Reload aggregates when rating changes
-	function handleRatingChange() {
-		reloadAggregates();
 	}
 </script>
 
@@ -187,7 +197,7 @@
 		<div class="flex flex-shrink-0 flex-col items-end gap-3">
 			<!-- Rating buttons at top -->
 			<div class="flex items-center gap-2">
-				<SongRatingButton {song} showAggregates={true} {ratingsLoading} onRatingChange={handleRatingChange} />
+				<SongRatingButton {song} showAggregates={true} {ratingsLoading} {userRating} onRatingChange={handleRatingChange} />
 			</div>
 
 			{#if auth.canManageServices && isEditingService}

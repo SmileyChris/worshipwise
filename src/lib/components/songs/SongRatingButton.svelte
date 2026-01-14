@@ -10,9 +10,10 @@
 		showAggregates?: boolean;
 		onRatingChange?: (rating: SongRatingValue | null) => void;
 		ratingsLoading?: boolean;
+		userRating?: { rating: SongRatingValue; is_difficult?: boolean } | null;
 	}
 
-	let { song, showAggregates = true, onRatingChange, ratingsLoading = false }: Props = $props();
+	let { song, showAggregates = true, onRatingChange, ratingsLoading = false, userRating = null }: Props = $props();
 
 	const auth = getAuthStore();
 	const ratingsAPI = $derived.by(() => {
@@ -20,26 +21,16 @@
 		return createRatingsAPI(ctx, ctx.pb);
 	});
 
-	let currentRating = $state<SongRatingValue | null>(null);
-	let isDifficult = $state(false);
+	let currentRating = $state<SongRatingValue | null>(userRating?.rating ?? null);
+	let isDifficult = $state(userRating?.is_difficult ?? false);
 	let loading = $state(false);
 	let saving = $state(false);
 
-	// Load user's rating
-	async function loadRatings() {
-		loading = true;
-		try {
-			const userRating = await ratingsAPI.getUserRating(song.id);
-			if (userRating) {
-				currentRating = userRating.rating;
-				isDifficult = userRating.is_difficult || false;
-			}
-		} catch (error) {
-			console.error('Failed to load ratings:', error);
-		} finally {
-			loading = false;
-		}
-	}
+	// Update local state when userRating prop changes
+	$effect(() => {
+		currentRating = userRating?.rating ?? null;
+		isDifficult = userRating?.is_difficult ?? false;
+	});
 
 	// Handle rating change
 	async function handleRatingChange(newRating: SongRatingValue) {
@@ -89,13 +80,6 @@
 			saving = false;
 		}
 	}
-
-	// Watch for loading state change or initial mount
-	$effect(() => {
-		if (!ratingsLoading) {
-			loadRatings();
-		}
-	});
 </script>
 
 <div class="song-rating-container" tabindex="0">

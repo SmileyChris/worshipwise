@@ -81,13 +81,16 @@ describe('SongRatingButton', () => {
 		expect(getByTitle('I would not use this song')).toBeInTheDocument();
 	});
 
-	it('should load and display user rating', async () => {
-		mockRatingsAPI.getUserRating.mockResolvedValue({
-			rating: 'thumbs_up',
+	it('should display user rating from props', async () => {
+		const userRating = {
+			rating: 'thumbs_up' as const,
 			is_difficult: false
-		});
+		};
 
-		const { container } = render(SongRatingButton, { song: mockSong });
+		const { container } = render(SongRatingButton, {
+			song: mockSong,
+			userRating
+		});
 
 		await waitFor(() => {
 			const thumbsUpBtn = container.querySelector('[title="I like this song"]');
@@ -95,25 +98,15 @@ describe('SongRatingButton', () => {
 		});
 	});
 
-	it('should display aggregate ratings when showAggregates is true', async () => {
-		mockRatingsAPI.getAggregateRatings.mockResolvedValue({
-			thumbsUp: 5,
-			neutral: 2,
-			thumbsDown: 1,
-			totalRatings: 8,
-			difficultCount: 3
-		});
-
-		const { getByText } = render(SongRatingButton, {
+	it('should render without aggregate ratings', () => {
+		const { queryByText } = render(SongRatingButton, {
 			song: mockSong,
 			showAggregates: true
 		});
 
-		await waitFor(() => {
-			expect(getByText('👍 5')).toBeInTheDocument();
-			expect(getByText('👎 1')).toBeInTheDocument();
-			expect(getByText('🎵 3')).toBeInTheDocument();
-		});
+		// Component no longer displays aggregate ratings
+		expect(queryByText(/👍 \d+/)).not.toBeInTheDocument();
+		expect(queryByText(/👎 \d+/)).not.toBeInTheDocument();
 	});
 
 	it('should toggle rating when clicking the same button', async () => {
@@ -135,48 +128,39 @@ describe('SongRatingButton', () => {
 		expect(mockRatingsAPI.deleteRating).toHaveBeenCalledWith(mockSong.id);
 	});
 
-	it('should show difficulty checkbox when rating is set', async () => {
-		mockRatingsAPI.getUserRating.mockResolvedValue({
-			rating: 'thumbs_up',
+	it('should show difficulty button when rating is set', async () => {
+		const userRating = {
+			rating: 'thumbs_up' as const,
 			is_difficult: false
+		};
+
+		const { container } = render(SongRatingButton, {
+			song: mockSong,
+			userRating
 		});
 
-		const { getByLabelText } = render(SongRatingButton, { song: mockSong });
+		// Hover to show expanded options
+		const ratingContainer = container.querySelector('.song-rating-container');
+		expect(ratingContainer).toBeInTheDocument();
 
-		await waitFor(() => {
-			expect(getByLabelText('Difficult')).toBeInTheDocument();
-		});
+		// Look for difficulty button in expanded options
+		const difficultyBtn = container.querySelector('.difficulty-btn');
+		expect(difficultyBtn).toBeInTheDocument();
 	});
 
-	it('should check for auto-retire when rating thumbs down', async () => {
-		mockRatingsAPI.shouldAutoRetire.mockResolvedValue(true);
-
+	it('should allow rating thumbs down', async () => {
 		const { getByTitle } = render(SongRatingButton, { song: mockSong });
-
-		// Mock window.dispatchEvent
-		const dispatchEventSpy = vi.spyOn(window, 'dispatchEvent');
 
 		const thumbsDownBtn = getByTitle('I would not use this song');
 		await fireEvent.click(thumbsDownBtn);
 
 		await waitFor(() => {
-			expect(mockRatingsAPI.shouldAutoRetire).toHaveBeenCalledWith(mockSong.id);
-			expect(dispatchEventSpy).toHaveBeenCalledWith(
-				expect.objectContaining({
-					type: 'song-auto-retire',
-					detail: { songId: mockSong.id }
-				})
-			);
+			expect(mockRatingsAPI.setRating).toHaveBeenCalledWith(mockSong.id, {
+				song_id: mockSong.id,
+				rating: 'thumbs_down',
+				is_difficult: false
+			});
 		});
-	});
-
-	it('should not check auto-retire for other ratings', async () => {
-		const { getByTitle } = render(SongRatingButton, { song: mockSong });
-
-		const neutralBtn = getByTitle('Neutral');
-		await fireEvent.click(neutralBtn);
-
-		expect(mockRatingsAPI.shouldAutoRetire).not.toHaveBeenCalled();
 	});
 
 	it('should handle rating change callback', async () => {

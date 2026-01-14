@@ -78,6 +78,14 @@ export interface Song {
 	daysSinceLastUsed?: number;
 	usageStatus?: SongUsageStatus;
 
+	// Aggregate data from songs_enriched view
+	last_used_date?: string | null; // From song_usage table
+	thumbs_up?: number; // Aggregate rating counts
+	thumbs_down?: number;
+	neutral?: number;
+	total_ratings?: number;
+	difficult_count?: number;
+
 	// Expanded relations
 	expand?: {
 		created_by?: {

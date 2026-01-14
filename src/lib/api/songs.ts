@@ -5,11 +5,371 @@ import { pb } from '$lib/api/client';
 
 export class SongsAPI {
 	private collection = 'songs';
+	private enrichedCollection = 'songs_enriched';
 
 	constructor(
 		private authContext: AuthContext,
 		private pb: PocketBase
 	) {}
+
+	/**
+	 * Get all songs from the enriched view with aggregates (ratings, usage, etc.)
+	 * This is the preferred method for fetching songs as it includes all data in a single query
+	 */
+	async getSongsEnriched(options: SongFilterOptions = {}): Promise<Song[]> {
+		try {
+			// Ensure user has a current church
+			if (!this.authContext.currentChurch?.id) {
+				throw new Error('No church selected. Please select a church to view songs.');
+			}
+
+			let filter = `church_id = "${this.authContext.currentChurch.id}"`;
+			const filterParts: string[] = [];
+
+			// Handle retired filter
+			if (!options.showRetired) {
+				filterParts.push('(is_retired = false || is_retired = null)');
+			} else {
+				filterParts.push('is_retired = true');
+			}
+
+			// Add search filter
+			if (options.search) {
+				filterParts.push(`(title ~ "${options.search}" || artist ~ "${options.search}")`);
+			}
+
+			// Add labels filter
+			if (options.labels && options.labels.length > 0) {
+				const labelFilters = options.labels.map((labelId) => `labels ?~ "${labelId}"`);
+				filterParts.push(`(${labelFilters.join(' || ')})`);
+			}
+
+			// Add key filter
+			if (options.key) {
+				filterParts.push(`key_signature = "${options.key}"`);
+			}
+
+			// Add tags filter
+			if (options.tags && options.tags.length > 0) {
+				const tagFilters = options.tags.map((tag) => `tags ?~ "${tag}"`);
+				filterParts.push(`(${tagFilters.join(' || ')})`);
+			}
+
+			// Add tempo filter
+			if (options.minTempo) {
+				filterParts.push(`tempo >= ${options.minTempo}`);
+			}
+			if (options.maxTempo) {
+				filterParts.push(`tempo <= ${options.maxTempo}`);
+			}
+
+			// Add created_by filter
+			if (options.createdBy) {
+				filterParts.push(`created_by = "${options.createdBy}"`);
+			}
+
+			// Combine filters
+			if (filterParts.length > 0) {
+				filter += ` && (${filterParts.join(' && ')})`;
+			}
+
+			const records = await this.pb.collection(this.enrichedCollection).getFullList({
+				filter,
+				sort: options.sort || 'title',
+				expand: 'created_by,labels'
+			});
+
+			return records as unknown as Song[];
+		} catch (error) {
+			console.error('Failed to fetch enriched songs:', error);
+			throw error;
+		}
+	}
+
+	/**
+	 * Get enriched songs with pagination
+	 * Includes all aggregate data (ratings, usage) in a single query
+	 */
+	async getSongsEnrichedPaginated(
+		page = 1,
+		perPage = 20,
+		options: SongFilterOptions = {}
+	): Promise<{
+		items: Song[];
+		totalItems: number;
+		totalPages: number;
+		page: number;
+		perPage: number;
+	}> {
+		try {
+			// Ensure user has a current church
+			if (!this.authContext.currentChurch?.id) {
+				throw new Error('No church selected. Please select a church to view songs.');
+			}
+
+			let filter = `church_id = "${this.authContext.currentChurch.id}"`;
+			const filterParts: string[] = [];
+
+			// Handle retired filter
+			if (!options.showRetired) {
+				filterParts.push('(is_retired = false || is_retired = null)');
+			} else {
+				filterParts.push('is_retired = true');
+			}
+
+			// Apply same filtering logic as getSongsEnriched
+			if (options.search) {
+				filterParts.push(`(title ~ "${options.search}" || artist ~ "${options.search}")`);
+			}
+			if (options.labels && options.labels.length > 0) {
+				const labelFilters = options.labels.map((labelId) => `labels ?~ "${labelId}"`);
+				filterParts.push(`(${labelFilters.join(' || ')})`);
+			}
+			if (options.key) {
+				filterParts.push(`key_signature = "${options.key}"`);
+			}
+			if (options.tags && options.tags.length > 0) {
+				const tagFilters = options.tags.map((tag) => `tags ?~ "${tag}"`);
+				filterParts.push(`(${tagFilters.join(' || ')})`);
+			}
+			if (options.minTempo) {
+				filterParts.push(`tempo >= ${options.minTempo}`);
+			}
+			if (options.maxTempo) {
+				filterParts.push(`tempo <= ${options.maxTempo}`);
+			}
+			if (options.createdBy) {
+				filterParts.push(`created_by = "${options.createdBy}"`);
+			}
+
+			if (filterParts.length > 0) {
+				filter += ` && (${filterParts.join(' && ')})`;
+			}
+
+			const result = await this.pb.collection(this.enrichedCollection).getList(page, perPage, {
+				filter,
+				sort: options.sort || 'title',
+				expand: 'created_by,labels'
+			});
+
+			return {
+				items: result.items as unknown as Song[],
+				totalItems: result.totalItems,
+				totalPages: result.totalPages,
+				page: result.page,
+				perPage: result.perPage
+			};
+		} catch (error) {
+			console.error('Failed to fetch paginated enriched songs:', error);
+			throw error;
+		}
+	}
+
+	/**
+	 * Get complete song data in a SINGLE SQL query via custom endpoint
+	 * Includes: songs + usage + aggregate ratings + user's individual rating
+	 * This is the most efficient way to fetch all song data
+	 */
+	async getSongsComplete(
+		page = 1,
+		perPage = 100,
+		options: SongFilterOptions = {}
+	): Promise<{
+		songs: Song[];
+		userRatings: Map<string, { rating: string; is_difficult: boolean }>;
+		totalItems: number;
+		totalPages: number;
+		page: number;
+		perPage: number;
+	}> {
+		try {
+			if (!this.authContext.currentChurch?.id) {
+				throw new Error('No church selected');
+			}
+
+			// Build query params
+			const params = new URLSearchParams({
+				church_id: this.authContext.currentChurch.id,
+				page: page.toString(),
+				perPage: perPage.toString()
+			});
+
+			if (options.search) params.set('search', options.search);
+			if (options.labels && options.labels.length > 0) {
+				params.set('labels', options.labels.join(','));
+			}
+			if (options.showRetired) params.set('showRetired', 'true');
+			if (options.sort) params.set('sort', options.sort);
+
+			// Call custom endpoint
+			const response = await this.pb.send(`/api/songs-complete?${params.toString()}`, {
+				method: 'GET'
+			});
+
+			const items: any[] = response.items || [];
+			const userRatings = new Map<string, { rating: string; is_difficult: boolean }>();
+
+			// Process items: extract user rating and clean up song objects
+			const songs = items.map((item) => {
+				// Extract user rating if exists
+				if (item.user_rating) {
+					userRatings.set(item.id, {
+						rating: item.user_rating,
+						is_difficult: item.user_is_difficult || false
+					});
+				}
+
+				// Remove user-specific fields from song object
+				const { user_rating, user_is_difficult, ...song } = item;
+				return song as Song;
+			});
+
+			return {
+				songs,
+				userRatings,
+				totalItems: response.totalItems || 0,
+				totalPages: response.totalPages || 0,
+				page: response.page || 1,
+				perPage: response.perPage || perPage
+			};
+		} catch (error) {
+			console.error('Failed to fetch complete songs:', error);
+			throw error;
+		}
+	}
+
+	/**
+	 * Get enriched songs with user ratings in a single optimized call
+	 * Fetches songs+aggregates and user ratings in parallel, then merges them
+	 * @deprecated Use getSongsComplete() instead for better performance
+	 */
+	async getSongsEnrichedWithUserRatings(
+		options: SongFilterOptions = {}
+	): Promise<{ songs: Song[]; userRatings: Map<string, any> }> {
+		try {
+			// Fetch enriched songs first
+			const songs = await this.getSongsEnriched(options);
+
+			if (songs.length === 0) {
+				return { songs: [], userRatings: new Map() };
+			}
+
+			// Fetch user ratings for all songs in parallel
+			const songIds = songs.map(s => s.id);
+			const userId = this.authContext.user?.id;
+			const churchId = this.authContext.currentChurch?.id;
+
+			if (!userId || !churchId) {
+				return { songs, userRatings: new Map() };
+			}
+
+			// Build filter for song ratings - get user's ratings for these songs
+			const BATCH_SIZE = 50;
+			const chunks = [];
+			for (let i = 0; i < songIds.length; i += BATCH_SIZE) {
+				chunks.push(songIds.slice(i, i + BATCH_SIZE));
+			}
+
+			const allRatings = await Promise.all(
+				chunks.map(async (chunk) => {
+					const idFilters = chunk.map((id) => `song_id = "${id}"`).join(' || ');
+					const records = await this.pb.collection('song_ratings').getFullList({
+						filter: `(${idFilters}) && user_id = "${userId}" && church_id = "${churchId}"`
+					});
+					return records;
+				})
+			);
+
+			// Flatten and create map
+			const userRatings = new Map();
+			allRatings.flat().forEach((rating: any) => {
+				userRatings.set(rating.song_id, {
+					rating: rating.rating,
+					is_difficult: rating.is_difficult || false
+				});
+			});
+
+			return { songs, userRatings };
+		} catch (error) {
+			console.error('Failed to fetch enriched songs with user ratings:', error);
+			throw error;
+		}
+	}
+
+	/**
+	 * Paginated version of getSongsEnrichedWithUserRatings
+	 */
+	async getSongsEnrichedWithUserRatingsPaginated(
+		page = 1,
+		perPage = 20,
+		options: SongFilterOptions = {}
+	): Promise<{
+		songs: Song[];
+		userRatings: Map<string, any>;
+		totalItems: number;
+		totalPages: number;
+		page: number;
+		perPage: number;
+	}> {
+		try {
+			// Fetch paginated enriched songs
+			const result = await this.getSongsEnrichedPaginated(page, perPage, options);
+
+			if (result.items.length === 0) {
+				return {
+					songs: [],
+					userRatings: new Map(),
+					totalItems: result.totalItems,
+					totalPages: result.totalPages,
+					page: result.page,
+					perPage: result.perPage
+				};
+			}
+
+			// Fetch user ratings for visible songs
+			const songIds = result.items.map(s => s.id);
+			const userId = this.authContext.user?.id;
+			const churchId = this.authContext.currentChurch?.id;
+
+			if (!userId || !churchId) {
+				return {
+					songs: result.items,
+					userRatings: new Map(),
+					totalItems: result.totalItems,
+					totalPages: result.totalPages,
+					page: result.page,
+					perPage: result.perPage
+				};
+			}
+
+			// Batch fetch user ratings
+			const idFilters = songIds.map((id) => `song_id = "${id}"`).join(' || ');
+			const ratings = await this.pb.collection('song_ratings').getFullList({
+				filter: `(${idFilters}) && user_id = "${userId}" && church_id = "${churchId}"`
+			});
+
+			// Create map
+			const userRatings = new Map();
+			ratings.forEach((rating: any) => {
+				userRatings.set(rating.song_id, {
+					rating: rating.rating,
+					is_difficult: rating.is_difficult || false
+				});
+			});
+
+			return {
+				songs: result.items,
+				userRatings,
+				totalItems: result.totalItems,
+				totalPages: result.totalPages,
+				page: result.page,
+				perPage: result.perPage
+			};
+		} catch (error) {
+			console.error('Failed to fetch paginated enriched songs with user ratings:', error);
+			throw error;
+		}
+	}
 
 	/**
 	 * Get all active songs with optional filtering

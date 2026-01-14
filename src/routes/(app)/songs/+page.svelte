@@ -105,10 +105,11 @@
 	let hasNextPage = $derived(songsStore.hasNextPage);
 	let hasPrevPage = $derived(songsStore.hasPrevPage);
 	let selectedSong = $derived(songsStore.selectedSong);
+	let userRatings = $derived(songsStore.userRatings); // User ratings come from store now!
 
 	// Ratings state
 	let ratingsLoading = $state(true);
-	
+
 	const ratingsAPI = $derived.by(() => {
 		const ctx = auth.getAuthContext();
 		return createRatingsAPI(ctx, ctx.pb);
@@ -252,39 +253,10 @@
 		}
 	});
 
-	// Fetch ratings for visible songs
+	// User ratings come from store.userRatings (fetched in loadSongs)
+	// Just sync the loading state
 	$effect(() => {
-		const visibleSongs: Song[] = [];
-		
-		if (viewMode === 'list' && songs.length > 0) {
-			visibleSongs.push(...songs);
-		} else if (viewMode === 'themes' && filteredThemes) {
-			for (const { songs: themeSongs } of filteredThemes.values()) {
-				// Only fetch ratings for expanded themes to save requests? 
-				// Or fetch all so they are ready when expanded? Fetching all is safer for UX.
-				visibleSongs.push(...themeSongs);
-			}
-		}
-
-		if (visibleSongs.length > 0 && auth.currentChurch) {
-			ratingsLoading = true;
-			const songIds = visibleSongs.map(s => s.id);
-			
-			// Fetch ratings to populate cache
-			// We don't store the result here because the API module caches it
-			// and child components will read from cache
-			Promise.all([
-				ratingsAPI.getUserRatingsForSongs(songIds),
-				ratingsAPI.getMultipleSongRatings(songIds)
-			]).then(() => {
-				ratingsLoading = false;
-			}).catch(err => {
-				console.error('Failed to pre-fetch ratings:', err);
-				ratingsLoading = false;
-			});
-		} else {
-			ratingsLoading = false;
-		}
+		ratingsLoading = loading;
 	});
 
 	// Handlers
@@ -578,6 +550,7 @@
 													{isEditingService}
 													isInCurrentService={songsInCurrentService.has(song.id)}
 													{ratingsLoading}
+													userRating={userRatings.get(song.id) || null}
 												/>
 											{/each}
 										</div>
@@ -620,6 +593,7 @@
 								{isEditingService}
 								isInCurrentService={songsInCurrentService.has(song.id)}
 								{ratingsLoading}
+								userRating={userRatings.get(song.id) || null}
 							/>
 						{/each}
 					</div>

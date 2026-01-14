@@ -7,6 +7,7 @@ import type {
 	CreateSongData,
 	Song,
 	SongFilterOptions,
+	SongRatingValue,
 	SongStats,
 	UpdateSongData
 } from '$lib/types/song';
@@ -22,7 +23,7 @@ class SongsStore {
 	currentPage = $state<number>(1);
 	totalPages = $state<number>(1);
 	totalItems = $state<number>(0);
-	perPage = $state<number>(20);
+	perPage = $state<number>(100);
 
 	// Filter state
 	filters = $state<SongFilterOptions>({
@@ -41,6 +42,7 @@ class SongsStore {
 
 	// Ratings state
 	songRatings = $state<Map<string, AggregateRatings>>(new Map());
+	userRatings = $state<Map<string, { rating: SongRatingValue; is_difficult: boolean }>>(new Map()); // User's individual ratings
 	userFavorites = $state<Set<string>>(new Set());
 	userDifficultSongs = $state<Set<string>>(new Set());
 
@@ -105,6 +107,7 @@ class SongsStore {
 
 	/**
 	 * Load and cache all songs with usage information (called once per session)
+	 * Uses the enriched view which includes aggregates in a single query
 	 */
 	async loadAllSongsOnce(): Promise<void> {
 		// Skip if already loaded
@@ -114,32 +117,26 @@ class SongsStore {
 		this.error = null;
 
 		try {
-			// Fetch all songs and usage stats
-			const [allSongs, usageStats] = await Promise.all([
-				this.songsApi.getSongs({ showRetired: false }),
+			// Fetch enriched songs (includes usage and rating aggregates) and usage stats
+			const [enrichedSongs, usageStats] = await Promise.all([
+				this.songsApi.getSongsEnriched({ showRetired: false }),
 				this.songsApi.getUsageComparisonStats()
 			]);
 
-			// Load usage information for all songs
-			const songIds = allSongs.map((song) => song.id);
-			const usageMap = await this.songsApi.getSongsUsageInfo(songIds);
-
-			// Enhance songs with usage information
-			this.allSongs = allSongs.map((song) => {
-				const usage = usageMap.get(song.id);
-				if (usage && usage.lastUsed) {
-					return {
-						...song,
-						lastUsedDate: usage.lastUsed,
-						daysSinceLastUsed: usage.daysSince,
-						usageStatus: this.calculateUsageStatus(usage.daysSince)
-					};
+			// Process enriched songs - they already have last_used_date from the view
+			this.allSongs = enrichedSongs.map((song: any) => {
+				// Calculate usage status from last_used_date if available
+				let daysSince = Infinity;
+				if (song.last_used_date) {
+					const lastUsed = new Date(song.last_used_date);
+					daysSince = Math.floor((Date.now() - lastUsed.getTime()) / (1000 * 60 * 60 * 24));
 				}
+
 				return {
 					...song,
-					lastUsedDate: null,
-					daysSinceLastUsed: Infinity,
-					usageStatus: 'available' as const
+					lastUsedDate: song.last_used_date ? new Date(song.last_used_date) : null,
+					daysSinceLastUsed: daysSince,
+					usageStatus: this.calculateUsageStatus(daysSince)
 				};
 			});
 
@@ -155,6 +152,7 @@ class SongsStore {
 
 	/**
 	 * Load songs with current filters and pagination
+	 * Uses the enriched view which includes usage and rating aggregates
 	 */
 	async loadSongs(resetPage = false): Promise<void> {
 		if (resetPage) {
@@ -165,38 +163,40 @@ class SongsStore {
 		this.error = null;
 
 		try {
-			const result = await this.songsApi.getSongsPaginated(
+			// Fetch enriched songs - includes songs + usage + aggregate ratings from all users
+			const result = await this.songsApi.getSongsEnrichedPaginated(
 				this.currentPage,
 				this.perPage,
 				this.filters
 			);
 
-			// Load usage information for all songs
+			// Fetch current user's individual ratings in parallel
 			const songIds = result.items.map((song) => song.id);
-			const usageMap = await this.songsApi.getSongsUsageInfo(songIds);
+			const ratingsMap = await this.ratingsApi.getUserRatingsForSongs(songIds);
 
-			// Load ratings for all songs using current auth context
-			const ratingsMap = await this.ratingsApi.getMultipleSongRatings(songIds);
-			this.songRatings = ratingsMap;
+			// Transform to match our type (ensure is_difficult is always a boolean)
+			this.userRatings = new Map();
+			ratingsMap.forEach((rating, songId) => {
+				this.userRatings.set(songId, {
+					rating: rating.rating,
+					is_difficult: rating.is_difficult || false
+				});
+			});
 
-			// Enhance songs with usage information
-			this.songs = result.items.map((song) => {
-				const usage = usageMap.get(song.id);
-				if (usage && usage.lastUsed) {
-					// Song has been used before - calculate status based on days since
-					return {
-						...song,
-						lastUsedDate: usage.lastUsed,
-						daysSinceLastUsed: usage.daysSince,
-						usageStatus: this.calculateUsageStatus(usage.daysSince)
-					};
+			// Process songs - they already have last_used_date and aggregates
+			this.songs = result.items.map((song: any) => {
+				// Calculate usage status from last_used_date if available
+				let daysSince = Infinity;
+				if (song.last_used_date) {
+					const lastUsed = new Date(song.last_used_date);
+					daysSince = Math.floor((Date.now() - lastUsed.getTime()) / (1000 * 60 * 60 * 24));
 				}
-				// Song has never been used - mark as available (not stale)
+
 				return {
 					...song,
-					lastUsedDate: null,
-					daysSinceLastUsed: Infinity,
-					usageStatus: 'available' as const
+					lastUsedDate: song.last_used_date ? new Date(song.last_used_date) : null,
+					daysSinceLastUsed: daysSince,
+					usageStatus: this.calculateUsageStatus(daysSince)
 				};
 			});
 
