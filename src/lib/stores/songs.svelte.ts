@@ -314,11 +314,31 @@ class SongsStore {
 	 */
 	private async updateStats(): Promise<void> {
 		try {
-			const [allSongs, usageStats] = await Promise.all([
+			const [allSongs, usageStats, usageMap] = await Promise.all([
 				this.loadAllSongs(),
-				this.songsApi.getUsageComparisonStats()
+				this.songsApi.getUsageComparisonStats(),
+				this.songsApi.getAllSongsUsage()
 			]);
-			this.updateStatsFromSongs(allSongs, usageStats);
+
+			// Enrich songs with usage status
+			const enrichedSongs = allSongs.map(song => {
+				const usage = usageMap.get(song.id);
+				if (usage) {
+					return {
+						...song,
+						daysSinceLastUsed: usage.daysSince,
+						usageStatus: this.calculateUsageStatus(usage.daysSince)
+					};
+				}
+				// Never used
+				return {
+					...song,
+					daysSinceLastUsed: Infinity,
+					usageStatus: 'available' as const
+				};
+			});
+
+			this.updateStatsFromSongs(enrichedSongs, usageStats);
 		} catch (error) {
 			console.error('Failed to update stats:', error);
 		}

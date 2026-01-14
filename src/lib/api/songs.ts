@@ -450,6 +450,48 @@ export class SongsAPI {
 	}
 
 	/**
+	 * Get usage info for all songs in the current church
+	 */
+	async getAllSongsUsage(): Promise<Map<string, { lastUsed: Date | null; daysSince: number }>> {
+		const usageMap = new Map();
+		try {
+			// Ensure user has a current church
+			if (!this.authContext.currentChurch?.id) {
+				return usageMap;
+			}
+
+			// Get all usage records for this church
+			// We only need the most recent usage for each song
+			// Since we can't easily "GROUP BY" and get MAX(date) in one simple list call without raw SQL or Views (which we have restricted access to maybe),
+			// We'll fetch all and process. Or query sorted by date and process.
+			// Ideally we'd use the song_statistics view if it had usage info.
+			
+			const usageRecords = await this.pb.collection('song_usage').getFullList({
+				filter: `church_id = "${this.authContext.currentChurch.id}"`,
+				sort: '-used_date',
+				fields: 'song_id,used_date'
+			});
+
+			const now = Date.now();
+			const dayMs = 1000 * 60 * 60 * 24;
+
+			for (const record of usageRecords) {
+				// Since it's sorted by -used_date, the first time we see a song_id, it is the latest usage
+				if (!usageMap.has(record.song_id)) {
+					const lastUsed = new Date(record.used_date);
+					const daysSince = Math.floor((now - lastUsed.getTime()) / dayMs);
+					usageMap.set(record.song_id, { lastUsed, daysSince });
+				}
+			}
+
+			return usageMap;
+		} catch (error) {
+			console.error('Failed to fetch all songs usage:', error);
+			return usageMap;
+		}
+	}
+
+	/**
 	 * Get usage history for a specific song
 	 */
 	async getSongUsageHistory(songId: string): Promise<Record<string, unknown>[]> {

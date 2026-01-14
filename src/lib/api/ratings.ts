@@ -226,29 +226,37 @@ export class RatingsAPI {
 
 			await Promise.all(
 				chunks.map(async (chunk) => {
-					// Build filter for this chunk
-					// Note: 'id' in song_statistics view IS the song_id
-					const idFilters = chunk.map((id) => `id = "${id}"`).join(' || ');
+					try {
+						// Build filter for this chunk
+						// We use 'id' (the View's primary key) for filtering.
+						// We OMIT church_id filter here because the songIds we are querying
+						// have already been filtered by church_id in the main songs query.
+						// Adding the extra check on the View sometimes causes "Missing collection context" 
+						// errors in PocketBase when combined with complex OR filters on Views.
+						const idFilters = chunk.map((id) => `id = "${id}"`).join(' || ');
 
-					const records = await this.pb.collection('song_statistics').getFullList({
-						filter: `(${idFilters}) && church_id = "${churchId}"`
-					});
+						const records = await this.pb.collection('song_statistics').getFullList({
+							filter: `(${idFilters})`
+						});
 
-					// Map view results to AggregateRatings
-					records.forEach((record: any) => {
-						const aggregate: AggregateRatings = {
-							thumbsUp: record.thumbs_up || 0,
-							neutral: record.neutral || 0,
-							thumbsDown: record.thumbs_down || 0,
-							totalRatings: record.total_ratings || 0,
-							difficultCount: record.difficult_count || 0
-						};
-						
-						ratingsMap.set(record.song_id, aggregate);
-						
-						// Update cache
-						aggregateRatingCache.set(record.song_id, aggregate);
-					});
+						// Map view results to AggregateRatings
+						records.forEach((record: any) => {
+							const aggregate: AggregateRatings = {
+								thumbsUp: record.thumbs_up || 0,
+								neutral: record.neutral || 0,
+								thumbsDown: record.thumbs_down || 0,
+								totalRatings: record.total_ratings || 0,
+								difficultCount: record.difficult_count || 0
+							};
+							
+							ratingsMap.set(record.song_id, aggregate);
+							
+							// Update cache
+							aggregateRatingCache.set(record.song_id, aggregate);
+						});
+					} catch (chunkError) {
+						console.error('Failed to fetch chunk of ratings:', chunkError);
+					}
 				})
 			);
 

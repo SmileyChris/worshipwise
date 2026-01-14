@@ -215,4 +215,17 @@ describe('SongRatingButton', () => {
 			expect(thumbsUpBtn).not.toBeDisabled();
 		});
 	});
+
+	it('should NOT load ratings when ratingsLoading is true', async () => {
+		render(SongRatingButton, { 
+			song: mockSong,
+			ratingsLoading: true 
+		});
+
+		// Wait a bit to ensure potential effects have run
+		await new Promise(r => setTimeout(r, 100));
+
+		expect(mockRatingsAPI.getUserRating).not.toHaveBeenCalled();
+		expect(mockRatingsAPI.getAggregateRatings).not.toHaveBeenCalled();
+	});
 });

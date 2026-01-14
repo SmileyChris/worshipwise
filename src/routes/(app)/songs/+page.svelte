@@ -13,10 +13,11 @@
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import { getAuthStore, getServicesStore, getSongsStore } from '$lib/context/stores.svelte';
-	import type { Category, Song } from '$lib/types/song';
+	import type { Song, Label } from '$lib/types/song';
+	import { createLabelsAPI } from '$lib/api/labels';
 	import { createRatingsAPI } from '$lib/api/ratings';
 	import { onMount } from 'svelte';
-	import { Music, CheckCircle, Clock, PlusCircle, Search, Users, TrendingUp } from 'lucide-svelte';
+	import { Music, CheckCircle, Clock, PlusCircle, Search, Users, TrendingUp, ChevronDown, ChevronRight } from 'lucide-svelte';
 
 	let { data } = $props();
 
@@ -34,18 +35,65 @@
 
 	// Search state
 	let searchQuery = $state('');
-	let selectedKey = $state('');
-	let selectedCategory = $state('');
-	let selectedLabelIds = $state<string[]>([]);
+	// let selectedCategory = $state(''); // Replaced by theme
+	let selectedThemeId = $state('');
 	let selectedSort = $state('title');
 	let showRetired = $state(false);
 	let showFavorites = $state(false);
 	let showDifficult = $state(false);
 	let initialLoadComplete = $state(false);
 
+	// Data for filters
+	let availableLabels = $state<Label[]>([]);
+
 	// Theme data
 	let themesData = $state<Map<string, { label: { id: string; name: string; color?: string }; songs: Song[] }> | null>(null);
 	let themesLoading = $state(false);
+	
+	// Collapsible themes state
+	let expandedThemes = $state(new Set<string>());
+
+	// Filter themes based on search
+	let filteredThemes = $derived.by(() => {
+		if (!themesData) return null;
+		if (!searchQuery.trim()) return themesData;
+
+		const query = searchQuery.toLowerCase();
+		const result = new Map();
+
+		for (const [id, data] of themesData) {
+			const matchingSongs = data.songs.filter(s =>
+				s.title.toLowerCase().includes(query) ||
+				(s.artist && s.artist.toLowerCase().includes(query))
+			);
+
+			if (matchingSongs.length > 0) {
+				result.set(id, { ...data, songs: matchingSongs });
+			}
+		}
+		return result;
+	});
+
+	// Auto-expand/collapse on search
+	$effect(() => {
+		if (searchQuery.trim() && filteredThemes) {
+			// Expand all found themes
+			expandedThemes = new Set(filteredThemes.keys());
+		} else {
+			// Collapse all when search is cleared
+			expandedThemes = new Set();
+		}
+	});
+
+	function toggleTheme(id: string) {
+		const newSet = new Set(expandedThemes);
+		if (newSet.has(id)) {
+			newSet.delete(id);
+		} else {
+			newSet.add(id);
+		}
+		expandedThemes = newSet;
+	}
 
 	// Reactive data from store
 	let songs = $derived(songsStore.songs);
@@ -57,14 +105,18 @@
 	let hasNextPage = $derived(songsStore.hasNextPage);
 	let hasPrevPage = $derived(songsStore.hasPrevPage);
 	let selectedSong = $derived(songsStore.selectedSong);
-	let availableKeys = $derived(songsStore.availableKeys);
 
 	// Ratings state
-	let ratingsLoading = $state(false);
+	let ratingsLoading = $state(true);
 	
 	const ratingsAPI = $derived.by(() => {
 		const ctx = auth.getAuthContext();
 		return createRatingsAPI(ctx, ctx.pb);
+	});
+
+	const labelsAPI = $derived.by(() => {
+		const ctx = auth.getAuthContext();
+		return createLabelsAPI(ctx.pb);
 	});
 
 	// Service editing state
@@ -86,11 +138,20 @@
 		{ value: '-artist', label: 'Artist Z-A' }
 	];
 
-	// Key options (will be populated from available keys)
-	let keyOptions = $derived.by(() => [
-		{ value: '', label: 'All Keys' },
-		...availableKeys.map((key: string) => ({ value: key, label: key }))
+	// Theme options for dropdown
+	let themeOptions = $derived.by(() => [
+		...availableLabels.map(l => ({ value: l.id, label: l.name }))
 	]);
+
+	// Load filters data
+	async function loadFilters() {
+		if (!auth.currentChurch) return;
+		try {
+			availableLabels = await labelsAPI.getLabels(auth.currentChurch.id);
+		} catch (error) {
+			console.error('Failed to load labels:', error);
+		}
+	}
 
 	// Load theme data
 	async function loadThemesData() {
@@ -112,6 +173,8 @@
 			songsStore.selectSong(null);
 			showSongForm = true;
 		}
+
+		loadFilters(); // Load labels for filter
 
 		if (viewMode === 'themes') {
 			loadThemesData();
@@ -168,9 +231,8 @@
 		if (viewMode === 'list' && initialLoadComplete && auth.currentChurch) {
 			const filters = {
 				search: searchQuery,
-				key: selectedKey,
-				category: selectedCategory,
-				labels: selectedLabelIds.length > 0 ? selectedLabelIds : undefined,
+				// category: selectedCategory, // Removed
+				labels: selectedThemeId ? [selectedThemeId] : undefined,
 				sort: selectedSort,
 				showRetired,
 				showFavorites,
@@ -196,8 +258,10 @@
 		
 		if (viewMode === 'list' && songs.length > 0) {
 			visibleSongs.push(...songs);
-		} else if (viewMode === 'themes' && themesData) {
-			for (const { songs: themeSongs } of themesData.values()) {
+		} else if (viewMode === 'themes' && filteredThemes) {
+			for (const { songs: themeSongs } of filteredThemes.values()) {
+				// Only fetch ratings for expanded themes to save requests? 
+				// Or fetch all so they are ready when expanded? Fetching all is safer for UX.
 				visibleSongs.push(...themeSongs);
 			}
 		}
@@ -218,6 +282,8 @@
 				console.error('Failed to pre-fetch ratings:', err);
 				ratingsLoading = false;
 			});
+		} else {
+			ratingsLoading = false;
 		}
 	});
 
@@ -281,6 +347,12 @@
 		await songsStore.prevPage();
 	}
 
+	function handleThemeClick(themeId: string) {
+		selectedThemeId = themeId;
+		searchQuery = '';
+		viewMode = 'list'; // Ensure we are in list view to see the filtered result clearly
+	}
+
 	function clearError() {
 		songsStore.clearError();
 	}
@@ -299,26 +371,6 @@
 		</div>
 
 		<div class="mt-4 flex items-center gap-4 md:mt-0 md:ml-4">
-			<!-- View Toggle -->
-			<div class="flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
-				<button
-					onclick={() => (viewMode = 'themes')}
-					class="rounded-lg px-4 py-1.5 text-sm font-semibold transition-all {viewMode === 'themes'
-						? 'bg-primary text-white shadow-md'
-						: 'text-gray-600 hover:text-gray-900'}"
-				>
-					Themes
-				</button>
-				<button
-					onclick={() => (viewMode = 'list')}
-					class="rounded-lg px-4 py-1.5 text-sm font-semibold transition-all {viewMode === 'list'
-						? 'bg-primary text-white shadow-md'
-						: 'text-gray-600 hover:text-gray-900'}"
-				>
-					List
-				</button>
-			</div>
-
 			{#if auth.canManageSongs}
 				<Button variant="primary" onclick={handleAddSong} class="shadow-lg shadow-primary/20">Add New Song</Button>
 			{/if}
@@ -399,43 +451,55 @@
 	<!-- Main Layout -->
 	<div class="lg:grid lg:grid-cols-12 lg:gap-10">
 		<div class="lg:col-span-9 space-y-8">
-			{#if viewMode === 'list'}
-				<!-- Search and filters -->
-				<Card class="bg-gray-50/50 border-gray-100">
-					<div class="space-y-6">
-						<div class="relative">
+			<!-- Search and controls -->
+			<Card class="bg-gray-50/50 border-gray-100">
+				<div class="space-y-6">
+					<!-- Search bar with view toggle -->
+					<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+						<div class="relative flex-1">
 							<Search class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
 							<input
 								type="text"
-								placeholder="Search songs by title, artist, or theme..."
+								placeholder={viewMode === 'themes' ? "Search songs by title or artist..." : "Search songs by title, artist, or theme..."}
 								bind:value={searchQuery}
 								class="w-full pl-10 pr-4 py-3 bg-white border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
 							/>
 						</div>
 
-						<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-							<div class="space-y-2">
-								<label for="filter-category" class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Category</label>
-								<CategorySelect
-									id="filter-category"
-									bind:value={selectedCategory}
-									placeholder="All categories"
-								/>
-							</div>
+						<!-- View Toggle -->
+						<div class="flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
+							<button
+								onclick={() => (viewMode = 'themes')}
+								class="rounded-lg px-4 py-1.5 text-sm font-semibold transition-all {viewMode === 'themes'
+									? 'bg-primary text-white shadow-md'
+									: 'text-gray-600 hover:text-gray-900'}"
+							>
+								Themes
+							</button>
+							<button
+								onclick={() => (viewMode = 'list')}
+								class="rounded-lg px-4 py-1.5 text-sm font-semibold transition-all {viewMode === 'list'
+									? 'bg-primary text-white shadow-md'
+									: 'text-gray-600 hover:text-gray-900'}"
+							>
+								List
+							</button>
+						</div>
+					</div>
 
-							<div class="space-y-2">
-								<label for="filter-key" class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Key Signature</label>
+					<!-- List view filters -->
+					{#if viewMode === 'list'}
+						<div class="flex flex-wrap items-center gap-4 justify-end">
+							<div class="w-full sm:w-48">
 								<Select
-									id="filter-key"
-									name="key_filter"
-									bind:value={selectedKey}
-									options={keyOptions}
-									placeholder="Any Key"
+									id="filter-theme"
+									name="theme_filter"
+									bind:value={selectedThemeId}
+									options={themeOptions}
+									placeholder="All Themes"
 								/>
 							</div>
-
-							<div class="space-y-2">
-								<label for="filter-sort" class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Sort By</label>
+							<div class="w-full sm:w-40">
 								<Select
 									id="filter-sort"
 									name="sort"
@@ -444,8 +508,10 @@
 								/>
 							</div>
 						</div>
+					{/if}
 
-						<div class="flex flex-wrap gap-4 pt-2">
+					{#if viewMode === 'list'}
+						<div class="flex flex-wrap gap-4 pt-2 border-t border-gray-200/50">
 							<label class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-100 rounded-lg cursor-pointer hover:border-primary transition-colors">
 								<input type="checkbox" bind:checked={showFavorites} class="text-primary rounded" />
 								<span class="text-sm font-medium text-gray-600">Favorites</span>
@@ -459,9 +525,9 @@
 								<span class="text-sm font-medium text-gray-600">Show Retired</span>
 							</label>
 						</div>
-					</div>
-				</Card>
-			{/if}
+					{/if}
+				</div>
+			</Card>
 
 			<!-- Songs Content -->
 			{#if viewMode === 'themes'}
@@ -470,31 +536,53 @@
 						<LoadingSpinner />
 						<p class="mt-4 text-gray-500 font-medium">Sorting your library...</p>
 					</div>
-				{:else if themesData && themesData.size > 0}
-					<div class="space-y-8">
-						{#each [...themesData.entries()] as [labelId, { label, songs }] (labelId)}
-							<section>
-								<div class="flex items-baseline gap-3 mb-4">
-									<h3 class="font-title text-xl font-bold text-gray-900 flex items-center gap-2">
-										{#if label.color}
-											<div class="w-3 h-3 rounded-full" style="background-color: {label.color}"></div>
-										{/if}
-										{label.name}
-									</h3>
-									<span class="text-sm text-gray-400 font-medium">{songs.length} songs</span>
-								</div>
-								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-									{#each songs as song (song.id)}
-										<SongCard
-											{song}
-											onEdit={handleEditSong}
-											onAddToService={handleAddToService}
-											{isEditingService}
-											isInCurrentService={songsInCurrentService.has(song.id)}
-											{ratingsLoading}
-										/>
-									{/each}
-								</div>
+				{:else if filteredThemes && filteredThemes.size > 0}
+					<div class="space-y-4">
+						{#each [...filteredThemes.entries()] as [labelId, { label, songs }] (labelId)}
+							<section class="rounded-xl border border-gray-200 bg-white overflow-hidden transition-all duration-200 hover:shadow-md">
+								<button
+									onclick={() => toggleTheme(labelId)}
+									class="w-full flex items-center justify-between p-4 bg-gray-50/50 hover:bg-gray-100/50 transition-colors text-left"
+								>
+									<div class="flex items-center gap-3">
+										<div class="text-gray-400">
+											{#if expandedThemes.has(labelId)}
+												<ChevronDown class="h-5 w-5" />
+											{:else}
+												<ChevronRight class="h-5 w-5" />
+											{/if}
+										</div>
+										<h3 class="font-title text-lg font-bold text-gray-900 flex items-center gap-2">
+											{#if label.color}
+												<div class="w-3 h-3 rounded-full shadow-sm" style="background-color: {label.color}"></div>
+											{/if}
+											{label.name}
+										</h3>
+									</div>
+									<div class="flex items-center gap-3">
+										<span class="text-sm font-medium {songs.length > 0 ? 'text-gray-600' : 'text-gray-400'}">
+											{songs.length} {songs.length === 1 ? 'song' : 'songs'}
+										</span>
+									</div>
+								</button>
+								
+								{#if expandedThemes.has(labelId)}
+									<div class="p-4 border-t border-gray-100 bg-white">
+										<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+											{#each songs as song (song.id)}
+												<SongCard
+													{song}
+													onEdit={handleEditSong}
+													onAddToService={handleAddToService}
+													onThemeClick={handleThemeClick}
+													{isEditingService}
+													isInCurrentService={songsInCurrentService.has(song.id)}
+													{ratingsLoading}
+												/>
+											{/each}
+										</div>
+									</div>
+								{/if}
 							</section>
 						{/each}
 					</div>
@@ -518,7 +606,7 @@
 						<EmptyState
 							title="No songs found"
 							message="Try adjusting your filters or search query."
-							action={{ label: 'Clear Filters', onclick: () => { searchQuery = ''; selectedCategory = ''; selectedKey = ''; showFavorites = false; showRetired = false; } }}
+							action={{ label: 'Clear Filters', onclick: () => { searchQuery = ''; selectedThemeId = ''; showFavorites = false; showRetired = false; } }}
 						/>
 					</Card>
 				{:else}
@@ -528,6 +616,7 @@
 								{song}
 								onEdit={handleEditSong}
 								onAddToService={handleAddToService}
+								onThemeClick={handleThemeClick}
 								{isEditingService}
 								isInCurrentService={songsInCurrentService.has(song.id)}
 								{ratingsLoading}

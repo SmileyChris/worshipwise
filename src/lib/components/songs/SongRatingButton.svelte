@@ -22,24 +22,17 @@
 
 	let currentRating = $state<SongRatingValue | null>(null);
 	let isDifficult = $state(false);
-	let aggregates = $state<AggregateRatings | null>(null);
 	let loading = $state(false);
 	let saving = $state(false);
 
-	// Load user's rating and aggregates
+	// Load user's rating
 	async function loadRatings() {
 		loading = true;
 		try {
-			// Load user's rating
 			const userRating = await ratingsAPI.getUserRating(song.id);
 			if (userRating) {
 				currentRating = userRating.rating;
 				isDifficult = userRating.is_difficult || false;
-			}
-
-			// Load aggregate ratings if needed
-			if (showAggregates) {
-				aggregates = await ratingsAPI.getAggregateRatings(song.id);
 			}
 		} catch (error) {
 			console.error('Failed to load ratings:', error);
@@ -68,25 +61,6 @@
 				currentRating = newRating;
 				onRatingChange?.(newRating);
 			}
-
-			// Reload aggregates
-			if (showAggregates) {
-				aggregates = await ratingsAPI.getAggregateRatings(song.id);
-			}
-
-			// Check if song should be auto-retired
-			// Auto-retire when: 75%+ of leaders rate thumbs down AND 0 thumbs up
-			if (newRating === 'thumbs_down') {
-				const shouldRetire = await ratingsAPI.shouldAutoRetire(song.id);
-				if (shouldRetire) {
-					// Trigger retire event
-					window.dispatchEvent(
-						new CustomEvent('song-auto-retire', {
-							detail: { songId: song.id }
-						})
-					);
-				}
-			}
 		} catch (error) {
 			console.error('Failed to update rating:', error);
 		} finally {
@@ -98,17 +72,19 @@
 	async function handleDifficultyToggle() {
 		if (saving || !currentRating) return;
 
+		const newValue = !isDifficult;
 		saving = true;
 		try {
-			isDifficult = !isDifficult;
 			await ratingsAPI.setRating(song.id, {
 				song_id: song.id,
 				rating: currentRating,
-				is_difficult: isDifficult
+				is_difficult: newValue
 			});
+			isDifficult = newValue;
+			// Notify parent that rating changed (difficulty affects aggregates)
+			onRatingChange?.(currentRating);
 		} catch (error) {
 			console.error('Failed to update difficulty:', error);
-			isDifficult = !isDifficult; // Revert
 		} finally {
 			saving = false;
 		}
@@ -122,80 +98,108 @@
 	});
 </script>
 
-<div class="song-rating-container">
+<div class="song-rating-container" tabindex="0">
 	<div class="rating-buttons">
-		<button
-			class="rating-btn"
-			class:active={currentRating === 'thumbs_up'}
-			disabled={saving}
-			onclick={() => handleRatingChange('thumbs_up')}
-			title="I like this song"
-		>
-			👍
-		</button>
-
-		<button
-			class="rating-btn"
-			class:active={currentRating === 'neutral'}
-			disabled={saving}
-			onclick={() => handleRatingChange('neutral')}
-			title="Neutral"
-		>
-			😐
-		</button>
-
-		<button
-			class="rating-btn"
-			class:active={currentRating === 'thumbs_down'}
-			disabled={saving}
-			onclick={() => handleRatingChange('thumbs_down')}
-			title="I would not use this song"
-		>
-			👎
-		</button>
-	</div>
-
-	{#if currentRating}
-		<label class="difficulty-toggle">
-			<input
-				type="checkbox"
-				bind:checked={isDifficult}
-				onchange={handleDifficultyToggle}
+		<!-- Show current vote or placeholder -->
+		{#if currentRating === 'thumbs_up'}
+			<button
+				class="rating-btn current-vote"
 				disabled={saving}
-			/>
-			<span>Difficult</span>
-		</label>
-	{/if}
+				onclick={() => handleRatingChange('thumbs_up')}
+				title="You like this song"
+			>
+				{#if isDifficult}<span class="difficulty-indicator">⚠️</span>{/if}👍
+			</button>
+		{:else if currentRating === 'neutral'}
+			<button
+				class="rating-btn current-vote"
+				disabled={saving}
+				onclick={() => handleRatingChange('neutral')}
+				title="You rated this neutral"
+			>
+				{#if isDifficult}<span class="difficulty-indicator">⚠️</span>{/if}😐
+			</button>
+		{:else if currentRating === 'thumbs_down'}
+			<button
+				class="rating-btn current-vote"
+				disabled={saving}
+				onclick={() => handleRatingChange('thumbs_down')}
+				title="You would not use this song"
+			>
+				{#if isDifficult}<span class="difficulty-indicator">⚠️</span>{/if}👎
+			</button>
+		{:else}
+			<!-- No vote - show faded thumbs up as trigger -->
+			<button
+				class="rating-btn placeholder"
+				disabled={saving}
+				title="Vote on this song"
+			>
+				👍
+			</button>
+		{/if}
 
-	{#if showAggregates && aggregates && aggregates.totalRatings > 0}
-		<div class="aggregate-ratings">
-			<span class="rating-count" title="{aggregates.thumbsUp} people like this">
-				👍 {aggregates.thumbsUp}
-			</span>
-			<span class="rating-count" title="{aggregates.thumbsDown} people would not use this">
-				👎 {aggregates.thumbsDown}
-			</span>
-			{#if aggregates.difficultCount > 0}
-				<span
-					class="difficulty-count"
-					title="{aggregates.difficultCount} people find this difficult"
+		<!-- Expanded options (shown on hover) - expands to the left -->
+		<div class="expanded-options">
+			{#if currentRating}
+				<button
+					class="rating-btn difficulty-btn"
+					class:active={isDifficult}
+					class:faded={!isDifficult}
+					disabled={saving}
+					onclick={handleDifficultyToggle}
+					title={isDifficult ? 'Marked as complex' : 'Mark as complex'}
 				>
-					🎵 {aggregates.difficultCount}
-				</span>
+					⚠️
+				</button>
+				<div class="separator"></div>
 			{/if}
+
+			<button
+				class="rating-btn"
+				class:active={currentRating === 'thumbs_up'}
+				class:faded={currentRating && currentRating !== 'thumbs_up'}
+				disabled={saving}
+				onclick={() => handleRatingChange('thumbs_up')}
+				title="I like this song"
+			>
+				👍
+			</button>
+
+			<button
+				class="rating-btn"
+				class:active={currentRating === 'neutral'}
+				class:faded={currentRating && currentRating !== 'neutral'}
+				disabled={saving}
+				onclick={() => handleRatingChange('neutral')}
+				title="Neutral"
+			>
+				😐
+			</button>
+
+			<button
+				class="rating-btn"
+				class:active={currentRating === 'thumbs_down'}
+				class:faded={currentRating && currentRating !== 'thumbs_down'}
+				disabled={saving}
+				onclick={() => handleRatingChange('thumbs_down')}
+				title="I would not use this song"
+			>
+				👎
+			</button>
 		</div>
-	{/if}
+	</div>
 </div>
 
 <style>
 	.song-rating-container {
-		display: flex;
+		position: relative;
+		display: inline-flex;
 		align-items: center;
-		gap: 1rem;
-		flex-wrap: wrap;
 	}
 
 	.rating-buttons {
+		position: relative;
 		display: flex;
 		gap: 0.25rem;
 	}
@@ -223,43 +227,89 @@
 		border-color: var(--primary);
 	}
 
+	.rating-btn.faded {
+		opacity: 0.3;
+	}
+
+	.rating-btn.faded:hover:not(:disabled) {
+		opacity: 0.7;
+	}
+
 	.rating-btn:disabled {
 		cursor: not-allowed;
 		opacity: 0.4;
 	}
 
-	.difficulty-toggle {
-		display: flex;
-		align-items: center;
-		gap: 0.375rem;
-		font-size: 0.875rem;
-		color: var(--text-secondary);
-		cursor: pointer;
+	/* Current vote display */
+	.rating-btn.current-vote {
+		opacity: 1;
+		background-color: var(--bg-secondary);
+		border-color: var(--primary);
 	}
 
-	.difficulty-toggle input[type='checkbox'] {
-		cursor: pointer;
+	/* Placeholder state (no vote) */
+	.rating-btn.placeholder {
+		opacity: 0.25;
 	}
 
-	.aggregate-ratings {
-		display: flex;
-		gap: 0.75rem;
-		font-size: 0.875rem;
-		color: var(--text-secondary);
+	.rating-btn.placeholder:hover:not(:disabled) {
+		opacity: 0.5;
 	}
 
-	.rating-count,
-	.difficulty-count {
+	/* Expanded options - hidden by default */
+	.expanded-options {
+		position: absolute;
+		right: 0;
+		top: 0;
 		display: flex;
-		align-items: center;
 		gap: 0.25rem;
+		opacity: 0;
+		pointer-events: none;
+		background: white;
+		padding: 0.125rem;
+		border-radius: 0.5rem;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		z-index: 10;
+		transition: opacity 0.2s ease;
 	}
 
-	@media (max-width: 640px) {
-		.song-rating-container {
-			flex-direction: column;
-			align-items: flex-start;
-			gap: 0.5rem;
-		}
+	/* Show expanded options on hover or focus */
+	.song-rating-container:hover .expanded-options,
+	.song-rating-container:focus-within .expanded-options {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
+	/* Current vote fades and shifts to align with expanded position */
+	.current-vote,
+	.placeholder {
+		transition: opacity 0.3s ease, transform 0.3s ease;
+	}
+
+	.song-rating-container:hover .current-vote,
+	.song-rating-container:focus-within .current-vote,
+	.song-rating-container:hover .placeholder,
+	.song-rating-container:focus-within .placeholder {
+		opacity: 0;
+		transform: translateX(-5px);
+		pointer-events: none;
+	}
+
+	.separator {
+		width: 1px;
+		height: 1.5rem;
+		background-color: var(--border-subtle);
+		opacity: 0.5;
+		margin: 0 0.25rem;
+	}
+
+	.difficulty-btn {
+		margin-left: 0.125rem;
+	}
+
+	.difficulty-indicator {
+		font-size: 0.65rem;
+		margin-right: 0.125rem;
+		opacity: 0.8;
 	}
 </style>
