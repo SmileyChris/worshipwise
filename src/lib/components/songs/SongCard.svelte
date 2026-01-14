@@ -41,37 +41,42 @@
 		return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 	});
 
-	// Usage status info based on actual usage data
+	// Usage status info based on actual usage data (weekly-focused)
 	let usageStatusInfo = $derived.by(() => {
 		if (!showUsageIndicator || !song.usageStatus) return null;
 
 		const status = song.usageStatus;
 		const daysSince = song.daysSinceLastUsed;
 
+		// Helper to convert days to weeks
+		const weeksAgo = daysSince !== undefined && daysSince < Infinity
+			? Math.floor(daysSince / 7)
+			: null;
+
 		switch (status) {
 			case 'recent':
 				return {
 					status: 'red',
 					colors: 'bg-red-100 text-red-800',
-					text:
-						daysSince !== undefined && daysSince < Infinity
-							? `Used ${daysSince} days ago`
-							: 'Recently Used'
+					text: weeksAgo === 0 ? 'Used this week' : 'Used last week'
 				};
 			case 'caution':
 				return {
 					status: 'yellow',
 					colors: 'bg-yellow-100 text-yellow-800',
-					text:
-						daysSince !== undefined && daysSince < Infinity
-							? `Used ${daysSince} days ago`
-							: 'Used Recently'
+					text: weeksAgo ? `Used ${weeksAgo} weeks ago` : 'Recently used'
 				};
 			case 'available':
 				return {
 					status: 'green',
 					colors: 'bg-green-100 text-green-800',
 					text: 'Available'
+				};
+			case 'stale':
+				return {
+					status: 'gray',
+					colors: 'bg-gray-100 text-gray-600',
+					text: 'Not used recently'
 				};
 			default:
 				return {
@@ -136,10 +141,12 @@
 				{/if}
 			</div>
 
-			<!-- Rating -->
-			<div class="mt-3 pt-3 border-t border-gray-50">
-				<SongRatingButton {song} showAggregates={true} />
-			</div>
+			<!-- Rating - only show when actively planning a service -->
+			{#if isEditingService}
+				<div class="mt-3 pt-3 border-t border-gray-50">
+					<SongRatingButton {song} showAggregates={true} />
+				</div>
+			{/if}
 		</div>
 
 		<!-- Action Sidebar -->

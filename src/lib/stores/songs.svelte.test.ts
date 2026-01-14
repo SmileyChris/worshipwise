@@ -430,13 +430,28 @@ describe('SongsStore', () => {
 	// The logic is tested implicitly through other operations that depend on these values
 
 	describe('statistics and helper methods', () => {
-		it('should calculate usage status correctly', () => {
+		it('should calculate usage status correctly (weekly-focused)', () => {
 			// Access private method through store instance
 			const store = songsStore as any;
 
-			expect(store.calculateUsageStatus(7)).toBe('recent');
+			// Recent: used in last 7 days (last week)
+			expect(store.calculateUsageStatus(0)).toBe('recent');
+			expect(store.calculateUsageStatus(3)).toBe('recent');
+			expect(store.calculateUsageStatus(6)).toBe('recent');
+
+			// Caution: used 7-20 days ago (1-3 weeks)
+			expect(store.calculateUsageStatus(7)).toBe('caution');
+			expect(store.calculateUsageStatus(14)).toBe('caution');
 			expect(store.calculateUsageStatus(20)).toBe('caution');
-			expect(store.calculateUsageStatus(35)).toBe('available');
+
+			// Available: 21-179 days (available for rotation)
+			expect(store.calculateUsageStatus(21)).toBe('available');
+			expect(store.calculateUsageStatus(60)).toBe('available');
+			expect(store.calculateUsageStatus(179)).toBe('available');
+
+			// Stale: 180+ days (6+ months, consider refreshing)
+			expect(store.calculateUsageStatus(180)).toBe('stale');
+			expect(store.calculateUsageStatus(365)).toBe('stale');
 		});
 
 		it('should find most used key', () => {

@@ -131,7 +131,8 @@ class SongsStore {
 			// Enhance songs with usage information
 			this.songs = result.items.map((song) => {
 				const usage = usageMap.get(song.id);
-				if (usage) {
+				if (usage && usage.lastUsed) {
+					// Song has been used before - calculate status based on days since
 					return {
 						...song,
 						lastUsedDate: usage.lastUsed,
@@ -139,6 +140,7 @@ class SongsStore {
 						usageStatus: this.calculateUsageStatus(usage.daysSince)
 					};
 				}
+				// Song has never been used - mark as available (not stale)
 				return {
 					...song,
 					lastUsedDate: null,
@@ -313,21 +315,27 @@ class SongsStore {
 	private async updateStats(): Promise<void> {
 		try {
 			const allSongs = await this.loadAllSongs();
-
-			this.stats = {
-				totalSongs: allSongs.length,
-				availableSongs: allSongs.filter((song) => !this.isRecentlyUsed(song)).length,
-				recentlyUsed: allSongs.filter((song) => this.isRecentlyUsed(song)).length,
-				mostUsedKey: this.getMostUsedKey(allSongs),
-				averageTempo: this.getAverageTempo(allSongs)
-			};
+			this.updateStatsFromSongs(allSongs);
 		} catch (error) {
 			console.error('Failed to update stats:', error);
 		}
 	}
 
 	/**
-	 * Check if song was recently used
+	 * Update statistics from a provided songs array (avoids re-fetching)
+	 */
+	private updateStatsFromSongs(allSongs: Song[]): void {
+		this.stats = {
+			totalSongs: allSongs.length,
+			availableSongs: allSongs.filter((song) => !this.isRecentlyUsed(song)).length,
+			recentlyUsed: allSongs.filter((song) => this.isRecentlyUsed(song)).length,
+			mostUsedKey: this.getMostUsedKey(allSongs),
+			averageTempo: this.getAverageTempo(allSongs)
+		};
+	}
+
+	/**
+	 * Check if song was recently used (within last week for worship scheduling)
 	 */
 	private isRecentlyUsed(song: Song): boolean {
 		return song.usageStatus === 'recent';
@@ -335,14 +343,21 @@ class SongsStore {
 
 	/**
 	 * Calculate usage status based on days since last use
+	 * Weekly-focused for worship scheduling:
+	 * - recent (red): Used in last 7 days (last week)
+	 * - caution (yellow): Used 8-21 days ago (2-3 weeks)
+	 * - available (green): 22-179 days (available for rotation)
+	 * - stale (gray): 180+ days (6+ months, consider refreshing)
 	 */
-	private calculateUsageStatus(daysSince: number): 'available' | 'caution' | 'recent' {
-		if (daysSince < 14) {
-			return 'recent';
-		} else if (daysSince < 28) {
-			return 'caution';
+	private calculateUsageStatus(daysSince: number): 'available' | 'caution' | 'recent' | 'stale' {
+		if (daysSince < 7) {
+			return 'recent'; // Used last week
+		} else if (daysSince < 21) {
+			return 'caution'; // Used 1-3 weeks ago
+		} else if (daysSince < 180) {
+			return 'available'; // Good to use
 		} else {
-			return 'available';
+			return 'stale'; // Unused for 6+ months
 		}
 	}
 
@@ -466,6 +481,9 @@ class SongsStore {
 			// Load all songs with expanded labels
 			const allSongs = await this.songsApi.getSongs({});
 
+			// Update stats with all songs
+			this.updateStatsFromSongs(allSongs);
+
 			// Group songs by label
 			const labelMap = new Map<
 				string,
@@ -494,7 +512,7 @@ class SongsStore {
 					// Add song to each of its label groups
 					song.labels!.forEach((labelId) => {
 						const labelInfo = expandedLabels.find((l) => l.id === labelId);
-						
+
 						if (!labelMap.has(labelId)) {
 							const label = labelInfo || {
 								id: labelId,
