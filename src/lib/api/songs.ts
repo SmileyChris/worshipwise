@@ -521,80 +521,141 @@ export class SongsAPI {
 	}
 
 	/**
-	 * Get top songs based on the last rolling 3 months, compared to the previous 3 months
+	 * Get top songs based on a 6-month period (current or previous)
+	 * Current: Last 6 months vs previous 6 months
+	 * Previous: 6-12 months ago vs 12-18 months ago
 	 */
-	async getTopSongs(limit = 10): Promise<{ song: Song; currentRank: number; previousRank: number | null; usageCount: number }[]> {
+	async getTopSongs(limit = 10, period: 'current' | 'previous' = 'current'): Promise<{ topSongs: { song: Song; rank: number; comparisonRank: number | null; usageCount: number }[], previousPeriodTotalSongs: number }> {
 		try {
 			// Calculate dates
 			const now = new Date();
-			const threeMonthsAgo = new Date();
-			threeMonthsAgo.setMonth(now.getMonth() - 3);
 			const sixMonthsAgo = new Date();
 			sixMonthsAgo.setMonth(now.getMonth() - 6);
+			const twelveMonthsAgo = new Date();
+			twelveMonthsAgo.setMonth(now.getMonth() - 12);
+			const eighteenMonthsAgo = new Date();
+			eighteenMonthsAgo.setMonth(now.getMonth() - 18);
 
-			// Fetch usage for the last 6 months
+			// Fetch usage for the last 18 months
 			const usageStats = await this.pb.collection('song_usage').getFullList({
-				filter: `used_date >= "${sixMonthsAgo.toISOString()}"`,
+				filter: `used_date >= "${eighteenMonthsAgo.toISOString()}"`,
 				fields: 'song_id,used_date',
 				sort: 'used_date'
 			});
 
-			// Aggregate counts for current and previous periods
-			const currentPeriodCounts = new Map<string, number>();
-			const previousPeriodCounts = new Map<string, number>();
+			// Aggregate counts for periods
+			const p1Counts = new Map<string, number>(); // 0-6m
+			const p2Counts = new Map<string, number>(); // 6-12m
+			const p3Counts = new Map<string, number>(); // 12-18m
 
 			usageStats.forEach((usage) => {
 				const usageDate = new Date(usage.used_date);
-				if (usageDate >= threeMonthsAgo) {
-					currentPeriodCounts.set(usage.song_id, (currentPeriodCounts.get(usage.song_id) || 0) + 1);
+				if (usageDate >= sixMonthsAgo) {
+					p1Counts.set(usage.song_id, (p1Counts.get(usage.song_id) || 0) + 1);
+				} else if (usageDate >= twelveMonthsAgo) {
+					p2Counts.set(usage.song_id, (p2Counts.get(usage.song_id) || 0) + 1);
 				} else {
-					previousPeriodCounts.set(usage.song_id, (previousPeriodCounts.get(usage.song_id) || 0) + 1);
+					p3Counts.set(usage.song_id, (p3Counts.get(usage.song_id) || 0) + 1);
 				}
 			});
 
-			// Rank songs in current period
-			const currentRankings = Array.from(currentPeriodCounts.entries())
+			// Helper function to calculate ranks with ties (1, 2, 2, 4)
+			const calculateRanks = (counts: Map<string, number>) => {
+				const sorted = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+				const rankings = new Map<string, number>();
+				
+				let currentRank = 1;
+				for (let i = 0; i < sorted.length; i++) {
+					if (i > 0 && sorted[i][1] === sorted[i - 1][1]) {
+						rankings.set(sorted[i][0], rankings.get(sorted[i - 1][0])!);
+					} else {
+						rankings.set(sorted[i][0], i + 1);
+					}
+				}
+				return rankings;
+			};
+
+			const p1Ranks = calculateRanks(p1Counts);
+			const p2Ranks = calculateRanks(p2Counts);
+			const p3Ranks = calculateRanks(p3Counts);
+
+			// Determine which period is primary and secondary
+			const primaryCounts = period === 'current' ? p1Counts : p2Counts;
+			const primaryRanks = period === 'current' ? p1Ranks : p2Ranks;
+			const secondaryRanks = period === 'current' ? p2Ranks : p3Ranks;
+
+			// Get top N from primary period
+			const topSongIds = Array.from(primaryCounts.entries())
 				.sort((a, b) => b[1] - a[1])
-				.map(([songId, count], index) => ({ songId, count, rank: index + 1 }));
+				.slice(0, limit)
+				.map(([songId]) => songId);
 
-			// Rank songs in previous period (we need rankings for all songs to compare)
-			const previousRankings = Array.from(previousPeriodCounts.entries())
-				.sort((a, b) => b[1] - a[1])
-				.map(([songId, count], index) => ({ songId, count, rank: index + 1 }));
-
-			// Get top N from current period
-			const topSongs = currentRankings.slice(0, limit);
-
-			if (topSongs.length === 0) {
-				return [];
+			if (topSongIds.length === 0) {
+				return { topSongs: [], previousPeriodTotalSongs: p2Counts.size };
 			}
 
 			// Fetch song details
-			const songIdsFilter = topSongs.map(({ songId }) => `id = "${songId}"`).join(' || ');
+			const songIdsFilter = topSongIds.map((id) => `id = "${id}"`).join(' || ');
 			const songs = await this.pb.collection(this.collection).getFullList({
 				filter: `is_active = true && (${songIdsFilter})`,
 				expand: 'created_by,category,labels'
 			});
 
 			// Combine data
-			return topSongs.map(({ songId, count, rank }) => {
+			const topSongs = topSongIds.map((songId) => {
 				const song = songs.find((s) => s.id === songId);
-				const prevRank = previousRankings.find((p) => p.songId === songId)?.rank || null;
-
-				// Skip if song not found (shouldn't happen unless deleted/inactive)
 				if (!song) return null;
 
 				return {
 					song: song as unknown as Song,
-					currentRank: rank,
-					previousRank: prevRank,
-					usageCount: count
+					rank: primaryRanks.get(songId)!,
+					comparisonRank: secondaryRanks.get(songId) || null,
+					usageCount: primaryCounts.get(songId)!
 				};
-			}).filter(item => item !== null) as { song: Song; currentRank: number; previousRank: number | null; usageCount: number }[];
+			}).filter(item => item !== null) as { song: Song; rank: number; comparisonRank: number | null; usageCount: number }[];
+
+			// Apply secondary sort for ties
+			topSongs.sort((a, b) => {
+				// Primary: Usage Count (Descending)
+				if (b.usageCount !== a.usageCount) {
+					return b.usageCount - a.usageCount;
+				}
+
+				// Helper to get delta and category
+				const getStats = (item: typeof a) => {
+					if (item.comparisonRank === null) return { cat: 2, delta: 0 }; // New
+					const delta = item.comparisonRank - item.rank;
+					if (delta < 0) return { cat: 1, delta }; // Drop
+					return { cat: 3, delta }; // Gain (or Same)
+				};
+
+				const statsA = getStats(a);
+				const statsB = getStats(b);
+
+				// Secondary: Category (Drop -> New -> Gain)
+				if (statsA.cat !== statsB.cat) {
+					return statsA.cat - statsB.cat;
+				}
+
+				// Tertiary: Magnitude
+				if (statsA.cat === 1) { // Drop: Greatest drop first (-10 before -2) -> Ascending
+					return statsA.delta - statsB.delta;
+				}
+				if (statsA.cat === 3) { // Gain: Greatest gain first (10 before 2) -> Descending
+					return statsB.delta - statsA.delta;
+				}
+				
+				return 0;
+			});
+
+			return {
+				topSongs,
+				previousPeriodTotalSongs: p2Counts.size
+			};
 
 		} catch (error) {
 			console.error('Failed to fetch top songs:', error);
-			return [];
+			return { topSongs: [], previousPeriodTotalSongs: 0 };
 		}
 	}
 

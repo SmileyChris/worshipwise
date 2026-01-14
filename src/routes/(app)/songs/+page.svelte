@@ -16,7 +16,7 @@
 	import type { Category, Song } from '$lib/types/song';
 	import { createRatingsAPI } from '$lib/api/ratings';
 	import { onMount } from 'svelte';
-	import { Music, CheckCircle, Clock, PlusCircle, Search, Users } from 'lucide-svelte';
+	import { Music, CheckCircle, Clock, PlusCircle, Search, Users, TrendingUp } from 'lucide-svelte';
 
 	let { data } = $props();
 
@@ -545,10 +545,12 @@
 		<aside class="lg:col-span-3 space-y-8">
 			<Card padding={false} class="overflow-hidden border-transparent shadow-sm">
 				<div class="p-5 bg-primary text-white">
-					<h3 class="font-bold flex items-center gap-2">
-						<Users class="h-4 w-4" />
-						Insights
-					</h3>
+					<div class="flex items-center gap-3">
+						<div class="bg-white/20 p-2 rounded-lg">
+							<TrendingUp class="h-5 w-5 text-white" />
+						</div>
+						<h3 class="font-bold">Top Songs</h3>
+					</div>
 				</div>
 				<div class="p-5 bg-white">
 					<SongsSidebar
