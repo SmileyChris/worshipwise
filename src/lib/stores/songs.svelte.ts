@@ -13,7 +13,8 @@ import type {
 
 class SongsStore {
 	// Reactive state using Svelte 5 runes
-	songs = $state<Song[]>([]);
+	songs = $state<Song[]>([]); // Currently displayed songs (paginated/filtered)
+	allSongs = $state<Song[]>([]); // Cache of all enriched songs
 	loading = $state<boolean>(false);
 	error = $state<string | null>(null);
 
@@ -100,6 +101,56 @@ class SongsStore {
 
 	private getAuthContext(): AuthContext {
 		return this.auth ? this.auth.getAuthContext() : (this.staticContext as AuthContext);
+	}
+
+	/**
+	 * Load and cache all songs with usage information (called once per session)
+	 */
+	async loadAllSongsOnce(): Promise<void> {
+		// Skip if already loaded
+		if (this.allSongs.length > 0) return;
+
+		this.loading = true;
+		this.error = null;
+
+		try {
+			// Fetch all songs and usage stats
+			const [allSongs, usageStats] = await Promise.all([
+				this.songsApi.getSongs({ showRetired: false }),
+				this.songsApi.getUsageComparisonStats()
+			]);
+
+			// Load usage information for all songs
+			const songIds = allSongs.map((song) => song.id);
+			const usageMap = await this.songsApi.getSongsUsageInfo(songIds);
+
+			// Enhance songs with usage information
+			this.allSongs = allSongs.map((song) => {
+				const usage = usageMap.get(song.id);
+				if (usage && usage.lastUsed) {
+					return {
+						...song,
+						lastUsedDate: usage.lastUsed,
+						daysSinceLastUsed: usage.daysSince,
+						usageStatus: this.calculateUsageStatus(usage.daysSince)
+					};
+				}
+				return {
+					...song,
+					lastUsedDate: null,
+					daysSinceLastUsed: Infinity,
+					usageStatus: 'available' as const
+				};
+			});
+
+			// Update stats
+			this.updateStatsFromSongs(this.allSongs, usageStats);
+		} catch (error: unknown) {
+			console.error('Failed to load all songs:', error);
+			this.error = this.getErrorMessage(error);
+		} finally {
+			this.loading = false;
+		}
 	}
 
 	/**
@@ -496,20 +547,17 @@ class SongsStore {
 	}
 
 	/**
-	 * Get songs grouped by label (theme)
+	 * Get songs grouped by label (theme) - uses cached allSongs
 	 */
 	async getSongsByLabel(): Promise<
 		Map<string, { label: { id: string; name: string; color?: string }; songs: Song[] }>
 	> {
 		try {
-			// Load all songs with expanded labels and usage stats
-			const [allSongs, usageStats] = await Promise.all([
-				this.songsApi.getSongs({}),
-				this.songsApi.getUsageComparisonStats()
-			]);
+			// Ensure all songs are loaded first
+			await this.loadAllSongsOnce();
 
-			// Update stats with all songs and usage stats
-			this.updateStatsFromSongs(allSongs, usageStats);
+			// Use the cached enriched songs
+			const enrichedSongs = this.allSongs;
 
 			// Group songs by label
 			const labelMap = new Map<
@@ -517,7 +565,7 @@ class SongsStore {
 				{ label: { id: string; name: string; color?: string }; songs: Song[] }
 			>();
 
-			allSongs.forEach((song) => {
+			enrichedSongs.forEach((song) => {
 				const hasLabels = song.labels && song.labels.length > 0;
 				const expandedLabels = song.expand?.labels || [];
 
