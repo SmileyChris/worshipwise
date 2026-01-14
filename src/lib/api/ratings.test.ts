@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createRatingsAPI } from './ratings';
+import { createRatingsAPI, resetCaches } from './ratings';
 import type { AuthContext } from '$lib/types/auth';
 import type { SongRating, AggregateRatings } from '$lib/types/song';
 
@@ -32,6 +32,7 @@ describe('RatingsAPI', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		resetCaches();
 		ratingsAPI = createRatingsAPI(mockAuthContext, mockPb as any);
 	});
 
@@ -276,6 +277,82 @@ describe('RatingsAPI', () => {
 				fields: 'song_id'
 			});
 			expect(result).toEqual(['song-4', 'song-5']);
+		});
+	});
+	describe('getUserRatingsForSongs', () => {
+		it('should fetch rating for multiple songs in chunks', async () => {
+			const songIds = Array.from({ length: 70 }, (_, i) => `song-${i}`);
+			
+			// Mock response for first chunk (50)
+			mockPb.getFullList.mockResolvedValueOnce(
+				songIds.slice(0, 50).map(id => ({
+					song_id: id,
+					rating: 'thumbs_up',
+					is_difficult: false
+				}))
+			);
+			
+			// Mock response for second chunk (20)
+			mockPb.getFullList.mockResolvedValueOnce(
+				songIds.slice(50).map(id => ({
+					song_id: id,
+					rating: 'neutral',
+					is_difficult: true
+				}))
+			);
+
+			const result = await ratingsAPI.getUserRatingsForSongs(songIds);
+
+			expect(mockPb.collection).toHaveBeenCalledWith('song_ratings');
+			expect(mockPb.getFullList).toHaveBeenCalledTimes(2);
+			
+			// Verify map content
+			expect(result.size).toBe(70);
+			expect(result.get('song-0')?.rating).toBe('thumbs_up');
+			expect(result.get('song-60')?.rating).toBe('neutral');
+		});
+	});
+
+	describe('getMultipleSongRatings', () => {
+		it('should fetch aggregate ratings from view in chunks', async () => {
+			const songIds = Array.from({ length: 60 }, (_, i) => `song-${i}`);
+			
+			// Mock response
+			mockPb.getFullList
+				.mockResolvedValueOnce(
+					songIds.slice(0, 50).map(id => ({
+						song_id: id,
+						thumbs_up: 10,
+						neutral: 5,
+						thumbs_down: 2,
+						total_ratings: 17,
+						difficult_count: 3
+					}))
+				)
+				.mockResolvedValueOnce(
+					songIds.slice(50).map(id => ({
+						song_id: id,
+						thumbs_up: 1,
+						neutral: 0,
+						thumbs_down: 0,
+						total_ratings: 1,
+						difficult_count: 0
+					}))
+				);
+
+			const result = await ratingsAPI.getMultipleSongRatings(songIds);
+
+			expect(mockPb.collection).toHaveBeenCalledWith('song_statistics');
+			expect(mockPb.getFullList).toHaveBeenCalledTimes(2);
+			
+			expect(result.size).toBe(60);
+			expect(result.get('song-0')).toEqual({
+				thumbsUp: 10,
+				neutral: 5,
+				thumbsDown: 2,
+				totalRatings: 17,
+				difficultCount: 3
+			});
 		});
 	});
 });

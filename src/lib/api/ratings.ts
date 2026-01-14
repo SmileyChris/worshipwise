@@ -8,8 +8,13 @@ import type {
 } from '$lib/types/song';
 
 // Module-level cache to share ratings across instances and components
-const userRatingCache = new Map<string, Map<string, SongRating | null>>(); // userId -> songId -> rating (or null if fetched and not found)
-const aggregateRatingCache = new Map<string, AggregateRatings>(); // songId -> aggregate
+export const userRatingCache = new Map<string, Map<string, SongRating | null>>(); // userId -> songId -> rating (or null if fetched and not found)
+export const aggregateRatingCache = new Map<string, AggregateRatings>(); // songId -> aggregate
+
+export function resetCaches() {
+	userRatingCache.clear();
+	aggregateRatingCache.clear();
+}
 
 export class RatingsAPI {
 	private collection = 'song_ratings';
@@ -79,27 +84,40 @@ export class RatingsAPI {
 			}
 
 			const userId = this.authContext.user.id;
+			const churchId = this.authContext.currentChurch.id;
+			
 			if (!userRatingCache.has(userId)) {
 				userRatingCache.set(userId, new Map());
 			}
 			const userCache = userRatingCache.get(userId)!;
 
-			// Build filter for all song IDs
-			const idFilters = songIds.map((id) => `song_id = "${id}"`).join(' || ');
+			// Process in chunks to avoid max filter length limits
+			const BATCH_SIZE = 50;
+			const chunks = [];
+			for (let i = 0; i < songIds.length; i += BATCH_SIZE) {
+				chunks.push(songIds.slice(i, i + BATCH_SIZE));
+			}
 
-			const records = await this.pb.collection(this.collection).getFullList({
-				filter: `(${idFilters}) && user_id = "${userId}" && church_id = "${this.authContext.currentChurch.id}"`
-			});
+			await Promise.all(
+				chunks.map(async (chunk) => {
+					// Build filter for this chunk
+					const idFilters = chunk.map((id) => `song_id = "${id}"`).join(' || ');
 
-			// Populate map and cache
-			records.forEach((record) => {
-				const rating = record as unknown as SongRating;
-				ratingsMap.set(record.song_id, rating);
-				userCache.set(record.song_id, rating);
-			});
+					const records = await this.pb.collection(this.collection).getFullList({
+						filter: `(${idFilters}) && user_id = "${userId}" && church_id = "${churchId}"`
+					});
+
+					// Populate map and cache
+					records.forEach((record) => {
+						const rating = record as unknown as SongRating;
+						ratingsMap.set(record.song_id, rating);
+						userCache.set(record.song_id, rating);
+					});
+				})
+			);
 
 			// Mark missing songs as null in cache
-			songIds.forEach(id => {
+			songIds.forEach((id) => {
 				if (!ratingsMap.has(id)) {
 					userCache.set(id, null);
 				}
@@ -182,71 +200,63 @@ export class RatingsAPI {
 
 		if (songIds.length === 0) return ratingsMap;
 
+		// Initialize all songs with empty ratings
+		songIds.forEach((songId) => {
+			ratingsMap.set(songId, {
+				thumbsUp: 0,
+				neutral: 0,
+				thumbsDown: 0,
+				totalRatings: 0,
+				difficultCount: 0
+			});
+		});
+
 		try {
 			if (!this.authContext.currentChurch?.id) {
 				throw new Error('No church selected');
 			}
+			const churchId = this.authContext.currentChurch.id;
 
-			// Build filter for all song IDs
-			const idFilters = songIds.map((id) => `song_id = "${id}"`).join(' || ');
+			// Process in chunks to avoid max filter length limits
+			const BATCH_SIZE = 50;
+			const chunks = [];
+			for (let i = 0; i < songIds.length; i += BATCH_SIZE) {
+				chunks.push(songIds.slice(i, i + BATCH_SIZE));
+			}
 
-			const records = await this.pb.collection(this.collection).getFullList({
-				filter: `(${idFilters}) && church_id = "${this.authContext.currentChurch.id}"`
-			});
+			await Promise.all(
+				chunks.map(async (chunk) => {
+					// Build filter for this chunk
+					// Note: 'id' in song_statistics view IS the song_id
+					const idFilters = chunk.map((id) => `id = "${id}"`).join(' || ');
 
-			// Initialize all songs with empty ratings
-			songIds.forEach((songId) => {
-				ratingsMap.set(songId, {
-					thumbsUp: 0,
-					neutral: 0,
-					thumbsDown: 0,
-					totalRatings: 0,
-					difficultCount: 0
-				});
-			});
+					const records = await this.pb.collection('song_statistics').getFullList({
+						filter: `(${idFilters}) && church_id = "${churchId}"`
+					});
 
-			// Aggregate ratings
-			records.forEach((rating: any) => {
-				const aggregate = ratingsMap.get(rating.song_id);
-				if (aggregate) {
-					aggregate.totalRatings++;
-
-					switch (rating.rating) {
-						case 'thumbs_up':
-							aggregate.thumbsUp++;
-							break;
-						case 'neutral':
-							aggregate.neutral++;
-							break;
-						case 'thumbs_down':
-							aggregate.thumbsDown++;
-							break;
-					}
-
-					if (rating.is_difficult) {
-						aggregate.difficultCount++;
-					}
-				}
-			});
-
-			// Update cache
-			ratingsMap.forEach((aggregate, songId) => {
-				aggregateRatingCache.set(songId, aggregate);
-			});
+					// Map view results to AggregateRatings
+					records.forEach((record: any) => {
+						const aggregate: AggregateRatings = {
+							thumbsUp: record.thumbs_up || 0,
+							neutral: record.neutral || 0,
+							thumbsDown: record.thumbs_down || 0,
+							totalRatings: record.total_ratings || 0,
+							difficultCount: record.difficult_count || 0
+						};
+						
+						ratingsMap.set(record.song_id, aggregate);
+						
+						// Update cache
+						aggregateRatingCache.set(record.song_id, aggregate);
+					});
+				})
+			);
 
 			return ratingsMap;
 		} catch (error) {
 			console.error('Failed to fetch multiple song ratings:', error);
 			// Return empty ratings for all songs on error
-			songIds.forEach((songId) => {
-				ratingsMap.set(songId, {
-					thumbsUp: 0,
-					neutral: 0,
-					thumbsDown: 0,
-					totalRatings: 0,
-					difficultCount: 0
-				});
-			});
+			// (Use the already initialized map)
 			return ratingsMap;
 		}
 	}

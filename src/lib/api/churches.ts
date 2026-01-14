@@ -155,8 +155,7 @@ export function createChurchesAPI(pb: PocketBase): ChurchesAPI {
 				await pb.collection('church_memberships').create({
 					church_id: church.id,
 					user_id: user.id,
-					role: 'admin',
-					permissions: getDefaultPermissions('admin'),
+					// Role and permissions are handled by server-side hook for owner
 					status: 'active',
 					joined_date: new Date().toISOString(),
 					is_active: true
@@ -231,20 +230,7 @@ export function createChurchesAPI(pb: PocketBase): ChurchesAPI {
 			await pb.collection('church_memberships').create({
 				church_id: church.id,
 				user_id: pb.authStore.model?.id,
-				role: 'admin',
-				permissions: [
-					'songs:create',
-					'songs:edit',
-					'songs:delete',
-					'services:create',
-					'services:edit',
-					'services:delete',
-					'users:invite',
-					'users:manage',
-					'users:remove',
-					'church:settings',
-					'church:billing'
-				],
+				// Role and permissions are handled by server-side hook for owner
 				status: 'active',
 				joined_date: new Date().toISOString(),
 				is_active: true

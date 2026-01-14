@@ -195,14 +195,32 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 					const membership = new Record($app.findCollectionByNameOrId('church_memberships'));
 					membership.set('church_id', church.id);
 					membership.set('user_id', newUser.id);
-					membership.set('role', 'musician'); // default role
-					membership.set('permissions', {}); // empty permissions
+					// Role and permissions moved to user_roles and user_skills
 					membership.set('status', 'pending'); // inactive status
 					membership.set('invited_by', user.id);
 					membership.set('invited_date', new Date().toISOString());
 					membership.set('is_active', false);
 
 					$app.save(membership);
+
+					// Assign 'Worship Leader' skill
+					try {
+						const skill = $app.findFirstRecordByFilter(
+							'skills',
+							'church_id = {:cid} && slug = "leader"',
+							{ cid: church.id }
+						);
+
+						if (skill) {
+							const userSkill = new Record($app.findCollectionByNameOrId('user_skills'));
+							userSkill.set('church_id', church.id);
+							userSkill.set('user_id', newUser.id);
+							userSkill.set('skill_id', skill.id);
+							$app.save(userSkill);
+						}
+					} catch (skillErr) {
+						$app.logger().warn(`Could not assign leader skill to ${person.email}: ${skillErr.message}`);
+					}
 
 					worshipLeaderMap[personId] = newUser.id;
 					$app.logger().info(

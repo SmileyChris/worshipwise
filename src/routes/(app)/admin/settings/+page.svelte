@@ -33,7 +33,7 @@
 	let showElvantoKey = $state(false);
 	let elvantoKeyConfigured = $state(false);
 	let importing = $state(false);
-	let importResult = $state<{ services: number; songs: number } | null>(null);
+	let importResult = $state<{ services: number; songs: number; leaders: number } | null>(null);
 
 	// Check if there's a global API key
 	const hasGlobalKey = !!env.PUBLIC_MISTRAL_API_KEY;
@@ -180,8 +180,12 @@
 			
 			// pb.send throws if status >= 400
 			
-			success = `Successfully imported ${data.importedServices} services and ${data.importedSongs} songs!`;
-			importResult = { services: data.importedServices, songs: data.importedSongs };
+			success = `Successfully imported ${data.importedServices} services, ${data.importedSongs} songs, and ${data.importedLeaders} leaders!`;
+			importResult = { 
+				services: data.importedServices, 
+				songs: data.importedSongs,
+				leaders: data.importedLeaders
+			};
 			
 			// Reload settings to update last sync time
 			await loadChurchSettings();
@@ -459,7 +463,7 @@
 								</div>
 								{#if importResult}
 									<div class="mt-2 text-sm text-green-600">
-										Imported {importResult.services} services and {importResult.songs} songs.
+										Imported {importResult.services} services, {importResult.songs} songs, and {importResult.leaders} leaders.
 									</div>
 								{/if}
 								{#if church && church.last_elvanto_sync}
