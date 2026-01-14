@@ -152,6 +152,24 @@
 		const date = new Date(dateString);
 		return date.toLocaleDateString() + ' at ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 	}
+
+	// Mark service as completed
+	async function markAsCompleted() {
+		if (submitting) return;
+
+		try {
+			submitting = true;
+			error = null;
+
+			await servicesStore.completeService(service.id);
+			onUpdate?.();
+		} catch (err) {
+			error = 'Failed to mark service as completed';
+			console.error(err);
+		} finally {
+			submitting = false;
+		}
+	}
 </script>
 
 <div class="rounded-lg border border-gray-200 bg-white p-4">
@@ -214,6 +232,20 @@
 				>
 					Request Approval
 				</Button>
+			{/if}
+			{#if service.status !== 'completed'}
+				<Button
+					variant="success"
+					size="sm"
+					onclick={markAsCompleted}
+					disabled={submitting}
+				>
+					Mark as Completed
+				</Button>
+			{:else}
+				<div class="text-sm text-purple-600">
+					✓ Service completed
+				</div>
 			{/if}
 		{:else if service.approval_status === 'pending_approval'}
 			{#if canApprove && !isRequester}
@@ -285,6 +317,20 @@
 			<div class="text-sm text-green-600">
 				✓ This service has been approved
 			</div>
+			{#if service.status !== 'completed'}
+				<Button
+					variant="success"
+					size="sm"
+					onclick={markAsCompleted}
+					disabled={submitting}
+				>
+					Mark as Completed
+				</Button>
+			{:else}
+				<div class="text-sm text-purple-600">
+					✓ Service completed
+				</div>
+			{/if}
 		{:else if service.approval_status === 'rejected'}
 			<div class="text-sm text-red-600">
 				✗ This service was rejected

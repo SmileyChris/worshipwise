@@ -205,6 +205,38 @@ class ServicesStore {
 	}
 
 	/**
+	 * Mark service as completed and trigger usage tracking
+	 */
+	async completeService(id: string, actualDuration?: number): Promise<Service> {
+		this.loading = true;
+		this.error = null;
+
+		try {
+			const updatedService = await this.servicesApi.completeService(id, actualDuration);
+
+			// Update in local array
+			const index = this.services.findIndex((service) => service.id === id);
+			if (index !== -1) {
+				this.services[index] = updatedService;
+			}
+
+			// Update current service if it's the one being edited
+			if (this.currentService?.id === id) {
+				this.currentService = updatedService;
+				this.builderState.service = updatedService;
+			}
+
+			return updatedService;
+		} catch (error: unknown) {
+			console.error('Failed to complete service:', error);
+			this.error = this.getErrorMessage(error);
+			throw error;
+		} finally {
+			this.loading = false;
+		}
+	}
+
+	/**
 	 * Delete a service
 	 */
 	async deleteService(id: string): Promise<void> {
