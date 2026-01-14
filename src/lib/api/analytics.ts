@@ -690,6 +690,115 @@ export class AnalyticsAPI {
 	}
 
 	/**
+	 * Get usage trend for a specific song over time
+	 */
+	async getSongUsageTrend(
+		songId: string,
+		dateFrom?: string,
+		dateTo?: string,
+		interval: 'week' | 'month' = 'month'
+	): Promise<UsageTrend[]> {
+		try {
+			// Ensure user has a current church
+			if (!this.authContext.currentChurch?.id) {
+				throw new Error('No church selected. Please select a church to view usage trends.');
+			}
+
+			const dateFilter = this.buildDateFilter(dateFrom, dateTo, 'used_date');
+			const churchFilter = `church_id = "${this.authContext.currentChurch.id}"`;
+			const songFilter = `song_id = "${songId}"`;
+
+			// Get usage data for this song
+			const usageRecords = await this.pb.collection('song_usage').getFullList({
+				filter: dateFilter
+					? `${churchFilter} && ${songFilter} && ${dateFilter}`
+					: `${churchFilter} && ${songFilter}`,
+				sort: 'used_date'
+			});
+
+			// Group by time interval
+			const trendsMap = new Map<string, number>();
+
+			usageRecords.forEach((usage) => {
+				const date = new Date(usage.used_date);
+				const key = this.formatDateForInterval(date, interval);
+				trendsMap.set(key, (trendsMap.get(key) || 0) + 1);
+			});
+
+			// Convert to result format
+			const results: UsageTrend[] = Array.from(trendsMap.entries())
+				.map(([date, usageCount]) => ({
+					date,
+					usageCount,
+					serviceCount: 0, // Not needed for song-specific trends
+					avgDuration: 0 // Not needed for song-specific trends
+				}))
+				.sort((a, b) => a.date.localeCompare(b.date));
+
+			return results;
+		} catch (error) {
+			console.error('Failed to fetch song usage trend:', error);
+			throw error;
+		}
+	}
+
+	/**
+	 * Get average usage trend across all songs for comparison
+	 */
+	async getAverageSongUsageTrend(
+		dateFrom?: string,
+		dateTo?: string,
+		interval: 'week' | 'month' = 'month'
+	): Promise<UsageTrend[]> {
+		try {
+			// Ensure user has a current church
+			if (!this.authContext.currentChurch?.id) {
+				throw new Error('No church selected. Please select a church to view usage trends.');
+			}
+
+			const dateFilter = this.buildDateFilter(dateFrom, dateTo, 'used_date');
+			const churchFilter = `church_id = "${this.authContext.currentChurch.id}"`;
+
+			// Get all usage records
+			const usageRecords = await this.pb.collection('song_usage').getFullList({
+				filter: dateFilter ? `${churchFilter} && ${dateFilter}` : churchFilter,
+				sort: 'used_date'
+			});
+
+			// Count unique songs
+			const uniqueSongs = new Set(usageRecords.map((u) => u.song_id)).size;
+
+			if (uniqueSongs === 0) {
+				return [];
+			}
+
+			// Group by time interval
+			const trendsMap = new Map<string, number>();
+
+			usageRecords.forEach((usage) => {
+				const date = new Date(usage.used_date);
+				const key = this.formatDateForInterval(date, interval);
+				trendsMap.set(key, (trendsMap.get(key) || 0) + 1);
+			});
+
+			// Calculate average usage per song per period
+			const results: UsageTrend[] = Array.from(trendsMap.entries())
+				.map(([date, totalUsage]) => ({
+					date,
+					usageCount: Math.round((totalUsage / uniqueSongs) * 10) / 10, // Average uses per song
+					serviceCount: 0,
+					avgDuration: 0
+				}))
+				.sort((a, b) => a.date.localeCompare(b.date));
+
+			return results;
+		} catch (error) {
+			console.error('Failed to fetch average song usage trend:', error);
+			throw error;
+		}
+	}
+
+	/**
 	 * Build date filter for queries
 	 */
 	private buildDateFilter(

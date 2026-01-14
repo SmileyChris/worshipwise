@@ -5,6 +5,7 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import CategoryBadge from '$lib/components/ui/CategoryBadge.svelte';
 	import LabelBadge from '$lib/components/ui/LabelBadge.svelte';
+	import SongUsageComparisonChart from '$lib/components/analytics/SongUsageComparisonChart.svelte';
 	import type { PageData } from './$types';
 
 	interface Props {
@@ -16,6 +17,8 @@
 	let { data }: Props = $props();
 	let song = $derived(data.song);
 	let usageHistory = $derived(data.usageHistory);
+	let songUsageTrend = $derived(data.songUsageTrend || []);
+	let averageUsageTrend = $derived(data.averageUsageTrend || []);
 
 	// Format duration from seconds to minutes:seconds
 	let formattedDuration = $derived.by(() => {
@@ -217,6 +220,18 @@
 					{/if}
 				</div>
 			</Card>
+
+			<!-- Usage Comparison Chart -->
+			{#if songUsageTrend.length > 0 || averageUsageTrend.length > 0}
+				<Card>
+					<SongUsageComparisonChart
+						songUsage={songUsageTrend}
+						averageUsage={averageUsageTrend}
+						songTitle={song.title}
+						interval="month"
+					/>
+				</Card>
+			{/if}
 
 			<!-- Lyrics -->
 			{#if song.lyrics}

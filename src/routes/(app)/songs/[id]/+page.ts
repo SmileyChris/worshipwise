@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { pb } from '$lib/api/client';
+import { createAnalyticsAPI, type UsageTrend } from '$lib/api/analytics';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ params }) => {
@@ -18,9 +19,44 @@ export const load: PageLoad = async ({ params }) => {
 			sort: '-used_date'
 		});
 
+		// Get church ID from song
+		const churchId = song.church_id;
+
+		// Calculate date range (last 6 months)
+		const sixMonthsAgo = new Date();
+		sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+		const dateFrom = sixMonthsAgo.toISOString().split('T')[0];
+
+		// Create minimal auth context for analytics API
+		// Note: This is a simplified context for server-side loading
+		const authContext = {
+			pb,
+			currentChurch: { id: churchId },
+			user: null,
+			membership: null
+		};
+
+		const analyticsAPI = createAnalyticsAPI(authContext as any, pb);
+
+		// Load usage trends
+		let songUsageTrend: UsageTrend[] = [];
+		let averageUsageTrend: UsageTrend[] = [];
+
+		try {
+			[songUsageTrend, averageUsageTrend] = await Promise.all([
+				analyticsAPI.getSongUsageTrend(params.id, dateFrom, undefined, 'month'),
+				analyticsAPI.getAverageSongUsageTrend(dateFrom, undefined, 'month')
+			]);
+		} catch (trendError) {
+			console.error('Failed to load usage trends:', trendError);
+			// Continue without trends if they fail to load
+		}
+
 		return {
 			song,
-			usageHistory
+			usageHistory,
+			songUsageTrend,
+			averageUsageTrend
 		};
 	} catch (err: unknown) {
 		if (err && typeof err === 'object' && 'status' in err && err.status === 404) {
