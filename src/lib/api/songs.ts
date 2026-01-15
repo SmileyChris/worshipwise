@@ -810,48 +810,6 @@ export class SongsAPI {
 	}
 
 	/**
-	 * Get usage info for all songs in the current church
-	 */
-	async getAllSongsUsage(): Promise<Map<string, { lastUsed: Date | null; daysSince: number }>> {
-		const usageMap = new Map();
-		try {
-			// Ensure user has a current church
-			if (!this.authContext.currentChurch?.id) {
-				return usageMap;
-			}
-
-			// Get all usage records for this church
-			// We only need the most recent usage for each song
-			// Since we can't easily "GROUP BY" and get MAX(date) in one simple list call without raw SQL or Views (which we have restricted access to maybe),
-			// We'll fetch all and process. Or query sorted by date and process.
-			// Ideally we'd use the song_statistics view if it had usage info.
-			
-			const usageRecords = await this.pb.collection('song_usage').getFullList({
-				filter: `church_id = "${this.authContext.currentChurch.id}"`,
-				sort: '-used_date',
-				fields: 'song_id,used_date'
-			});
-
-			const now = Date.now();
-			const dayMs = 1000 * 60 * 60 * 24;
-
-			for (const record of usageRecords) {
-				// Since it's sorted by -used_date, the first time we see a song_id, it is the latest usage
-				if (!usageMap.has(record.song_id)) {
-					const lastUsed = new Date(record.used_date);
-					const daysSince = Math.floor((now - lastUsed.getTime()) / dayMs);
-					usageMap.set(record.song_id, { lastUsed, daysSince });
-				}
-			}
-
-			return usageMap;
-		} catch (error) {
-			console.error('Failed to fetch all songs usage:', error);
-			return usageMap;
-		}
-	}
-
-	/**
 	 * Get usage history for a specific song
 	 */
 	async getSongUsageHistory(songId: string): Promise<Record<string, unknown>[]> {
@@ -1062,17 +1020,13 @@ export class SongsAPI {
 	}
 
 	/**
-	 * Get lightweight song statistics for the current church
-	 * Uses the enriched view to count songs by usage status
+	 * Get count of available songs (used 14-180 days ago)
+	 * Total songs count comes from pagination, so we only need this one
 	 */
-	async getSongStatistics(): Promise<{
-		totalSongs: number;
-		availableSongs: number;
-		recentSongs: number;
-	}> {
+	async getAvailableSongsCount(): Promise<number> {
 		try {
 			if (!this.authContext.currentChurch?.id) {
-				return { totalSongs: 0, availableSongs: 0, recentSongs: 0 };
+				return 0;
 			}
 
 			// Calculate date thresholds
@@ -1082,81 +1036,16 @@ export class SongsAPI {
 
 			const churchFilter = `church_id = "${this.authContext.currentChurch.id}" && (is_retired = false || is_retired = null)`;
 
-			// Use Promise.all to fetch all counts in parallel
-			const [totalResult, recentResult, availableResult] = await Promise.all([
-				// Total songs
-				this.pb.collection(this.enrichedCollection).getList(1, 1, {
-					filter: churchFilter,
-					fields: 'id'
-				}),
-				// Recent songs (used in last 14 days)
-				this.pb.collection(this.enrichedCollection).getList(1, 1, {
-					filter: `${churchFilter} && last_used_date >= "${fourteenDaysAgo}"`,
-					fields: 'id'
-				}),
-				// Available songs (used 14-180 days ago)
-				this.pb.collection(this.enrichedCollection).getList(1, 1, {
-					filter: `${churchFilter} && last_used_date >= "${oneEightyDaysAgo}" && last_used_date < "${fourteenDaysAgo}"`,
-					fields: 'id'
-				})
-			]);
-
-			return {
-				totalSongs: totalResult.totalItems,
-				availableSongs: availableResult.totalItems,
-				recentSongs: recentResult.totalItems
-			};
-		} catch (error) {
-			console.error('Failed to fetch song statistics:', error);
-			return { totalSongs: 0, availableSongs: 0, recentSongs: 0 };
-		}
-	}
-
-	/**
-	 * Get usage comparison stats (unique songs used in current 6 months vs previous 6 months)
-	 * @deprecated This method is expensive - consider using getSongStatistics() instead
-	 */
-	async getUsageComparisonStats(): Promise<{ currentPeriod: number; previousPeriod: number }> {
-		try {
-			// Calculate dates
-			const now = new Date();
-			const sixMonthsAgo = new Date();
-			sixMonthsAgo.setMonth(now.getMonth() - 6);
-			const twelveMonthsAgo = new Date();
-			twelveMonthsAgo.setMonth(now.getMonth() - 12);
-
-			// Ensure user has a current church
-			if (!this.authContext.currentChurch?.id) {
-				return { currentPeriod: 0, previousPeriod: 0 };
-			}
-
-			// Fetch usage for the last 12 months for current church
-			const usageStats = await this.pb.collection('song_usage').getFullList({
-				filter: `church_id = "${this.authContext.currentChurch.id}" && used_date >= "${twelveMonthsAgo.toISOString()}"`,
-				fields: 'song_id,used_date',
-				sort: 'used_date'
+			// Available songs (used 14-180 days ago)
+			const result = await this.pb.collection(this.enrichedCollection).getList(1, 1, {
+				filter: `${churchFilter} && last_used_date >= "${oneEightyDaysAgo}" && last_used_date < "${fourteenDaysAgo}"`,
+				fields: 'id'
 			});
 
-			// Count unique songs for each period
-			const currentPeriodSongs = new Set<string>();
-			const previousPeriodSongs = new Set<string>();
-
-			usageStats.forEach((usage) => {
-				const usageDate = new Date(usage.used_date);
-				if (usageDate >= sixMonthsAgo) {
-					currentPeriodSongs.add(usage.song_id);
-				} else {
-					previousPeriodSongs.add(usage.song_id);
-				}
-			});
-
-			return {
-				currentPeriod: currentPeriodSongs.size,
-				previousPeriod: previousPeriodSongs.size
-			};
+			return result.totalItems;
 		} catch (error) {
-			console.error('Failed to fetch usage comparison stats:', error);
-			return { currentPeriod: 0, previousPeriod: 0 };
+			console.error('Failed to fetch available songs count:', error);
+			return 0;
 		}
 	}
 

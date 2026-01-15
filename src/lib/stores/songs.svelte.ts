@@ -117,11 +117,8 @@ class SongsStore {
 		this.error = null;
 
 		try {
-			// Fetch enriched songs (includes usage and rating aggregates) and lightweight stats
-			const [enrichedSongs, statsData] = await Promise.all([
-				this.songsApi.getSongsEnriched({ showRetired: false }),
-				this.songsApi.getSongStatistics()
-			]);
+			// Fetch all enriched songs (includes usage and rating aggregates)
+			const enrichedSongs = await this.songsApi.getSongsEnriched({ showRetired: false });
 
 			// Process enriched songs - they already have last_used_date from the view
 			this.allSongs = enrichedSongs.map((song: any) => {
@@ -140,12 +137,9 @@ class SongsStore {
 				};
 			});
 
-			// Update stats
-			this.stats = {
-				totalSongs: statsData.totalSongs,
-				availableSongs: statsData.availableSongs,
-				recentlyUsed: statsData.recentSongs
-			};
+			// Update stats - total from loaded songs, available from lightweight count
+			this.stats.totalSongs = this.allSongs.length;
+			this.stats.availableSongs = await this.songsApi.getAvailableSongsCount();
 		} catch (error: unknown) {
 			console.error('Failed to load all songs:', error);
 			this.error = this.getErrorMessage(error);
@@ -209,8 +203,9 @@ class SongsStore {
 			this.currentPage = result.page;
 			this.perPage = result.perPage;
 
-			// Update stats
-			await this.updateStats();
+			// Update stats using data we already have + lightweight available count
+			this.stats.totalSongs = result.totalItems; // Already have this from pagination!
+			await this.updateAvailableSongsCount();
 		} catch (error: unknown) {
 			console.error('Failed to load songs:', error);
 			this.error = this.getErrorMessage(error);
@@ -293,9 +288,10 @@ class SongsStore {
 			// Remove from local array
 			this.songs = this.songs.filter((song) => song.id !== id);
 			this.totalItems = Math.max(0, this.totalItems - 1);
+			this.stats.totalSongs = this.totalItems;
 
-			// Update stats
-			await this.updateStats();
+			// Update available songs count
+			await this.updateAvailableSongsCount();
 		} catch (error: unknown) {
 			console.error('Failed to delete song:', error);
 			this.error = this.getErrorMessage(error);
@@ -365,18 +361,13 @@ class SongsStore {
 	}
 
 	/**
-	 * Update statistics using lightweight stats query
+	 * Update only the available songs count (we already have total from pagination)
 	 */
-	private async updateStats(): Promise<void> {
+	private async updateAvailableSongsCount(): Promise<void> {
 		try {
-			const statsData = await this.songsApi.getSongStatistics();
-			this.stats = {
-				totalSongs: statsData.totalSongs,
-				availableSongs: statsData.availableSongs,
-				recentlyUsed: statsData.recentSongs
-			};
+			this.stats.availableSongs = await this.songsApi.getAvailableSongsCount();
 		} catch (error) {
-			console.error('Failed to update stats:', error);
+			console.error('Failed to update available songs count:', error);
 		}
 	}
 
