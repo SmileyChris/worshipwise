@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Card from '$lib/components/ui/Card.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
 	import { Music, Clock, User, ChevronRight } from 'lucide-svelte';
 	import type { Service } from '$lib/types/service';
 
@@ -30,15 +29,15 @@
 		const status = service.status || 'draft';
 		switch (status) {
 			case 'completed':
-				return { label: 'Done', color: 'purple' as const };
+				return { label: 'Done', headerBg: 'bg-purple-600', headerText: 'text-white' };
 			case 'planned':
-				return { label: 'Planned', color: 'green' as const };
+				return { label: 'Planned', headerBg: 'bg-green-600', headerText: 'text-white' };
 			case 'in_progress':
-				return { label: 'In Progress', color: 'yellow' as const };
+				return { label: 'In Progress', headerBg: 'bg-yellow-400', headerText: 'text-yellow-950' };
 			case 'draft':
-				return { label: 'Draft', color: 'blue' as const };
+				return { label: 'Draft', headerBg: 'bg-primary', headerText: 'text-white' };
 			default:
-				return { label: status, color: 'gray' as const };
+				return { label: status, headerBg: 'bg-gray-500', headerText: 'text-white' };
 		}
 	});
 </script>
@@ -51,8 +50,8 @@
 	<div class="flex flex-col h-full">
 		<div class="p-5 flex gap-5 flex-1">
 			<!-- Date Column -->
-			<div class="flex-shrink-0 flex flex-col items-center justify-center w-16 h-20 bg-white border border-gray-100 rounded-2xl shadow-sm group-hover:border-primary/20 transition-colors overflow-hidden">
-				<div class="w-full bg-primary text-white text-[10px] font-bold py-1 text-center uppercase tracking-widest">
+			<div class="flex-shrink-0 flex flex-col items-center justify-center w-16 h-20 bg-white border border-gray-100 rounded-2xl shadow-sm group-hover:border-primary/20 transition-colors overflow-hidden" title={statusInfo.label}>
+				<div class="w-full {statusInfo.headerBg} {statusInfo.headerText} text-[10px] font-bold py-1 text-center uppercase tracking-widest">
 					{getMonth(service.service_date)}
 				</div>
 				<div class="flex-1 flex flex-col items-center justify-center pt-1">
@@ -67,9 +66,6 @@
 					<h3 class="text-lg font-bold text-gray-900 truncate group-hover:text-primary transition-colors">
 						{service.title}
 					</h3>
-					<Badge color={statusInfo.color} size="sm" class="flex-shrink-0">
-						{statusInfo.label}
-					</Badge>
 				</div>
 				
 				<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
