@@ -14,14 +14,14 @@
 	let navigationItems = $derived.by(() => {
 		const items = [
 			{ name: 'Dashboard', href: '/dashboard', icon: '🏠' },
+			{ name: 'Services', href: '/services', icon: '📋' },
 			{ name: 'Songs', href: '/songs', icon: '🎵' },
-			{ name: 'Services', href: '/services', icon: '📋' }
+			{ name: 'Stats', href: '/analytics', icon: '📊' }
 		];
 
-		// Add insights and analytics for leaders and admins
+		// Add insights for leaders and admins
 		if (auth.canManageServices) {
 			items.push({ name: 'Insights', href: '/insights', icon: '💡' });
-			items.push({ name: 'Analytics', href: '/analytics', icon: '📊' });
 		}
 
 		return items;

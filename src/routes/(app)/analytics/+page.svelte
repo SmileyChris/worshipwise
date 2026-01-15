@@ -81,7 +81,7 @@
 </script>
 
 <svelte:head>
-	<title>Analytics - WorshipWise</title>
+	<title>Stats - WorshipWise</title>
 </svelte:head>
 
 <div class="space-y-6">
@@ -90,7 +90,7 @@
 		<div class="min-w-0 flex-1">
 			<h2 class="font-title text-2xl font-bold text-gray-900 sm:text-3xl">
 				{activeTab === 'analytics'
-					? 'Analytics'
+					? 'Stats'
 					: activeTab === 'insights'
 						? 'AI Worship Insights'
 						: 'Song Recommendations'}
@@ -142,7 +142,7 @@
 				}`}
 			>
 				<BarChart3 class="h-4 w-4" />
-				Analytics Dashboard
+				Stats
 			</button>
 
 			<button
@@ -701,10 +701,11 @@
 					<h3 class="font-title mb-4 text-lg font-medium text-gray-900">Recommendation Filters</h3>
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 						<div>
-							<label class="mb-1 block text-sm font-medium text-gray-700"
+							<label for="exclude-recent-days" class="mb-1 block text-sm font-medium text-gray-700"
 								>Exclude songs used within</label
 							>
 							<select
+								id="exclude-recent-days"
 								class="w-full rounded-md border-gray-300"
 								value={recommendationsStore.recommendationFilters.excludeRecentDays}
 								onchange={(e) => {
@@ -723,10 +724,11 @@
 						</div>
 
 						<div>
-							<label class="mb-1 block text-sm font-medium text-gray-700"
+							<label for="num-recommendations" class="mb-1 block text-sm font-medium text-gray-700"
 								>Number of recommendations</label
 							>
 							<select
+								id="num-recommendations"
 								class="w-full rounded-md border-gray-300"
 								value={recommendationsStore.recommendationFilters.limit}
 								onchange={(e) => {
