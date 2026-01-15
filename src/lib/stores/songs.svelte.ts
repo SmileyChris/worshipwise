@@ -120,6 +120,19 @@ class SongsStore {
 			// Fetch all enriched songs (includes usage and rating aggregates)
 			const enrichedSongs = await this.songsApi.getSongsEnriched({ showRetired: false });
 
+			// Fetch current user's individual ratings for all songs in parallel
+			const songIds = enrichedSongs.map((song) => song.id);
+			const ratingsMap = await this.ratingsApi.getUserRatingsForSongs(songIds);
+
+			// Transform to match our type (ensure is_difficult is always a boolean)
+			this.userRatings = new Map();
+			ratingsMap.forEach((rating, songId) => {
+				this.userRatings.set(songId, {
+					rating: rating.rating,
+					is_difficult: rating.is_difficult || false
+				});
+			});
+
 			// Process enriched songs - they already have last_used_date from the view
 			this.allSongs = enrichedSongs.map((song: any) => {
 				// Calculate usage status from last_used_date if available
