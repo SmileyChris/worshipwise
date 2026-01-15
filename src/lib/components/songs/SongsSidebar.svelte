@@ -139,9 +139,12 @@
 					{@const amount = getChangeAmount(item)}
 					<div 
 						animate:flip={{ duration: 400 }}
-						class="group flex items-center justify-between p-2 hover:bg-white hover:shadow-md hover:border-gray-100 rounded-xl transition-all border border-transparent"
+						class="group flex items-center justify-between p-2 hover:bg-gray-50 rounded-xl transition-all border border-transparent"
 					>
-						<div class="flex items-center gap-3 min-w-0">
+						<a 
+							href="/songs/{item.song.id}"
+							class="flex items-center gap-3 min-w-0 flex-1"
+						>
 							<!-- Rank & Change -->
 							<div class="flex flex-col items-center justify-center w-8">
 								<span class="text-sm font-bold text-gray-900 leading-none">{item.rank}</span>
@@ -164,7 +167,7 @@
 							</div>
 
 							<div class="min-w-0">
-								<p class="text-sm font-bold text-gray-900 truncate">{item.song.title}</p>
+								<p class="text-sm font-bold text-gray-900 truncate group-hover:text-primary transition-colors">{item.song.title}</p>
 								<div class="flex items-center gap-2 text-[10px] text-gray-500">
 									{#if item.song.artist}
 										<span class="truncate max-w-[80px]">{item.song.artist}</span>
@@ -173,7 +176,7 @@
 									<span>{formatUsageCount(item.usageCount)}</span>
 								</div>
 							</div>
-						</div>
+						</a>
 						
 						{#if isEditingService}
 							<button

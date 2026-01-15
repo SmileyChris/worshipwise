@@ -17,7 +17,7 @@
 	import { createLabelsAPI } from '$lib/api/labels';
 	import { createRatingsAPI } from '$lib/api/ratings';
 	import { onMount } from 'svelte';
-	import { Music, CheckCircle, Clock, PlusCircle, Search, Users, TrendingUp, ChevronDown, ChevronRight, ChevronLeft, Layout, List } from 'lucide-svelte';
+	import { Music, CheckCircle, Clock, PlusCircle, Search, Users, TrendingUp, ChevronDown, ChevronRight, ChevronLeft, Layout, List, X } from 'lucide-svelte';
 
 	let { data } = $props();
 
@@ -557,13 +557,15 @@
 						</div>
 
 						<!-- Top Songs Toggle -->
-						<button
-							onclick={() => collapsedSidebar = !collapsedSidebar}
-							class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm text-gray-600 hover:text-gray-900 hover:border-primary hover:bg-gray-50 transition-all"
-							title={collapsedSidebar ? "Show Top Songs" : "Hide Top Songs"}
-						>
-							<TrendingUp class="h-5 w-5 {collapsedSidebar ? 'text-gray-400' : 'text-primary'}" />
-						</button>
+						{#if collapsedSidebar}
+							<button
+								onclick={() => collapsedSidebar = false}
+								class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm text-gray-600 hover:text-gray-900 hover:border-primary hover:bg-gray-50 transition-all"
+								title="Show Top Songs"
+							>
+								<TrendingUp class="h-5 w-5 text-primary" />
+							</button>
+						{/if}
 					</div>
 
 					<!-- List view filters -->
@@ -737,9 +739,9 @@
 						<button 
 							onclick={() => collapsedSidebar = true} 
 							class="text-white/70 hover:text-white hover:bg-white/10 p-1 rounded transition-colors"
-							title="Collapse Sidebar"
+							title="Close Top Songs"
 						>
-							<ChevronRight class="h-5 w-5" />
+							<X class="h-5 w-5" />
 						</button>
 					</div>
 					<div class="p-5 bg-white">
