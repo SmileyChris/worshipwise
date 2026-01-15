@@ -117,10 +117,10 @@ class SongsStore {
 		this.error = null;
 
 		try {
-			// Fetch enriched songs (includes usage and rating aggregates) and usage stats
-			const [enrichedSongs, usageStats] = await Promise.all([
+			// Fetch enriched songs (includes usage and rating aggregates) and lightweight stats
+			const [enrichedSongs, statsData] = await Promise.all([
 				this.songsApi.getSongsEnriched({ showRetired: false }),
-				this.songsApi.getUsageComparisonStats()
+				this.songsApi.getSongStatistics()
 			]);
 
 			// Process enriched songs - they already have last_used_date from the view
@@ -141,7 +141,11 @@ class SongsStore {
 			});
 
 			// Update stats
-			this.updateStatsFromSongs(this.allSongs, usageStats);
+			this.stats = {
+				totalSongs: statsData.totalSongs,
+				availableSongs: statsData.availableSongs,
+				recentlyUsed: statsData.recentSongs
+			};
 		} catch (error: unknown) {
 			console.error('Failed to load all songs:', error);
 			this.error = this.getErrorMessage(error);
@@ -361,56 +365,19 @@ class SongsStore {
 	}
 
 	/**
-	 * Update statistics
+	 * Update statistics using lightweight stats query
 	 */
 	private async updateStats(): Promise<void> {
 		try {
-			const [allSongs, usageStats, usageMap] = await Promise.all([
-				this.loadAllSongs(),
-				this.songsApi.getUsageComparisonStats(),
-				this.songsApi.getAllSongsUsage()
-			]);
-
-			// Enrich songs with usage status
-			const enrichedSongs = allSongs.map(song => {
-				const usage = usageMap.get(song.id);
-				if (usage) {
-					return {
-						...song,
-						daysSinceLastUsed: usage.daysSince,
-						usageStatus: this.calculateUsageStatus(usage.daysSince)
-					};
-				}
-				// Never used
-				return {
-					...song,
-					daysSinceLastUsed: Infinity,
-					usageStatus: 'available' as const
-				};
-			});
-
-			this.updateStatsFromSongs(enrichedSongs, usageStats);
+			const statsData = await this.songsApi.getSongStatistics();
+			this.stats = {
+				totalSongs: statsData.totalSongs,
+				availableSongs: statsData.availableSongs,
+				recentlyUsed: statsData.recentSongs
+			};
 		} catch (error) {
 			console.error('Failed to update stats:', error);
 		}
-	}
-
-	/**
-	 * Update statistics from a provided songs array (avoids re-fetching)
-	 */
-	private updateStatsFromSongs(
-		allSongs: Song[],
-		usageStats?: { currentPeriod: number; previousPeriod: number }
-	): void {
-		this.stats = {
-			totalSongs: allSongs.length,
-			availableSongs: allSongs.filter((song) => song.usageStatus === 'available').length,
-			recentlyUsed: allSongs.filter((song) => this.isRecentlyUsed(song)).length,
-			uniqueSongsLast6Months: usageStats?.currentPeriod,
-			uniqueSongsPrevious6Months: usageStats?.previousPeriod,
-			mostUsedKey: this.getMostUsedKey(allSongs),
-			averageTempo: this.getAverageTempo(allSongs)
-		};
 	}
 
 	/**

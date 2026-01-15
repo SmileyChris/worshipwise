@@ -54,7 +54,7 @@ describe('SongsStore', () => {
 		createSong: vi.fn(),
 		updateSong: vi.fn(),
 		deleteSong: vi.fn(),
-		getUsageComparisonStats: vi.fn(),
+		getSongStatistics: vi.fn(),
 		subscribe: vi.fn()
 	};
 
@@ -101,10 +101,10 @@ describe('SongsStore', () => {
 			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
 
 			// Mock stats call
-			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+			mockSongsAPI.getSongStatistics.mockResolvedValue({
 				totalSongs: 1,
 				availableSongs: 1,
-				recentlyUsed: 0
+				recentSongs: 0
 			});
 
 			await songsStore.loadSongs();
@@ -126,10 +126,10 @@ describe('SongsStore', () => {
 		it('should handle songs without usage information', async () => {
 			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
 			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
-			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+			mockSongsAPI.getSongStatistics.mockResolvedValue({
 				totalSongs: 1,
 				availableSongs: 1,
-				recentlyUsed: 0
+				recentSongs: 0
 			});
 
 			await songsStore.loadSongs();
@@ -146,10 +146,10 @@ describe('SongsStore', () => {
 			songsStore.currentPage = 3;
 			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
 			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
-			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+			mockSongsAPI.getSongStatistics.mockResolvedValue({
 				totalSongs: 1,
 				availableSongs: 1,
-				recentlyUsed: 0
+				recentSongs: 0
 			});
 
 			await songsStore.loadSongs(true);
@@ -163,10 +163,10 @@ describe('SongsStore', () => {
 				return mockPaginatedResult;
 			});
 			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
-			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+			mockSongsAPI.getSongStatistics.mockResolvedValue({
 				totalSongs: 1,
 				availableSongs: 1,
-				recentlyUsed: 0
+				recentSongs: 0
 			});
 
 			await songsStore.loadSongs();
@@ -192,10 +192,10 @@ describe('SongsStore', () => {
 
 			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
 			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
-			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+			mockSongsAPI.getSongStatistics.mockResolvedValue({
 				totalSongs: 1,
 				availableSongs: 1,
-				recentlyUsed: 0
+				recentSongs: 0
 			});
 
 			await songsStore.loadSongs();
@@ -242,10 +242,10 @@ describe('SongsStore', () => {
 			mockSongsAPI.createSong.mockResolvedValue(testSong);
 			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
 			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
-			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+			mockSongsAPI.getSongStatistics.mockResolvedValue({
 				totalSongs: 1,
 				availableSongs: 1,
-				recentlyUsed: 0
+				recentSongs: 0
 			});
 
 			const result = await songsStore.createSong(createData);
@@ -350,10 +350,10 @@ describe('SongsStore', () => {
 		it('should search songs', async () => {
 			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
 			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
-			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+			mockSongsAPI.getSongStatistics.mockResolvedValue({
 				totalSongs: 1,
 				availableSongs: 1,
-				recentlyUsed: 0
+				recentSongs: 0
 			});
 			mockSongsAPI.getSongs.mockResolvedValue([]);
 
@@ -374,10 +374,10 @@ describe('SongsStore', () => {
 			const newFilters: Partial<SongFilterOptions> = { key: 'C', tags: ['hymn'] };
 			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
 			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
-			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+			mockSongsAPI.getSongStatistics.mockResolvedValue({
 				totalSongs: 1,
 				availableSongs: 1,
-				recentlyUsed: 0
+				recentSongs: 0
 			});
 			mockSongsAPI.getSongs.mockResolvedValue([]);
 
@@ -396,10 +396,10 @@ describe('SongsStore', () => {
 			songsStore.filters = { search: 'test', key: 'C', tags: ['hymn'], sort: 'artist' };
 			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockPaginatedResult);
 			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
-			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+			mockSongsAPI.getSongStatistics.mockResolvedValue({
 				totalSongs: 1,
 				availableSongs: 1,
-				recentlyUsed: 0
+				recentSongs: 0
 			});
 			mockSongsAPI.getSongs.mockResolvedValue([]);
 
@@ -423,10 +423,10 @@ describe('SongsStore', () => {
 			const mockResult = { ...mockPaginatedResult, page: 2, totalPages: 5 };
 			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(mockResult);
 			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
-			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+			mockSongsAPI.getSongStatistics.mockResolvedValue({
 				totalSongs: 1,
 				availableSongs: 1,
-				recentlyUsed: 0
+				recentSongs: 0
 			});
 			mockSongsAPI.getSongs.mockResolvedValue([]);
 		});
@@ -435,10 +435,10 @@ describe('SongsStore', () => {
 			const nextPageResult = { ...mockPaginatedResult, page: 3, totalPages: 5 };
 			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(nextPageResult);
 			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
-			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+			mockSongsAPI.getSongStatistics.mockResolvedValue({
 				totalSongs: 1,
 				availableSongs: 1,
-				recentlyUsed: 0
+				recentSongs: 0
 			});
 
 			await songsStore.nextPage();
@@ -455,10 +455,10 @@ describe('SongsStore', () => {
 			const prevPageResult = { ...mockPaginatedResult, page: 1, totalPages: 5 };
 			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(prevPageResult);
 			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
-			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+			mockSongsAPI.getSongStatistics.mockResolvedValue({
 				totalSongs: 1,
 				availableSongs: 1,
-				recentlyUsed: 0
+				recentSongs: 0
 			});
 
 			await songsStore.prevPage();
@@ -475,10 +475,10 @@ describe('SongsStore', () => {
 			const targetPageResult = { ...mockPaginatedResult, page: 4, totalPages: 5 };
 			mockSongsAPI.getSongsEnrichedPaginated.mockResolvedValue(targetPageResult);
 			mockRatingsAPI.getUserRatingsForSongs.mockResolvedValue(new Map());
-			mockSongsAPI.getUsageComparisonStats.mockResolvedValue({
+			mockSongsAPI.getSongStatistics.mockResolvedValue({
 				totalSongs: 1,
 				availableSongs: 1,
-				recentlyUsed: 0
+				recentSongs: 0
 			});
 
 			await songsStore.goToPage(4);

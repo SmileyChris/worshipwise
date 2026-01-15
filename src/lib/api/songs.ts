@@ -1062,7 +1062,59 @@ export class SongsAPI {
 	}
 
 	/**
+	 * Get lightweight song statistics for the current church
+	 * Uses the enriched view to count songs by usage status
+	 */
+	async getSongStatistics(): Promise<{
+		totalSongs: number;
+		availableSongs: number;
+		recentSongs: number;
+	}> {
+		try {
+			if (!this.authContext.currentChurch?.id) {
+				return { totalSongs: 0, availableSongs: 0, recentSongs: 0 };
+			}
+
+			// Calculate date thresholds
+			const now = Date.now();
+			const fourteenDaysAgo = new Date(now - 14 * 24 * 60 * 60 * 1000).toISOString();
+			const oneEightyDaysAgo = new Date(now - 180 * 24 * 60 * 60 * 1000).toISOString();
+
+			const churchFilter = `church_id = "${this.authContext.currentChurch.id}" && (is_retired = false || is_retired = null)`;
+
+			// Use Promise.all to fetch all counts in parallel
+			const [totalResult, recentResult, availableResult] = await Promise.all([
+				// Total songs
+				this.pb.collection(this.enrichedCollection).getList(1, 1, {
+					filter: churchFilter,
+					fields: 'id'
+				}),
+				// Recent songs (used in last 14 days)
+				this.pb.collection(this.enrichedCollection).getList(1, 1, {
+					filter: `${churchFilter} && last_used_date >= "${fourteenDaysAgo}"`,
+					fields: 'id'
+				}),
+				// Available songs (used 14-180 days ago)
+				this.pb.collection(this.enrichedCollection).getList(1, 1, {
+					filter: `${churchFilter} && last_used_date >= "${oneEightyDaysAgo}" && last_used_date < "${fourteenDaysAgo}"`,
+					fields: 'id'
+				})
+			]);
+
+			return {
+				totalSongs: totalResult.totalItems,
+				availableSongs: availableResult.totalItems,
+				recentSongs: recentResult.totalItems
+			};
+		} catch (error) {
+			console.error('Failed to fetch song statistics:', error);
+			return { totalSongs: 0, availableSongs: 0, recentSongs: 0 };
+		}
+	}
+
+	/**
 	 * Get usage comparison stats (unique songs used in current 6 months vs previous 6 months)
+	 * @deprecated This method is expensive - consider using getSongStatistics() instead
 	 */
 	async getUsageComparisonStats(): Promise<{ currentPeriod: number; previousPeriod: number }> {
 		try {
