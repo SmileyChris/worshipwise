@@ -17,7 +17,7 @@
 	import { createLabelsAPI } from '$lib/api/labels';
 	import { createRatingsAPI } from '$lib/api/ratings';
 	import { onMount } from 'svelte';
-	import { Music, CheckCircle, Clock, PlusCircle, Search, Users, TrendingUp, ChevronDown, ChevronRight } from 'lucide-svelte';
+	import { Music, CheckCircle, Clock, PlusCircle, Search, Users, TrendingUp, ChevronDown, ChevronRight, ChevronLeft, Layout, List } from 'lucide-svelte';
 
 	let { data } = $props();
 
@@ -32,6 +32,9 @@
 
 	// View state
 	let viewMode = $state<'list' | 'themes'>('themes');
+	let statusFilter = $state<'all' | 'ready' | 'used'>('ready');
+	let uniqueSongsTimeframe = $state<'recent' | '3months' | '6months'>('6months');
+	let collapsedSidebar = $state(false);
 
 	// Search state
 	let searchQuery = $state('');
@@ -40,7 +43,8 @@
 	let selectedSort = $state('title');
 	let showRetired = $state(false);
 	let showFavorites = $state(false);
-	let showDifficult = $state(false);
+	// Default to true if current month is December (11)
+	let showChristmas = $state(new Date().getMonth() === 11);
 	let initialLoadComplete = $state(false);
 
 	// Data for filters
@@ -53,19 +57,55 @@
 	// Collapsible themes state
 	let expandedThemes = $state(new Set<string>());
 
-	// Filter themes based on search
+	// Filter themes based on search and status
 	let filteredThemes = $derived.by(() => {
 		if (!themesData) return null;
-		if (!searchQuery.trim()) return themesData;
-
-		const query = searchQuery.toLowerCase();
+		
+		const query = searchQuery.toLowerCase().trim();
 		const result = new Map();
 
 		for (const [id, data] of themesData) {
-			const matchingSongs = data.songs.filter(s =>
-				s.title.toLowerCase().includes(query) ||
-				(s.artist && s.artist.toLowerCase().includes(query))
-			);
+			// Check if theme matches Christmas filter
+			const isChristmasLabel = data.label.name.toLowerCase().includes('christmas');
+
+			const matchingSongs = data.songs.filter(s => {
+				// Global Christmas filter (Include/Exclude)
+				// If showChristmas is false, we HIDE Christmas songs (Title, Tag, or Label)
+				const isChristmasSong = isChristmasLabel || 
+										s.title.toLowerCase().includes('christmas') || 
+										(s.tags && s.tags.some(t => t.toLowerCase().includes('christmas')));
+
+				if (!showChristmas && isChristmasSong) {
+					return false;
+				}
+
+				// Search filter
+				const matchesSearch = !query || 
+					s.title.toLowerCase().includes(query) ||
+					(s.artist && s.artist.toLowerCase().includes(query));
+
+				if (!matchesSearch) return false;
+
+				// Status filter
+				if (statusFilter === 'ready') {
+					// Christmas songs are handled by global filter above.
+					// If we are here, either it's not a Christmas song, OR showChristmas is true.
+					// If showChristmas is true, we allow them to be "Ready" if they meet other criteria.
+					
+					const isAvailable = s.usageStatus === 'available';
+					const isNew = !s.lastUsedDate || s.daysSinceLastUsed === Infinity;
+					return isAvailable || isNew;
+				} else if (statusFilter === 'used') {
+					if (!s.daysSinceLastUsed && s.daysSinceLastUsed !== 0) return false;
+					const days = s.daysSinceLastUsed!;
+					
+					if (uniqueSongsTimeframe === 'recent') return days <= 30;
+					if (uniqueSongsTimeframe === '3months') return days <= 90;
+					if (uniqueSongsTimeframe === '6months') return days <= 180;
+				}
+
+				return true;
+			});
 
 			if (matchingSongs.length > 0) {
 				result.set(id, { ...data, songs: matchingSongs });
@@ -76,11 +116,11 @@
 
 	// Auto-expand/collapse on search
 	$effect(() => {
-		if (searchQuery.trim() && filteredThemes) {
-			// Expand all found themes
+		if ((searchQuery.trim() || statusFilter !== 'all') && filteredThemes) {
+			// Expand all found themes when searching or filtering
 			expandedThemes = new Set(filteredThemes.keys());
 		} else {
-			// Collapse all when search is cleared
+			// Collapse all when cleared
 			expandedThemes = new Set();
 		}
 	});
@@ -106,6 +146,23 @@
 	let hasPrevPage = $derived(songsStore.hasPrevPage);
 	let selectedSong = $derived(songsStore.selectedSong);
 	let userRatings = $derived(songsStore.userRatings); // User ratings come from store now!
+	let allSongs = $derived(songsStore.allSongs);
+
+	// Derived stats
+	let uniqueSongsCount = $derived.by(() => {
+		// Provide default based on store stat if not filtering dynamically or if list empty
+		if (!allSongs || allSongs.length === 0) return stats.uniqueSongsLast6Months ?? 0;
+		
+		return allSongs.filter(s => {
+			if (!s.daysSinceLastUsed && s.daysSinceLastUsed !== 0) return false;
+			const days = s.daysSinceLastUsed!;
+			
+			if (uniqueSongsTimeframe === 'recent') return days <= 30;
+			if (uniqueSongsTimeframe === '3months') return days <= 90;
+			if (uniqueSongsTimeframe === '6months') return days <= 180;
+			return false;
+		}).length;
+	});
 
 	// Ratings state
 	let ratingsLoading = $state(true);
@@ -237,7 +294,9 @@
 				sort: selectedSort,
 				showRetired,
 				showFavorites,
-				showDifficult
+				showChristmas,
+				status: statusFilter,
+				usageTimeframe: uniqueSongsTimeframe
 			};
 
 			// Use a timeout to debounce rapid changes (especially for search)
@@ -328,6 +387,12 @@
 	function clearError() {
 		songsStore.clearError();
 	}
+
+	function setTimeframe(e: Event, timeframe: 'recent' | '3months' | '6months') {
+		e.stopPropagation();
+		uniqueSongsTimeframe = timeframe;
+		statusFilter = 'used'; // Also switch filter to used
+	}
 </script>
 
 <svelte:head>
@@ -349,52 +414,80 @@
 		</div>
 	</div>
 
-	<!-- Stats cards -->
+	<!-- Stats cards with filters -->
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-		<Card class="bg-gradient-to-br from-indigo-50 to-white border-indigo-100">
-			<div class="flex items-center gap-4">
-				<div class="bg-indigo-100 p-3 rounded-xl">
-					<Music class="h-6 w-6 text-indigo-600" />
-				</div>
-				<div>
-					<div class="text-2xl font-bold text-gray-900 leading-none">{stats.totalSongs}</div>
-					<div class="text-xs text-indigo-500 font-bold uppercase tracking-wider mt-1">Total Songs</div>
-				</div>
-			</div>
-		</Card>
-
-		<Card class="bg-gradient-to-br from-green-50 to-white border-green-100">
-			<div class="flex items-center gap-4">
-				<div class="bg-green-100 p-3 rounded-xl">
-					<CheckCircle class="h-6 w-6 text-green-600" />
-				</div>
-				<div>
-					<div class="text-2xl font-bold text-gray-900 leading-none">{stats.availableSongs}</div>
-					<div class="text-xs text-green-500 font-bold uppercase tracking-wider mt-1">Ready to Use</div>
-				</div>
-			</div>
-		</Card>
-
-		<Card class="bg-gradient-to-br from-amber-50 to-white border-amber-100">
-			<div class="flex items-center gap-4">
-				<div class="bg-amber-100 p-3 rounded-xl">
-					<Clock class="h-6 w-6 text-amber-600" />
-				</div>
-				<div>
-					<div class="text-2xl font-bold text-gray-900 leading-none">
-						{stats.uniqueSongsLast6Months ?? 0}
+		<!-- Ready to Use -->
+		<button class="text-left w-full focus:outline-none cursor-pointer group" onclick={() => statusFilter = 'ready'}>
+			<Card class="bg-gradient-to-br from-green-50 to-white transition-all duration-300 {statusFilter === 'ready' ? 'ring-1 ring-green-400 shadow-md border-green-200' : 'border-green-100 group-hover:shadow-lg group-hover:shadow-green-100/60'}">
+				<div class="flex items-center gap-4">
+					<div class="bg-green-100 p-3 rounded-xl">
+						<CheckCircle class="h-6 w-6 text-green-600" />
 					</div>
-					<div class="text-xs text-amber-500 font-bold uppercase tracking-wider mt-1">
-						Used Last 6 Months
+					<div>
+						<div class="text-2xl font-bold text-gray-900 leading-none">{stats.availableSongs}</div>
+						<div class="text-xs text-green-500 font-bold uppercase tracking-wider mt-1">Songs Ready to Use</div>
 					</div>
-					{#if stats.uniqueSongsPrevious6Months !== undefined}
-						<div class="text-xs text-gray-500 mt-1 font-medium">
-							vs {stats.uniqueSongsPrevious6Months} prev.
+				</div>
+			</Card>
+		</button>
+
+		<!-- Unique Songs Sung -->
+		<button class="text-left w-full focus:outline-none cursor-pointer group" onclick={() => statusFilter = 'used'}>
+			<Card class="bg-gradient-to-br from-amber-50 to-white transition-all duration-300 {statusFilter === 'used' ? 'ring-1 ring-amber-400 shadow-md border-amber-200' : 'border-amber-100 group-hover:shadow-lg group-hover:shadow-amber-100/60'}">
+				<div class="flex items-center gap-4">
+					<div class="bg-amber-100 p-3 rounded-xl self-start">
+						<Clock class="h-6 w-6 text-amber-600" />
+					</div>
+					<div class="flex-1">
+						<div class="text-2xl font-bold text-gray-900 leading-none">
+							{uniqueSongsCount}
 						</div>
-					{/if}
+						<div class="text-xs text-amber-500 font-bold uppercase tracking-wider mt-1">
+							Unique Songs Sung
+						</div>
+						
+						<!-- Timeframe links -->
+						<div class="flex gap-2 mt-2 text-[10px] font-medium border-t border-amber-100/50 pt-2">
+							<button 
+								class="hover:text-amber-800 transition-colors {uniqueSongsTimeframe === 'recent' ? 'text-amber-900 underline decoration-amber-400 decoration-2 underline-offset-2' : 'text-amber-600/70'}"
+								onclick={(e) => setTimeframe(e, 'recent')}
+							>
+								Recently
+							</button>
+							<div class="text-amber-300">|</div>
+							<button 
+								class="hover:text-amber-800 transition-colors {uniqueSongsTimeframe === '3months' ? 'text-amber-900 underline decoration-amber-400 decoration-2 underline-offset-2' : 'text-amber-600/70'}"
+								onclick={(e) => setTimeframe(e, '3months')}
+							>
+								3mo
+							</button>
+							<div class="text-amber-300">|</div>
+							<button 
+								class="hover:text-amber-800 transition-colors {uniqueSongsTimeframe === '6months' ? 'text-amber-900 underline decoration-amber-400 decoration-2 underline-offset-2' : 'text-amber-600/70'}"
+								onclick={(e) => setTimeframe(e, '6months')}
+							>
+								6mo
+							</button>
+						</div>
+					</div>
 				</div>
-			</div>
-		</Card>
+			</Card>
+		</button>
+
+		<!-- Total / All -->
+		<button class="text-left w-full focus:outline-none cursor-pointer group" onclick={() => statusFilter = 'all'}>
+			<Card class="bg-gradient-to-br from-indigo-50 to-white transition-all duration-300 {statusFilter === 'all' ? 'ring-1 ring-indigo-400 shadow-md border-indigo-200' : 'border-indigo-100 group-hover:shadow-lg group-hover:shadow-indigo-100/60'}">
+				<div class="flex items-center gap-4">
+					<div class="bg-indigo-100 p-3 rounded-xl">
+						<Music class="h-6 w-6 text-indigo-600" />
+					</div>
+					<div>
+						<div class="text-2xl font-bold text-gray-900 leading-none">{stats.totalSongs}</div>
+						<div class="text-xs text-indigo-500 font-bold uppercase tracking-wider mt-1">Total Songs</div>
+					</div>
+				</div>
+			</Card>
+		</button>
 	</div>
 
 	<!-- Service Editing Banner -->
@@ -421,13 +514,38 @@
 	{/if}
 
 	<!-- Main Layout -->
-	<div class="lg:grid lg:grid-cols-12 lg:gap-10">
-		<div class="lg:col-span-9 space-y-8">
+	<div class="lg:grid lg:grid-cols-12 lg:gap-10 transition-all duration-300">
+		<div class="{collapsedSidebar ? 'lg:col-span-12' : 'lg:col-span-9'} space-y-8 transition-all duration-300">
 			<!-- Search and controls -->
 			<Card class="bg-gray-50/50 border-gray-100">
 				<div class="space-y-6">
-					<!-- Search bar with view toggle -->
+					<!-- Search bar with view toggle on left -->
 					<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+						<!-- View Toggle -->
+						<div class="flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm shrink-0">
+							<button
+								onclick={() => (viewMode = 'themes')}
+								class="rounded-lg px-3 py-1.5 transition-all flex items-center gap-2 {viewMode === 'themes'
+									? 'bg-primary text-white shadow-md'
+									: 'text-gray-600 hover:text-gray-900'}"
+								title="Themes View"
+							>
+								<Layout class="h-4 w-4" />
+								<span class="text-sm font-semibold hidden sm:inline">Themes</span>
+							</button>
+							<button
+								onclick={() => (viewMode = 'list')}
+								class="rounded-lg px-3 py-1.5 transition-all flex items-center gap-2 {viewMode === 'list'
+									? 'bg-primary text-white shadow-md'
+									: 'text-gray-600 hover:text-gray-900'}"
+								title="List View"
+							>
+								<List class="h-4 w-4" />
+								<span class="text-sm font-semibold hidden sm:inline">List</span>
+							</button>
+						</div>
+
+						<!-- Search Input -->
 						<div class="relative flex-1">
 							<Search class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
 							<input
@@ -438,25 +556,14 @@
 							/>
 						</div>
 
-						<!-- View Toggle -->
-						<div class="flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
-							<button
-								onclick={() => (viewMode = 'themes')}
-								class="rounded-lg px-4 py-1.5 text-sm font-semibold transition-all {viewMode === 'themes'
-									? 'bg-primary text-white shadow-md'
-									: 'text-gray-600 hover:text-gray-900'}"
-							>
-								Themes
-							</button>
-							<button
-								onclick={() => (viewMode = 'list')}
-								class="rounded-lg px-4 py-1.5 text-sm font-semibold transition-all {viewMode === 'list'
-									? 'bg-primary text-white shadow-md'
-									: 'text-gray-600 hover:text-gray-900'}"
-							>
-								List
-							</button>
-						</div>
+						<!-- Top Songs Toggle -->
+						<button
+							onclick={() => collapsedSidebar = !collapsedSidebar}
+							class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm text-gray-600 hover:text-gray-900 hover:border-primary hover:bg-gray-50 transition-all"
+							title={collapsedSidebar ? "Show Top Songs" : "Hide Top Songs"}
+						>
+							<TrendingUp class="h-5 w-5 {collapsedSidebar ? 'text-gray-400' : 'text-primary'}" />
+						</button>
 					</div>
 
 					<!-- List view filters -->
@@ -489,8 +596,8 @@
 								<span class="text-sm font-medium text-gray-600">Favorites</span>
 							</label>
 							<label class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-100 rounded-lg cursor-pointer hover:border-primary transition-colors">
-								<input type="checkbox" bind:checked={showDifficult} class="text-primary rounded" />
-								<span class="text-sm font-medium text-gray-600">Complex</span>
+								<input type="checkbox" bind:checked={showChristmas} class="text-primary rounded" />
+								<span class="text-sm font-medium text-gray-600">Christmas</span>
 							</label>
 							<label class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-100 rounded-lg cursor-pointer hover:border-primary transition-colors">
 								<input type="checkbox" bind:checked={showRetired} class="text-primary rounded" />
@@ -540,7 +647,7 @@
 								
 								{#if expandedThemes.has(labelId)}
 									<div class="p-4 border-t border-gray-100 bg-white">
-										<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<div class="grid grid-cols-1 md:grid-cols-2 {collapsedSidebar ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-4">
 											{#each songs as song (song.id)}
 												<SongCard
 													{song}
@@ -562,9 +669,11 @@
 				{:else}
 					<Card padding={false} class="overflow-hidden">
 						<EmptyState
-							title="Empty Library"
-							message="Start adding songs to build your worship library."
-							action={{ label: 'Add First Song', onclick: handleAddSong }}
+							title="No songs found"
+							message={statusFilter !== 'all' 
+								? `No ${statusFilter === 'ready' ? 'ready-to-use' : 'used'} songs match your search.` 
+								: "Start adding songs to build your worship library."}
+							action={{ label: 'Clear Filters', onclick: () => { searchQuery = ''; statusFilter = 'all'; } }}
 						/>
 					</Card>
 				{/if}
@@ -579,11 +688,11 @@
 						<EmptyState
 							title="No songs found"
 							message="Try adjusting your filters or search query."
-							action={{ label: 'Clear Filters', onclick: () => { searchQuery = ''; selectedThemeId = ''; showFavorites = false; showRetired = false; } }}
+							action={{ label: 'Clear Filters', onclick: () => { searchQuery = ''; selectedThemeId = ''; showFavorites = false; showRetired = false; showChristmas = false; } }}
 						/>
 					</Card>
 				{:else}
-					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div class="grid grid-cols-1 md:grid-cols-2 {collapsedSidebar ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-4">
 						{#each songs as song (song.id)}
 							<SongCard
 								{song}
@@ -614,25 +723,35 @@
 		</div>
 
 		<!-- Sidebar -->
-		<aside class="lg:col-span-3 space-y-8">
-			<Card padding={false} class="overflow-hidden border-transparent shadow-sm">
-				<div class="p-5 bg-primary text-white">
-					<div class="flex items-center gap-3">
-						<div class="bg-white/20 p-2 rounded-lg">
-							<TrendingUp class="h-5 w-5 text-white" />
+		<!-- Sidebar -->
+		{#if !collapsedSidebar}
+			<aside class="lg:col-span-3 transition-all duration-300">
+				<Card padding={false} class="overflow-hidden border-transparent shadow-sm sticky top-6">
+					<div class="bg-primary text-white p-5 flex items-center justify-between">
+						<div class="flex items-center gap-3">
+							<div class="bg-white/20 p-2 rounded-lg">
+								<TrendingUp class="h-5 w-5 text-white" />
+							</div>
+							<h3 class="font-bold">Top Songs</h3>
 						</div>
-						<h3 class="font-bold">Top Songs</h3>
+						<button 
+							onclick={() => collapsedSidebar = true} 
+							class="text-white/70 hover:text-white hover:bg-white/10 p-1 rounded transition-colors"
+							title="Collapse Sidebar"
+						>
+							<ChevronRight class="h-5 w-5" />
+						</button>
 					</div>
-				</div>
-				<div class="p-5 bg-white">
-					<SongsSidebar
-						onAddToService={handleAddToService}
-						{isEditingService}
-						{songsInCurrentService}
-					/>
-				</div>
-			</Card>
-		</aside>
+					<div class="p-5 bg-white">
+						<SongsSidebar
+							onAddToService={handleAddToService}
+							{isEditingService}
+							{songsInCurrentService}
+						/>
+					</div>
+				</Card>
+			</aside>
+		{/if}
 	</div>
 </div>
 

@@ -169,6 +169,9 @@ export interface SongFilterOptions {
 	showRetired?: boolean;
 	showFavorites?: boolean;
 	showDifficult?: boolean;
+	showChristmas?: boolean;
+	status?: 'all' | 'ready' | 'used';
+	usageTimeframe?: 'recent' | '3months' | '6months';
 }
 
 export interface SongStats {

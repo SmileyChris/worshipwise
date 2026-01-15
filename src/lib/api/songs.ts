@@ -68,6 +68,52 @@ export class SongsAPI {
 				filterParts.push(`created_by = "${options.createdBy}"`);
 			}
 
+			// Add favorites filter
+			if (options.showFavorites && this.authContext.user?.id) {
+				try {
+					const favorites = await this.pb.collection('song_ratings').getFullList({
+						filter: `user_id = "${this.authContext.user.id}" && church_id = "${this.authContext.currentChurch.id}" && rating = "thumbs_up"`,
+						fields: 'song_id'
+					});
+					
+					const favIds = favorites.map(f => f.song_id);
+					if (favIds.length > 0) {
+						filterParts.push(`(${favIds.map(id => `id = "${id}"`).join(' || ')})`);
+					} else {
+						filterParts.push('id = "no_results"');
+					}
+				} catch (e) {
+					console.error('Failed to fetch favorites for filter:', e);
+					filterParts.push('id = "error_fetching_favorites"');
+				}
+			}
+
+			// Filter OUT Christmas songs if specifically disabled
+			if (options.showChristmas === false) {
+				filterParts.push('(title !~ "Christmas" && !(tags ?~ "Christmas"))');
+			}
+
+			// Add status (ready/used) filter
+			if (options.status === 'ready') {
+				const now = new Date();
+				const d14 = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+				const d180 = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString();
+				filterParts.push(`(last_used_date = "" || last_used_date = null || (last_used_date < "${d14}" && last_used_date > "${d180}"))`);
+			} else if (options.status === 'used') {
+				filterParts.push('(last_used_date != "" && last_used_date != null)');
+				
+				if (options.usageTimeframe) {
+					const now = new Date();
+					let days = 180;
+					if (options.usageTimeframe === 'recent') days = 30;
+					else if (options.usageTimeframe === '3months') days = 90;
+					else if (options.usageTimeframe === '6months') days = 180;
+					
+					const dateLimit = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
+					filterParts.push(`last_used_date >= "${dateLimit}"`);
+				}
+			}
+
 			// Combine filters
 			if (filterParts.length > 0) {
 				filter += ` && (${filterParts.join(' && ')})`;
@@ -140,6 +186,55 @@ export class SongsAPI {
 			}
 			if (options.createdBy) {
 				filterParts.push(`created_by = "${options.createdBy}"`);
+			}
+
+			// Add favorites filter
+			if (options.showFavorites && this.authContext.user?.id) {
+				// We need to fetch the favorite song IDs first
+				try {
+					const favorites = await this.pb.collection('song_ratings').getFullList({
+						filter: `user_id = "${this.authContext.user.id}" && church_id = "${this.authContext.currentChurch.id}" && rating = "thumbs_up"`,
+						fields: 'song_id'
+					});
+					
+					const favIds = favorites.map(f => f.song_id);
+					if (favIds.length > 0) {
+						filterParts.push(`(${favIds.map(id => `id = "${id}"`).join(' || ')})`);
+					} else {
+						// No favorites found, return no results
+						filterParts.push('id = "no_results"');
+					}
+				} catch (e) {
+					console.error('Failed to fetch favorites for filter:', e);
+					// If fail, don't filter? Or return nothing? Safest to return nothing or log error.
+					filterParts.push('id = "error_fetching_favorites"');
+				}
+			}
+
+			// Filter OUT Christmas songs if specifically disabled
+			if (options.showChristmas === false) {
+				filterParts.push('(title !~ "Christmas" && !(tags ?~ "Christmas"))');
+			}
+
+			// Add status (ready/used) filter
+			if (options.status === 'ready') {
+				const now = new Date();
+				const d14 = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+				const d180 = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString();
+				filterParts.push(`(last_used_date = "" || last_used_date = null || (last_used_date < "${d14}" && last_used_date > "${d180}"))`);
+			} else if (options.status === 'used') {
+				filterParts.push('(last_used_date != "" && last_used_date != null)');
+				
+				if (options.usageTimeframe) {
+					const now = new Date();
+					let days = 180;
+					if (options.usageTimeframe === 'recent') days = 30;
+					else if (options.usageTimeframe === '3months') days = 90;
+					else if (options.usageTimeframe === '6months') days = 180;
+					
+					const dateLimit = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
+					filterParts.push(`last_used_date >= "${dateLimit}"`);
+				}
 			}
 
 			if (filterParts.length > 0) {
@@ -429,6 +524,31 @@ export class SongsAPI {
 			// Add created_by filter
 			if (options.createdBy) {
 				filterParts.push(`created_by = "${options.createdBy}"`);
+			}
+
+			// Add favorites filter
+			if (options.showFavorites && this.authContext.user?.id) {
+				try {
+					const favorites = await this.pb.collection('song_ratings').getFullList({
+						filter: `user_id = "${this.authContext.user.id}" && church_id = "${this.authContext.currentChurch.id}" && rating = "thumbs_up"`,
+						fields: 'song_id'
+					});
+					
+					const favIds = favorites.map(f => f.song_id);
+					if (favIds.length > 0) {
+						filterParts.push(`(${favIds.map(id => `id = "${id}"`).join(' || ')})`);
+					} else {
+						filterParts.push('id = "no_results"');
+					}
+				} catch (e) {
+					console.error('Failed to fetch favorites for filter:', e);
+					filterParts.push('id = "error_fetching_favorites"');
+				}
+			}
+
+			// Filter OUT Christmas songs if specifically disabled
+			if (options.showChristmas === false) {
+				filterParts.push('(title !~ "Christmas" && !(tags ?~ "Christmas"))');
 			}
 
 			// Combine filters
