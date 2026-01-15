@@ -7,7 +7,7 @@
  * Automatically assigns the "Administrator" role to the church owner when they join.
  */
 
-onRecordAfterCreateRequest((e) => {
+onRecordAfterCreateSuccess((e) => {
     const church = e.record;
     
     try {
@@ -50,7 +50,7 @@ onRecordAfterCreateRequest((e) => {
 }, "churches");
 
 
-onRecordAfterCreateRequest((e) => {
+onRecordAfterCreateSuccess((e) => {
     const membership = e.record;
     
     try {

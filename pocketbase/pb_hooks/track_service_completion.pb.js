@@ -3,9 +3,9 @@
 /**
  * Hook to automatically create song_usage records when a service is marked as completed
  */
-onRecordAfterUpdateRequest((e) => {
+onRecordAfterUpdateSuccess((e) => {
 	const record = e.record;
-	const oldStatus = record.originalCopy().getString('status');
+	const oldStatus = e.record.originalCopy().getString('status');
 	const newStatus = record.getString('status');
 
 	// Only proceed if status changed to 'completed'
