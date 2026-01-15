@@ -15,15 +15,12 @@
 		return date.getDate().toString();
 	}
 
-	function getMonth(dateString: string): string {
+	function getDayName(dateString: string): string {
 		const date = new Date(dateString);
-		return date.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
+		return date.toLocaleDateString('en-GB', { weekday: 'short' }).toUpperCase();
 	}
 
-	function getYear(dateString: string): string {
-		const date = new Date(dateString);
-		return date.getFullYear().toString();
-	}
+
 
 	let statusInfo = $derived.by(() => {
 		const status = service.status || 'draft';
@@ -52,11 +49,10 @@
 			<!-- Date Column -->
 			<div class="flex-shrink-0 flex flex-col items-center justify-center w-16 h-20 bg-white border border-gray-100 rounded-2xl shadow-sm group-hover:border-primary/20 transition-colors overflow-hidden" title={statusInfo.label}>
 				<div class="w-full {statusInfo.headerBg} {statusInfo.headerText} text-[10px] font-bold py-1 text-center uppercase tracking-widest">
-					{getMonth(service.service_date)}
+					{getDayName(service.service_date)}
 				</div>
 				<div class="flex-1 flex flex-col items-center justify-center pt-1">
 					<span class="text-3xl font-black text-gray-900 leading-none">{getDay(service.service_date)}</span>
-					<span class="text-[10px] text-gray-400 font-medium">{getYear(service.service_date)}</span>
 				</div>
 			</div>
 
@@ -92,27 +88,23 @@
 		</div>
 
 		<!-- Footer -->
-		<div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between group-hover:bg-primary/5 transition-colors">
-			<div class="flex items-center gap-4">
-				<div class="flex items-center gap-1.5 text-xs font-semibold text-gray-600">
-					<Music class="h-3.5 w-3.5 text-primary" />
-					<span>
-						{#if service.expand?.service_songs_via_service_id && service.expand.service_songs_via_service_id.length > 0}
-							See Songs
-						{:else}
-							Plan Songs
-						{/if}
-					</span>
+		<div class="relative px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-center group-hover:bg-primary/5 transition-colors">
+			{#if service.estimated_duration}
+				<div class="absolute left-5 text-xs text-gray-400">
+					{Math.floor(service.estimated_duration / 60)}m
 				</div>
-				
-				{#if service.estimated_duration}
-					<div class="text-xs text-gray-400">
-						{Math.floor(service.estimated_duration / 60)}m
-					</div>
-				{/if}
+			{/if}
+
+			<div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary/80 group-hover:text-primary transition-colors">
+				<span>
+					{#if service.expand?.service_songs_via_service_id && service.expand.service_songs_via_service_id.length > 0}
+						See Songs
+					{:else}
+						Plan Songs
+					{/if}
+				</span>
+				<ChevronRight class="h-3.5 w-3.5" />
 			</div>
-			
-			<ChevronRight class="h-4 w-4 text-gray-300 group-hover:text-primary transition-colors" />
 		</div>
 	</div>
 </Card>

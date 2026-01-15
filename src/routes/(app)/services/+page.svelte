@@ -9,7 +9,7 @@
 	import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
 	import ServiceCard from '$lib/components/services/ServiceCard.svelte';
 	import TeamSelector from '$lib/components/services/TeamSelector.svelte';
-	import ServiceCalendar from '$lib/components/services/ServiceCalendar.svelte';
+
 	import type { ServiceTeamSkills } from '$lib/types/service';
 	import { onMount } from 'svelte';
 	import { Calendar, Layers, CheckCircle, Clock } from 'lucide-svelte';
@@ -18,8 +18,6 @@
 	const servicesStore = getServicesStore();
 
 	let showCreateModal = $state(false);
-	let viewMode = $state<'grid' | 'calendar'>('grid');
-
 	// Form state for creating services
 	let createForm = $state({
 		title: '',
@@ -161,6 +159,37 @@
 		resetCreateForm();
 		showCreateModal = true;
 	}
+
+	let statusFilter = $state<'all' | 'draft' | 'planned' | 'completed'>('all');
+
+	let filteredServices = $derived(
+		statusFilter === 'all'
+			? servicesStore.services
+			: servicesStore.services.filter((s) => s.status === statusFilter)
+	);
+
+	let servicesByMonth = $derived.by(() => {
+		const groups: { label: string; services: typeof filteredServices }[] = [];
+		let currentGroup: { label: string; services: typeof filteredServices } | null = null;
+
+		// Sort services by date descending first
+		const sorted = [...filteredServices].sort((a, b) => 
+			new Date(b.service_date).getTime() - new Date(a.service_date).getTime()
+		);
+
+		sorted.forEach(service => {
+			const date = new Date(service.service_date);
+			const monthLabel = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+			if (!currentGroup || currentGroup.label !== monthLabel) {
+				currentGroup = { label: monthLabel, services: [] };
+				groups.push(currentGroup);
+			}
+			currentGroup.services.push(service);
+		});
+
+		return groups;
+	});
 </script>
 
 <svelte:head>
@@ -176,21 +205,6 @@
 		</div>
 
 		<div class="mt-4 flex items-center gap-4 md:mt-0 md:ml-4">
-			<div class="flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
-				<button
-					class="rounded-lg px-4 py-1.5 text-sm font-semibold transition-all {viewMode === 'grid' ? 'bg-primary text-white shadow-md' : 'text-gray-600 hover:text-gray-900'}"
-					onclick={() => (viewMode = 'grid')}
-				>
-					Grid
-				</button>
-				<button
-					class="rounded-lg px-4 py-1.5 text-sm font-semibold transition-all {viewMode === 'calendar' ? 'bg-primary text-white shadow-md' : 'text-gray-600 hover:text-gray-900'}"
-					onclick={() => (viewMode = 'calendar')}
-				>
-					Calendar
-				</button>
-			</div>
-
 			{#if auth.canManageServices}
 				<Button variant="primary" onclick={openCreateModal} class="shadow-lg shadow-primary/20">
 					Plan New Service
@@ -206,98 +220,109 @@
 	{/if}
 
 	<!-- Quick stats -->
-	{#if viewMode === 'grid'}
-		<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-			<Card class="bg-white border-transparent shadow-sm">
-				<div class="flex items-center gap-4">
-					<div class="bg-gray-100 p-2.5 rounded-xl">
-						<Calendar class="h-5 w-5 text-gray-600" />
+	<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+			<!-- Total / All -->
+			<button class="text-left w-full focus:outline-none cursor-pointer group" onclick={() => statusFilter = 'all'}>
+				<Card class="bg-white border-transparent shadow-sm transition-all duration-300 {statusFilter === 'all' ? 'ring-1 ring-gray-400 shadow-md' : 'group-hover:shadow-lg group-hover:shadow-gray-200/60'}">
+					<div class="flex items-center gap-4">
+						<div class="bg-gray-100 p-2.5 rounded-xl">
+							<Calendar class="h-5 w-5 text-gray-600" />
+						</div>
+						<div>
+							<div class="text-2xl font-bold text-gray-900 leading-none">{stats.total}</div>
+							<div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Total</div>
+						</div>
 					</div>
-					<div>
-						<div class="text-2xl font-bold text-gray-900 leading-none">{stats.total}</div>
-						<div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Total</div>
-					</div>
-				</div>
-			</Card>
+				</Card>
+			</button>
 
-			<Card class="bg-white border-transparent shadow-sm">
-				<div class="flex items-center gap-4">
-					<div class="bg-blue-50 p-2.5 rounded-xl">
-						<Layers class="h-5 w-5 text-blue-600" />
+			<!-- Drafts -->
+			<button class="text-left w-full focus:outline-none cursor-pointer group" onclick={() => statusFilter = 'draft'}>
+				<Card class="bg-white border-transparent shadow-sm transition-all duration-300 {statusFilter === 'draft' ? 'ring-1 ring-blue-400 shadow-md' : 'group-hover:shadow-lg group-hover:shadow-blue-200/60'}">
+					<div class="flex items-center gap-4">
+						<div class="bg-blue-50 p-2.5 rounded-xl">
+							<Layers class="h-5 w-5 text-blue-600" />
+						</div>
+						<div>
+							<div class="text-2xl font-bold text-gray-900 leading-none">{stats.draft}</div>
+							<div class="text-[10px] text-blue-400 font-bold uppercase tracking-wider mt-1">Drafts</div>
+						</div>
 					</div>
-					<div>
-						<div class="text-2xl font-bold text-gray-900 leading-none">{stats.draft}</div>
-						<div class="text-[10px] text-blue-400 font-bold uppercase tracking-wider mt-1">Drafts</div>
-					</div>
-				</div>
-			</Card>
+				</Card>
+			</button>
 
-			<Card class="bg-white border-transparent shadow-sm">
-				<div class="flex items-center gap-4">
-					<div class="bg-green-50 p-2.5 rounded-xl">
-						<Clock class="h-5 w-5 text-green-600" />
+			<!-- Planned -->
+			<button class="text-left w-full focus:outline-none cursor-pointer group" onclick={() => statusFilter = 'planned'}>
+				<Card class="bg-white border-transparent shadow-sm transition-all duration-300 {statusFilter === 'planned' ? 'ring-1 ring-green-400 shadow-md' : 'group-hover:shadow-lg group-hover:shadow-green-200/60'}">
+					<div class="flex items-center gap-4">
+						<div class="bg-green-50 p-2.5 rounded-xl">
+							<Clock class="h-5 w-5 text-green-600" />
+						</div>
+						<div>
+							<div class="text-2xl font-bold text-gray-900 leading-none">{stats.planned}</div>
+							<div class="text-[10px] text-green-400 font-bold uppercase tracking-wider mt-1">Planned</div>
+						</div>
 					</div>
-					<div>
-						<div class="text-2xl font-bold text-gray-900 leading-none">{stats.planned}</div>
-						<div class="text-[10px] text-green-400 font-bold uppercase tracking-wider mt-1">Planned</div>
-					</div>
-				</div>
-			</Card>
+				</Card>
+			</button>
 
-			<Card class="bg-white border-transparent shadow-sm">
-				<div class="flex items-center gap-4">
-					<div class="bg-purple-50 p-2.5 rounded-xl">
-						<CheckCircle class="h-5 w-5 text-purple-600" />
+			<!-- Completed -->
+			<button class="text-left w-full focus:outline-none cursor-pointer group" onclick={() => statusFilter = 'completed'}>
+				<Card class="bg-white border-transparent shadow-sm transition-all duration-300 {statusFilter === 'completed' ? 'ring-1 ring-purple-400 shadow-md' : 'group-hover:shadow-lg group-hover:shadow-purple-200/60'}">
+					<div class="flex items-center gap-4">
+						<div class="bg-purple-50 p-2.5 rounded-xl">
+							<CheckCircle class="h-5 w-5 text-purple-600" />
+						</div>
+						<div>
+							<div class="text-2xl font-bold text-gray-900 leading-none">{stats.completed}</div>
+							<div class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mt-1">Done</div>
+						</div>
 					</div>
-					<div>
-						<div class="text-2xl font-bold text-gray-900 leading-none">{stats.completed}</div>
-						<div class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mt-1">Done</div>
-					</div>
-				</div>
-			</Card>
+				</Card>
+			</button>
 		</div>
-	{/if}
 
 	<!-- Services list -->
 	{#if servicesStore.loading}
 		<div class="flex h-64 items-center justify-center">
 			<LoadingSpinner message="Loading services..." />
 		</div>
-	{:else if servicesStore.services.length === 0}
+	{:else if filteredServices.length === 0}
 		<Card>
 			<EmptyState
 				title="No services found"
-				message={auth.canManageServices 
-					? "Start your first worship plan today."
-					: "Contact your leader to get assigned to a service."}
-				action={auth.canManageServices ? {
+				message={servicesStore.services.length > 0
+					? `No ${statusFilter === 'all' ? '' : statusFilter} services found.` 
+					: (auth.canManageServices 
+						? "Start your first worship plan today."
+						: "Contact your leader to get assigned to a service.")}
+				action={auth.canManageServices && servicesStore.services.length === 0 ? {
 					label: "Plan First Service",
 					onclick: openCreateModal
 				} : undefined}
 			>
 				{#snippet icon()}
-					<div class="text-6xl">📋</div>
+					<div class="text-6xl">
+						{statusFilter === 'completed' ? '✅' : statusFilter === 'planned' ? '📅' : statusFilter === 'draft' ? '📝' : '📋'}
+					</div>
 				{/snippet}
 			</EmptyState>
 		</Card>
 	{:else}
-		{#if viewMode === 'calendar'}
-			<ServiceCalendar
-				services={servicesStore.services}
-				loading={servicesStore.loading}
-				onServiceClick={(service) => openBuilder(service.id)}
-				onDateClick={(date) => {
-					createForm.service_date = date.toISOString().split('T')[0];
-					openCreateModal();
-				}}
-			/>
-		{:else}
-			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-				{#each servicesStore.services as service (service.id)}
-					<ServiceCard {service} onclick={() => openBuilder(service.id)} />
-				{/each}
-			</div>
-		{/if}
+		<div class="space-y-8">
+			{#each servicesByMonth as group (group.label)}
+				<div>
+					<h3 class="text-lg font-semibold text-gray-900 mb-4 sticky top-0 bg-gray-50/95 backdrop-blur py-2 z-10 border-b border-gray-100">
+						{group.label}
+					</h3>
+					<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+						{#each group.services as service (service.id)}
+							<ServiceCard {service} onclick={() => openBuilder(service.id)} />
+						{/each}
+					</div>
+				</div>
+			{/each}
+		</div>
 	{/if}
 </div>
 
