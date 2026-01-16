@@ -55,80 +55,96 @@
 
 	<!-- Stats Grid -->
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-		<Card class="bg-gradient-to-br from-blue-50 to-white border-blue-100">
+		<Card class="border-blue-100 bg-gradient-to-br from-blue-50 to-white">
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm font-medium text-blue-600">Total Songs</p>
-					<h4 class="font-title text-2xl font-bold text-gray-900">{analyticsStore.overview?.totalSongs || songsStore.totalItems}</h4>
+					<h4 class="font-title text-2xl font-bold text-gray-900">
+						{analyticsStore.overview?.totalSongs || songsStore.totalItems}
+					</h4>
 				</div>
-				<div class="bg-blue-100 p-3 rounded-xl">
+				<div class="rounded-xl bg-blue-100 p-3">
 					<Music class="h-6 w-6 text-blue-600" />
 				</div>
 			</div>
 		</Card>
 
-		<Card class="bg-gradient-to-br from-amber-50 to-white border-amber-100">
+		<Card class="border-amber-100 bg-gradient-to-br from-amber-50 to-white">
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm font-medium text-amber-600">Upcoming Services</p>
-					<h4 class="font-title text-2xl font-bold text-gray-900">{servicesStore.upcomingServices.length}</h4>
+					<h4 class="font-title text-2xl font-bold text-gray-900">
+						{servicesStore.upcomingServices.length}
+					</h4>
 				</div>
-				<div class="bg-amber-100 p-3 rounded-xl">
+				<div class="rounded-xl bg-amber-100 p-3">
 					<Calendar class="h-6 w-6 text-amber-600" />
 				</div>
 			</div>
 		</Card>
 
-		<Card class="bg-gradient-to-br from-green-50 to-white border-green-100">
+		<Card class="border-green-100 bg-gradient-to-br from-green-50 to-white">
 			<div class="flex items-center justify-between">
 				<div>
-					<p class="text-sm font-medium text-green-600">Total Usages</p>
-					<h4 class="font-title text-2xl font-bold text-gray-900">{analyticsStore.overview?.totalUsages || 0}</h4>
+					<p class="text-sm font-medium text-green-600">Songs Sung</p>
+					<h4 class="font-title text-2xl font-bold text-gray-900">
+						{analyticsStore.overview?.totalUsages || 0}
+					</h4>
 				</div>
-				<div class="bg-green-100 p-3 rounded-xl">
+				<div class="rounded-xl bg-green-100 p-3">
 					<TrendingUp class="h-6 w-6 text-green-600" />
 				</div>
 			</div>
 		</Card>
 
-		<Card class="bg-gradient-to-br from-purple-50 to-white border-purple-100">
+		<Card class="border-purple-100 bg-gradient-to-br from-purple-50 to-white">
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm font-medium text-purple-600">Worship Leaders</p>
-					<h4 class="font-title text-2xl font-bold text-gray-900">{analyticsStore.overview?.activeWorshipLeaders || 1}</h4>
+					<h4 class="font-title text-2xl font-bold text-gray-900">
+						{analyticsStore.overview?.activeWorshipLeaders || 1}
+					</h4>
 				</div>
-				<div class="bg-purple-100 p-3 rounded-xl">
+				<div class="rounded-xl bg-purple-100 p-3">
 					<Users class="h-6 w-6 text-purple-600" />
 				</div>
 			</div>
 		</Card>
 	</div>
 
-	<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+	<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
 		<!-- Left: Upcoming and Trends -->
-		<div class="lg:col-span-2 space-y-8">
+		<div class="space-y-8 lg:col-span-2">
 			<!-- Upcoming Services -->
 			<section>
-				<div class="flex items-center justify-between mb-4">
-					<h3 class="font-title text-xl font-bold text-gray-900 flex items-center gap-2">
-						<Calendar class="h-5 w-5 text-primary" />
+				<div class="mb-4 flex items-center justify-between">
+					<h3 class="font-title flex items-center gap-2 text-xl font-bold text-gray-900">
+						<Calendar class="text-primary h-5 w-5" />
 						Upcoming Services
 					</h3>
-					<a href="/services" class="text-primary hover:underline text-sm font-medium">View All Services</a>
+					<a href="/services" class="text-primary text-sm font-medium hover:underline"
+						>View All Services</a
+					>
 				</div>
 
 				{#if servicesStore.upcomingServices.length > 0}
 					<div class="grid grid-cols-1 gap-4">
 						{#each servicesStore.upcomingServices as service}
-							<ServiceCard {service} onclick={() => (window.location.href = `/services/${service.id}`)} />
+							<ServiceCard
+								{service}
+								onclick={() => (window.location.href = `/services/${service.id}`)}
+							/>
 						{/each}
 					</div>
 				{:else}
 					<Card>
-						<EmptyState 
-							title="No upcoming services" 
-							message="Start planning your next worship service." 
-							action={{ label: 'Plan a Service', onclick: () => (window.location.href = '/services') }}
+						<EmptyState
+							title="No upcoming services"
+							message="Start planning your next worship service."
+							action={{
+								label: 'Plan a Service',
+								onclick: () => (window.location.href = '/services')
+							}}
 						/>
 					</Card>
 				{/if}
@@ -136,9 +152,9 @@
 
 			<!-- Usage Trend Chart -->
 			<section>
-				<div class="flex items-center justify-between mb-4">
-					<h3 class="font-title text-xl font-bold text-gray-900 flex items-center gap-2">
-						<TrendingUp class="h-5 w-5 text-primary" />
+				<div class="mb-4 flex items-center justify-between">
+					<h3 class="font-title flex items-center gap-2 text-xl font-bold text-gray-900">
+						<TrendingUp class="text-primary h-5 w-5" />
 						Song Usage Trend
 					</h3>
 				</div>
@@ -147,10 +163,10 @@
 						{#if analyticsStore.usageTrends.length > 0}
 							<UsageTrendChart data={analyticsStore.usageTrends} interval="week" />
 						{:else}
-							<div class="h-full flex flex-col items-center justify-center text-gray-400">
-								<TrendingUp class="h-8 w-8 mb-2 opacity-50" />
+							<div class="flex h-full flex-col items-center justify-center text-gray-400">
+								<TrendingUp class="mb-2 h-8 w-8 opacity-50" />
 								<p class="font-medium">No usage trends yet</p>
-								<p class="text-xs mt-1">Complete services to track song usage over time</p>
+								<p class="mt-1 text-xs">Complete services to track song usage over time</p>
 							</div>
 						{/if}
 					</div>
@@ -162,9 +178,9 @@
 		<div class="space-y-8">
 			<!-- Recent Songs -->
 			<section>
-				<div class="flex items-center justify-between mb-4">
-					<h3 class="font-title text-xl font-bold text-gray-900 flex items-center gap-2">
-						<Music class="h-5 w-5 text-primary" />
+				<div class="mb-4 flex items-center justify-between">
+					<h3 class="font-title flex items-center gap-2 text-xl font-bold text-gray-900">
+						<Music class="text-primary h-5 w-5" />
 						Recent Songs
 					</h3>
 				</div>
@@ -173,56 +189,84 @@
 						{#each songsStore.songs.slice(0, 6) as song}
 							<a
 								href="/songs/{song.id}"
-								class="w-full text-left p-4 hover:bg-gray-50 flex items-center justify-between group transition-colors block"
+								class="group block flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-gray-50"
 							>
 								<div class="min-w-0">
-									<p class="font-bold text-gray-900 truncate group-hover:text-primary transition-colors">{song.title}</p>
-									<p class="text-xs text-gray-500 truncate">{song.artist || 'Unknown Artist'}</p>
+									<p
+										class="group-hover:text-primary truncate font-bold text-gray-900 transition-colors"
+									>
+										{song.title}
+									</p>
+									<p class="truncate text-xs text-gray-500">{song.artist || 'Unknown Artist'}</p>
 								</div>
 								{#if song.key_signature}
-									<span class="text-xs font-bold text-primary bg-primary/5 border border-primary/10 px-2 py-1 rounded-lg">
+									<span
+										class="text-primary bg-primary/5 border-primary/10 rounded-lg border px-2 py-1 text-xs font-bold"
+									>
 										{song.key_signature}
 									</span>
 								{/if}
 							</a>
 						{/each}
-						
+
 						{#if songsStore.songs.length === 0}
-							<div class="p-8 text-center text-gray-500">
-								No songs added yet.
-							</div>
+							<div class="p-8 text-center text-gray-500">No songs added yet.</div>
 						{/if}
 					</div>
-					<div class="p-3 bg-gray-50 border-t border-gray-100 text-center">
-						<a href="/songs" class="text-xs text-primary font-bold uppercase tracking-widest hover:underline">View Library</a>
+					<div class="border-t border-gray-100 bg-gray-50 p-3 text-center">
+						<a
+							href="/songs"
+							class="text-primary text-xs font-bold tracking-widest uppercase hover:underline"
+							>View Library</a
+						>
 					</div>
 				</Card>
 			</section>
 
 			<!-- Quick Actions -->
 			<section>
-				<h3 class="font-title text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
+				<h3 class="font-title mb-4 text-lg font-bold text-gray-900">Quick Actions</h3>
 				<div class="grid grid-cols-2 gap-3">
-					<button onclick={() => (window.location.href = '/songs?new=1')} class="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-2xl hover:border-primary hover:bg-primary/5 transition-all group">
-						<div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2 group-hover:bg-primary group-hover:text-white transition-colors">
+					<button
+						onclick={() => (window.location.href = '/songs?new=1')}
+						class="hover:border-primary hover:bg-primary/5 group flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-4 transition-all"
+					>
+						<div
+							class="group-hover:bg-primary mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 transition-colors group-hover:text-white"
+						>
 							<Music class="h-5 w-5" />
 						</div>
 						<span class="text-sm font-medium text-gray-700">Add Song</span>
 					</button>
-					<button onclick={() => (window.location.href = '/services')} class="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-2xl hover:border-primary hover:bg-primary/5 transition-all group">
-						<div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mb-2 group-hover:bg-primary group-hover:text-white transition-colors">
+					<button
+						onclick={() => (window.location.href = '/services')}
+						class="hover:border-primary hover:bg-primary/5 group flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-4 transition-all"
+					>
+						<div
+							class="group-hover:bg-primary mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 transition-colors group-hover:text-white"
+						>
 							<PlusCircle class="h-5 w-5" />
 						</div>
 						<span class="text-sm font-medium text-gray-700">New Service</span>
 					</button>
-					<button onclick={() => (window.location.href = '/analytics')} class="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-2xl hover:border-primary hover:bg-primary/5 transition-all group">
-						<div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mb-2 group-hover:bg-primary group-hover:text-white transition-colors">
+					<button
+						onclick={() => (window.location.href = '/analytics')}
+						class="hover:border-primary hover:bg-primary/5 group flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-4 transition-all"
+					>
+						<div
+							class="group-hover:bg-primary mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 transition-colors group-hover:text-white"
+						>
 							<TrendingUp class="h-5 w-5" />
 						</div>
 						<span class="text-sm font-medium text-gray-700">Analytics</span>
 					</button>
-					<button onclick={() => (window.location.href = '/profile')} class="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-2xl hover:border-primary hover:bg-primary/5 transition-all group">
-						<div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mb-2 group-hover:bg-primary group-hover:text-white transition-colors">
+					<button
+						onclick={() => (window.location.href = '/profile')}
+						class="hover:border-primary hover:bg-primary/5 group flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-4 transition-all"
+					>
+						<div
+							class="group-hover:bg-primary mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 transition-colors group-hover:text-white"
+						>
 							<Users class="h-5 w-5" />
 						</div>
 						<span class="text-sm font-medium text-gray-700">My Profile</span>
