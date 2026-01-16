@@ -106,6 +106,24 @@ class SongsStore {
 	}
 
 	/**
+	 * Update global statistics (counts not affected by filters)
+	 */
+	async updateGlobalStats(): Promise<void> {
+		try {
+			// Get total active songs count
+			const result = await this.songsApi.getSongsPaginated(1, 1, { 
+				showRetired: false
+			});
+			this.stats.totalSongs = result.totalItems;
+
+			// Get available songs count
+			this.stats.availableSongs = await this.songsApi.getAvailableSongsCount();
+		} catch (error) {
+			console.error('Failed to update global stats:', error);
+		}
+	}
+
+	/**
 	 * Load and cache all songs with usage information (called once per session)
 	 * Uses the enriched view which includes aggregates in a single query
 	 */
@@ -118,7 +136,7 @@ class SongsStore {
 
 		try {
 			// Fetch all enriched songs (includes usage and rating aggregates)
-			const enrichedSongs = await this.songsApi.getSongsEnriched({ showRetired: false });
+			const enrichedSongs = await this.songsApi.getSongsEnriched({ showRetired: false, showChristmas: true });
 
 			// Fetch current user's individual ratings for all songs in parallel
 			const songIds = enrichedSongs.map((song) => song.id);
@@ -134,6 +152,16 @@ class SongsStore {
 			});
 
 			// Process enriched songs - they already have last_used_date from the view
+			console.log('DEBUG: loadAllSongsOnce fetched', enrichedSongs.length, 'songs');
+			if (enrichedSongs.length > 0) {
+				console.log('DEBUG: First song sample:', JSON.stringify(enrichedSongs[0], null, 2));
+				const withSungDate = enrichedSongs.filter(s => s.last_sung_date);
+				console.log('DEBUG: Songs with last_sung_date:', withSungDate.length);
+				if (withSungDate.length > 0) {
+					console.log('DEBUG: Sample last_sung_date:', withSungDate[0].last_sung_date);
+				}
+			}
+
 			this.allSongs = enrichedSongs.map((song: any) => {
 				// Calculate usage status from last_used_date if available
 				let daysSince = Infinity;
@@ -142,17 +170,27 @@ class SongsStore {
 					daysSince = Math.floor((Date.now() - lastUsed.getTime()) / (1000 * 60 * 60 * 24));
 				}
 
+				// Calculate days since last SUNG (historical only)
+				let daysSinceSung = Infinity;
+				if (song.last_sung_date) {
+					const lastSung = new Date(song.last_sung_date);
+					daysSinceSung = Math.floor((Date.now() - lastSung.getTime()) / (1000 * 60 * 60 * 24));
+				}
+
 				return {
 					...song,
 					lastUsedDate: song.last_used_date ? new Date(song.last_used_date) : null,
 					daysSinceLastUsed: daysSince,
-					usageStatus: this.calculateUsageStatus(daysSince)
+					
+					lastSungDate: song.last_sung_date ? new Date(song.last_sung_date) : null,
+					daysSinceLastSung: daysSinceSung !== Infinity ? daysSinceSung : undefined,
+					
+					usageStatus: this.calculateUsageStatus(daysSince, daysSinceSung)
 				};
 			});
 
-			// Update stats - total from loaded songs, available from lightweight count
-			this.stats.totalSongs = this.allSongs.length;
-			this.stats.availableSongs = await this.songsApi.getAvailableSongsCount();
+			// Update stats
+			await this.updateGlobalStats();
 		} catch (error: unknown) {
 			console.error('Failed to load all songs:', error);
 			this.error = this.getErrorMessage(error);
@@ -203,11 +241,22 @@ class SongsStore {
 					daysSince = Math.floor((Date.now() - lastUsed.getTime()) / (1000 * 60 * 60 * 24));
 				}
 
+				// Calculate days since last SUNG (historical only)
+				let daysSinceSung = Infinity;
+				if (song.last_sung_date) {
+					const lastSung = new Date(song.last_sung_date);
+					daysSinceSung = Math.floor((Date.now() - lastSung.getTime()) / (1000 * 60 * 60 * 24));
+				}
+
 				return {
 					...song,
 					lastUsedDate: song.last_used_date ? new Date(song.last_used_date) : null,
 					daysSinceLastUsed: daysSince,
-					usageStatus: this.calculateUsageStatus(daysSince)
+					
+					lastSungDate: song.last_sung_date ? new Date(song.last_sung_date) : null,
+					daysSinceLastSung: daysSinceSung !== Infinity ? daysSinceSung : undefined,
+
+					usageStatus: this.calculateUsageStatus(daysSince, daysSinceSung)
 				};
 			});
 
@@ -216,9 +265,13 @@ class SongsStore {
 			this.currentPage = result.page;
 			this.perPage = result.perPage;
 
-			// Update stats using data we already have + lightweight available count
-			this.stats.totalSongs = result.totalItems; // Already have this from pagination!
-			await this.updateAvailableSongsCount();
+			// If global stats aren't loaded or likely stale (0), load them
+			if (this.stats.totalSongs === 0) {
+				await this.updateGlobalStats();
+			} else {
+				// Only update available count just in case
+				this.updateAvailableSongsCount();
+			}
 		} catch (error: unknown) {
 			console.error('Failed to load songs:', error);
 			this.error = this.getErrorMessage(error);
@@ -251,6 +304,9 @@ class SongsStore {
 
 			// Refresh the list to include the new song
 			await this.loadSongs();
+			
+			// Update global stats
+			await this.updateGlobalStats();
 
 			return newSong;
 		} catch (error: unknown) {
@@ -301,10 +357,8 @@ class SongsStore {
 			// Remove from local array
 			this.songs = this.songs.filter((song) => song.id !== id);
 			this.totalItems = Math.max(0, this.totalItems - 1);
-			this.stats.totalSongs = this.totalItems;
-
-			// Update available songs count
-			await this.updateAvailableSongsCount();
+			// Do NOT auto-update stats.totalSongs from totalItems here, refresh globals instead
+			await this.updateGlobalStats();
 		} catch (error: unknown) {
 			console.error('Failed to delete song:', error);
 			this.error = this.getErrorMessage(error);
@@ -397,13 +451,23 @@ class SongsStore {
 	 * - available (green): 14-179 days (available for rotation)
 	 * - stale (gray): 180+ days (6+ months, consider refreshing)
 	 */
-	private calculateUsageStatus(daysSince: number): 'available' | 'caution' | 'recent' | 'stale' {
-		if (daysSince < 14) {
-			return 'recent'; // Used last 2 weeks
-		} else if (daysSince < 180) {
+	private calculateUsageStatus(daysSince: number, daysSinceSung: number = Infinity): 'upcoming' | 'available' | 'caution' | 'recent' | 'stale' {
+		// 1. Check for upcoming FIRST (based on ANY usage plan in future)
+		if (daysSince < 0) {
+			return 'upcoming'; 
+		}
+
+		// 2. Then check historical usage for recent/caution status
+		// We use daysSinceSung here because we care about when it was last actually SUNG
+		// If daysSinceSung is Infinity (never sung), it falls through to 'stale' or 'available'? 
+		// Actually if never sung, it should be available? Or stale (needs introducing)?
+		// Let's stick to logic:
+		if (daysSinceSung < 14) {
+			return 'recent'; // Sung in last 2 weeks
+		} else if (daysSinceSung < 180) {
 			return 'available'; // Good to use
 		} else {
-			return 'stale'; // Unused for 6+ months
+			return 'stale'; // Unused/Unsung for 6+ months
 		}
 	}
 
@@ -637,6 +701,9 @@ class SongsStore {
 				};
 			}
 
+			// Update global stats since active count changed
+			await this.updateGlobalStats();
+
 			// Reload if showing retired filter
 			if (this.filters.showRetired) {
 				await this.loadSongs();
@@ -664,6 +731,9 @@ class SongsStore {
 					retired_reason: undefined
 				};
 			}
+
+			// Update global stats since active count changed
+			await this.updateGlobalStats();
 
 			// Reload if not showing retired filter
 			if (!this.filters.showRetired) {
@@ -713,16 +783,23 @@ class SongsStore {
 				// Add new song to the beginning of the list if it matches current filters
 				this.songs = [eventData.record as unknown as Song, ...this.songs];
 				this.totalItems += 1;
+				// Update global stats to reflect new song
+				this.updateGlobalStats();
 			} else if (eventData.action === 'update') {
 				// Update existing song
 				const index = this.songs.findIndex((s) => s.id === eventData.record.id);
 				if (index !== -1) {
 					this.songs[index] = eventData.record as unknown as Song;
 				}
+				// If status changed (retired), update globals
+				if ('is_retired' in eventData.record) {
+					this.updateGlobalStats();
+				}
 			} else if (eventData.action === 'delete') {
 				// Remove deleted song
 				this.songs = this.songs.filter((s) => s.id !== eventData.record.id);
 				this.totalItems = Math.max(0, this.totalItems - 1);
+				this.updateGlobalStats();
 			}
 		});
 	}

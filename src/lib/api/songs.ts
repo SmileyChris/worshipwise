@@ -88,16 +88,19 @@ export class SongsAPI {
 				}
 			}
 
-			// Filter OUT Christmas songs if specifically disabled
-			if (options.showChristmas === false) {
-				filterParts.push('(title !~ "Christmas" && !(tags ?~ "Christmas"))');
+			// Christmas filtering: Hide if not specifically requested or if it's not December
+			const isDecember = new Date().getMonth() === 11;
+			const showChristmas = options.showChristmas ?? isDecember;
+
+			if (!showChristmas) {
+				filterParts.push('title !~ "Christmas"');
 			}
 
 			// Add status (ready/used) filter
 			if (options.status === 'ready') {
 				const now = new Date();
-				const d14 = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
-				const d180 = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString();
+				const d14 = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ');
+				const d180 = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ');
 				filterParts.push(`(last_used_date = "" || last_used_date = null || (last_used_date < "${d14}" && last_used_date > "${d180}"))`);
 			} else if (options.status === 'used') {
 				filterParts.push('(last_used_date != "" && last_used_date != null)');
@@ -109,7 +112,7 @@ export class SongsAPI {
 					else if (options.usageTimeframe === '3months') days = 90;
 					else if (options.usageTimeframe === '6months') days = 180;
 					
-					const dateLimit = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
+					const dateLimit = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ');
 					filterParts.push(`last_used_date >= "${dateLimit}"`);
 				}
 			}
@@ -122,7 +125,7 @@ export class SongsAPI {
 			const records = await this.pb.collection(this.enrichedCollection).getFullList({
 				filter,
 				sort: options.sort || 'title',
-				expand: 'created_by,labels'
+				expand: 'created_by,category,labels'
 			});
 
 			return records as unknown as Song[];
@@ -211,16 +214,19 @@ export class SongsAPI {
 				}
 			}
 
-			// Filter OUT Christmas songs if specifically disabled
-			if (options.showChristmas === false) {
-				filterParts.push('(title !~ "Christmas" && !(tags ?~ "Christmas"))');
+			// Christmas filtering: Hide if not specifically requested or if it's not December
+			const isDecember = new Date().getMonth() === 11;
+			const showChristmas = options.showChristmas ?? isDecember;
+
+			if (!showChristmas) {
+				filterParts.push('title !~ "Christmas"');
 			}
 
 			// Add status (ready/used) filter
 			if (options.status === 'ready') {
 				const now = new Date();
-				const d14 = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
-				const d180 = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString();
+				const d14 = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ');
+				const d180 = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ');
 				filterParts.push(`(last_used_date = "" || last_used_date = null || (last_used_date < "${d14}" && last_used_date > "${d180}"))`);
 			} else if (options.status === 'used') {
 				filterParts.push('(last_used_date != "" && last_used_date != null)');
@@ -232,7 +238,7 @@ export class SongsAPI {
 					else if (options.usageTimeframe === '3months') days = 90;
 					else if (options.usageTimeframe === '6months') days = 180;
 					
-					const dateLimit = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
+					const dateLimit = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ');
 					filterParts.push(`last_used_date >= "${dateLimit}"`);
 				}
 			}
@@ -244,7 +250,7 @@ export class SongsAPI {
 			const result = await this.pb.collection(this.enrichedCollection).getList(page, perPage, {
 				filter,
 				sort: options.sort || 'title',
-				expand: 'created_by,labels'
+				expand: 'created_by,category,labels'
 			});
 
 			return {
@@ -546,9 +552,12 @@ export class SongsAPI {
 				}
 			}
 
-			// Filter OUT Christmas songs if specifically disabled
-			if (options.showChristmas === false) {
-				filterParts.push('(title !~ "Christmas" && !(tags ?~ "Christmas"))');
+			// Christmas filtering: Hide if not specifically requested or if it's not December
+			const isDecember = new Date().getMonth() === 11;
+			const showChristmas = options.showChristmas ?? isDecember;
+
+			if (!showChristmas) {
+				filterParts.push('title !~ "Christmas"');
 			}
 
 			// Combine filters
@@ -1151,14 +1160,21 @@ export class SongsAPI {
 
 			// Calculate date thresholds
 			const now = Date.now();
-			const fourteenDaysAgo = new Date(now - 14 * 24 * 60 * 60 * 1000).toISOString();
-			const oneEightyDaysAgo = new Date(now - 180 * 24 * 60 * 60 * 1000).toISOString();
+			const fourteenDaysAgo = new Date(now - 14 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ');
+			const oneEightyDaysAgo = new Date(now - 180 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ');
 
-			const churchFilter = `church_id = "${this.authContext.currentChurch.id}" && (is_retired = false || is_retired = null)`;
+			let filter = `church_id = "${this.authContext.currentChurch.id}" && (is_retired = false || is_retired = null)`;
+			filter += ` && last_used_date >= "${oneEightyDaysAgo}" && last_used_date < "${fourteenDaysAgo}"`;
+
+			// Automate Christmas filtering: Hide unless it's December
+			const isDecember = new Date().getMonth() === 11;
+			if (!isDecember) {
+				filter += ' && title !~ "Christmas"';
+			}
 
 			// Available songs (used 14-180 days ago)
 			const result = await this.pb.collection(this.enrichedCollection).getList(1, 1, {
-				filter: `${churchFilter} && last_used_date >= "${oneEightyDaysAgo}" && last_used_date < "${fourteenDaysAgo}"`,
+				filter,
 				fields: 'id'
 			});
 

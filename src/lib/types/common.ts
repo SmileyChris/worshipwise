@@ -56,12 +56,13 @@ export type WeekStart = 'sunday' | 'monday';
 
 /**
  * Song usage status based on last used date (weekly-focused for worship scheduling)
+ * - upcoming: Scheduled for a future service (blue)
  * - recent: Used in last 7 days / last week (red - too recent)
  * - caution: Used 8-21 days ago / 2-3 weeks (yellow - use with caution)
  * - available: 22-179 days / available for rotation (green - good to use)
  * - stale: 180+ days / 6+ months (gray - consider refreshing)
  */
-export type SongUsageStatus = 'available' | 'caution' | 'recent' | 'stale';
+export type SongUsageStatus = 'upcoming' | 'available' | 'caution' | 'recent' | 'stale';
 
 /**
  * Song complexity level (from lyrics analysis)
@@ -125,7 +126,7 @@ export function isWeekStart(value: string): value is WeekStart {
 }
 
 export function isSongUsageStatus(value: string): value is SongUsageStatus {
-	return ['available', 'caution', 'recent', 'stale'].includes(value);
+	return ['upcoming', 'available', 'caution', 'recent', 'stale'].includes(value);
 }
 
 export function isSongComplexity(value: string): value is SongComplexity {
@@ -177,6 +178,7 @@ export const MEMBERSHIP_STATUSES: Record<string, MembershipStatus> = {
 } as const;
 
 export const SONG_USAGE_STATUSES: Record<string, SongUsageStatus> = {
+	UPCOMING: 'upcoming',
 	AVAILABLE: 'available',
 	CAUTION: 'caution',
 	RECENT: 'recent',

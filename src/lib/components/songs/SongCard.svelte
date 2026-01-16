@@ -51,42 +51,65 @@
 		if (!showUsageIndicator || !song.usageStatus) return null;
 
 		const status = song.usageStatus;
-		const daysSince = song.daysSinceLastUsed;
+		// Use daysSinceLastSung for historical context text, falling back to daysSinceLastUsed if that's all we have (e.g. old cached data)
+		const daysSince = song.daysSinceLastSung ?? song.daysSinceLastUsed;
 
 		// Helper to convert days to weeks
 		const weeksAgo =
 			daysSince !== undefined && daysSince < Infinity ? Math.floor(daysSince / 7) : null;
 
 		switch (status) {
+			case 'upcoming':
+				return {
+					status: 'blue',
+					colors: 'bg-blue-100 text-blue-800',
+					text: 'Planned',
+					secondaryText: null,
+					secondaryTextColors: null
+				};
 			case 'recent':
 				return {
 					status: 'red',
 					colors: 'bg-red-100 text-red-800',
-					text: weeksAgo === 0 ? 'Used this week' : 'Used last week'
+					text: weeksAgo === 0 ? 'Used this week' : 'Used last week',
+					secondaryText: null,
+					secondaryTextColors: null
 				};
 			case 'caution':
 				return {
-					status: 'yellow',
-					colors: 'bg-yellow-100 text-yellow-800',
-					text: weeksAgo ? `Used ${weeksAgo} weeks ago` : 'Recently used'
+					status: 'amber',
+					colors: 'bg-amber-100 text-amber-800',
+					text: weeksAgo ? `Used ${weeksAgo} weeks ago` : 'Recently used',
+					secondaryText: null,
+					secondaryTextColors: null
 				};
 			case 'available':
 				return {
 					status: 'green',
 					colors: 'bg-green-100 text-green-800',
-					text: 'Available'
+					text: 'Available',
+					secondaryText: weeksAgo && weeksAgo >= 4 
+						? `Sung ${Math.floor(weeksAgo / 4)} month${Math.floor(weeksAgo / 4) === 1 ? '' : 's'} ago`
+						: weeksAgo 
+							? `Sung ${weeksAgo} weeks ago` 
+							: null,
+					secondaryTextColors: 'text-amber-600'
 				};
 			case 'stale':
 				return {
 					status: 'gray',
 					colors: 'bg-gray-100 text-gray-600',
-					text: 'Not used recently'
+					text: 'Not used recently',
+					secondaryText: null,
+					secondaryTextColors: null
 				};
 			default:
 				return {
 					status: null,
 					colors: 'bg-gray-100 text-gray-800',
-					text: ''
+					text: '',
+					secondaryText: null,
+					secondaryTextColors: null
 				};
 		}
 	});
@@ -162,6 +185,11 @@
 						>
 							{usageStatusInfo.text}
 						</span>
+						{#if usageStatusInfo.secondaryText}
+							<span class="ml-2 text-xs font-medium {usageStatusInfo.secondaryTextColors || 'text-gray-500'}">
+								{usageStatusInfo.secondaryText}
+							</span>
+						{/if}
 					{/if}
 				</div>
 			{/if}

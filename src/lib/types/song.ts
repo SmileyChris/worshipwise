@@ -78,8 +78,13 @@ export interface Song {
 	daysSinceLastUsed?: number;
 	usageStatus?: SongUsageStatus;
 
+	// Enhanced usage tracking (historical vs planned)
+	lastSungDate?: Date | null;
+	daysSinceLastSung?: number;
+
 	// Aggregate data from songs_enriched view
-	last_used_date?: string | null; // From song_usage table
+	last_used_date?: string | null; // Max of all usage (including future)
+	last_sung_date?: string | null; // Max of historical usage only
 	thumbs_up?: number; // Aggregate rating counts
 	thumbs_down?: number;
 	neutral?: number;

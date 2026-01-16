@@ -17,7 +17,7 @@
 	import { createLabelsAPI } from '$lib/api/labels';
 	import { createRatingsAPI } from '$lib/api/ratings';
 	import { onMount } from 'svelte';
-	import { Music, CheckCircle, Clock, PlusCircle, Search, Users, TrendingUp, ChevronDown, ChevronRight, ChevronLeft, Layout, List, X } from 'lucide-svelte';
+	import { Music, CheckCircle, Clock, PlusCircle, Search, Users, TrendingUp, ChevronDown, ChevronRight, ChevronLeft, Layout, List, X, Filter } from 'lucide-svelte';
 
 	let { data } = $props();
 
@@ -32,7 +32,7 @@
 
 	// View state
 	let viewMode = $state<'list' | 'themes'>('themes');
-	let statusFilter = $state<'all' | 'ready' | 'used'>('ready');
+	let statusFilter = $state<'all' | 'ready' | 'used'>('all');
 	let uniqueSongsTimeframe = $state<'recent' | '3months' | '6months'>('6months');
 	let collapsedSidebar = $state(false);
 
@@ -43,119 +43,38 @@
 	let selectedSort = $state('title');
 	let showRetired = $state(false);
 	let showFavorites = $state(false);
-	// Default to true if current month is December (11)
-	let showChristmas = $state(new Date().getMonth() === 11);
+	// Christmas visibility logic: Only show songs in December or if specifically viewing the theme
+	let isDecember = $derived(new Date().getMonth() === 11);
 	let initialLoadComplete = $state(false);
+	let filtersExpanded = $state(false);
+
+	// Pagination state (local for client-side)
+	let pageNumber = $state(1);
+	let itemsPerPage = 24;
 
 	// Data for filters
 	let availableLabels = $state<Label[]>([]);
 
-	// Theme data
-	let themesData = $state<Map<string, { label: { id: string; name: string; color?: string }; songs: Song[] }> | null>(null);
-	let themesLoading = $state(false);
-	
-	// Collapsible themes state
-	let expandedThemes = $state(new Set<string>());
 
-	// Filter themes based on search and status
-	let filteredThemes = $derived.by(() => {
-		if (!themesData) return null;
-		
-		const query = searchQuery.toLowerCase().trim();
-		const result = new Map();
-
-		for (const [id, data] of themesData) {
-			// Check if theme matches Christmas filter
-			const isChristmasLabel = data.label.name.toLowerCase().includes('christmas');
-
-			const matchingSongs = data.songs.filter(s => {
-				// Global Christmas filter (Include/Exclude)
-				// If showChristmas is false, we HIDE Christmas songs (Title, Tag, or Label)
-				const isChristmasSong = isChristmasLabel || 
-										s.title.toLowerCase().includes('christmas') || 
-										(s.tags && s.tags.some(t => t.toLowerCase().includes('christmas')));
-
-				if (!showChristmas && isChristmasSong) {
-					return false;
-				}
-
-				// Search filter
-				const matchesSearch = !query || 
-					s.title.toLowerCase().includes(query) ||
-					(s.artist && s.artist.toLowerCase().includes(query));
-
-				if (!matchesSearch) return false;
-
-				// Status filter
-				if (statusFilter === 'ready') {
-					// Christmas songs are handled by global filter above.
-					// If we are here, either it's not a Christmas song, OR showChristmas is true.
-					// If showChristmas is true, we allow them to be "Ready" if they meet other criteria.
-					
-					const isAvailable = s.usageStatus === 'available';
-					const isNew = !s.lastUsedDate || s.daysSinceLastUsed === Infinity;
-					return isAvailable || isNew;
-				} else if (statusFilter === 'used') {
-					if (!s.daysSinceLastUsed && s.daysSinceLastUsed !== 0) return false;
-					const days = s.daysSinceLastUsed!;
-					
-					if (uniqueSongsTimeframe === 'recent') return days <= 30;
-					if (uniqueSongsTimeframe === '3months') return days <= 90;
-					if (uniqueSongsTimeframe === '6months') return days <= 180;
-				}
-
-				return true;
-			});
-
-			if (matchingSongs.length > 0) {
-				result.set(id, { ...data, songs: matchingSongs });
-			}
-		}
-		return result;
-	});
-
-	// Auto-expand/collapse on search
-	$effect(() => {
-		if ((searchQuery.trim() || statusFilter !== 'all') && filteredThemes) {
-			// Expand all found themes when searching or filtering
-			expandedThemes = new Set(filteredThemes.keys());
-		} else {
-			// Collapse all when cleared
-			expandedThemes = new Set();
-		}
-	});
-
-	function toggleTheme(id: string) {
-		const newSet = new Set(expandedThemes);
-		if (newSet.has(id)) {
-			newSet.delete(id);
-		} else {
-			newSet.add(id);
-		}
-		expandedThemes = newSet;
-	}
 
 	// Reactive data from store
-	let songs = $derived(songsStore.songs);
 	let loading = $derived(songsStore.loading);
 	let error = $derived(songsStore.error);
 	let stats = $derived(songsStore.stats);
-	let currentPage = $derived(songsStore.currentPage);
-	let totalPages = $derived(songsStore.totalPages);
-	let hasNextPage = $derived(songsStore.hasNextPage);
-	let hasPrevPage = $derived(songsStore.hasPrevPage);
 	let selectedSong = $derived(songsStore.selectedSong);
-	let userRatings = $derived(songsStore.userRatings); // User ratings come from store now!
+	
+	// Use local user ratings (synced from store)
+	let userRatings = $derived(songsStore.userRatings); 
 	let allSongs = $derived(songsStore.allSongs);
 
 	// Derived stats
 	let uniqueSongsCount = $derived.by(() => {
-		// Provide default based on store stat if not filtering dynamically or if list empty
 		if (!allSongs || allSongs.length === 0) return stats.uniqueSongsLast6Months ?? 0;
 		
 		return allSongs.filter(s => {
-			if (!s.daysSinceLastUsed && s.daysSinceLastUsed !== 0) return false;
-			const days = s.daysSinceLastUsed!;
+			// Use historical sung date, not future plan date
+			if (!s.daysSinceLastSung && s.daysSinceLastSung !== 0) return false;
+			const days = s.daysSinceLastSung!;
 			
 			if (uniqueSongsTimeframe === 'recent') return days <= 30;
 			if (uniqueSongsTimeframe === '3months') return days <= 90;
@@ -211,15 +130,248 @@
 		}
 	}
 
-	// Load theme data
-	async function loadThemesData() {
-		themesLoading = true;
-		try {
-			themesData = await songsStore.getSongsByLabel();
-		} catch (error) {
-			console.error('Failed to load themes data:', error);
-		} finally {
-			themesLoading = false;
+	// Computed Theme Data (Client-side grouping)
+	let themesData = $derived.by(() => {
+		if (!allSongs || allSongs.length === 0) return null;
+		
+		const labelMap = new Map<string, { label: { id: string; name: string; color?: string }; songs: Song[] }>();
+
+		// Helper to find label info
+		const getLabelInfo = (id: string) => availableLabels.find(l => l.id === id);
+
+		allSongs.forEach(song => {
+			const hasLabels = song.labels && song.labels.length > 0;
+			
+			if (!hasLabels) {
+				// Handle uncategorized
+				const noLabelId = 'uncategorized';
+				if (!labelMap.has(noLabelId)) {
+					labelMap.set(noLabelId, {
+						label: {
+							id: noLabelId,
+							name: 'Uncategorized',
+							color: 'gray'
+						},
+						songs: []
+					});
+				}
+				labelMap.get(noLabelId)!.songs.push(song);
+			} else {
+				// Add song to each of its label groups
+				song.labels!.forEach(labelId => {
+					// We might need label info from options if expand isn't on song
+					// The song.expand?.labels might be present, but let's rely on availableLabels if possible or fallback
+					let labelName = 'Unknown Label';
+					let labelColor: string | undefined = undefined;
+
+					// Try to find in availableLabels first (loaded separately)
+					const labelDef = getLabelInfo(labelId);
+					if (labelDef) {
+						labelName = labelDef.name;
+						labelColor = labelDef.color;
+					} else if (song.expand?.labels) {
+						// Fallback to expand data on song
+						const l = song.expand.labels.find((x: any) => x.id === labelId);
+						if (l) {
+							labelName = l.name;
+							labelColor = l.color;
+						}
+					}
+
+					if (!labelMap.has(labelId)) {
+						labelMap.set(labelId, {
+							label: {
+								id: labelId,
+								name: labelName,
+								color: labelColor
+							},
+							songs: []
+						});
+					}
+					labelMap.get(labelId)!.songs.push(song);
+				});
+			}
+		});
+
+		// Sort songs within each label
+		for (const data of labelMap.values()) {
+			data.songs.sort((a, b) => a.title.localeCompare(b.title));
+		}
+
+		// Sort the map by label name (Uncategorized at end)
+		const sortedMap = new Map(
+			[...labelMap.entries()].sort((a, b) => {
+				if (a[0] === 'uncategorized') return 1;
+				if (b[0] === 'uncategorized') return -1;
+				// Safely compare names
+				return a[1].label.name.localeCompare(b[1].label.name);
+			})
+		);
+
+		return sortedMap;
+	});
+
+	// Collapsible themes state
+	let expandedThemes = $state(new Set<string>());
+
+	// Unified Filter Logic
+	function filterSong(s: Song, query: string, currentLabelId?: string): boolean {
+		// Global Christmas filter (Include/Exclude)
+		const isChristmasSong = (s.title && s.title.toLowerCase().includes('christmas')) || 
+								(s.tags && s.tags.some(t => t.toLowerCase().includes('christmas'))) ||
+								(s.expand?.labels && s.expand.labels.some(l => l.name.toLowerCase().includes('christmas')));
+
+		if (!isDecember && isChristmasSong) {
+			// Always hide from searches
+			if (query) return false;
+			
+			// Always hide from "Ready to Use" filter (to match stats count)
+			if (statusFilter === 'ready') return false;
+
+			// Context check for browsing
+			let inChristmasContext = false;
+			if (currentLabelId) {
+				const label = availableLabels.find(l => l.id === currentLabelId);
+				if (label?.name.toLowerCase().includes('christmas')) inChristmasContext = true;
+			} else if (selectedThemeId) {
+				const label = availableLabels.find(l => l.id === selectedThemeId);
+				if (label?.name.toLowerCase().includes('christmas')) inChristmasContext = true;
+			}
+
+			// Don't include in other categories or general list
+			if (!inChristmasContext) return false;
+		}
+
+		// Search filter
+		const matchesSearch = !query || 
+			s.title.toLowerCase().includes(query) ||
+			(s.artist && s.artist.toLowerCase().includes(query));
+
+		if (!matchesSearch) return false;
+
+		// Retired filter
+		if (!showRetired && s.is_retired) return false;
+		if (showRetired && !s.is_retired) return false;
+
+		// Favorites Filter
+		if (showFavorites) {
+			const userRating = userRatings.get(s.id);
+			if (userRating?.rating !== 'thumbs_up') return false;
+		}
+
+		// List-view specific Theme filter
+		if (viewMode === 'list' && selectedThemeId) {
+			if (!s.labels || !s.labels.includes(selectedThemeId)) return false;
+		}
+
+		// Status filter
+		if (statusFilter === 'ready') {
+			const isAvailable = s.usageStatus === 'available';
+			const isNew = !s.lastUsedDate || s.daysSinceLastUsed === Infinity;
+			return isAvailable || isNew;
+		} else if (statusFilter === 'used') {
+			// Filter by HISTORICAL usage
+			if (!s.daysSinceLastSung && s.daysSinceLastSung !== 0) return false;
+			const days = s.daysSinceLastSung!;
+			
+			if (uniqueSongsTimeframe === 'recent') return days <= 30;
+			if (uniqueSongsTimeframe === '3months') return days <= 90;
+			if (uniqueSongsTimeframe === '6months') return days <= 180;
+		}
+
+		return true;
+	}
+
+	let filteredThemes = $derived.by(() => {
+		if (!themesData) return null;
+		
+		const query = searchQuery.toLowerCase().trim();
+		const result = new Map();
+
+		for (const [id, data] of themesData) {
+			const matchingSongs = data.songs.filter(s => {
+				// Use unified logic with category context
+				return filterSong(s, query, id);
+			});
+
+			if (matchingSongs.length > 0) {
+				result.set(id, { ...data, songs: matchingSongs });
+			}
+		}
+		return result;
+	});
+
+	// Filtered and Sorted Songs for List View
+	let filteredListSongs = $derived.by(() => {
+		if (!songsStore.allSongs) return [];
+
+		const query = searchQuery.toLowerCase().trim();
+		
+		let result = songsStore.allSongs.filter(s => filterSong(s, query));
+
+		// Sort
+		result.sort((a, b) => {
+			const sortField = selectedSort.replace('-', '') as keyof Song;
+			const direction = selectedSort.startsWith('-') ? -1 : 1;
+			
+			const valA = (a[sortField] || '').toString().toLowerCase();
+			const valB = (b[sortField] || '').toString().toLowerCase();
+
+			if (valA < valB) return -1 * direction;
+			if (valA > valB) return 1 * direction;
+			return 0;
+		});
+
+		return result;
+	});
+
+	// Pagination Logic
+	let totalItems = $derived(filteredListSongs.length);
+	let totalPages = $derived(Math.ceil(totalItems / itemsPerPage));
+	
+	// Reset page when filters change
+	$effect(() => {
+		// Just referencing filteredListSongs to track dependencies
+		filteredListSongs;
+		// Reset to page 1
+		pageNumber = 1;
+	});
+
+	let paginatedSongs = $derived.by(() => {
+		const start = (pageNumber - 1) * itemsPerPage;
+		const end = start + itemsPerPage;
+		return filteredListSongs.slice(start, end);
+	});
+
+	let hasNextPage = $derived(pageNumber < totalPages);
+	let hasPrevPage = $derived(pageNumber > 1);
+
+	// Auto-expand/collapse on search
+	$effect(() => {
+		if (searchQuery.trim() && filteredThemes) {
+			// Expand all found themes when searching
+			expandedThemes = new Set(filteredThemes.keys());
+		} else {
+			// Collapse all when cleared
+			expandedThemes = new Set();
+		}
+	});
+
+	function toggleTheme(id: string) {
+		const newSet = new Set(expandedThemes);
+		if (newSet.has(id)) {
+			newSet.delete(id);
+		} else {
+			newSet.add(id);
+		}
+		expandedThemes = newSet;
+	}
+
+	// Ensure songs are loaded
+	async function ensureSongsLoaded() {
+		// Always ensure we have the base songs
+		if (songsStore.allSongs.length === 0) {
+			await songsStore.loadAllSongsOnce();
 		}
 	}
 
@@ -233,17 +385,10 @@
 		}
 
 		loadFilters(); // Load labels for filter
-
-		if (viewMode === 'themes') {
-			loadThemesData();
-		} else {
-			songsStore.loadSongs().then(() => {
-				initialLoadComplete = true;
-			});
-		}
-
-		// Load user preferences
 		songsStore.loadUserPreferences();
+		
+		// Initial load
+		ensureSongsLoaded();
 
 		// Set up real-time updates with proper cleanup
 		let unsubscribePromise = songsStore.subscribeToUpdates();
@@ -257,65 +402,49 @@
 		window.addEventListener('song-auto-retire', handleAutoRetire as EventListener);
 
 		return () => {
-			// Cleanup subscription on component unmount
 			unsubscribePromise.then((unsubscribe) => {
 				if (unsubscribe) unsubscribe();
 			});
-
-			// Cleanup event listener
 			window.removeEventListener('song-auto-retire', handleAutoRetire as EventListener);
 		};
 	});
 
-	// Watch for view mode changes
+	// Watch for view mode or filter changes
 	$effect(() => {
 		// Wait for church context before loading
 		if (!auth.currentChurch) return;
+		
+		// Ensure we always have data
+		ensureSongsLoaded();
+	});
 
-		if (viewMode === 'themes') {
-			loadThemesData();
+	// Refresh stats when initial load is complete
+	$effect(() => {
+		if (auth.currentChurch && initialLoadComplete) {
+			songsStore.updateGlobalStats();
+		}
+	});
+
+	// Mark initial load complete after first songs fetch
+	$effect(() => {
+		if (songsStore.allSongs.length > 0) {
 			initialLoadComplete = true;
-		} else if (viewMode === 'list' && !initialLoadComplete) {
-			songsStore.loadSongs().then(() => {
-				initialLoadComplete = true;
-			});
 		}
 	});
 
-	// Watch for filter changes (avoiding infinite loops by not watching loading state)
-
-	$effect(() => {
-		// Only apply filters after initial load to avoid duplicate calls (only for list view)
-		if (viewMode === 'list' && initialLoadComplete && auth.currentChurch) {
-			const filters = {
-				search: searchQuery,
-				// category: selectedCategory, // Removed
-				labels: selectedThemeId ? [selectedThemeId] : undefined,
-				sort: selectedSort,
-				showRetired,
-				showFavorites,
-				showChristmas,
-				status: statusFilter,
-				usageTimeframe: uniqueSongsTimeframe
-			};
-
-			// Use a timeout to debounce rapid changes (especially for search)
-			const timeoutId = setTimeout(() => {
-				songsStore.applyFilters(filters).catch((error) => {
-					console.error('Failed to apply filters:', error);
-					// Don't rethrow to prevent infinite retries
-				});
-			}, 300);
-
-			// Cleanup timeout on next effect run
-			return () => clearTimeout(timeoutId);
+	// Determine if we should show the spinner
+	// We only show spinner if we have NO data to show and we are loading.
+	// If we have data, we show it, even if a background refresh is happening.
+	let shouldShowSpinner = $derived.by(() => {
+		if (viewMode === 'list') {
+			// In list view, we use allSongs. If we have songs, don't spin.
+			// Only spin if loading AND we have no songs at all (initial load).
+			return loading && (!songsStore.allSongs || songsStore.allSongs.length === 0);
+		} else {
+			// In themes view, we need themesData (which is derived from allSongs).
+			// So logic is the same: if we have songs, we have themesData.
+			return loading && (!songsStore.allSongs || songsStore.allSongs.length === 0);
 		}
-	});
-
-	// User ratings come from store.userRatings (fetched in loadSongs)
-	// Just sync the loading state
-	$effect(() => {
-		ratingsLoading = loading;
 	});
 
 	// Handlers
@@ -370,18 +499,19 @@
 		songsStore.selectSong(null);
 	}
 
-	async function handleNextPage() {
-		await songsStore.nextPage();
+	function handleNextPage() {
+		if (hasNextPage) pageNumber++;
 	}
 
-	async function handlePrevPage() {
-		await songsStore.prevPage();
+	function handlePrevPage() {
+		if (hasPrevPage) pageNumber--;
 	}
 
 	function handleThemeClick(themeId: string) {
 		selectedThemeId = themeId;
 		searchQuery = '';
-		viewMode = 'list'; // Ensure we are in list view to see the filtered result clearly
+		viewMode = 'list';
+		pageNumber = 1; // Ensure we start at page 1
 	}
 
 	function clearError() {
@@ -556,6 +686,16 @@
 							/>
 						</div>
 
+						<!-- Filter Toggle -->
+						<button
+							onclick={() => (filtersExpanded = !filtersExpanded)}
+							class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all flex items-center gap-2 {filtersExpanded ? 'ring-2 ring-primary border-primary text-primary' : 'text-gray-600 hover:text-gray-900 hover:border-gray-300'}"
+							title="Toggle Filters"
+						>
+							<Filter class="h-5 w-5" />
+							<span class="text-sm font-semibold hidden sm:inline">Filters</span>
+						</button>
+
 						<!-- Top Songs Toggle -->
 						{#if collapsedSidebar}
 							<button
@@ -568,38 +708,34 @@
 						{/if}
 					</div>
 
-					<!-- List view filters -->
-					{#if viewMode === 'list'}
-						<div class="flex flex-wrap items-center gap-4 justify-end">
-							<div class="w-full sm:w-48">
-								<Select
-									id="filter-theme"
-									name="theme_filter"
-									bind:value={selectedThemeId}
-									options={themeOptions}
-									placeholder="All Themes"
-								/>
+					{#if filtersExpanded}
+						<!-- List view filters (Theme & Sort) -->
+						{#if viewMode === 'list'}
+							<div class="flex flex-wrap items-center gap-4 justify-end pt-2 border-t border-gray-100">
+								<div class="w-full sm:w-48">
+									<Select
+										id="filter-theme"
+										name="theme_filter"
+										bind:value={selectedThemeId}
+										options={themeOptions}
+										placeholder="All Themes"
+									/>
+								</div>
+								<div class="w-full sm:w-40">
+									<Select
+										id="filter-sort"
+										name="sort"
+										bind:value={selectedSort}
+										options={sortOptions}
+									/>
+								</div>
 							</div>
-							<div class="w-full sm:w-40">
-								<Select
-									id="filter-sort"
-									name="sort"
-									bind:value={selectedSort}
-									options={sortOptions}
-								/>
-							</div>
-						</div>
-					{/if}
+						{/if}
 
-					{#if viewMode === 'list'}
 						<div class="flex flex-wrap gap-4 pt-2 border-t border-gray-200/50">
 							<label class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-100 rounded-lg cursor-pointer hover:border-primary transition-colors">
 								<input type="checkbox" bind:checked={showFavorites} class="text-primary rounded" />
 								<span class="text-sm font-medium text-gray-600">Favorites</span>
-							</label>
-							<label class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-100 rounded-lg cursor-pointer hover:border-primary transition-colors">
-								<input type="checkbox" bind:checked={showChristmas} class="text-primary rounded" />
-								<span class="text-sm font-medium text-gray-600">Christmas</span>
 							</label>
 							<label class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-100 rounded-lg cursor-pointer hover:border-primary transition-colors">
 								<input type="checkbox" bind:checked={showRetired} class="text-primary rounded" />
@@ -612,7 +748,7 @@
 
 			<!-- Songs Content -->
 			{#if viewMode === 'themes'}
-				{#if themesLoading}
+				{#if shouldShowSpinner}
 					<div class="flex flex-col items-center justify-center h-64">
 						<LoadingSpinner />
 						<p class="mt-4 text-gray-500 font-medium">Sorting your library...</p>
@@ -681,21 +817,21 @@
 				{/if}
 			{:else}
 				<!-- List View -->
-				{#if loading && songs.length === 0}
+				{#if shouldShowSpinner}
 					<div class="flex flex-col items-center justify-center h-64">
 						<LoadingSpinner />
 					</div>
-				{:else if songs.length === 0}
+				{:else if !filteredListSongs || filteredListSongs.length === 0}
 					<Card padding={false} class="overflow-hidden">
 						<EmptyState
 							title="No songs found"
 							message="Try adjusting your filters or search query."
-							action={{ label: 'Clear Filters', onclick: () => { searchQuery = ''; selectedThemeId = ''; showFavorites = false; showRetired = false; showChristmas = false; } }}
+							action={{ label: 'Clear Filters', onclick: () => { searchQuery = ''; selectedThemeId = ''; showFavorites = false; showRetired = false; showChristmas = false; statusFilter = 'all'; } }}
 						/>
 					</Card>
 				{:else}
 					<div class="grid grid-cols-1 md:grid-cols-2 {collapsedSidebar ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-4">
-						{#each songs as song (song.id)}
+						{#each paginatedSongs as song (song.id)}
 							<SongCard
 								{song}
 								onEdit={handleEditSong}
@@ -712,11 +848,11 @@
 					{#if totalPages > 1}
 						<div class="flex items-center justify-between pt-6">
 							<p class="text-sm text-gray-500 font-medium whitespace-nowrap">
-								Page <span class="text-gray-900">{currentPage}</span> of <span class="text-gray-900">{totalPages}</span>
+								Page <span class="text-gray-900">{pageNumber}</span> of <span class="text-gray-900">{totalPages}</span>
 							</p>
 							<div class="flex gap-2">
-								<Button variant="outline" size="sm" onclick={handlePrevPage} disabled={!hasPrevPage || loading}>Previous</Button>
-								<Button variant="outline" size="sm" onclick={handleNextPage} disabled={!hasNextPage || loading}>Next</Button>
+								<Button variant="outline" size="sm" onclick={handlePrevPage} disabled={!hasPrevPage}>Previous</Button>
+								<Button variant="outline" size="sm" onclick={handleNextPage} disabled={!hasNextPage}>Next</Button>
 							</div>
 						</div>
 					{/if}

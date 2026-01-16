@@ -205,9 +205,15 @@
 	// Get song usage status
 	function getSongUsageStatus(song: Song): { color: string; text: string; icon: string } {
 		const status = song.usageStatus || 'available';
-		const daysSince = song.daysSinceLastUsed;
+		// Use historical sung date for context text
+		const daysSince = song.daysSinceLastSung ?? song.daysSinceLastUsed;
 
-		switch (status) {
+			case 'upcoming':
+				return {
+					color: 'text-blue-600 bg-blue-50',
+					text: 'Planned',
+					icon: '🗓️'
+				};
 			case 'recent':
 				return {
 					color: 'text-red-600 bg-red-50',
@@ -219,7 +225,7 @@
 				};
 			case 'caution':
 				return {
-					color: 'text-yellow-600 bg-yellow-50',
+					color: 'text-amber-600 bg-amber-50',
 					text:
 						daysSince !== undefined && daysSince < Infinity
 							? `Used ${daysSince} days ago`
