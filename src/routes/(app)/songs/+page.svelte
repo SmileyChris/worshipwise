@@ -32,8 +32,8 @@
 
 	// View state
 	let viewMode = $state<'list' | 'themes'>('themes');
-	let statusFilter = $state<'all' | 'ready' | 'used'>('all');
-	let uniqueSongsTimeframe = $state<'recent' | '3months' | '6months'>('6months');
+	let statusFilter = $state<'all' | 'ready' | 'used'>('ready');
+	let uniqueSongsTimeframe = $state<'recent' | '3months' | '6months'>('recent');
 	let collapsedSidebar = $state(false);
 
 	// Search state
@@ -119,6 +119,8 @@
 	let themeOptions = $derived.by(() => [
 		...availableLabels.map(l => ({ value: l.id, label: l.name }))
 	]);
+
+	let selectedThemeLabel = $derived(availableLabels.find(l => l.id === selectedThemeId));
 
 	// Load filters data
 	async function loadFilters() {
@@ -689,11 +691,16 @@
 						<!-- Filter Toggle -->
 						<button
 							onclick={() => (filtersExpanded = !filtersExpanded)}
-							class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all flex items-center gap-2 {filtersExpanded ? 'ring-2 ring-primary border-primary text-primary' : 'text-gray-600 hover:text-gray-900 hover:border-gray-300'}"
+							class="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-600 hover:bg-gray-100/50 transition-all {filtersExpanded ? 'text-primary' : ''}"
 							title="Toggle Filters"
 						>
-							<Filter class="h-5 w-5" />
-							<span class="text-sm font-semibold hidden sm:inline">Filters</span>
+							<Filter class="h-4 w-4" />
+							<span class="text-sm font-semibold">Filters</span>
+							{#if filtersExpanded}
+								<ChevronDown class="h-4 w-4" />
+							{:else}
+								<ChevronRight class="h-4 w-4" />
+							{/if}
 						</button>
 
 						<!-- Top Songs Toggle -->
@@ -830,20 +837,56 @@
 						/>
 					</Card>
 				{:else}
-					<div class="grid grid-cols-1 md:grid-cols-2 {collapsedSidebar ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-4">
-						{#each paginatedSongs as song (song.id)}
-							<SongCard
-								{song}
-								onEdit={handleEditSong}
-								onAddToService={handleAddToService}
-								onThemeClick={handleThemeClick}
-								{isEditingService}
-								isInCurrentService={songsInCurrentService.has(song.id)}
-								{ratingsLoading}
-								userRating={userRatings.get(song.id) || null}
-							/>
-						{/each}
-					</div>
+					{#if selectedThemeId && selectedThemeLabel}
+						<section class="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+							<div class="px-5 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
+								<h3 class="font-title text-lg font-bold text-gray-900 flex items-center gap-2">
+									{#if selectedThemeLabel.color}
+										<div class="w-3 h-3 rounded-full shadow-sm" style="background-color: {selectedThemeLabel.color}"></div>
+									{/if}
+									{selectedThemeLabel.name}
+								</h3>
+								<button 
+									onclick={() => { selectedThemeId = ''; searchQuery = ''; }}
+									class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors"
+									title="Clear theme filter"
+								>
+									<X class="h-4 w-4" />
+								</button>
+							</div>
+							<div class="p-5">
+								<div class="grid grid-cols-1 md:grid-cols-2 {collapsedSidebar ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-4">
+									{#each paginatedSongs as song (song.id)}
+										<SongCard
+											{song}
+											onEdit={handleEditSong}
+											onAddToService={handleAddToService}
+											onThemeClick={handleThemeClick}
+											{isEditingService}
+											isInCurrentService={songsInCurrentService.has(song.id)}
+											{ratingsLoading}
+											userRating={userRatings.get(song.id) || null}
+										/>
+									{/each}
+								</div>
+							</div>
+						</section>
+					{:else}
+						<div class="grid grid-cols-1 md:grid-cols-2 {collapsedSidebar ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-4">
+							{#each paginatedSongs as song (song.id)}
+								<SongCard
+									{song}
+									onEdit={handleEditSong}
+									onAddToService={handleAddToService}
+									onThemeClick={handleThemeClick}
+									{isEditingService}
+									isInCurrentService={songsInCurrentService.has(song.id)}
+									{ratingsLoading}
+									userRating={userRatings.get(song.id) || null}
+								/>
+							{/each}
+						</div>
+					{/if}
 
 					{#if totalPages > 1}
 						<div class="flex items-center justify-between pt-6">
