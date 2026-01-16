@@ -3,7 +3,7 @@ export interface SystemStatus {
 	adminExists: boolean;
 	usersExist: boolean;
 	songsExist: boolean;
-	categoriesExist: boolean;
+
 	collectionsExist: boolean;
 	needsSetup: boolean;
 }
@@ -28,7 +28,7 @@ export interface SampleSong {
 	key_signature?: string;
 	tempo?: number;
 	genre?: string;
-	category?: string;
+
 	tags?: string[];
 	lyrics?: string;
 }

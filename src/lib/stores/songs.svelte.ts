@@ -538,48 +538,7 @@ class SongsStore {
 		this.error = null;
 	}
 
-	/**
-	 * Get songs grouped by category with category information
-	 */
-	async getSongsByCategory(): Promise<
-		Map<string, { category: Record<string, unknown>; songs: Song[] }>
-	> {
-		try {
-			// Load all songs with expanded category information
-			const allSongs = await this.songsApi.getSongs({});
 
-			// Group songs by category
-			const categoryMap = new Map<string, { category: Record<string, unknown>; songs: Song[] }>();
-
-			allSongs.forEach((song) => {
-				const categoryId = song.category;
-				const categoryInfo = song.expand?.category;
-
-				if (!categoryMap.has(categoryId)) {
-					const category = categoryInfo || {
-						id: categoryId || 'unknown-category',
-						name: 'Unknown Category'
-					};
-					categoryMap.set(categoryId, {
-						category: category as Record<string, unknown>,
-						songs: []
-					});
-				}
-
-				categoryMap.get(categoryId)!.songs.push(song);
-			});
-
-			// Sort songs within each category by title
-			categoryMap.forEach(({ songs }) => {
-				songs.sort((a, b) => a.title.localeCompare(b.title));
-			});
-
-			return categoryMap;
-		} catch (error) {
-			console.error('Failed to get songs by category:', error);
-			throw error;
-		}
-	}
 
 	/**
 	 * Get songs grouped by label (theme) - uses cached allSongs

@@ -215,7 +215,6 @@ describe('SongsStore', () => {
 			const createData: CreateSongData = {
 				title: 'New Song',
 				artist: 'Artist',
-				category: 'category-1',
 				key_signature: 'D',
 				tempo: 130
 			};
@@ -236,8 +235,7 @@ describe('SongsStore', () => {
 		it('should handle errors when creating song', async () => {
 			const createData: CreateSongData = {
 				title: 'New Song',
-				artist: 'Artist',
-				category: 'category-1'
+				artist: 'Artist'
 			};
 			const error = new Error('Validation failed');
 			mockSongsAPI.createSong.mockRejectedValue(error);
@@ -573,90 +571,7 @@ describe('SongsStore', () => {
 		});
 	});
 
-	describe('getSongsByCategory', () => {
-		it('should group songs by category', async () => {
-			const songs = [
-				{
-					...testSong,
-					category: 'category-1',
-					expand: { category: { id: 'category-1', name: 'Hymns' } }
-				},
-				{
-					...testSong,
-					id: 'song-2',
-					title: 'Another Song',
-					category: 'category-1',
-					expand: { category: { id: 'category-1', name: 'Hymns' } }
-				},
-				{
-					...testSong,
-					id: 'song-3',
-					title: 'Modern Song',
-					category: 'category-2',
-					expand: { category: { id: 'category-2', name: 'Contemporary' } }
-				}
-			];
-			mockSongsAPI.getSongs.mockResolvedValue(songs);
 
-			const result = await songsStore.getSongsByCategory();
-
-			expect(result.size).toBe(2);
-			expect(result.get('category-1')?.songs).toHaveLength(2);
-			expect(result.get('category-2')?.songs).toHaveLength(1);
-			expect(result.get('category-1')?.category.name).toBe('Hymns');
-		});
-
-		it('should handle songs without category information', async () => {
-			const songs = [
-				{
-					...testSong,
-					category: 'unknown-category',
-					expand: undefined
-				}
-			];
-			mockSongsAPI.getSongs.mockResolvedValue(songs);
-
-			const result = await songsStore.getSongsByCategory();
-
-			expect(result.size).toBe(1);
-			expect(result.get('unknown-category')?.category).toEqual({
-				id: 'unknown-category',
-				name: 'Unknown Category'
-			});
-		});
-
-		it('should sort songs within categories by title', async () => {
-			const songs = [
-				{
-					...testSong,
-					title: 'Zebra Song',
-					category: 'category-1',
-					expand: { category: { id: 'category-1', name: 'Test' } }
-				},
-				{
-					...testSong,
-					id: 'song-2',
-					title: 'Alpha Song',
-					category: 'category-1',
-					expand: { category: { id: 'category-1', name: 'Test' } }
-				}
-			];
-			mockSongsAPI.getSongs.mockResolvedValue(songs);
-
-			const result = await songsStore.getSongsByCategory();
-
-			const categorySongs = result.get('category-1')?.songs;
-			expect(categorySongs?.[0].title).toBe('Alpha Song');
-			expect(categorySongs?.[1].title).toBe('Zebra Song');
-		});
-
-		it('should handle errors when getting songs by category', async () => {
-			const error = new Error('Network error');
-			mockSongsAPI.getSongs.mockRejectedValue(error);
-
-			await expect(songsStore.getSongsByCategory()).rejects.toThrow('Network error');
-		});
-	});
 
 	describe('real-time subscriptions', () => {
 		it('should subscribe to updates and handle create events', async () => {

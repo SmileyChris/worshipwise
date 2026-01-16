@@ -1,8 +1,8 @@
-import { createCategoriesAPI } from '$lib/api/categories.js';
+
 import { pb } from '$lib/api/client.js';
 import { createSongsAPI } from '$lib/api/songs.js';
 import { createSystemAPI } from '$lib/api/system.js';
-import { createDefaultCategories, importSampleData } from '$lib/data/sample-data.js';
+import { importSampleData } from '$lib/data/sample-data.js';
 import type { SetupStep, SystemStatus } from '$lib/types/quickstart.js';
 
 class QuickstartStore {
@@ -11,7 +11,7 @@ class QuickstartStore {
 		adminExists: false,
 		usersExist: false,
 		songsExist: false,
-		categoriesExist: false,
+
 		collectionsExist: false,
 		needsSetup: true
 	});
@@ -23,13 +23,7 @@ class QuickstartStore {
 			description: 'Create your personal account to start managing songs',
 			status: 'pending'
 		},
-		{
-			id: 'default-categories',
-			title: 'Song Categories',
-			description: "Set up your church's song categories for organization",
-			status: 'pending',
-			optional: true
-		},
+
 		{
 			id: 'sample-data',
 			title: 'Demo Songs & Services',
@@ -71,10 +65,7 @@ class QuickstartStore {
 
 			// Update setup steps based on system status
 			this.updateStepStatus('user-account', this.systemStatus.usersExist ? 'completed' : 'pending');
-			this.updateStepStatus(
-				'default-categories',
-				this.systemStatus.categoriesExist ? 'completed' : 'pending'
-			);
+
 			this.updateStepStatus('sample-data', this.systemStatus.songsExist ? 'completed' : 'pending');
 
 			// Show setup wizard if needed
@@ -122,9 +113,7 @@ class QuickstartStore {
 
 		try {
 			switch (stepId) {
-				case 'default-categories':
-					await this.createDefaultCategories();
-					break;
+
 				case 'sample-data':
 					await this.importSampleData();
 					break;
@@ -152,48 +141,11 @@ class QuickstartStore {
 
 		const authContext = auth.getAuthContext();
 		const songsApi = createSongsAPI(authContext, authContext.pb);
-		const baseCategories = createCategoriesAPI(authContext.pb);
-		const categoriesAPI = {
-			getCategories: () =>
-				authContext.currentChurch?.id
-					? baseCategories.getCategories(authContext.currentChurch.id)
-					: Promise.resolve([]),
-			createCategory: (data: { name: string; description?: string; color?: string; sort_order: number }) => {
-				if (!authContext.currentChurch?.id) throw new Error('No church selected');
-				return baseCategories.createCategory(data, authContext.currentChurch.id);
-			}
-		};
-
-		await importSampleData(songsApi, categoriesAPI);
+		await importSampleData(songsApi);
 		this.updateStepStatus('sample-data', 'completed');
 	}
 
-	private async createDefaultCategories() {
-		// This requires a logged-in user (admin check removed for setup flow)
-		const { createAuthStore } = await import('$lib/stores/auth.svelte.js');
-		const auth = createAuthStore();
-		const currentUser = auth.user;
 
-		if (!currentUser) {
-			throw new Error('Must be logged in to create categories');
-		}
-
-		const authContext = auth.getAuthContext();
-		const baseCategories = createCategoriesAPI(authContext.pb);
-		const categoriesAPI = {
-			getCategories: () =>
-				authContext.currentChurch?.id
-					? baseCategories.getCategories(authContext.currentChurch.id)
-					: Promise.resolve([]),
-			createCategory: (data: { name: string; description?: string; color?: string; sort_order: number }) => {
-				if (!authContext.currentChurch?.id) throw new Error('No church selected');
-				return baseCategories.createCategory(data, authContext.currentChurch.id);
-			}
-		};
-
-		await createDefaultCategories(categoriesAPI);
-		this.updateStepStatus('default-categories', 'completed');
-	}
 
 	nextStep() {
 		if (this.currentStepIndex < this.setupSteps.length - 1) {

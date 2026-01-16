@@ -3,10 +3,11 @@
 	import { getAuthStore } from '$lib/context/stores.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
-	import CategoryBadge from '$lib/components/ui/CategoryBadge.svelte';
+
 	import LabelBadge from '$lib/components/ui/LabelBadge.svelte';
 	import SongRatingButton from './SongRatingButton.svelte';
 	import { createRatingsAPI } from '$lib/api/ratings';
+	import { Plus } from 'lucide-svelte';
 
 	interface Props {
 		song: Song;
@@ -173,23 +174,19 @@
 			{/if}
 
 			<!-- Category and Usage -->
-			{#if song.expand?.category || (usageStatusInfo && usageStatusInfo.text)}
-				<div class="mt-4 flex flex-wrap items-center gap-2">
-					{#if song.expand?.category}
-						<CategoryBadge category={song.expand.category} size="sm" />
-					{/if}
 
-					{#if usageStatusInfo && usageStatusInfo.text}
-						<span
-							class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase {usageStatusInfo.colors}"
-						>
-							{usageStatusInfo.text}
+
+			{#if usageStatusInfo && usageStatusInfo.text}
+				<div class="mt-4 flex flex-wrap items-center gap-2">
+					<span
+						class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase {usageStatusInfo.colors}"
+					>
+						{usageStatusInfo.text}
+					</span>
+					{#if usageStatusInfo.secondaryText}
+						<span class="ml-2 text-xs font-medium {usageStatusInfo.secondaryTextColors || 'text-gray-500'}">
+							{usageStatusInfo.secondaryText}
 						</span>
-						{#if usageStatusInfo.secondaryText}
-							<span class="ml-2 text-xs font-medium {usageStatusInfo.secondaryTextColors || 'text-gray-500'}">
-								{usageStatusInfo.secondaryText}
-							</span>
-						{/if}
 					{/if}
 				</div>
 			{/if}
@@ -245,8 +242,22 @@
 	</div>
 
 	<!-- Labels and vote counts footer -->
-	{#if (song.expand?.labels && song.expand.labels.length > 0) || (aggregates && aggregates.totalRatings > 0)}
+	{#if (song.expand?.labels && song.expand.labels.length > 0) || (aggregates && aggregates.totalRatings > 0) || (isEditingService && auth.canManageServices)}
 		<div class="mt-3 flex flex-wrap gap-2 items-center">
+			{#if isEditingService && auth.canManageServices}
+				<button
+					onclick={(e) => {
+						e.stopPropagation();
+						onAddToService(song);
+					}}
+					disabled={isInCurrentService}
+					class="mr-1 rounded-full p-1 bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+					title={isInCurrentService ? "Already in service" : "Add to service"}
+				>
+					<Plus class="h-3 w-3" />
+				</button>
+			{/if}
+
 			{#if song.expand?.labels && song.expand.labels.length > 0}
 				{#each song.expand.labels as label (label.id)}
 					{#if onThemeClick}

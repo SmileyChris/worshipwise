@@ -8,7 +8,7 @@ export const createMockSong = (overrides: Partial<Song> = {}): Song => ({
 	church_id: 'church_test123',
 	title: 'Amazing Grace',
 	artist: 'John Newton',
-	category: 'hymn',
+	// category removed
 	labels: [],
 	key_signature: 'G',
 	tempo: 120,

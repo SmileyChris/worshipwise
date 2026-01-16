@@ -13,7 +13,7 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
-	import CategorySelect from '$lib/components/ui/CategorySelect.svelte';
+
 	import LabelSelector from '$lib/components/ui/LabelSelector.svelte';
 	import LyricsAnalyzer from './LyricsAnalyzer.svelte';
 
@@ -44,7 +44,7 @@
 	// Form state
 	let title = $state(song?.title || '');
 	let artist = $state(song?.artist || '');
-	let category = $state(song?.category || '');
+
 	let selectedLabelIds = $state(song?.labels || []);
 	let keySignature = $state(song?.key_signature || '');
 	let tempo = $state(song?.tempo?.toString() || '');
@@ -67,7 +67,7 @@
 		if (song) {
 			title = song.title;
 			artist = song.artist || '';
-			category = song.category || '';
+
 			selectedLabelIds = song.labels || [];
 			keySignature = song.key_signature || '';
 			tempo = song.tempo?.toString() || '';
@@ -128,10 +128,7 @@
 		return '';
 	}
 
-	function validateCategory(value: string): string {
-		if (!value.trim()) return 'Category is required';
-		return '';
-	}
+
 
 	function validateTempo(value: string): string {
 		if (!value) return '';
@@ -161,7 +158,7 @@
 
 	// Validation state - computed from reactive inputs
 	let titleError = $derived(validateTitle(title));
-	let categoryError = $derived(validateCategory(category));
+
 	let tempoError = $derived(validateTempo(tempo));
 	let durationError = $derived(validateDuration());
 
@@ -169,9 +166,7 @@
 	let isEditing = $derived(!!song);
 	let isValid = $derived(
 		title.trim().length > 0 &&
-			category.trim().length > 0 &&
 			!titleError &&
-			!categoryError &&
 			!tempoError &&
 			!durationError
 	);
@@ -201,11 +196,10 @@
 
 		// Final validation
 		const finalTitleError = validateTitle(title);
-		const finalCategoryError = validateCategory(category);
 		const finalTempoError = validateTempo(tempo);
 		const finalDurationError = validateDuration();
 
-		if (finalTitleError || finalCategoryError || finalTempoError || finalDurationError) {
+		if (finalTitleError || finalTempoError || finalDurationError) {
 			return;
 		}
 
@@ -227,7 +221,7 @@
 		const formData: CreateSongData = {
 			title: title.trim(),
 			artist: artist.trim() || undefined,
-			category: category.trim(),
+
 			labels: selectedLabelIds.length > 0 ? selectedLabelIds : undefined,
 			key_signature: keySignature || undefined,
 			tempo: tempo ? parseInt(tempo) : undefined,
@@ -343,16 +337,6 @@
 
 		<!-- Category and Labels -->
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-			<div>
-				<label for="song-category" class="mb-1 block text-sm leading-6 font-medium text-gray-900">
-					Category <span class="text-red-500">*</span>
-				</label>
-				<CategorySelect id="song-category" bind:value={category} required />
-				{#if categoryError}
-					<p class="mt-1 text-sm text-red-600">{categoryError}</p>
-				{/if}
-			</div>
-
 			<div>
 				<label for="song-labels" class="mb-1 block text-sm leading-6 font-medium text-gray-900">
 					Labels (optional)

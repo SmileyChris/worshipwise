@@ -5,7 +5,7 @@
 	import SongsSidebar from '$lib/components/songs/SongsSidebar.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
-	import CategorySelect from '$lib/components/ui/CategorySelect.svelte';
+
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import LabelSelector from '$lib/components/ui/LabelSelector.svelte';
@@ -99,7 +99,7 @@
 	// Service editing state
 	let currentService = $derived(servicesStore.currentService);
 	let currentServiceSongs = $derived(servicesStore.currentServiceSongs);
-	let isEditingService = $derived(!!currentService);
+	let isEditingService = $derived(servicesStore.isPlanning && !!currentService);
 
 	// Create a set of song IDs that are in the current service for quick lookup
 	let songsInCurrentService = $derived.by(() => {
@@ -833,7 +833,7 @@
 						<EmptyState
 							title="No songs found"
 							message="Try adjusting your filters or search query."
-							action={{ label: 'Clear Filters', onclick: () => { searchQuery = ''; selectedThemeId = ''; showFavorites = false; showRetired = false; showChristmas = false; statusFilter = 'all'; } }}
+							action={{ label: 'Clear Filters', onclick: () => { searchQuery = ''; selectedThemeId = ''; showFavorites = false; showRetired = false; statusFilter = 'all'; } }}
 						/>
 					</Card>
 				{:else}

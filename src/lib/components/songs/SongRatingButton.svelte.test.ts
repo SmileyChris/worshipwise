@@ -34,7 +34,7 @@ describe('SongRatingButton', () => {
 		id: 'song-1',
 		title: 'Amazing Grace',
 		church_id: 'church-1',
-		category: 'category-1',
+
 		created_by: 'user-1',
 		is_active: true,
 		created: '2024-01-01',

@@ -43,7 +43,6 @@ class SystemAPIImpl implements SystemAPI {
 			adminExists: true, // If app loads, admin was created via `just dev`
 			usersExist: false,
 			songsExist: false,
-			categoriesExist: false,
 			collectionsExist: true, // If admin exists, collections exist
 			needsSetup: false
 		};
@@ -61,12 +60,7 @@ class SystemAPIImpl implements SystemAPI {
 					status.songsExist = false;
 				}
 
-				try {
-					const categories = await this.pb.collection('categories').getList(1, 1);
-					status.categoriesExist = categories.totalItems > 0;
-				} catch {
-					status.categoriesExist = false;
-				}
+
 			}
 		} catch (error) {
 			console.warn('System status check failed:', error);

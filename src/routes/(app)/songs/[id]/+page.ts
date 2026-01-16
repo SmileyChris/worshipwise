@@ -8,7 +8,7 @@ export const ssr = false;
 export const load: PageLoad = async ({ params }) => {
 	try {
 		const song = await pb.collection('songs').getOne(params.id, {
-			expand: 'created_by,category,labels'
+			expand: 'created_by,labels'
 		});
 
 		if (!song) {

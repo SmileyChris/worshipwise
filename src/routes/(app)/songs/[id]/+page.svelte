@@ -1,11 +1,13 @@
 <script lang="ts">
-	import { getAuthStore } from '$lib/context/stores.svelte';
+	import { getAuthStore, getServicesStore } from '$lib/context/stores.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
-	import CategoryBadge from '$lib/components/ui/CategoryBadge.svelte';
+
 	import LabelBadge from '$lib/components/ui/LabelBadge.svelte';
 	import SongUsageComparisonChart from '$lib/components/analytics/SongUsageComparisonChart.svelte';
+	import { PlusCircle, Check } from 'lucide-svelte';
+	import { goto } from '$app/navigation';
 	import type { PageData } from './$types';
 
 	interface Props {
@@ -13,6 +15,7 @@
 	}
 
 	const auth = getAuthStore();
+	const servicesStore = getServicesStore();
 
 	let { data }: Props = $props();
 	let song = $derived(data.song);
@@ -138,6 +141,29 @@
 </svelte:head>
 
 <div class="space-y-6">
+	<!-- Planning Banner -->
+	{#if servicesStore.isPlanning && servicesStore.currentService}
+		<div class="bg-primary px-6 py-4 rounded-2xl shadow-lg shadow-primary/10 flex items-center justify-between text-white">
+			<div class="flex items-center gap-4">
+				<div class="bg-white/20 p-2 rounded-full animate-pulse">
+					<PlusCircle class="h-5 w-5" />
+				</div>
+				<div>
+					<p class="font-bold">Planning: {servicesStore.currentService.title}</p>
+					<p class="text-xs text-white/80 italic">Select songs from the library to add them to this service.</p>
+				</div>
+			</div>
+			<Button
+				variant="ghost"
+				size="sm"
+				href="/services/{servicesStore.currentService.id}"
+				class="bg-white/10 hover:bg-white/20 text-white border-white/20"
+			>
+				Return to Plan
+			</Button>
+		</div>
+	{/if}
+
 	<!-- Header with Back Button -->
 	<div class="flex items-center gap-4">
 		<Button
@@ -176,7 +202,30 @@
 			{#if auth.canManageSongs}
 				<Button variant="primary" href="/songs?edit={song.id}">Edit Song</Button>
 			{/if}
-			<Button variant="secondary">Add to Service</Button>
+			{#if servicesStore.isPlanning && servicesStore.currentService}
+				{@const isInService = servicesStore.currentServiceSongs.some(s => s.song_id === song.id)}
+				<Button 
+					variant={isInService ? "secondary" : "outline"}
+					class={isInService ? "" : "border-primary text-primary hover:bg-primary/5"}
+					disabled={isInService}
+					onclick={async () => {
+						if (!isInService) {
+							await servicesStore.addSongToService({ song_id: song.id });
+							if (servicesStore.currentService) {
+								goto(`/services/${servicesStore.currentService.id}`);
+							}
+						}
+					}}
+				>
+					{#if isInService}
+						<Check class="h-4 w-4 mr-2" />
+						Added to Plan
+					{:else}
+						<PlusCircle class="h-4 w-4 mr-2" />
+						Add to Plan
+					{/if}
+				</Button>
+			{/if}
 		</div>
 	</div>
 
@@ -219,12 +268,7 @@
 
 				<!-- Category and Labels -->
 				<div class="mt-4 space-y-3">
-					{#if song.expand?.category}
-						<div>
-							<dt class="mb-1 text-sm font-medium text-gray-500">Category</dt>
-							<CategoryBadge category={song.expand.category} />
-						</div>
-					{/if}
+
 
 					{#if song.expand?.labels && song.expand.labels.length > 0}
 						<div>

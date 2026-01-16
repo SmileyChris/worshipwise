@@ -114,7 +114,7 @@ export function mockSong(overrides: Partial<Song> = {}): Song {
 		ccli_number: overrides.ccli_number || '12345',
 		copyright_info: overrides.copyright_info || 'Public Domain',
 		notes: overrides.notes || 'Classic hymn',
-		category: overrides.category || 'hymns',
+	// category removed
 		created_by: overrides.created_by || 'user-1',
 		is_active: overrides.is_active ?? true,
 		created: overrides.created || new Date().toISOString(),

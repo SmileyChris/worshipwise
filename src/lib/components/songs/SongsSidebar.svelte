@@ -178,19 +178,7 @@
 							</div>
 						</a>
 						
-						{#if isEditingService}
-							<button
-								onclick={() => onAddToService(item.song)}
-								disabled={songsInCurrentService.has(item.song.id)}
-								class="p-1.5 rounded-lg border border-gray-100 text-gray-400 hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all text-xs {songsInCurrentService.has(item.song.id) ? 'bg-green-50 text-green-500 border-green-100' : ''}"
-							>
-								{#if songsInCurrentService.has(item.song.id)}
-									<CheckCircle class="h-3.5 w-3.5" />
-								{:else}
-									<PlusCircle class="h-3.5 w-3.5" />
-								{/if}
-							</button>
-						{/if}
+
 					</div>
 				{/each}
 			</div>
