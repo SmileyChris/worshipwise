@@ -219,18 +219,20 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 							$app.save(userSkill);
 						}
 					} catch (skillErr) {
-						$app.logger().warn(`Could not assign leader skill to ${person.email}: ${skillErr.message}`);
+						$app
+							.logger()
+							.warn(`Could not assign leader skill to ${person.email}: ${skillErr.message}`);
 					}
 
 					worshipLeaderMap[personId] = newUser.id;
-					$app.logger().info(
-						`Created inactive user for Elvanto worship leader: ${fullName} (${person.email})`
-					);
+					$app
+						.logger()
+						.info(
+							`Created inactive user for Elvanto worship leader: ${fullName} (${person.email})`
+						);
 				}
 			} catch (err) {
-				$app
-					.logger()
-					.warn(`Failed to fetch/create worship leader ${personId}: ${err.message}`);
+				$app.logger().warn(`Failed to fetch/create worship leader ${personId}: ${err.message}`);
 				worshipLeaderMap[personId] = user.id; // fallback
 			}
 		}
@@ -368,12 +370,15 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 							// Fetch full song details to get categories and arrangements
 							try {
 								const songDetails = elvantoFetch('songs/getInfo', apiKey, { id: s.id });
-								const fullSong = songDetails.song && songDetails.song.length > 0 ? songDetails.song[0] : null;
+								const fullSong =
+									songDetails.song && songDetails.song.length > 0 ? songDetails.song[0] : null;
 
 								if (fullSong) {
 									let needsUpdate = false;
 
 									// Import categories as labels
+									// Import categories as labels - SKIPPED as per user request (we use AI categorization now)
+									/*
 									if (fullSong.categories && fullSong.categories.category) {
 										const cats = Array.isArray(fullSong.categories.category)
 											? fullSong.categories.category
@@ -385,8 +390,10 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 											const labelData = {
 												church_id: church.id,
 												name: cat.name,
-												color: 'blue', // default color
-												description: 'Imported from Elvanto'
+												color: '#3B82F6', // default color (blue)
+												description: 'Imported from Elvanto',
+												created_by: user.id,
+												is_active: true
 											};
 
 											const label = upsertRecord(
@@ -406,10 +413,12 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 											needsUpdate = true;
 										}
 									}
+									*/
 
 									// Defensive: Import default key and tempo if arrangements exist
 									if (fullSong.arrangements && fullSong.arrangements.length > 0) {
-										const defaultArr = fullSong.arrangements.find(a => a.default) || fullSong.arrangements[0];
+										const defaultArr =
+											fullSong.arrangements.find((a) => a.default) || fullSong.arrangements[0];
 
 										if (defaultArr.key_male) {
 											songRecord.set('key_signature', defaultArr.key_male);
@@ -420,7 +429,9 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 											needsUpdate = true;
 										}
 										if (defaultArr.duration_minutes || defaultArr.duration_seconds) {
-											const totalSeconds = (defaultArr.duration_minutes || 0) * 60 + (defaultArr.duration_seconds || 0);
+											const totalSeconds =
+												(defaultArr.duration_minutes || 0) * 60 +
+												(defaultArr.duration_seconds || 0);
 											if (totalSeconds > 0) {
 												songRecord.set('duration_seconds', totalSeconds);
 												needsUpdate = true;
