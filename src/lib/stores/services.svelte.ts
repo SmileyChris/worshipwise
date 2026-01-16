@@ -22,6 +22,7 @@ class ServicesStore {
 	services = $state<Service[]>([]);
 	loading = $state<boolean>(false);
 	error = $state<string | null>(null);
+	isPlanning = $state<boolean>(false);
 
 	// Current service being edited
 	currentService = $state<Service | null>(null);
@@ -147,6 +148,24 @@ class ServicesStore {
 		} finally {
 			this.loading = false;
 		}
+	}
+
+	/**
+	 * Start planning mode for a service
+	 */
+	async startPlanning(id: string): Promise<void> {
+		await this.loadService(id);
+		this.isPlanning = true;
+	}
+
+	/**
+	 * Stop planning mode and clear state
+	 */
+	stopPlanning(): void {
+		this.isPlanning = false;
+		this.currentService = null;
+		this.currentServiceSongs = [];
+		this.clearBuilderState();
 	}
 
 	/**

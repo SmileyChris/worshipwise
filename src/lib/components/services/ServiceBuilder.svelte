@@ -5,7 +5,6 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import CommentThread from './CommentThread.svelte';
-	import ApprovalWorkflow from './ApprovalWorkflow.svelte';
 	import AISuggestions from './AISuggestions.svelte';
 	import { onMount } from 'svelte';
 	import { flip } from 'svelte/animate';
@@ -28,8 +27,8 @@
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 	let showComments = $state(false);
-	let showAISuggestions = $state(true);
-	let isEditing = $state(false);
+	// showAISuggestions is now implicitly true when planning, or we just show the component directly
+
 
 	// Computed values
 	let filteredSongs = $derived.by(() => {
@@ -70,8 +69,10 @@
 	onMount(async () => {
 		loading = true;
 		try {
-			// Load the service and its songs
-			await servicesStore.loadService(serviceId);
+			// Load the service and its songs if not already loaded or different
+			if (servicesStore.currentService?.id !== serviceId) {
+				await servicesStore.loadService(serviceId);
+			}
 			// Load available songs
 			await songsStore.loadSongs();
 		} catch (err: unknown) {
@@ -208,6 +209,7 @@
 		// Use historical sung date for context text
 		const daysSince = song.daysSinceLastSung ?? song.daysSinceLastUsed;
 
+		switch (status) {
 			case 'upcoming':
 				return {
 					color: 'text-blue-600 bg-blue-50',
@@ -257,15 +259,25 @@
 		<div class="border-b border-gray-200 p-4">
 			<div class="flex items-center justify-between">
 				<div class="flex-1">
-					{#if isEditing}
+					{#if servicesStore.isPlanning}
 						<div class="flex flex-col gap-2 max-w-xl">
-							<input
-								type="text"
-								value={servicesStore.currentService.title}
-								onchange={(e) => updateService({ title: e.currentTarget.value })}
-								class="font-title text-xl font-bold text-gray-900 border-none p-0 focus:ring-0 bg-transparent hover:bg-gray-50 rounded px-2 -ml-2"
-								placeholder="Service Title"
-							/>
+							<div class="flex items-center gap-2">
+								<input
+									type="text"
+									value={servicesStore.currentService.title}
+									onchange={(e) => updateService({ title: e.currentTarget.value })}
+									class="font-title text-xl font-bold text-gray-900 border-none p-0 focus:ring-0 bg-transparent hover:bg-gray-50 rounded px-2 -ml-2 flex-1"
+									placeholder="Service Title"
+								/>
+								<select
+									value={servicesStore.currentService.status || 'draft'}
+									onchange={(e) => updateService({ status: e.currentTarget.value })}
+									class="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded bg-primary/10 text-primary border-none focus:ring-0 cursor-pointer"
+								>
+									<option value="draft">Draft</option>
+									<option value="planned">Planned</option>
+								</select>
+							</div>
 							<div class="flex gap-4">
 								<input
 									type="date"
@@ -285,9 +297,16 @@
 							</div>
 						</div>
 					{:else}
-						<h2 class="font-title text-2xl font-bold text-gray-900">
-							{servicesStore.currentService.title}
-						</h2>
+						<div class="flex items-center gap-3">
+							<h2 class="font-title text-2xl font-bold text-gray-900">
+								{servicesStore.currentService.title}
+							</h2>
+							{#if servicesStore.currentService.status}
+								<span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] font-bold uppercase tracking-wider">
+									{servicesStore.currentService.status}
+								</span>
+							{/if}
+						</div>
 						<p class="text-sm text-gray-500 font-medium flex items-center gap-2 mt-1">
 							<svg class="h-4 w-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -308,11 +327,11 @@
 					</Badge>
 					<div class="h-6 w-px bg-gray-200"></div>
 					<Button 
-						variant={isEditing ? 'primary' : 'ghost'} 
+						variant={servicesStore.isPlanning ? 'primary' : 'ghost'} 
 						size="sm"
-						onclick={() => (isEditing = !isEditing)}
+						onclick={() => (servicesStore.isPlanning = !servicesStore.isPlanning)}
 					>
-						{#if isEditing}
+						{#if servicesStore.isPlanning}
 							<svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
 							</svg>
@@ -330,8 +349,19 @@
 						</svg>
 						Comments
 					</Button>
-					<Button variant="ghost" size="sm" onclick={onClose}>Close</Button>
 				</div>
+			</div>
+			
+			<div class="px-4 pb-2 -mt-2">
+				<Button variant="ghost" size="sm" class="text-gray-500 hover:text-gray-900 px-0" onclick={() => {
+					servicesStore.stopPlanning();
+					onClose();
+				}}>
+					<svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+					</svg>
+					Back to Services
+				</Button>
 			</div>
 		</div>
 
@@ -339,17 +369,9 @@
 			<!-- Service (Left) -->
 			<div class="flex-1 overflow-y-auto bg-gray-50/30 p-6 scrollbar-thin">
 				<div class="max-w-4xl mx-auto space-y-6">
-					<!-- Approval Workflow -->
-					<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-						<ApprovalWorkflow 
-							service={servicesStore.currentService} 
-							onUpdate={() => servicesStore.loadService(serviceId)}
-						/>
-					</div>
-
 					<div class="flex items-center justify-between">
 						<h3 class="font-title text-xl font-bold text-gray-900">Service Order</h3>
-						{#if !isEditing && servicesStore.currentServiceSongs.length === 0}
+						{#if !servicesStore.isPlanning && servicesStore.currentServiceSongs.length === 0}
 							<p class="text-sm text-gray-500">No songs added yet.</p>
 						{/if}
 					</div>
@@ -358,12 +380,12 @@
 						{#each servicesStore.currentServiceSongs as song, index (song.id)}
 							<div
 								animate:flip={{ duration: 200 }}
-								class="group relative rounded-xl border bg-white p-5 transition-all shadow-sm {isEditing ? 'hover:shadow-md border-gray-200' : 'border-gray-100'} {dragOverIndex ===
+								class="group relative rounded-xl border bg-white p-5 transition-all shadow-sm {servicesStore.isPlanning ? 'hover:shadow-md border-gray-200' : 'border-gray-100'} {dragOverIndex ===
 								index
 									? 'border-primary ring-2 ring-primary/10 bg-primary/5'
 									: ''}"
 							>
-								{#if isEditing}
+								{#if servicesStore.isPlanning}
 									<button
 										type="button"
 										class="absolute inset-0 w-full h-full opacity-0 z-10 cursor-move"
@@ -377,7 +399,7 @@
 								{/if}
 								<div class="flex items-start gap-4 relative z-0">
 									<!-- Drag handle -->
-									{#if isEditing}
+									{#if servicesStore.isPlanning}
 										<div class="mt-1 cursor-move text-gray-400 group-hover:text-primary transition-colors">
 											<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
@@ -394,7 +416,7 @@
 										<div class="flex items-start justify-between gap-4">
 											<div>
 												<h4 class="font-bold text-gray-900 text-lg">
-													{isEditing ? (index + 1) + '. ' : ''}{song.expand?.song_id?.title || 'Unknown Song'}
+													{servicesStore.isPlanning ? (index + 1) + '. ' : ''}{song.expand?.song_id?.title || 'Unknown Song'}
 												</h4>
 												{#if song.expand?.song_id?.artist}
 													<p class="text-md text-gray-500 font-medium">{song.expand.song_id.artist}</p>
@@ -411,7 +433,7 @@
 										<div class="mt-4 flex flex-wrap items-center gap-3">
 											<div class="flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-lg border border-gray-100">
 												<span class="text-xs font-bold text-gray-400 uppercase tracking-tighter">Key</span>
-												{#if isEditing}
+												{#if servicesStore.isPlanning}
 													<select
 														value={song.transposed_key || song.expand?.song_id?.key_signature}
 														onchange={(e: Event) => {
@@ -462,7 +484,7 @@
 										</div>
 
 										<!-- Transition notes -->
-										{#if isEditing}
+										{#if servicesStore.isPlanning}
 											<div class="mt-4">
 												<div class="relative">
 													<input
@@ -491,7 +513,7 @@
 									</div>
 
 									<!-- Remove button -->
-									{#if isEditing}
+									{#if servicesStore.isPlanning}
 										<Button
 											variant="ghost"
 											size="sm"
@@ -512,7 +534,7 @@
 							</div>
 						{/each}
 
-						{#if isEditing}
+						{#if servicesStore.isPlanning}
 							<!-- Drop zone for new songs -->
 							<div
 								role="region"
@@ -537,116 +559,22 @@
 				</div>
 			</div>
 
-			<!-- Sidebar (Song Library / AI Suggestions) (Right) -->
-			<div class="w-[400px] border-l border-gray-200 bg-white flex flex-col shadow-xl z-10 transition-all {!isEditing && !showAISuggestions ? 'hidden' : 'flex'}">
-				<!-- Tab Navigation -->
-				{#if isEditing}
-					<div class="border-b border-gray-100 bg-white px-2">
-						<nav class="flex gap-1 py-2">
-							<button
-								onclick={() => showAISuggestions = false}
-								class="flex-1 px-4 py-2 text-sm font-bold rounded-lg transition-all {!showAISuggestions
-									? 'bg-primary text-white shadow-md'
-									: 'text-gray-500 hover:bg-gray-50'}"
-							>
-								Library
-							</button>
-							<button
-								onclick={() => showAISuggestions = true}
-								class="flex-1 px-4 py-2 text-sm font-bold rounded-lg transition-all {showAISuggestions
-									? 'bg-primary text-white shadow-md'
-									: 'text-gray-500 hover:bg-gray-50'}"
-							>
-								AI Suggestions
-							</button>
-						</nav>
-					</div>
-				{/if}
-
-				<div class="flex-1 overflow-hidden flex flex-col">
-					{#if showAISuggestions}
+			<!-- Sidebar (AI Suggestions) (Right) -->
+			{#if servicesStore.isPlanning}
+				<div class="w-[400px] border-l border-gray-200 bg-white flex flex-col shadow-xl z-10">
+					<div class="flex-1 overflow-hidden flex flex-col">
 						<div class="flex-1 overflow-hidden">
 							<AISuggestions
 								service={servicesStore.currentService}
 								availableSongs={songsStore.songs}
 								currentSongs={servicesStore.currentServiceSongs.map(ss => ss.expand?.song_id).filter((s): s is Song => s !== undefined)}
 								onAddSong={addSongFromSuggestion}
-								isPlanning={isEditing}
+								isPlanning={servicesStore.isPlanning}
 							/>
 						</div>
-					{:else if isEditing}
-						<!-- Song Library -->
-						<div class="flex-1 p-6 overflow-hidden flex flex-col bg-gray-50/50">
-							<div class="mb-6">
-								<h3 class="font-title text-xl font-bold text-gray-900 mb-4">Song Library</h3>
-								
-								<!-- Search -->
-								<div class="relative mb-4">
-									<input
-										type="search"
-										placeholder="Search songs..."
-										bind:value={searchQuery}
-										class="focus:border-primary focus:ring-primary block w-full rounded-xl border-gray-200 bg-white shadow-sm pl-10 h-11"
-									/>
-									<svg class="absolute left-3 top-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-									</svg>
-								</div>
-
-								<!-- Section selector -->
-								<label for="default-section" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Default Section</label>
-								<select
-									id="default-section"
-									bind:value={selectedSection}
-									class="focus:border-primary focus:ring-primary block w-full rounded-xl border-gray-200 bg-white shadow-sm h-11 transition-all"
-								>
-									{#each sectionTypes as type (type)}
-										<option value={type}>{type}</option>
-									{/each}
-								</select>
-							</div>
-
-							<!-- Songs list -->
-							<div class="flex-1 space-y-3 overflow-y-auto pr-1 scrollbar-thin">
-								{#each filteredSongs as song (song.id)}
-									{@const usageStatus = getSongUsageStatus(song)}
-									<div
-										role="button"
-										tabindex="0"
-										draggable="true"
-										ondragstart={(e) => handleSongDragStart(e, song)}
-										class="cursor-move rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-primary/30 group"
-									>
-										<div class="flex items-start justify-between gap-3">
-											<div class="min-w-0 flex-1">
-												<h4 class="truncate font-bold text-gray-900 group-hover:text-primary transition-colors">{song.title}</h4>
-												{#if song.artist}
-													<p class="truncate text-sm text-gray-500 font-medium">{song.artist}</p>
-												{/if}
-												<div class="mt-2 flex flex-wrap items-center gap-2">
-													{#if song.key_signature}
-														<span class="text-[10px] font-bold px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded uppercase tracking-tighter">
-															{song.key_signature}
-														</span>
-													{/if}
-													{#if song.tempo}
-														<span class="text-[10px] font-bold px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded uppercase tracking-tighter">
-															{song.tempo} BPM
-														</span>
-													{/if}
-												</div>
-											</div>
-											<div class={`rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-tight whitespace-nowrap border ${usageStatus.color.replace('bg-', 'bg-opacity-10 border-')}`}>
-												{usageStatus.icon} {usageStatus.text}
-											</div>
-										</div>
-									</div>
-								{/each}
-							</div>
-						</div>
-					{/if}
+					</div>
 				</div>
-			</div>
+			{/if}
 			
 			<!-- Comments sidebar -->
 			{#if showComments}
