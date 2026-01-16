@@ -3,7 +3,6 @@
 	import { goto } from '$app/navigation';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
@@ -173,11 +172,11 @@
 		let currentGroup: { label: string; services: typeof filteredServices } | null = null;
 
 		// Sort services by date descending first
-		const sorted = [...filteredServices].sort((a, b) => 
-			new Date(b.service_date).getTime() - new Date(a.service_date).getTime()
+		const sorted = [...filteredServices].sort(
+			(a, b) => new Date(b.service_date).getTime() - new Date(a.service_date).getTime()
 		);
 
-		sorted.forEach(service => {
+		sorted.forEach((service) => {
 			const date = new Date(service.service_date);
 			const monthLabel = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
@@ -206,7 +205,7 @@
 
 		<div class="mt-4 flex items-center gap-4 md:mt-0 md:ml-4">
 			{#if auth.canManageServices}
-				<Button variant="primary" onclick={openCreateModal} class="shadow-lg shadow-primary/20">
+				<Button variant="primary" onclick={openCreateModal} class="shadow-primary/20 shadow-lg">
 					Plan New Service
 				</Button>
 			{/if}
@@ -214,73 +213,113 @@
 	</div>
 
 	{#if error}
-		<div class="rounded-xl bg-red-50 p-4 text-red-800 border border-red-100 italic">
+		<div class="rounded-xl border border-red-100 bg-red-50 p-4 text-red-800 italic">
 			{error}
 		</div>
 	{/if}
 
 	<!-- Quick stats -->
 	<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-			<!-- Total / All -->
-			<button class="text-left w-full focus:outline-none cursor-pointer group" onclick={() => statusFilter = 'all'}>
-				<Card class="bg-white border-transparent shadow-sm transition-all duration-300 {statusFilter === 'all' ? 'ring-1 ring-gray-400 shadow-md' : 'group-hover:shadow-lg group-hover:shadow-gray-200/60'}">
-					<div class="flex items-center gap-4">
-						<div class="bg-gray-100 p-2.5 rounded-xl">
-							<Calendar class="h-5 w-5 text-gray-600" />
-						</div>
-						<div>
-							<div class="text-2xl font-bold text-gray-900 leading-none">{stats.total}</div>
-							<div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Total</div>
+		<!-- Total / All -->
+		<button
+			class="group w-full cursor-pointer text-left focus:outline-none"
+			onclick={() => (statusFilter = 'all')}
+		>
+			<Card
+				class="border-transparent bg-white shadow-sm transition-all duration-300 {statusFilter ===
+				'all'
+					? 'shadow-md ring-1 ring-gray-400'
+					: 'group-hover:shadow-lg group-hover:shadow-gray-200/60'}"
+			>
+				<div class="flex items-center gap-4">
+					<div class="rounded-xl bg-gray-100 p-2.5">
+						<Calendar class="h-5 w-5 text-gray-600" />
+					</div>
+					<div>
+						<div class="text-2xl leading-none font-bold text-gray-900">{stats.total}</div>
+						<div class="mt-1 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+							Total
 						</div>
 					</div>
-				</Card>
-			</button>
+				</div>
+			</Card>
+		</button>
 
-			<!-- Drafts -->
-			<button class="text-left w-full focus:outline-none cursor-pointer group" onclick={() => statusFilter = 'draft'}>
-				<Card class="bg-white border-transparent shadow-sm transition-all duration-300 {statusFilter === 'draft' ? 'ring-1 ring-blue-400 shadow-md' : 'group-hover:shadow-lg group-hover:shadow-blue-200/60'}">
-					<div class="flex items-center gap-4">
-						<div class="bg-blue-50 p-2.5 rounded-xl">
-							<Layers class="h-5 w-5 text-blue-600" />
-						</div>
-						<div>
-							<div class="text-2xl font-bold text-gray-900 leading-none">{stats.draft}</div>
-							<div class="text-[10px] text-blue-400 font-bold uppercase tracking-wider mt-1">Drafts</div>
+		<!-- Drafts -->
+		<button
+			class="group w-full cursor-pointer text-left focus:outline-none"
+			onclick={() => (statusFilter = 'draft')}
+		>
+			<Card
+				class="border-transparent bg-white shadow-sm transition-all duration-300 {statusFilter ===
+				'draft'
+					? 'shadow-md ring-1 ring-blue-400'
+					: 'group-hover:shadow-lg group-hover:shadow-blue-200/60'}"
+			>
+				<div class="flex items-center gap-4">
+					<div class="rounded-xl bg-blue-50 p-2.5">
+						<Layers class="h-5 w-5 text-blue-600" />
+					</div>
+					<div>
+						<div class="text-2xl leading-none font-bold text-gray-900">{stats.draft}</div>
+						<div class="mt-1 text-[10px] font-bold tracking-wider text-blue-400 uppercase">
+							Drafts
 						</div>
 					</div>
-				</Card>
-			</button>
+				</div>
+			</Card>
+		</button>
 
-			<!-- Planned -->
-			<button class="text-left w-full focus:outline-none cursor-pointer group" onclick={() => statusFilter = 'planned'}>
-				<Card class="bg-white border-transparent shadow-sm transition-all duration-300 {statusFilter === 'planned' ? 'ring-1 ring-green-400 shadow-md' : 'group-hover:shadow-lg group-hover:shadow-green-200/60'}">
-					<div class="flex items-center gap-4">
-						<div class="bg-green-50 p-2.5 rounded-xl">
-							<Clock class="h-5 w-5 text-green-600" />
-						</div>
-						<div>
-							<div class="text-2xl font-bold text-gray-900 leading-none">{stats.planned}</div>
-							<div class="text-[10px] text-green-400 font-bold uppercase tracking-wider mt-1">Planned</div>
+		<!-- Planned -->
+		<button
+			class="group w-full cursor-pointer text-left focus:outline-none"
+			onclick={() => (statusFilter = 'planned')}
+		>
+			<Card
+				class="border-transparent bg-white shadow-sm transition-all duration-300 {statusFilter ===
+				'planned'
+					? 'shadow-md ring-1 ring-green-400'
+					: 'group-hover:shadow-lg group-hover:shadow-green-200/60'}"
+			>
+				<div class="flex items-center gap-4">
+					<div class="rounded-xl bg-green-50 p-2.5">
+						<Clock class="h-5 w-5 text-green-600" />
+					</div>
+					<div>
+						<div class="text-2xl leading-none font-bold text-gray-900">{stats.planned}</div>
+						<div class="mt-1 text-[10px] font-bold tracking-wider text-green-400 uppercase">
+							Planned
 						</div>
 					</div>
-				</Card>
-			</button>
+				</div>
+			</Card>
+		</button>
 
-			<!-- Completed -->
-			<button class="text-left w-full focus:outline-none cursor-pointer group" onclick={() => statusFilter = 'completed'}>
-				<Card class="bg-white border-transparent shadow-sm transition-all duration-300 {statusFilter === 'completed' ? 'ring-1 ring-purple-400 shadow-md' : 'group-hover:shadow-lg group-hover:shadow-purple-200/60'}">
-					<div class="flex items-center gap-4">
-						<div class="bg-purple-50 p-2.5 rounded-xl">
-							<CheckCircle class="h-5 w-5 text-purple-600" />
-						</div>
-						<div>
-							<div class="text-2xl font-bold text-gray-900 leading-none">{stats.completed}</div>
-							<div class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mt-1">Done</div>
+		<!-- Completed -->
+		<button
+			class="group w-full cursor-pointer text-left focus:outline-none"
+			onclick={() => (statusFilter = 'completed')}
+		>
+			<Card
+				class="border-transparent bg-white shadow-sm transition-all duration-300 {statusFilter ===
+				'completed'
+					? 'shadow-md ring-1 ring-purple-400'
+					: 'group-hover:shadow-lg group-hover:shadow-purple-200/60'}"
+			>
+				<div class="flex items-center gap-4">
+					<div class="rounded-xl bg-purple-50 p-2.5">
+						<CheckCircle class="h-5 w-5 text-purple-600" />
+					</div>
+					<div>
+						<div class="text-2xl leading-none font-bold text-gray-900">{stats.completed}</div>
+						<div class="mt-1 text-[10px] font-bold tracking-wider text-purple-400 uppercase">
+							Done
 						</div>
 					</div>
-				</Card>
-			</button>
-		</div>
+				</div>
+			</Card>
+		</button>
+	</div>
 
 	<!-- Services list -->
 	{#if servicesStore.loading}
@@ -292,18 +331,26 @@
 			<EmptyState
 				title="No services found"
 				message={servicesStore.services.length > 0
-					? `No ${statusFilter === 'all' ? '' : statusFilter} services found.` 
-					: (auth.canManageServices 
-						? "Start your first worship plan today."
-						: "Contact your leader to get assigned to a service.")}
-				action={auth.canManageServices && servicesStore.services.length === 0 ? {
-					label: "Plan First Service",
-					onclick: openCreateModal
-				} : undefined}
+					? `No ${statusFilter === 'all' ? '' : statusFilter} services found.`
+					: auth.canManageServices
+						? 'Start your first worship plan today.'
+						: 'Contact your leader to get assigned to a service.'}
+				action={auth.canManageServices && servicesStore.services.length === 0
+					? {
+							label: 'Plan First Service',
+							onclick: openCreateModal
+						}
+					: undefined}
 			>
 				{#snippet icon()}
 					<div class="text-6xl">
-						{statusFilter === 'completed' ? '✅' : statusFilter === 'planned' ? '📅' : statusFilter === 'draft' ? '📝' : '📋'}
+						{statusFilter === 'completed'
+							? '✅'
+							: statusFilter === 'planned'
+								? '📅'
+								: statusFilter === 'draft'
+									? '📝'
+									: '📋'}
 					</div>
 				{/snippet}
 			</EmptyState>
@@ -312,7 +359,9 @@
 		<div class="space-y-8">
 			{#each servicesByMonth as group (group.label)}
 				<div>
-					<h3 class="text-lg font-semibold text-gray-900 mb-4 sticky top-0 bg-gray-50/95 backdrop-blur py-2 z-10 border-b border-gray-100">
+					<h3
+						class="sticky top-0 z-10 mb-4 border-b border-gray-100 bg-gray-50/95 py-2 text-lg font-semibold text-gray-900 backdrop-blur"
+					>
 						{group.label}
 					</h3>
 					<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
