@@ -1,36 +1,24 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import type { Song, SongRatingValue, AggregateRatings } from '$lib/types/song';
-	import { createRatingsAPI } from '$lib/api/ratings';
-	import { getAuthStore } from '$lib/context/stores.svelte';
+	import type { Song, SongRatingValue } from '$lib/types/song';
+	import { getAuthStore, getSongsStore } from '$lib/context/stores.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 
 	interface Props {
 		song: Song;
 		showAggregates?: boolean;
-		onRatingChange?: (rating: SongRatingValue | null) => void;
 		ratingsLoading?: boolean;
 		userRating?: { rating: SongRatingValue; is_difficult?: boolean } | null;
 	}
 
-	let { song, showAggregates = true, onRatingChange, ratingsLoading = false, userRating = null }: Props = $props();
+	let { song, showAggregates = true, ratingsLoading = false, userRating = null }: Props = $props();
 
 	const auth = getAuthStore();
-	const ratingsAPI = $derived.by(() => {
-		const ctx = auth.getAuthContext();
-		return createRatingsAPI(ctx, ctx.pb);
-	});
+	const songsStore = getSongsStore();
 
-	let currentRating = $state<SongRatingValue | null>(userRating?.rating ?? null);
-	let isDifficult = $state(userRating?.is_difficult ?? false);
+	const currentRating = $derived<SongRatingValue | null>(userRating?.rating ?? null);
+	const isDifficult = $derived(userRating?.is_difficult ?? false);
 	let loading = $state(false);
 	let saving = $state(false);
-
-	// Update local state when userRating prop changes
-	$effect(() => {
-		currentRating = userRating?.rating ?? null;
-		isDifficult = userRating?.is_difficult ?? false;
-	});
 
 	// Handle rating change
 	async function handleRatingChange(newRating: SongRatingValue) {
@@ -38,19 +26,13 @@
 
 		saving = true;
 		try {
-			// Toggle rating if clicking the same one
 			if (currentRating === newRating) {
-				await ratingsAPI.deleteRating(song.id);
-				currentRating = null;
-				onRatingChange?.(null);
+				await songsStore.deleteSongRating(song.id);
 			} else {
-				await ratingsAPI.setRating(song.id, {
-					song_id: song.id,
+				await songsStore.setSongRating(song.id, {
 					rating: newRating,
 					is_difficult: isDifficult
 				});
-				currentRating = newRating;
-				onRatingChange?.(newRating);
 			}
 		} catch (error) {
 			console.error('Failed to update rating:', error);
@@ -66,14 +48,10 @@
 		const newValue = !isDifficult;
 		saving = true;
 		try {
-			await ratingsAPI.setRating(song.id, {
-				song_id: song.id,
+			await songsStore.setSongRating(song.id, {
 				rating: currentRating,
 				is_difficult: newValue
 			});
-			isDifficult = newValue;
-			// Notify parent that rating changed (difficulty affects aggregates)
-			onRatingChange?.(currentRating);
 		} catch (error) {
 			console.error('Failed to update difficulty:', error);
 		} finally {
@@ -114,11 +92,7 @@
 			</button>
 		{:else}
 			<!-- No vote - show faded thumbs up as trigger -->
-			<button
-				class="rating-btn placeholder"
-				disabled={saving}
-				title="Vote on this song"
-			>
+			<button class="rating-btn placeholder" disabled={saving} title="Vote on this song">
 				👍
 			</button>
 		{/if}
@@ -267,7 +241,9 @@
 	/* Current vote fades and shifts to align with expanded position */
 	.current-vote,
 	.placeholder {
-		transition: opacity 0.3s ease, transform 0.3s ease;
+		transition:
+			opacity 0.3s ease,
+			transform 0.3s ease;
 	}
 
 	.song-rating-container:hover .current-vote,

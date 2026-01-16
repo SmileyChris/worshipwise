@@ -111,7 +111,7 @@ class SongsStore {
 	async updateGlobalStats(): Promise<void> {
 		try {
 			// Get total active songs count
-			const result = await this.songsApi.getSongsPaginated(1, 1, { 
+			const result = await this.songsApi.getSongsPaginated(1, 1, {
 				showRetired: false
 			});
 			this.stats.totalSongs = result.totalItems;
@@ -181,10 +181,10 @@ class SongsStore {
 					...song,
 					lastUsedDate: song.last_used_date ? new Date(song.last_used_date) : null,
 					daysSinceLastUsed: daysSince,
-					
+
 					lastSungDate: song.last_sung_date ? new Date(song.last_sung_date) : null,
 					daysSinceLastSung: daysSinceSung !== Infinity ? daysSinceSung : undefined,
-					
+
 					usageStatus: this.calculateUsageStatus(daysSince, daysSinceSung)
 				};
 			});
@@ -252,7 +252,7 @@ class SongsStore {
 					...song,
 					lastUsedDate: song.last_used_date ? new Date(song.last_used_date) : null,
 					daysSinceLastUsed: daysSince,
-					
+
 					lastSungDate: song.last_sung_date ? new Date(song.last_sung_date) : null,
 					daysSinceLastSung: daysSinceSung !== Infinity ? daysSinceSung : undefined,
 
@@ -304,7 +304,7 @@ class SongsStore {
 
 			// Refresh the list to include the new song
 			await this.loadSongs();
-			
+
 			// Update global stats
 			await this.updateGlobalStats();
 
@@ -454,7 +454,7 @@ class SongsStore {
 	private calculateUsageStatus(daysSince: number, daysSinceSung: number = Infinity): 'upcoming' | 'available' | 'caution' | 'recent' | 'stale' {
 		// 1. Check for upcoming FIRST (based on ANY usage plan in future)
 		if (daysSince < 0) {
-			return 'upcoming'; 
+			return 'upcoming';
 		}
 
 		// 2. Then check historical usage for recent/caution status
@@ -529,6 +529,110 @@ class SongsStore {
 			return error.message;
 		}
 		return 'An unexpected error occurred';
+	}
+
+
+	/**
+	 * Refresh aggregate ratings for a specific song
+	 */
+	async refreshSongAggregates(songId: string): Promise<void> {
+		try {
+			const freshAggregates = await this.ratingsApi.getAggregateRatings(songId);
+
+			// Update in allSongs cache
+			const index = this.allSongs.findIndex(s => s.id === songId);
+			if (index !== -1) {
+				this.allSongs[index] = {
+					...this.allSongs[index],
+					thumbs_up: freshAggregates.thumbsUp,
+					thumbs_down: freshAggregates.thumbsDown,
+					neutral: freshAggregates.neutral,
+					total_ratings: freshAggregates.totalRatings,
+					difficult_count: freshAggregates.difficultCount
+				};
+			}
+
+			// Also update in current page list if present
+			const pageIndex = this.songs.findIndex(s => s.id === songId);
+			if (pageIndex !== -1) {
+				this.songs[pageIndex] = {
+					...this.songs[pageIndex],
+					thumbs_up: freshAggregates.thumbsUp,
+					thumbs_down: freshAggregates.thumbsDown,
+					neutral: freshAggregates.neutral,
+					total_ratings: freshAggregates.totalRatings,
+					difficult_count: freshAggregates.difficultCount
+				};
+			}
+		} catch (error) {
+			console.error(`Failed to refresh aggregates for song ${songId}:`, error);
+		}
+	}
+
+
+	/**
+	 * Set a song rating
+	 */
+	async setSongRating(songId: string, data: { rating: SongRatingValue; is_difficult?: boolean }): Promise<void> {
+		try {
+			await this.ratingsApi.setRating(songId, {
+				song_id: songId,
+				...data
+			});
+
+			// Update local maps reactively
+			this.userRatings.set(songId, {
+				rating: data.rating,
+				is_difficult: data.is_difficult || false
+			});
+			this.userRatings = this.userRatings; // Trigger Svelte $state
+
+			// Update favorites/difficult sets
+			if (data.rating === 'thumbs_up') {
+				this.userFavorites.add(songId);
+			} else {
+				this.userFavorites.delete(songId);
+			}
+			this.userFavorites = this.userFavorites;
+
+			if (data.is_difficult) {
+				this.userDifficultSongs.add(songId);
+			} else {
+				this.userDifficultSongs.delete(songId);
+			}
+			this.userDifficultSongs = this.userDifficultSongs;
+
+			// Refresh aggregates
+			await this.refreshSongAggregates(songId);
+		} catch (error) {
+			console.error(`Failed to set rating for song ${songId}:`, error);
+			throw error;
+		}
+	}
+
+	/**
+	 * Delete a song rating
+	 */
+	async deleteSongRating(songId: string): Promise<void> {
+		try {
+			await this.ratingsApi.deleteRating(songId);
+
+			// Update local state
+			this.userRatings.delete(songId);
+			this.userRatings = this.userRatings;
+
+			this.userFavorites.delete(songId);
+			this.userFavorites = this.userFavorites;
+
+			this.userDifficultSongs.delete(songId);
+			this.userDifficultSongs = this.userDifficultSongs;
+
+			// Refresh aggregates
+			await this.refreshSongAggregates(songId);
+		} catch (error) {
+			console.error(`Failed to delete rating for song ${songId}:`, error);
+			throw error;
+		}
 	}
 
 	/**
@@ -606,7 +710,7 @@ class SongsStore {
 			labelMap.forEach(({ songs }) => {
 				songs.sort((a, b) => a.title.localeCompare(b.title));
 			});
-			
+
 			// Sort the map itself by label name (needs conversion to array and back usually, but Map preserves insertion order)
 			// We will sort keys and rebuild map
 			const sortedMap = new Map(

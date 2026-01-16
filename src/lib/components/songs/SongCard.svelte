@@ -1,12 +1,10 @@
 <script lang="ts">
 	import type { Song, SongRating, SongRatingValue, AggregateRatings } from '$lib/types/song';
-	import { getAuthStore } from '$lib/context/stores.svelte';
+	import { getAuthStore, getSongsStore } from '$lib/context/stores.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
-
 	import LabelBadge from '$lib/components/ui/LabelBadge.svelte';
 	import SongRatingButton from './SongRatingButton.svelte';
-	import { createRatingsAPI } from '$lib/api/ratings';
 	import { Plus } from 'lucide-svelte';
 
 	interface Props {
@@ -24,6 +22,7 @@
 	}
 
 	const auth = getAuthStore();
+	const songsStore = getSongsStore();
 
 	let {
 		song,
@@ -89,11 +88,12 @@
 					status: 'green',
 					colors: 'bg-green-100 text-green-800',
 					text: 'Available',
-					secondaryText: weeksAgo && weeksAgo >= 4 
-						? `Sung ${Math.floor(weeksAgo / 4)} month${Math.floor(weeksAgo / 4) === 1 ? '' : 's'} ago`
-						: weeksAgo 
-							? `Sung ${weeksAgo} weeks ago` 
-							: null,
+					secondaryText:
+						weeksAgo && weeksAgo >= 4
+							? `Sung ${Math.floor(weeksAgo / 4)} month${Math.floor(weeksAgo / 4) === 1 ? '' : 's'} ago`
+							: weeksAgo
+								? `Sung ${weeksAgo} weeks ago`
+								: null,
 					secondaryTextColors: 'text-amber-600'
 				};
 			case 'stale':
@@ -120,7 +120,7 @@
 
 	// Use aggregate ratings from song object (from enriched view)
 	// If song doesn't have aggregates (old data), initialize to zeros
-	let aggregates = $state<AggregateRatings>({
+	const aggregates = $derived<AggregateRatings>({
 		thumbsUp: song.thumbs_up ?? 0,
 		thumbsDown: song.thumbs_down ?? 0,
 		neutral: song.neutral ?? 0,
@@ -128,32 +128,9 @@
 		difficultCount: song.difficult_count ?? 0
 	});
 
-	// Update aggregates when song prop changes
-	$effect(() => {
-		aggregates = {
-			thumbsUp: song.thumbs_up ?? 0,
-			thumbsDown: song.thumbs_down ?? 0,
-			neutral: song.neutral ?? 0,
-			totalRatings: song.total_ratings ?? 0,
-			difficultCount: song.difficult_count ?? 0
-		};
-	});
-
-	const ratingsAPI = $derived.by(() => {
-		const ctx = auth.getAuthContext();
-		return createRatingsAPI(ctx, ctx.pb);
-	});
-
-	// Reload aggregates when rating changes (fetches fresh data)
-	async function handleRatingChange() {
-		try {
-			const freshAggregates = await ratingsAPI.getAggregateRatings(song.id);
-			// Update the local aggregates with fresh data
-			aggregates = freshAggregates;
-		} catch (err) {
-			console.error('Failed to reload aggregate ratings:', err);
-		}
-	}
+	const showAggregates = $derived(
+		aggregates.thumbsUp > 0 || aggregates.thumbsDown > 0 || aggregates.difficultCount > 0
+	);
 </script>
 
 <div
@@ -175,7 +152,6 @@
 
 			<!-- Category and Usage -->
 
-
 			{#if usageStatusInfo && usageStatusInfo.text}
 				<div class="mt-4 flex flex-wrap items-center gap-2">
 					<span
@@ -184,7 +160,10 @@
 						{usageStatusInfo.text}
 					</span>
 					{#if usageStatusInfo.secondaryText}
-						<span class="ml-2 text-xs font-medium {usageStatusInfo.secondaryTextColors || 'text-gray-500'}">
+						<span
+							class="ml-2 text-xs font-medium {usageStatusInfo.secondaryTextColors ||
+								'text-gray-500'}"
+						>
 							{usageStatusInfo.secondaryText}
 						</span>
 					{/if}
@@ -222,7 +201,7 @@
 		<div class="flex flex-shrink-0 flex-col items-end gap-3">
 			<!-- Rating buttons at top -->
 			<div class="flex items-center gap-2">
-				<SongRatingButton {song} showAggregates={true} {ratingsLoading} {userRating} onRatingChange={handleRatingChange} />
+				<SongRatingButton {song} showAggregates={true} {ratingsLoading} {userRating} />
 			</div>
 
 			{#if auth.canManageServices && isEditingService}
@@ -242,8 +221,8 @@
 	</div>
 
 	<!-- Labels and vote counts footer -->
-	{#if (song.expand?.labels && song.expand.labels.length > 0) || (aggregates && aggregates.totalRatings > 0) || (isEditingService && auth.canManageServices)}
-		<div class="mt-3 flex flex-wrap gap-2 items-center">
+	{#if (song.expand?.labels && song.expand.labels.length > 0) || showAggregates || (isEditingService && auth.canManageServices)}
+		<div class="mt-3 flex flex-wrap items-center gap-2">
 			{#if isEditingService && auth.canManageServices}
 				<button
 					onclick={(e) => {
@@ -251,8 +230,8 @@
 						onAddToService(song);
 					}}
 					disabled={isInCurrentService}
-					class="mr-1 rounded-full p-1 bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-					title={isInCurrentService ? "Already in service" : "Add to service"}
+					class="bg-primary/10 text-primary hover:bg-primary/20 mr-1 rounded-full p-1 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+					title={isInCurrentService ? 'Already in service' : 'Add to service'}
 				>
 					<Plus class="h-3 w-3" />
 				</button>
@@ -262,7 +241,7 @@
 				{#each song.expand.labels as label (label.id)}
 					{#if onThemeClick}
 						<button
-							class="hover:opacity-80 transition-opacity cursor-pointer"
+							class="cursor-pointer transition-opacity hover:opacity-80"
 							onclick={() => onThemeClick(label.id)}
 							type="button"
 						>
@@ -275,27 +254,25 @@
 			{/if}
 
 			<!-- Vote counts pill -->
-			{#if aggregates && aggregates.totalRatings > 0}
-				<span class="inline-flex items-center divide-x divide-gray-300 rounded-full bg-gray-100 border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700">
+			{#if showAggregates}
+				<span
+					class="inline-flex items-center divide-x divide-gray-300 rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700"
+				>
 					{#if aggregates.thumbsUp > 0}
-						<span class="pr-1.5" title="{aggregates.thumbsUp} thumbs up">👍 {aggregates.thumbsUp}</span>
+						<span class="pr-1.5" title="{aggregates.thumbsUp} thumbs up"
+							>👍 {aggregates.thumbsUp}</span
+						>
 					{/if}
 					{#if aggregates.thumbsDown > 0}
-						<span class="px-1.5" title="{aggregates.thumbsDown} thumbs down">👎 {aggregates.thumbsDown}</span>
+						<span class="px-1.5" title="{aggregates.thumbsDown} thumbs down"
+							>👎 {aggregates.thumbsDown}</span
+						>
 					{/if}
 					{#if aggregates.difficultCount > 0}
-						<span class="pl-1.5" title="{aggregates.difficultCount} marked as complex">⚠️ {aggregates.difficultCount}</span>
+						<span class="pl-1.5" title="{aggregates.difficultCount} marked as complex"
+							>⚠️ {aggregates.difficultCount}</span
+						>
 					{/if}
-				</span>
-			{/if}
-
-			<!-- Difficult indicator -->
-			{#if aggregates && aggregates.difficultCount > 2}
-				<span
-					class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800"
-					title="{aggregates.difficultCount} people marked this as difficult"
-				>
-					⚠️ Complex
 				</span>
 			{/if}
 		</div>
