@@ -1,3 +1,4 @@
+import { createLabelsAPI, type LabelsAPI } from '$lib/api/labels';
 import { createRatingsAPI, type RatingsAPI } from '$lib/api/ratings';
 import { createSongsAPI, type SongsAPI } from '$lib/api/songs';
 import type { AuthStore as RuntimeAuthStore } from '$lib/stores/auth.svelte';
@@ -5,6 +6,7 @@ import type { AuthContext } from '$lib/types/auth';
 import type {
 	AggregateRatings,
 	CreateSongData,
+	Label,
 	Song,
 	SongFilterOptions,
 	SongRatingValue,
@@ -49,6 +51,9 @@ class SongsStore {
 	// Selected song for editing
 	selectedSong = $state<Song | null>(null);
 
+	// Labels for filtering
+	labels = $state<Label[]>([]);
+
 	// Derived computed values
 	filteredSongsCount = $derived(this.songs.length);
 	hasNextPage = $derived(this.currentPage < this.totalPages);
@@ -78,6 +83,7 @@ class SongsStore {
 
 	private songsApi: SongsAPI;
 	private ratingsApi: RatingsAPI;
+	private labelsApi: LabelsAPI;
 
 	// Runes-first: support live auth store or static context
 	private auth: RuntimeAuthStore | null = null;
@@ -98,6 +104,10 @@ class SongsStore {
 		this.ratingsApi = $derived.by(() => {
 			const ctx = this.getAuthContext();
 			return createRatingsAPI(ctx, ctx.pb);
+		});
+		this.labelsApi = $derived.by(() => {
+			const ctx = this.getAuthContext();
+			return createLabelsAPI(ctx.pb);
 		});
 	}
 
@@ -135,8 +145,17 @@ class SongsStore {
 		this.error = null;
 
 		try {
-			// Fetch all enriched songs (includes usage and rating aggregates)
-			const enrichedSongs = await this.songsApi.getSongsEnriched({ showRetired: false, showChristmas: true });
+			const ctx = this.getAuthContext();
+			const churchId = ctx.currentChurch?.id;
+
+			// Fetch all enriched songs and labels in parallel
+			const [enrichedSongs, labels] = await Promise.all([
+				this.songsApi.getSongsEnriched({ showRetired: false, showChristmas: true }),
+				churchId ? this.labelsApi.getLabels(churchId) : Promise.resolve([])
+			]);
+
+			// Store labels for filtering
+			this.labels = labels;
 
 			// Fetch current user's individual ratings for all songs in parallel
 			const songIds = enrichedSongs.map((song) => song.id);

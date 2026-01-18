@@ -406,21 +406,18 @@ Is this a list/collection page?
 
 ## Implementation Checklist
 
-### Immediate (Sprint 7)
+### Completed
 
-- [ ] Remove unused `+page.ts` from `/songs` page
-- [ ] Move labels loading into SongsStore
-- [ ] Document ratingsAPI direct usage as intentional (for SongCard)
+- [x] Remove unused `+page.ts` from `/songs` page
+- [x] Move labels loading into SongsStore
+- [x] Create `RolesStore` and migrate `/admin/roles`
+- [x] Create `SkillsStore` and migrate `/admin/skills`
+- [x] Add real-time subscriptions to admin stores
+- [x] Update context initialization with new stores
 
-### Short-term (Sprint 8)
+### Remaining (Future Sprints)
 
-- [ ] Create `RolesStore` and migrate `/admin/roles`
-- [ ] Create `MembersStore` and migrate `/admin/members`
-- [ ] Create `SkillsStore` and migrate `/admin/skills`
-- [ ] Add real-time subscriptions to admin stores
-
-### Medium-term (Sprint 9)
-
+- [ ] Create `MembersStore` and migrate `/admin/members` (complex - uses different API pattern)
 - [ ] Create `ChurchSettingsStore` for settings pages
 - [ ] Review and clean up `/services/[id]` page
 - [ ] Add SSR comments to all `+page.ts` files explaining why disabled
