@@ -1,6 +1,11 @@
 import { pb } from '$lib/api/client';
 import { createAnalyticsStore, type AnalyticsStore } from '$lib/stores/analytics.svelte';
 import { createAuthStore, type AuthStore } from '$lib/stores/auth.svelte';
+import {
+	createChurchSettingsStore,
+	type ChurchSettingsStore
+} from '$lib/stores/church-settings.svelte';
+import { createMembersStore, type MembersStore } from '$lib/stores/members.svelte';
 import { createQuickstartStore, type QuickstartStore } from '$lib/stores/quickstart.svelte';
 import {
 	createRecommendationsStore,
@@ -23,6 +28,8 @@ const RECOMMENDATIONS_STORE_KEY = Symbol('recommendations-store');
 const QUICKSTART_STORE_KEY = Symbol('quickstart-store');
 const ROLES_STORE_KEY = Symbol('roles-store');
 const SKILLS_STORE_KEY = Symbol('skills-store');
+const MEMBERS_STORE_KEY = Symbol('members-store');
+const CHURCH_SETTINGS_STORE_KEY = Symbol('church-settings-store');
 
 // Store context interface
 export interface StoreContext {
@@ -35,6 +42,8 @@ export interface StoreContext {
 	quickstart: QuickstartStore;
 	roles: RolesStore;
 	skills: SkillsStore;
+	members: MembersStore;
+	churchSettings: ChurchSettingsStore;
 }
 
 /**
@@ -56,6 +65,8 @@ export function initializeStores(): StoreContext {
 	const services = createServicesStore(auth);
 	const roles = createRolesStore(auth);
 	const skills = createSkillsStore(auth);
+	const members = createMembersStore(auth);
+	const churchSettings = createChurchSettingsStore(auth);
 
 	// Independent stores
 	const analytics = createAnalyticsStore(auth);
@@ -71,6 +82,8 @@ export function initializeStores(): StoreContext {
 	setContext(QUICKSTART_STORE_KEY, quickstart);
 	setContext(ROLES_STORE_KEY, roles);
 	setContext(SKILLS_STORE_KEY, skills);
+	setContext(MEMBERS_STORE_KEY, members);
+	setContext(CHURCH_SETTINGS_STORE_KEY, churchSettings);
 
 	const storeContext: StoreContext = {
 		auth,
@@ -81,7 +94,9 @@ export function initializeStores(): StoreContext {
 		recommendations,
 		quickstart,
 		roles,
-		skills
+		skills,
+		members,
+		churchSettings
 	};
 
 	return storeContext;
@@ -205,6 +220,32 @@ export function getSkillsStore(): SkillsStore {
 }
 
 /**
+ * Get members store from context
+ */
+export function getMembersStore(): MembersStore {
+	const store = getContext<MembersStore>(MEMBERS_STORE_KEY);
+	if (!store) {
+		throw new Error(
+			'Members store not found in context. Make sure initializeStores() was called in a parent component.'
+		);
+	}
+	return store;
+}
+
+/**
+ * Get church settings store from context
+ */
+export function getChurchSettingsStore(): ChurchSettingsStore {
+	const store = getContext<ChurchSettingsStore>(CHURCH_SETTINGS_STORE_KEY);
+	if (!store) {
+		throw new Error(
+			'Church settings store not found in context. Make sure initializeStores() was called in a parent component.'
+		);
+	}
+	return store;
+}
+
+/**
  * Get all stores from context as an object
  */
 export function getAllStores(): StoreContext {
@@ -217,6 +258,8 @@ export function getAllStores(): StoreContext {
 		recommendations: getRecommendationsStore(),
 		quickstart: getQuickstartStore(),
 		roles: getRolesStore(),
-		skills: getSkillsStore()
+		skills: getSkillsStore(),
+		members: getMembersStore(),
+		churchSettings: getChurchSettingsStore()
 	};
 }

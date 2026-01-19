@@ -1,217 +1,72 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
-	import { getAuthStore } from '$lib/context/stores.svelte';
-	import { pb } from '$lib/api/client';
-	import { isValidMistralAPIKey } from '$lib/api/mistral';
+	import { onMount, onDestroy } from 'svelte';
+	import { getAuthStore, getChurchSettingsStore } from '$lib/context/stores.svelte';
 	import { env } from '$env/dynamic/public';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import { Settings, Key, AlertCircle, Check, X, Link, Download } from 'lucide-svelte';
-	import type { Church } from '$lib/types/church';
 
 	const auth = getAuthStore();
+	const settingsStore = getChurchSettingsStore();
 
-	let church = $state<(Church & { mistral_api_key?: string; elvanto_api_key?: string; last_elvanto_sync?: string }) | null>(
-		null
-	);
-	let loading = $state(true);
-	let saving = $state(false);
-	let error = $state<string | null>(null);
-	let success = $state<string | null>(null);
-
-	// Form state
+	// Local form state
 	let mistralApiKey = $state('');
 	let showApiKey = $state(false);
-	let testingApiKey = $state(false);
-	let apiKeyValid = $state<boolean | null>(null);
-
-	// Elvanto
 	let elvantoApiKey = $state('');
 	let showElvantoKey = $state(false);
-	let elvantoKeyConfigured = $state(false);
-	let importing = $state(false);
-	let importResult = $state<{ services: number; songs: number; leaders: number } | null>(null);
+
+	// Cleanup function
+	let unsubscribe: (() => void) | null = null;
 
 	// Check if there's a global API key
 	const hasGlobalKey = !!env.PUBLIC_MISTRAL_API_KEY;
 
-	onMount(() => {
-		loadChurchSettings();
+	onMount(async () => {
+		await settingsStore.loadSettings();
+
+		// Initialize local form state from store
+		if (settingsStore.church) {
+			mistralApiKey = settingsStore.church.mistral_api_key || '';
+		}
+
+		unsubscribe = await settingsStore.subscribeToUpdates();
 	});
 
-	async function loadChurchSettings() {
-		loading = true;
-		error = null;
-
-		try {
-			// Get current church from auth store
-			const currentChurch = auth.currentChurch;
-			if (!currentChurch) {
-				error = 'No church selected';
-				loading = false;
-				return;
-			}
-
-			// Verify user has admin access
-			if (!auth.isAdmin) {
-				error = 'You do not have permission to access these settings';
-				loading = false;
-				return;
-			}
-
-			// Load church data with API key
-			const churchData = await pb
-				.collection('churches')
-				.getOne<Church & { mistral_api_key?: string; elvanto_api_key?: string; last_elvanto_sync?: string }>(currentChurch.id);
-			church = churchData;
-			mistralApiKey = churchData.mistral_api_key || '';
-			mistralApiKey = churchData.mistral_api_key || '';
-			
-			// Handle Elvanto key as write-only
-			if (churchData.elvanto_api_key) {
-				elvantoKeyConfigured = true;
-			}
-			elvantoApiKey = ''; // Never display the key value
-		} catch (err) {
-			console.error('Failed to load church settings:', err);
-			error = err instanceof Error ? err.message : 'Failed to load church settings';
-		} finally {
-			loading = false;
+	onDestroy(() => {
+		if (unsubscribe) {
+			unsubscribe();
 		}
-	}
+	});
 
 	async function handleSave() {
-		if (!church) return;
+		const updateData: any = {
+			mistral_api_key: mistralApiKey.trim() || null
+		};
 
-		saving = true;
-		error = null;
-		success = null;
-
-		try {
-			const updateData: any = {
-				mistral_api_key: mistralApiKey.trim() || null
-			};
-
-			// Only update Elvanto key if user entered something
-			if (elvantoApiKey.trim()) {
-				updateData.elvanto_api_key = elvantoApiKey.trim();
-			} else if (elvantoApiKey === '' && !elvantoKeyConfigured) {
-				// If explicitly cleared (though we don't have a clear button yet, but for safety)
-				// actually, if empty and not configured, maybe we want to send null?
-				// But given the logic "Wait-Only", empty means "no change" typically unless explicit "Clear" action.
-				// For now, only send if populated.
-			}
-
-			// Update church with new API key
-			await pb.collection('churches').update(church.id, updateData);
-
-			success = 'Settings saved successfully';
-
-			// Reload to get updated data
-			await loadChurchSettings();
-		} catch (err) {
-			console.error('Failed to save settings:', err);
-			error = err instanceof Error ? err.message : 'Failed to save settings';
-		} finally {
-			saving = false;
+		// Only update Elvanto key if user entered something
+		if (elvantoApiKey.trim()) {
+			updateData.elvanto_api_key = elvantoApiKey.trim();
 		}
+
+		await settingsStore.updateSettings(updateData);
+
+		// Clear Elvanto input after save (it's write-only)
+		elvantoApiKey = '';
 	}
 
 	async function testApiKey() {
 		if (!mistralApiKey.trim()) return;
-
-		testingApiKey = true;
-		apiKeyValid = null;
-		error = null;
-
-		try {
-			// Basic validation
-			if (!isValidMistralAPIKey(mistralApiKey)) {
-				apiKeyValid = false;
-				error = 'Invalid API key format';
-				return;
-			}
-
-			// Test the API key
-			const { createMistralClient } = await import('$lib/api/mistral');
-			const client = createMistralClient(mistralApiKey.trim());
-			const result = await client.testConnection();
-
-			apiKeyValid = result.success;
-			if (!result.success) {
-				error = result.error || 'API key validation failed';
-			}
-		} catch (err) {
-			apiKeyValid = false;
-			error = err instanceof Error ? err.message : 'Failed to test API key';
-		} finally {
-			testingApiKey = false;
-		}
+		await settingsStore.testMistralApiKey(mistralApiKey.trim());
 	}
 
 	function clearApiKey() {
 		mistralApiKey = '';
-		apiKeyValid = null;
+		settingsStore.clearApiKeyValidation();
 	}
 
 	async function handleImport() {
-		if (!elvantoKeyConfigured && !elvantoApiKey) return;
-		
-		importing = true;
-		error = null;
-		success = null;
-		importResult = null;
-		
-		try {
-            console.log("Starting Import...");
-            console.log("Auth Store Valid:", pb.authStore.isValid);
-            console.log("Auth Token present:", !!pb.authStore.token);
-            if(pb.authStore.model) console.log("User ID:", pb.authStore.model.id);
-
-			if (!church) throw new Error("Church context missing");
-
-			// Use PB client to ensure we hit the correct backend URL
-			const data = await pb.send(`/api/elvanto/import/${church.id}`, {
-				method: 'POST'
-			});
-			
-			// pb.send throws if status >= 400
-			
-			success = `Successfully imported ${data.importedServices} services, ${data.importedSongs} songs, and ${data.importedLeaders} leaders!`;
-			importResult = { 
-				services: data.importedServices, 
-				songs: data.importedSongs,
-				leaders: data.importedLeaders
-			};
-			
-			// Reload settings to update last sync time
-			await loadChurchSettings();
-		} catch(err: any) {
-			console.error("Import error:", err);
-			
-			// Extract detailed error from PocketBase ClientResponseError
-			// It typically has: message, status, data
-			if (err.data && err.data.error) {
-				error = err.data.error; // Custom error string from our backend hook
-			} else if (err.message) {
-				error = err.message;
-			} else if (err.response && err.response.message) {
-                // older SDK or raw response structure
-                error = err.response.message;
-            } else {
-				error = 'Import failed. Check console for details.';
-			}
-            
-            // If the error includes "stack", log it
-            if (err.data && err.data.stack) {
-                console.error("Backend Stack:", err.data.stack);
-            }
-		} finally {
-			importing = false;
-		}
+		await settingsStore.importFromElvanto();
 	}
 </script>
 
@@ -223,7 +78,7 @@
 	<!-- Not admin - show access denied -->
 	<div class="py-12 text-center">
 		<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-			<span class="text-red-600">⚠️</span>
+			<span class="text-red-600">&#9888;&#65039;</span>
 		</div>
 		<h2 class="mt-4 text-lg font-medium text-gray-900">Access Denied</h2>
 		<p class="mt-2 text-sm text-gray-500">Only church administrators can access settings.</p>
@@ -234,7 +89,7 @@
 {:else}
 	<div class="space-y-6">
 		<!-- Loading State -->
-		{#if loading}
+		{#if settingsStore.loading}
 			<Card class="py-12 text-center">
 				<div class="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
 				<p class="mt-2 text-gray-600">Loading settings...</p>
@@ -242,27 +97,27 @@
 		{/if}
 
 		<!-- Error Display -->
-		{#if error && !loading}
+		{#if settingsStore.error && !settingsStore.loading}
 			<Card class="border-red-200 bg-red-50">
 				<div class="flex items-start">
 					<AlertCircle class="mr-2 h-5 w-5 flex-shrink-0 text-red-400" />
-					<p class="text-red-800">{error}</p>
+					<p class="text-red-800">{settingsStore.error}</p>
 				</div>
 			</Card>
 		{/if}
 
 		<!-- Success Display -->
-		{#if success}
+		{#if settingsStore.success}
 			<Card class="border-green-200 bg-green-50">
 				<div class="flex items-start">
 					<Check class="mr-2 h-5 w-5 flex-shrink-0 text-green-400" />
-					<p class="text-green-800">{success}</p>
+					<p class="text-green-800">{settingsStore.success}</p>
 				</div>
 			</Card>
 		{/if}
 
 		<!-- Settings Form -->
-		{#if church && !loading}
+		{#if settingsStore.church && !settingsStore.loading}
 			<Card class="space-y-6">
 				<!-- AI Settings Section -->
 				<div>
@@ -305,7 +160,7 @@
 										bind:value={mistralApiKey}
 										placeholder={hasGlobalKey ? 'Using global key...' : 'sk-...'}
 										class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-										disabled={saving || testingApiKey}
+										disabled={settingsStore.saving || settingsStore.testingApiKey}
 									/>
 
 									{#if mistralApiKey}
@@ -324,23 +179,23 @@
 								</div>
 
 								{#if mistralApiKey}
-									<Button variant="outline" onclick={testApiKey} disabled={testingApiKey || saving}>
-										{#if testingApiKey}
+									<Button variant="outline" onclick={testApiKey} disabled={settingsStore.testingApiKey || settingsStore.saving}>
+										{#if settingsStore.testingApiKey}
 											Testing...
 										{:else}
 											Test Key
 										{/if}
 									</Button>
 
-									<Button variant="ghost" onclick={clearApiKey} disabled={saving || testingApiKey}>
+									<Button variant="ghost" onclick={clearApiKey} disabled={settingsStore.saving || settingsStore.testingApiKey}>
 										Clear
 									</Button>
 								{/if}
 							</div>
 
-							{#if apiKeyValid !== null}
+							{#if settingsStore.apiKeyValid !== null}
 								<div class="mt-2">
-									{#if apiKeyValid}
+									{#if settingsStore.apiKeyValid}
 										<Badge variant="success" class="text-xs">
 											<Check class="mr-1 h-3 w-3" />
 											Valid API Key
@@ -403,7 +258,7 @@
 								<label for="elvanto-key" class="block text-sm font-medium text-gray-700">
 									Elvanto API Key
 								</label>
-								{#if elvantoKeyConfigured}
+								{#if settingsStore.hasElvantoKey}
 									<Badge variant="success" class="text-xs">
 										<Check class="mr-1 h-3 w-3" />
 										Key Configured
@@ -416,9 +271,9 @@
 									id="elvanto-key"
 									type={showElvantoKey ? 'text' : 'password'}
 									bind:value={elvantoApiKey}
-									placeholder={elvantoKeyConfigured ? 'Enter new key to update...' : 'Enter your Elvanto API Key'}
+									placeholder={settingsStore.hasElvantoKey ? 'Enter new key to update...' : 'Enter your Elvanto API Key'}
 									class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-									disabled={saving}
+									disabled={settingsStore.saving}
 								/>
 
 								{#if elvantoApiKey}
@@ -437,21 +292,21 @@
 							</div>
 							<p class="mt-2 text-sm text-gray-500">
 								Used to import services and songs from Elvanto.
-								{#if elvantoKeyConfigured}
+								{#if settingsStore.hasElvantoKey}
 									(Leave empty to keep existing key)
 								{/if}
 							</p>
 						</div>
 
-						{#if elvantoKeyConfigured}
+						{#if settingsStore.hasElvantoKey}
 							<div class="mt-4 border-t border-gray-200 pt-4">
 								<div class="flex items-center justify-between">
 									<div>
 										<h4 class="text-sm font-medium text-gray-900">Import Data</h4>
 										<p class="text-sm text-gray-500">Import services and songs from Elvanto (last 2 years)</p>
 									</div>
-									<Button variant="outline" onclick={handleImport} disabled={importing || saving}>
-										{#if importing}
+									<Button variant="outline" onclick={handleImport} disabled={settingsStore.importing || settingsStore.saving}>
+										{#if settingsStore.importing}
 											Importing...
 										{:else}
 											<div class="flex items-center">
@@ -461,14 +316,14 @@
 										{/if}
 									</Button>
 								</div>
-								{#if importResult}
+								{#if settingsStore.importResult}
 									<div class="mt-2 text-sm text-green-600">
-										Imported {importResult.services} services, {importResult.songs} songs, and {importResult.leaders} leaders.
+										Imported {settingsStore.importResult.importedServices} services, {settingsStore.importResult.importedSongs} songs, and {settingsStore.importResult.importedLeaders} leaders.
 									</div>
 								{/if}
-								{#if church && church.last_elvanto_sync}
+								{#if settingsStore.church?.last_elvanto_sync}
 									 <p class="mt-2 text-xs text-gray-400">
-										Last sync: {new Date(church.last_elvanto_sync).toLocaleString()}
+										Last sync: {new Date(settingsStore.church.last_elvanto_sync).toLocaleString()}
 									 </p>
 								{/if}
 							</div>
@@ -478,8 +333,8 @@
 
 				<!-- Save Button -->
 				<div class="flex justify-end border-t pt-4">
-					<Button variant="primary" onclick={handleSave} disabled={saving || testingApiKey}>
-						{#if saving}
+					<Button variant="primary" onclick={handleSave} disabled={settingsStore.saving || settingsStore.testingApiKey}>
+						{#if settingsStore.saving}
 							Saving...
 						{:else}
 							Save Settings
