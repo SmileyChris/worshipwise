@@ -1,10 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getAuthStore } from '$lib/context/stores.svelte';
-	import { createRolesAPI, type RolesAPI } from '$lib/api/roles';
-	import { pb } from '$lib/api/client';
+	import { getAuthStore, getRolesStore } from '$lib/context/stores.svelte';
 	import type { Role, Permission } from '$lib/types/permissions';
-	import { PERMISSIONS, PERMISSION_DESCRIPTIONS } from '$lib/types/permissions';
+	import { PERMISSION_DESCRIPTIONS } from '$lib/types/permissions';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -14,12 +12,15 @@
 	import { Plus, Edit2, Trash2, Shield } from 'lucide-svelte';
 
 	const auth = getAuthStore();
-	let rolesAPI: RolesAPI;
+	const rolesStore = getRolesStore();
 
-	// State
-	let roles = $state<Role[]>([]);
-	let loading = $state(true);
-	let error = $state<string | null>(null);
+	// Reactive state from store
+	let roles = $derived(rolesStore.roles);
+	let loading = $derived(rolesStore.loading);
+	let error = $derived(rolesStore.error);
+	let missingPermissions = $derived(rolesStore.missingPermissions);
+
+	// Local UI state
 	let showCreateModal = $state(false);
 	let editingRole = $state<Role | null>(null);
 	let deletingRole = $state<Role | null>(null);
@@ -30,36 +31,6 @@
 		slug: '',
 		permissions: [] as Permission[]
 	});
-
-	// Permission validation
-	let missingPermissions = $state<Permission[]>([]);
-
-	// Initialize API reactively with runes
-	$effect(() => {
-		const ctx = auth.getAuthContext();
-		if (ctx?.currentChurch) {
-			rolesAPI = createRolesAPI(ctx, pb);
-		}
-	});
-
-	async function loadRoles() {
-		if (!rolesAPI) return;
-
-		try {
-			loading = true;
-			error = null;
-			roles = await rolesAPI.getRoles();
-
-			// Check permission coverage
-			const coverage = await rolesAPI.validatePermissionCoverage();
-			missingPermissions = coverage.missingPermissions;
-		} catch (err) {
-			console.error('Failed to load roles:', err);
-			error = err instanceof Error ? err.message : 'Failed to load roles';
-		} finally {
-			loading = false;
-		}
-	}
 
 	function startCreateRole() {
 		formData = {
@@ -89,57 +60,42 @@
 	}
 
 	async function handleCreateRole() {
-		if (!rolesAPI || !formData.name || !formData.slug) return;
+		if (!formData.name || !formData.slug) return;
 
 		try {
-			loading = true;
-			await rolesAPI.createRole({
+			await rolesStore.createRole({
 				name: formData.name,
 				slug: formData.slug,
 				permissions: formData.permissions
 			});
 			showCreateModal = false;
-			await loadRoles();
 		} catch (err) {
 			console.error('Failed to create role:', err);
-			error = err instanceof Error ? err.message : 'Failed to create role';
-		} finally {
-			loading = false;
 		}
 	}
 
 	async function handleUpdateRole() {
-		if (!rolesAPI || !editingRole) return;
+		if (!editingRole) return;
 
 		try {
-			loading = true;
-			await rolesAPI.updateRole(editingRole.id, {
+			await rolesStore.updateRole(editingRole.id, {
 				name: formData.name,
 				permissions: formData.permissions
 			});
 			editingRole = null;
-			await loadRoles();
 		} catch (err) {
 			console.error('Failed to update role:', err);
-			error = err instanceof Error ? err.message : 'Failed to update role';
-		} finally {
-			loading = false;
 		}
 	}
 
 	async function handleDeleteRole() {
-		if (!rolesAPI || !deletingRole) return;
+		if (!deletingRole) return;
 
 		try {
-			loading = true;
-			await rolesAPI.deleteRole(deletingRole.id);
+			await rolesStore.deleteRole(deletingRole.id);
 			deletingRole = null;
-			await loadRoles();
 		} catch (err) {
 			console.error('Failed to delete role:', err);
-			error = err instanceof Error ? err.message : 'Failed to delete role';
-		} finally {
-			loading = false;
 		}
 	}
 
@@ -160,9 +116,8 @@
 
 	// Count users with role
 	async function getUserCount(roleId: string): Promise<number> {
-		if (!rolesAPI) return 0;
 		try {
-			const users = await rolesAPI.getUsersByRole(roleId);
+			const users = await rolesStore.getUsersByRole(roleId);
 			return users.length;
 		} catch {
 			return 0;
@@ -171,7 +126,16 @@
 
 	onMount(() => {
 		if (auth.currentChurch) {
-			loadRoles();
+			rolesStore.loadRoles();
+
+			// Set up real-time updates
+			const unsubscribePromise = rolesStore.subscribeToUpdates();
+
+			return () => {
+				unsubscribePromise.then((unsubscribe) => {
+					if (unsubscribe) unsubscribe();
+				});
+			};
 		}
 	});
 </script>
@@ -333,9 +297,9 @@
 				/>
 			</FormField>
 
-			<FormField 
-				label="Slug" 
-				for="slug" 
+			<FormField
+				label="Slug"
+				for="slug"
 				required
 				helpText="Lowercase letters, numbers, and hyphens only"
 			>

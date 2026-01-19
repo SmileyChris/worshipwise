@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getAuthStore } from '$lib/context/stores.svelte';
-	import { createSkillsAPI, type SkillsAPI } from '$lib/api/skills';
-	import { pb } from '$lib/api/client';
+	import { getAuthStore, getSkillsStore } from '$lib/context/stores.svelte';
 	import type { Skill } from '$lib/types/permissions';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -12,12 +10,14 @@
 	import { Plus, Edit2, Trash2, Music, Users } from 'lucide-svelte';
 
 	const auth = getAuthStore();
-	let skillsAPI: SkillsAPI;
+	const skillsStore = getSkillsStore();
 
-	// State
-	let skills = $state<Skill[]>([]);
-	let loading = $state(true);
-	let error = $state<string | null>(null);
+	// Reactive state from store
+	let skills = $derived(skillsStore.skills);
+	let loading = $derived(skillsStore.loading);
+	let error = $derived(skillsStore.error);
+
+	// Local UI state
 	let showCreateModal = $state(false);
 	let editingSkill = $state<Skill | null>(null);
 	let deletingSkill = $state<Skill | null>(null);
@@ -41,29 +41,6 @@
 		{ name: 'Lighting', slug: 'lighting', icon: '💡' }
 	];
 
-	// Initialize API reactively with runes
-	$effect(() => {
-		const ctx = auth.getAuthContext();
-		if (ctx?.currentChurch) {
-			skillsAPI = createSkillsAPI(ctx, pb);
-		}
-	});
-
-	async function loadSkills() {
-		if (!skillsAPI) return;
-
-		try {
-			loading = true;
-			error = null;
-			skills = await skillsAPI.getSkills();
-		} catch (err) {
-			console.error('Failed to load skills:', err);
-			error = err instanceof Error ? err.message : 'Failed to load skills';
-		} finally {
-			loading = false;
-		}
-	}
-
 	function startCreateSkill() {
 		formData = {
 			name: '',
@@ -86,55 +63,40 @@
 	}
 
 	async function handleCreateSkill() {
-		if (!skillsAPI || !formData.name || !formData.slug) return;
+		if (!formData.name || !formData.slug) return;
 
 		try {
-			loading = true;
-			await skillsAPI.createSkill({
+			await skillsStore.createSkill({
 				name: formData.name,
 				slug: formData.slug
 			});
 			showCreateModal = false;
-			await loadSkills();
 		} catch (err) {
 			console.error('Failed to create skill:', err);
-			error = err instanceof Error ? err.message : 'Failed to create skill';
-		} finally {
-			loading = false;
 		}
 	}
 
 	async function handleUpdateSkill() {
-		if (!skillsAPI || !editingSkill) return;
+		if (!editingSkill) return;
 
 		try {
-			loading = true;
-			await skillsAPI.updateSkill(editingSkill.id, {
+			await skillsStore.updateSkill(editingSkill.id, {
 				name: formData.name
 			});
 			editingSkill = null;
-			await loadSkills();
 		} catch (err) {
 			console.error('Failed to update skill:', err);
-			error = err instanceof Error ? err.message : 'Failed to update skill';
-		} finally {
-			loading = false;
 		}
 	}
 
 	async function handleDeleteSkill() {
-		if (!skillsAPI || !deletingSkill) return;
+		if (!deletingSkill) return;
 
 		try {
-			loading = true;
-			await skillsAPI.deleteSkill(deletingSkill.id);
+			await skillsStore.deleteSkill(deletingSkill.id);
 			deletingSkill = null;
-			await loadSkills();
 		} catch (err) {
 			console.error('Failed to delete skill:', err);
-			error = err instanceof Error ? err.message : 'Failed to delete skill';
-		} finally {
-			loading = false;
 		}
 	}
 
@@ -155,9 +117,8 @@
 
 	// Count users with skill
 	async function getUserCount(skillId: string): Promise<number> {
-		if (!skillsAPI) return 0;
 		try {
-			const users = await skillsAPI.getUsersBySkill(skillId);
+			const users = await skillsStore.getUsersBySkill(skillId);
 			return users.length;
 		} catch {
 			return 0;
@@ -173,7 +134,16 @@
 
 	onMount(() => {
 		if (auth.currentChurch) {
-			loadSkills();
+			skillsStore.loadSkills();
+
+			// Set up real-time updates
+			const unsubscribePromise = skillsStore.subscribeToUpdates();
+
+			return () => {
+				unsubscribePromise.then((unsubscribe) => {
+					if (unsubscribe) unsubscribe();
+				});
+			};
 		}
 	});
 </script>
@@ -328,7 +298,13 @@
 		<div class="space-y-4">
 			<div>
 				<label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-				<Input id="name" name="name" bind:value={formData.name} placeholder="e.g., Lead Guitarist" required />
+				<Input
+					id="name"
+					name="name"
+					bind:value={formData.name}
+					placeholder="e.g., Lead Guitarist"
+					required
+				/>
 			</div>
 
 			<div>

@@ -8,18 +8,13 @@
 
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
-	import LabelSelector from '$lib/components/ui/LabelSelector.svelte';
 	import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import { getAuthStore, getServicesStore, getSongsStore } from '$lib/context/stores.svelte';
-	import type { Song, Label } from '$lib/types/song';
-	import { createLabelsAPI } from '$lib/api/labels';
-	import { createRatingsAPI } from '$lib/api/ratings';
+	import type { Song } from '$lib/types/song';
 	import { onMount } from 'svelte';
 	import { Music, CheckCircle, Clock, PlusCircle, Search, Users, TrendingUp, ChevronDown, ChevronRight, ChevronLeft, Layout, List, X, Filter } from 'lucide-svelte';
-
-	let { data } = $props();
 
 	const auth = getAuthStore();
 	const songsStore = getSongsStore();
@@ -52,9 +47,6 @@
 	let pageNumber = $state(1);
 	let itemsPerPage = 24;
 
-	// Data for filters
-	let availableLabels = $state<Label[]>([]);
-
 
 
 	// Reactive data from store
@@ -62,10 +54,11 @@
 	let error = $derived(songsStore.error);
 	let stats = $derived(songsStore.stats);
 	let selectedSong = $derived(songsStore.selectedSong);
-	
+
 	// Use local user ratings (synced from store)
-	let userRatings = $derived(songsStore.userRatings); 
+	let userRatings = $derived(songsStore.userRatings);
 	let allSongs = $derived(songsStore.allSongs);
+	let availableLabels = $derived(songsStore.labels);
 
 	// Derived stats
 	let uniqueSongsCount = $derived.by(() => {
@@ -85,16 +78,6 @@
 
 	// Ratings state
 	let ratingsLoading = $state(true);
-
-	const ratingsAPI = $derived.by(() => {
-		const ctx = auth.getAuthContext();
-		return createRatingsAPI(ctx, ctx.pb);
-	});
-
-	const labelsAPI = $derived.by(() => {
-		const ctx = auth.getAuthContext();
-		return createLabelsAPI(ctx.pb);
-	});
 
 	// Service editing state
 	let currentService = $derived(servicesStore.currentService);
@@ -121,16 +104,6 @@
 	]);
 
 	let selectedThemeLabel = $derived(availableLabels.find(l => l.id === selectedThemeId));
-
-	// Load filters data
-	async function loadFilters() {
-		if (!auth.currentChurch) return;
-		try {
-			availableLabels = await labelsAPI.getLabels(auth.currentChurch.id);
-		} catch (error) {
-			console.error('Failed to load labels:', error);
-		}
-	}
 
 	// Computed Theme Data (Client-side grouping)
 	let themesData = $derived.by(() => {
@@ -386,7 +359,6 @@
 			showSongForm = true;
 		}
 
-		loadFilters(); // Load labels for filter
 		songsStore.loadUserPreferences();
 		
 		// Initial load
