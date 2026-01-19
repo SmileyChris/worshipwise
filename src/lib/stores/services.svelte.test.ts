@@ -113,8 +113,7 @@ describe('ServicesStore', () => {
 			expect(servicesStore.upcomingServices).toEqual(services);
 			expect(mockPb.collection('services').getFullList).toHaveBeenCalledWith(
 				expect.objectContaining({
-					expand: 'worship_leader',
-					limit: 10,
+					expand: 'worship_leader,team_members,created_by,service_songs_via_service_id',
 					sort: 'service_date'
 				})
 			);

@@ -45,7 +45,7 @@ describe('Services API', () => {
 			expect(mockPb.collection('services').getFullList).toHaveBeenCalledWith({
 				filter: '',
 				sort: '-service_date',
-				expand: 'worship_leader,team_members,created_by'
+				expand: 'worship_leader,team_members,created_by,service_songs_via_service_id'
 			});
 		});
 
@@ -59,7 +59,7 @@ describe('Services API', () => {
 			expect(mockPb.collection('services').getFullList).toHaveBeenCalledWith({
 				filter: '(title ~ "Christmas" || theme ~ "Christmas")',
 				sort: '-service_date',
-				expand: 'worship_leader,team_members,created_by'
+				expand: 'worship_leader,team_members,created_by,service_songs_via_service_id'
 			});
 		});
 
@@ -77,7 +77,7 @@ describe('Services API', () => {
 			expect(mockPb.collection('services').getFullList).toHaveBeenCalledWith({
 				filter: 'status = "completed" && service_type = "Sunday Morning" && is_template = true',
 				sort: '-service_date',
-				expand: 'worship_leader,team_members,created_by'
+				expand: 'worship_leader,team_members,created_by,service_songs_via_service_id'
 			});
 		});
 
@@ -93,7 +93,7 @@ describe('Services API', () => {
 			expect(mockPb.collection('services').getFullList).toHaveBeenCalledWith({
 				filter: 'service_date >= "2024-01-01" && service_date <= "2024-12-31"',
 				sort: '-service_date',
-				expand: 'worship_leader,team_members,created_by'
+				expand: 'worship_leader,team_members,created_by,service_songs_via_service_id'
 			});
 		});
 
@@ -106,7 +106,7 @@ describe('Services API', () => {
 			expect(mockPb.collection('services').getFullList).toHaveBeenCalledWith({
 				filter: 'is_template = false',
 				sort: '-service_date',
-				expand: 'worship_leader,team_members,created_by'
+				expand: 'worship_leader,team_members,created_by,service_songs_via_service_id'
 			});
 		});
 
@@ -127,7 +127,7 @@ describe('Services API', () => {
 
 			expect(result).toEqual(mockService);
 			expect(mockPb.collection('services').getOne).toHaveBeenCalledWith('service_1', {
-				expand: 'worship_leader,team_members,created_by'
+				expand: 'worship_leader,team_members,created_by,service_songs_via_service_id'
 			});
 		});
 
@@ -535,19 +535,27 @@ describe('Services API', () => {
 			expect(mockPb.collection('services').getFullList).toHaveBeenCalledWith({
 				filter: `service_date >= "${today}" && is_template = false`,
 				sort: 'service_date',
-				limit: 10,
-				expand: 'worship_leader'
+				expand: 'worship_leader,team_members,created_by,service_songs_via_service_id'
 			});
 		});
 
-		it('should respect custom limit', async () => {
-			mockPb.collection('services').mockGetFullList([]);
+		it('should respect custom limit by slicing results', async () => {
+			const mockServices = [
+				createMockService({ id: 'service_1' }),
+				createMockService({ id: 'service_2' }),
+				createMockService({ id: 'service_3' }),
+				createMockService({ id: 'service_4' }),
+				createMockService({ id: 'service_5' }),
+				createMockService({ id: 'service_6' })
+			];
+			mockPb.collection('services').mockGetFullList(mockServices);
 
-			await servicesApi.getUpcomingServices(5);
+			const result = await servicesApi.getUpcomingServices(3);
 
-			expect(mockPb.collection('services').getFullList).toHaveBeenCalledWith(
-				expect.objectContaining({ limit: 5 })
-			);
+			// Should slice results to limit
+			expect(result).toHaveLength(3);
+			expect(result[0].id).toBe('service_1');
+			expect(result[2].id).toBe('service_3');
 		});
 
 		it('should handle errors when fetching upcoming services', async () => {

@@ -429,23 +429,48 @@ describe('AnalyticsStore', () => {
 			expect(analyticsStore.error).toBe(null);
 		});
 
-		it('should handle different error types', () => {
-			const store = analyticsStore as any;
-
-			// API error with response
-			const apiError = {
-				response: { data: { message: 'API error' } }
+		it('should handle PocketBase errors correctly', async () => {
+			const pbError = {
+				data: { message: 'PocketBase error message' }
 			};
-			expect(store.getErrorMessage(apiError)).toBe('API error');
+			// All individual methods reject - loadAnalytics catches and sets error
+			mockAnalyticsAPI.getOverview.mockRejectedValue(pbError);
+			mockAnalyticsAPI.getSongUsageStats.mockRejectedValue(pbError);
+			mockAnalyticsAPI.getServiceTypeStats.mockRejectedValue(pbError);
+			mockAnalyticsAPI.getKeyUsageStats.mockRejectedValue(pbError);
+			mockAnalyticsAPI.getUsageTrends.mockRejectedValue(pbError);
+			mockAnalyticsAPI.getWorshipLeaderStats.mockRejectedValue(pbError);
 
-			// Error instance
+			await analyticsStore.loadAnalytics();
+
+			expect(analyticsStore.error).toBe('PocketBase error message');
+		});
+
+		it('should handle Error instances correctly', async () => {
 			const errorInstance = new Error('Error instance message');
-			expect(store.getErrorMessage(errorInstance)).toBe('Error instance message');
+			mockAnalyticsAPI.getOverview.mockRejectedValue(errorInstance);
+			mockAnalyticsAPI.getSongUsageStats.mockRejectedValue(errorInstance);
+			mockAnalyticsAPI.getServiceTypeStats.mockRejectedValue(errorInstance);
+			mockAnalyticsAPI.getKeyUsageStats.mockRejectedValue(errorInstance);
+			mockAnalyticsAPI.getUsageTrends.mockRejectedValue(errorInstance);
+			mockAnalyticsAPI.getWorshipLeaderStats.mockRejectedValue(errorInstance);
 
-			// Unknown error
-			expect(store.getErrorMessage('string error')).toBe(
-				'An unexpected error occurred while loading analytics'
-			);
+			await analyticsStore.loadAnalytics();
+
+			expect(analyticsStore.error).toBe('Error instance message');
+		});
+
+		it('should handle unknown error types', async () => {
+			mockAnalyticsAPI.getOverview.mockRejectedValue('string error');
+			mockAnalyticsAPI.getSongUsageStats.mockRejectedValue('string error');
+			mockAnalyticsAPI.getServiceTypeStats.mockRejectedValue('string error');
+			mockAnalyticsAPI.getKeyUsageStats.mockRejectedValue('string error');
+			mockAnalyticsAPI.getUsageTrends.mockRejectedValue('string error');
+			mockAnalyticsAPI.getWorshipLeaderStats.mockRejectedValue('string error');
+
+			await analyticsStore.loadAnalytics();
+
+			expect(analyticsStore.error).toBe('An unexpected error occurred');
 		});
 	});
 });

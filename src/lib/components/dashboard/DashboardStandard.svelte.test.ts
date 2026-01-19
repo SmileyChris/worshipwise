@@ -19,8 +19,9 @@ describe('DashboardStandard', () => {
     expect(screen.getByText('Recent Songs')).toBeInTheDocument();
     expect(screen.getByText('Amazing Grace')).toBeInTheDocument();
     expect(screen.getByText('Add Song')).toBeInTheDocument();
-    expect(screen.getByText('Songs')).toBeInTheDocument();
-    expect(screen.getByText('Services')).toBeInTheDocument();
-    expect(screen.getByText('Insights')).toBeInTheDocument();
+    expect(screen.getByText('Find Songs')).toBeInTheDocument();
+    // "Upcoming Services" appears multiple times (header and stat card)
+    expect(screen.getAllByText('Upcoming Services').length).toBeGreaterThan(0);
+    expect(screen.getByText('Total Songs')).toBeInTheDocument();
   });
 });

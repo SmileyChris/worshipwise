@@ -110,6 +110,8 @@ describe('SongsStore', () => {
 				...testSong,
 				lastUsedDate: null,
 				daysSinceLastUsed: Infinity,
+				lastSungDate: null,
+				daysSinceLastSung: undefined,
 				usageStatus: 'stale'
 			});
 			expect(songsStore.totalPages).toBe(1);
@@ -130,6 +132,8 @@ describe('SongsStore', () => {
 				...testSong,
 				lastUsedDate: null,
 				daysSinceLastUsed: Infinity,
+				lastSungDate: null,
+				daysSinceLastSung: undefined,
 				usageStatus: 'stale'
 			});
 		});
@@ -460,19 +464,24 @@ describe('SongsStore', () => {
 			// Access private method through store instance
 			const store = songsStore as any;
 
-			// Recent: used in last 14 days (last 2 weeks)
-			expect(store.calculateUsageStatus(0)).toBe('recent');
-			expect(store.calculateUsageStatus(7)).toBe('recent');
-			expect(store.calculateUsageStatus(13)).toBe('recent');
+			// Upcoming: daysSince < 0 (scheduled for future)
+			expect(store.calculateUsageStatus(-1, Infinity)).toBe('upcoming');
+			expect(store.calculateUsageStatus(-7, 30)).toBe('upcoming');
 
-			// Available: 14-179 days (available for rotation)
-			expect(store.calculateUsageStatus(14)).toBe('available');
-			expect(store.calculateUsageStatus(60)).toBe('available');
-			expect(store.calculateUsageStatus(179)).toBe('available');
+			// Recent: sung in last 14 days (uses daysSinceSung, second param)
+			expect(store.calculateUsageStatus(100, 0)).toBe('recent');
+			expect(store.calculateUsageStatus(100, 7)).toBe('recent');
+			expect(store.calculateUsageStatus(100, 13)).toBe('recent');
 
-			// Stale: 180+ days (6+ months, consider refreshing)
-			expect(store.calculateUsageStatus(180)).toBe('stale');
-			expect(store.calculateUsageStatus(365)).toBe('stale');
+			// Available: sung 14-179 days ago
+			expect(store.calculateUsageStatus(100, 14)).toBe('available');
+			expect(store.calculateUsageStatus(100, 60)).toBe('available');
+			expect(store.calculateUsageStatus(100, 179)).toBe('available');
+
+			// Stale: 180+ days since sung (6+ months)
+			expect(store.calculateUsageStatus(100, 180)).toBe('stale');
+			expect(store.calculateUsageStatus(100, 365)).toBe('stale');
+			expect(store.calculateUsageStatus(100, Infinity)).toBe('stale'); // Never sung
 		});
 
 		it('should find most used key', () => {

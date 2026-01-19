@@ -217,7 +217,8 @@ describe('Churches API', () => {
 		expect(mockPb.collection('church_memberships').create).toHaveBeenCalledWith(expect.objectContaining({
 				church_id: 'church_new',
 				user_id: 'user_1',
-				role: 'admin'
+				status: 'active',
+				is_active: true
 			}));
 		});
 
