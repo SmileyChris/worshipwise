@@ -553,21 +553,33 @@ describe('SongsStore', () => {
 			expect(songsStore.error).toBe(null);
 		});
 
-		it('should handle different error types', () => {
-			const store = songsStore as any;
-
-			// API error with response
-			const apiError = {
-				response: { data: { message: 'API error' } }
+		it('should handle PocketBase errors correctly', async () => {
+			// Test that PocketBase errors are properly handled through store operations
+			const pbError = {
+				data: { message: 'PocketBase error message' }
 			};
-			expect(store.getErrorMessage(apiError)).toBe('API error');
+			mockSongsAPI.getSongsEnrichedPaginated.mockRejectedValue(pbError);
 
-			// Error instance
+			await songsStore.loadSongs();
+
+			expect(songsStore.error).toBe('PocketBase error message');
+		});
+
+		it('should handle Error instances correctly', async () => {
 			const errorInstance = new Error('Error instance message');
-			expect(store.getErrorMessage(errorInstance)).toBe('Error instance message');
+			mockSongsAPI.getSongsEnrichedPaginated.mockRejectedValue(errorInstance);
 
-			// Unknown error
-			expect(store.getErrorMessage('string error')).toBe('An unexpected error occurred');
+			await songsStore.loadSongs();
+
+			expect(songsStore.error).toBe('Error instance message');
+		});
+
+		it('should handle unknown error types', async () => {
+			mockSongsAPI.getSongsEnrichedPaginated.mockRejectedValue('string error');
+
+			await songsStore.loadSongs();
+
+			expect(songsStore.error).toBe('An unexpected error occurred');
 		});
 	});
 

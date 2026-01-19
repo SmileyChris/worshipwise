@@ -2,6 +2,7 @@ import { createMembersAPI, type MembersAPI, type MemberListResponse, type Member
 import type { AuthStore as RuntimeAuthStore } from '$lib/stores/auth.svelte';
 import type { AuthContext, UserWithMembership } from '$lib/types/auth';
 import type { ChurchMembership } from '$lib/types/church';
+import { getErrorMessage } from '$lib/utils/errors';
 
 class MembersStore {
 	// Reactive state using Svelte 5 runes
@@ -79,7 +80,7 @@ class MembersStore {
 			this.initialized = true;
 		} catch (error) {
 			console.error('Failed to load members:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 		} finally {
 			this.loading = false;
 		}
@@ -166,7 +167,7 @@ class MembersStore {
 			return updated;
 		} catch (error) {
 			console.error('Failed to update member:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -191,7 +192,7 @@ class MembersStore {
 			}
 		} catch (error) {
 			console.error('Failed to deactivate member:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -216,7 +217,7 @@ class MembersStore {
 			}
 		} catch (error) {
 			console.error('Failed to reactivate member:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -254,7 +255,7 @@ class MembersStore {
 			this.totalItems = Math.max(0, this.totalItems - 1);
 		} catch (error) {
 			console.error('Failed to remove member:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -272,7 +273,7 @@ class MembersStore {
 			await this.membersApi.toggleMemberAdmin(userId, isAdmin);
 		} catch (error) {
 			console.error('Failed to toggle admin:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -290,7 +291,7 @@ class MembersStore {
 			await this.membersApi.toggleMemberLeader(userId, isLeader);
 		} catch (error) {
 			console.error('Failed to toggle leader:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -345,29 +346,6 @@ class MembersStore {
 		};
 	}
 
-	/**
-	 * Get error message from API error
-	 */
-	private getErrorMessage(error: unknown): string {
-		// Handle PocketBase ClientResponseError
-		if (error && typeof error === 'object') {
-			const pbError = error as { data?: { message?: string; error?: string }; message?: string };
-			if (pbError.data?.message) {
-				return pbError.data.message;
-			}
-			if (pbError.data?.error) {
-				return pbError.data.error;
-			}
-			if (pbError.message) {
-				return pbError.message;
-			}
-		}
-
-		if (error instanceof Error) {
-			return error.message;
-		}
-		return 'An unexpected error occurred';
-	}
 }
 
 // Export the class type for tests

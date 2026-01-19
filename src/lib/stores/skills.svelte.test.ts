@@ -385,19 +385,37 @@ describe('SkillsStore', () => {
 	});
 
 	describe('error message extraction', () => {
-		it('should extract message from API error response', async () => {
-			const apiError = {
-				response: {
-					data: {
-						message: 'API specific error message'
-					}
-				}
+		it('should extract message from PocketBase error data.message', async () => {
+			const pbError = {
+				data: { message: 'PocketBase error message' }
 			};
-			mockPb.collection('skills').getFullList.mockRejectedValue(apiError);
+			mockPb.collection('skills').getFullList.mockRejectedValue(pbError);
 
 			await skillsStore.loadSkills();
 
-			expect(skillsStore.error).toBe('API specific error message');
+			expect(skillsStore.error).toBe('PocketBase error message');
+		});
+
+		it('should extract message from PocketBase error data.error', async () => {
+			const pbError = {
+				data: { error: 'PocketBase data error' }
+			};
+			mockPb.collection('skills').getFullList.mockRejectedValue(pbError);
+
+			await skillsStore.loadSkills();
+
+			expect(skillsStore.error).toBe('PocketBase data error');
+		});
+
+		it('should fall back to error.message property', async () => {
+			const pbError = {
+				message: 'Top-level error message'
+			};
+			mockPb.collection('skills').getFullList.mockRejectedValue(pbError);
+
+			await skillsStore.loadSkills();
+
+			expect(skillsStore.error).toBe('Top-level error message');
 		});
 
 		it('should handle unknown error types', async () => {

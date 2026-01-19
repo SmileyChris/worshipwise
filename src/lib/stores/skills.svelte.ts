@@ -1,6 +1,7 @@
 import { createSkillsAPI, type SkillsAPI } from '$lib/api/skills';
 import type { AuthStore as RuntimeAuthStore } from '$lib/stores/auth.svelte';
 import type { AuthContext } from '$lib/types/auth';
+import { getErrorMessage } from '$lib/utils/errors';
 import type {
 	Skill,
 	UserSkill,
@@ -55,7 +56,7 @@ class SkillsStore {
 			this.initialized = true;
 		} catch (error) {
 			console.error('Failed to load skills:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 		} finally {
 			this.loading = false;
 		}
@@ -82,7 +83,7 @@ class SkillsStore {
 			return newSkill;
 		} catch (error) {
 			console.error('Failed to create skill:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -109,7 +110,7 @@ class SkillsStore {
 			return updatedSkill;
 		} catch (error) {
 			console.error('Failed to update skill:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -128,7 +129,7 @@ class SkillsStore {
 			this.skills = this.skills.filter((s) => s.id !== skillId);
 		} catch (error) {
 			console.error('Failed to delete skill:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -172,7 +173,7 @@ class SkillsStore {
 			return userSkill;
 		} catch (error) {
 			console.error('Failed to assign skill:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -191,7 +192,7 @@ class SkillsStore {
 			this.userSkills = this.userSkills.filter((us) => us.id !== userSkillId);
 		} catch (error) {
 			console.error('Failed to remove skill:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -235,21 +236,6 @@ class SkillsStore {
 		};
 	}
 
-	/**
-	 * Get error message from API error
-	 */
-	private getErrorMessage(error: unknown): string {
-		if (error && typeof error === 'object' && 'response' in error) {
-			const apiError = error as { response?: { data?: { message?: string } } };
-			if (apiError.response?.data?.message) {
-				return apiError.response.data.message;
-			}
-		}
-		if (error instanceof Error) {
-			return error.message;
-		}
-		return 'An unexpected error occurred';
-	}
 }
 
 // Export the class type for tests

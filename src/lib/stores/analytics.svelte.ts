@@ -1,6 +1,7 @@
 import { createAnalyticsAPI, type AnalyticsAPI, type AnalyticsOverview, type SongUsageStats, type ServiceTypeStats, type KeyUsageStats, type UsageTrend, type WorshipLeaderStats } from '$lib/api/analytics';
 import type { AuthContext } from '$lib/types/auth';
 import type { AuthStore as RuntimeAuthStore } from '$lib/stores/auth.svelte';
+import { getErrorMessage } from '$lib/utils/errors';
 
 class AnalyticsStore {
 	// Reactive state using Svelte 5 runes
@@ -112,7 +113,7 @@ class AnalyticsStore {
 			]);
 		} catch (error: unknown) {
 			console.error('Failed to load analytics:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 		} finally {
 			this.loading = false;
 		}
@@ -272,7 +273,7 @@ class AnalyticsStore {
 			}
 		} catch (error: unknown) {
 			console.error('Failed to export analytics data:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 		} finally {
 			this.exportLoading = false;
 		}
@@ -309,7 +310,7 @@ class AnalyticsStore {
 			}
 		} catch (error: unknown) {
 			console.error(`Failed to refresh ${section}:`, error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 		}
 	}
 
@@ -378,22 +379,6 @@ class AnalyticsStore {
 		}
 
 		return insights.slice(0, 5); // Return top 5 insights
-	}
-
-	/**
-	 * Get error message from API error
-	 */
-	private getErrorMessage(error: unknown): string {
-		if (error && typeof error === 'object' && 'response' in error) {
-			const apiError = error as { response?: { data?: { message?: string } } };
-			if (apiError.response?.data?.message) {
-				return apiError.response.data.message;
-			}
-		}
-		if (error instanceof Error) {
-			return error.message;
-		}
-		return 'An unexpected error occurred while loading analytics';
 	}
 
 	/**

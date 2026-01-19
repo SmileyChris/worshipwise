@@ -3,6 +3,7 @@ import type { ServicesAPI } from '$lib/api/services';
 import type { AuthContext } from '$lib/types/auth';
 import type { AuthStore as RuntimeAuthStore } from '$lib/stores/auth.svelte';
 import { pb } from '$lib/api/client';
+import { getErrorMessage } from '$lib/utils/errors';
 import type {
 	Service,
 	ServiceSong,
@@ -94,7 +95,7 @@ class ServicesStore {
 			this.services = await this.servicesApi.getServices(this.filters);
 		} catch (error: unknown) {
 			console.error('Failed to load services:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 		} finally {
 			this.loading = false;
 		}
@@ -144,7 +145,7 @@ class ServicesStore {
 			this.builderState.isDirty = false;
 		} catch (error: unknown) {
 			console.error('Failed to load service:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 		} finally {
 			this.loading = false;
 		}
@@ -184,7 +185,7 @@ class ServicesStore {
 			return newService;
 		} catch (error: unknown) {
 			console.error('Failed to create service:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -216,7 +217,7 @@ class ServicesStore {
 			return updatedService;
 		} catch (error: unknown) {
 			console.error('Failed to update service:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -248,7 +249,7 @@ class ServicesStore {
 			return updatedService;
 		} catch (error: unknown) {
 			console.error('Failed to complete service:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -276,7 +277,7 @@ class ServicesStore {
 			}
 		} catch (error: unknown) {
 			console.error('Failed to delete service:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -310,7 +311,7 @@ class ServicesStore {
 			this.builderState.isDirty = true;
 		} catch (error: unknown) {
 			console.error('Failed to add song to service:', error);
-			this.builderState.error = this.getErrorMessage(error);
+			this.builderState.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.builderState.isLoading = false;
@@ -337,7 +338,7 @@ class ServicesStore {
 			this.builderState.isDirty = true;
 		} catch (error: unknown) {
 			console.error('Failed to remove song from service:', error);
-			this.builderState.error = this.getErrorMessage(error);
+			this.builderState.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.builderState.isLoading = false;
@@ -365,7 +366,7 @@ class ServicesStore {
 			this.builderState.isDirty = true;
 		} catch (error: unknown) {
 			console.error('Failed to update service song:', error);
-			this.builderState.error = this.getErrorMessage(error);
+			this.builderState.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.builderState.isLoading = false;
@@ -400,7 +401,7 @@ class ServicesStore {
 			this.builderState.isDirty = true;
 		} catch (error: unknown) {
 			console.error('Failed to reorder service songs:', error);
-			this.builderState.error = this.getErrorMessage(error);
+			this.builderState.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.builderState.isLoading = false;
@@ -423,7 +424,7 @@ class ServicesStore {
 			return duplicatedService;
 		} catch (error: unknown) {
 			console.error('Failed to duplicate service:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -541,22 +542,6 @@ class ServicesStore {
 	 */
 	markClean(): void {
 		this.builderState.isDirty = false;
-	}
-
-	/**
-	 * Get error message from API error
-	 */
-	private getErrorMessage(error: unknown): string {
-		if (error && typeof error === 'object' && 'response' in error) {
-			const apiError = error as { response?: { data?: { message?: string } } };
-			if (apiError.response?.data?.message) {
-				return apiError.response.data.message;
-			}
-		}
-		if (error instanceof Error) {
-			return error.message;
-		}
-		return 'An unexpected error occurred';
 	}
 
 	/**

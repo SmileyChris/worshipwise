@@ -7,6 +7,7 @@ import {
 } from '$lib/api/church-settings';
 import type { AuthStore as RuntimeAuthStore } from '$lib/stores/auth.svelte';
 import type { AuthContext } from '$lib/types/auth';
+import { getErrorMessage } from '$lib/utils/errors';
 
 class ChurchSettingsStore {
 	// Reactive state using Svelte 5 runes
@@ -67,7 +68,7 @@ class ChurchSettingsStore {
 			this.initialized = true;
 		} catch (error) {
 			console.error('Failed to load church settings:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 		} finally {
 			this.loading = false;
 		}
@@ -96,7 +97,7 @@ class ChurchSettingsStore {
 			this.success = 'Settings saved successfully';
 		} catch (error) {
 			console.error('Failed to update settings:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.saving = false;
@@ -116,7 +117,7 @@ class ChurchSettingsStore {
 			this.success = key ? 'Mistral API key saved' : 'Mistral API key removed';
 		} catch (error) {
 			console.error('Failed to set Mistral API key:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.saving = false;
@@ -142,7 +143,7 @@ class ChurchSettingsStore {
 			return result;
 		} catch (error) {
 			this.apiKeyValid = false;
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			return { success: false, error: this.error };
 		} finally {
 			this.testingApiKey = false;
@@ -162,7 +163,7 @@ class ChurchSettingsStore {
 			this.success = 'Elvanto API key saved';
 		} catch (error) {
 			console.error('Failed to set Elvanto API key:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.saving = false;
@@ -189,7 +190,7 @@ class ChurchSettingsStore {
 			return result;
 		} catch (error) {
 			console.error('Failed to import from Elvanto:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			return null;
 		} finally {
 			this.importing = false;
@@ -241,29 +242,6 @@ class ChurchSettingsStore {
 		};
 	}
 
-	/**
-	 * Get error message from API error
-	 */
-	private getErrorMessage(error: unknown): string {
-		// Handle PocketBase ClientResponseError
-		if (error && typeof error === 'object') {
-			const pbError = error as { data?: { message?: string; error?: string }; message?: string };
-			if (pbError.data?.message) {
-				return pbError.data.message;
-			}
-			if (pbError.data?.error) {
-				return pbError.data.error;
-			}
-			if (pbError.message) {
-				return pbError.message;
-			}
-		}
-
-		if (error instanceof Error) {
-			return error.message;
-		}
-		return 'An unexpected error occurred';
-	}
 }
 
 // Export the class type for tests

@@ -1,6 +1,7 @@
 import { createRolesAPI, type RolesAPI } from '$lib/api/roles';
 import type { AuthStore as RuntimeAuthStore } from '$lib/stores/auth.svelte';
 import type { AuthContext } from '$lib/types/auth';
+import { getErrorMessage } from '$lib/utils/errors';
 import type {
 	Role,
 	UserRole,
@@ -64,7 +65,7 @@ class RolesStore {
 			this.initialized = true;
 		} catch (error) {
 			console.error('Failed to load roles:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 		} finally {
 			this.loading = false;
 		}
@@ -96,7 +97,7 @@ class RolesStore {
 			return newRole;
 		} catch (error) {
 			console.error('Failed to create role:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -127,7 +128,7 @@ class RolesStore {
 			return updatedRole;
 		} catch (error) {
 			console.error('Failed to update role:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -150,7 +151,7 @@ class RolesStore {
 			this.missingPermissions = coverage.missingPermissions;
 		} catch (error) {
 			console.error('Failed to delete role:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -182,7 +183,7 @@ class RolesStore {
 			return userRole;
 		} catch (error) {
 			console.error('Failed to assign role:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -201,7 +202,7 @@ class RolesStore {
 			this.userRoles = this.userRoles.filter((ur) => ur.id !== userRoleId);
 		} catch (error) {
 			console.error('Failed to remove role:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -245,21 +246,6 @@ class RolesStore {
 		};
 	}
 
-	/**
-	 * Get error message from API error
-	 */
-	private getErrorMessage(error: unknown): string {
-		if (error && typeof error === 'object' && 'response' in error) {
-			const apiError = error as { response?: { data?: { message?: string } } };
-			if (apiError.response?.data?.message) {
-				return apiError.response.data.message;
-			}
-		}
-		if (error instanceof Error) {
-			return error.message;
-		}
-		return 'An unexpected error occurred';
-	}
 }
 
 // Export the class type for tests

@@ -3,6 +3,7 @@ import { createRatingsAPI, type RatingsAPI } from '$lib/api/ratings';
 import { createSongsAPI, type SongsAPI } from '$lib/api/songs';
 import type { AuthStore as RuntimeAuthStore } from '$lib/stores/auth.svelte';
 import type { AuthContext } from '$lib/types/auth';
+import { getErrorMessage } from '$lib/utils/errors';
 import type {
 	AggregateRatings,
 	CreateSongData,
@@ -212,7 +213,7 @@ class SongsStore {
 			await this.updateGlobalStats();
 		} catch (error: unknown) {
 			console.error('Failed to load all songs:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 		} finally {
 			this.loading = false;
 		}
@@ -293,7 +294,7 @@ class SongsStore {
 			}
 		} catch (error: unknown) {
 			console.error('Failed to load songs:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 		} finally {
 			this.loading = false;
 		}
@@ -330,7 +331,7 @@ class SongsStore {
 			return newSong;
 		} catch (error: unknown) {
 			console.error('Failed to create song:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -356,7 +357,7 @@ class SongsStore {
 			return updatedSong;
 		} catch (error: unknown) {
 			console.error('Failed to update song:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -380,7 +381,7 @@ class SongsStore {
 			await this.updateGlobalStats();
 		} catch (error: unknown) {
 			console.error('Failed to delete song:', error);
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		} finally {
 			this.loading = false;
@@ -534,21 +535,6 @@ class SongsStore {
 		this.selectedSong = song;
 	}
 
-	/**
-	 * Get error message from API error
-	 */
-	private getErrorMessage(error: unknown): string {
-		if (error && typeof error === 'object' && 'response' in error) {
-			const apiError = error as { response?: { data?: { message?: string } } };
-			if (apiError.response?.data?.message) {
-				return apiError.response.data.message;
-			}
-		}
-		if (error instanceof Error) {
-			return error.message;
-		}
-		return 'An unexpected error occurred';
-	}
 
 
 	/**
@@ -791,7 +777,7 @@ class SongsStore {
 				await this.loadSongs();
 			}
 		} catch (error) {
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		}
 	}
@@ -822,7 +808,7 @@ class SongsStore {
 				await this.loadSongs();
 			}
 		} catch (error) {
-			this.error = this.getErrorMessage(error);
+			this.error = getErrorMessage(error);
 			throw error;
 		}
 	}
