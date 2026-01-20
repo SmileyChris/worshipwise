@@ -1,9 +1,9 @@
 # WorshipWise Action Plan
 
 **Status:** ✅ **PHASE 1 & 2 COMPLETE** - Production Ready!
-**Last Updated:** 2025-10-28 (Perfect Score Achievement!)
+**Last Updated:** 2026-01-20 (Documentation Cleanup)
 **Sprint:** 7.0 → 8.0
-**Progress:** All critical issues resolved! 🎉
+**Progress:** All critical issues resolved! Documentation updated to match implementation. 🎉
 
 ## 🎯 Purpose
 
@@ -286,54 +286,11 @@ export function initializeStores(): StoreContext {
 
 ---
 
-### Issue #5: Categories API Pattern Inconsistency
+### Issue #5: ~~Categories API Pattern Inconsistency~~ ✅ OBSOLETE
 
-**Status:** 🟠 **LOW PRIORITY**
-**Priority:** P3 - Low
-**Estimated Fix Time:** 1 hour
+**Status:** ✅ **REMOVED** - Categories feature was never implemented; Labels provide the same functionality.
 
-**Problem:**
-CategoriesAPI uses interface + function factory instead of class pattern like all other APIs.
-
-**Files Affected:**
-- `src/lib/api/categories.ts`
-
-**Current:**
-```typescript
-// ❌ Interface pattern (inconsistent)
-export interface CategoriesAPI {
-  getCategories(churchId: string): Promise<Category[]>;
-}
-
-export function createCategoriesAPI(pb: PocketBase): CategoriesAPI {
-  return { /* object literal */ };
-}
-```
-
-**Fix:**
-```typescript
-// ✅ Class pattern (matches SongsAPI, ServicesAPI, etc.)
-export class CategoriesAPI {
-  constructor(private authContext: AuthContext, private pb: PocketBase) {}
-
-  async getCategories(): Promise<Category[]> {
-    // Uses authContext.currentChurch.id - no need to pass churchId!
-  }
-}
-
-export function createCategoriesAPI(authContext: AuthContext, pb: PocketBase): CategoriesAPI {
-  return new CategoriesAPI(authContext, pb);
-}
-```
-
-**Tasks:**
-- [ ] Convert interface to class in `src/lib/api/categories.ts`
-- [ ] Add AuthContext parameter to constructor
-- [ ] Remove churchId parameters from all methods
-- [ ] Use `this.authContext.currentChurch.id` internally
-- [ ] Update all call sites (stores, components)
-- [ ] Update tests
-- [ ] Verify: Pattern matches other APIs ✅
+**Resolution:** The `categories` collection was planned but never used. The `labels` collection and API handle all song categorization needs. The unused migration file `20250624_add_categories.js` has been deleted.
 
 ---
 
@@ -413,14 +370,13 @@ npm run test:unit -- --run
 
 **Tasks:**
 - [ ] Refactor QuickstartStore to use injected auth (Issue #4)
-- [ ] Standardize CategoriesAPI to class pattern (Issue #5)
+- [x] ~~Standardize CategoriesAPI to class pattern (Issue #5)~~ - OBSOLETE (categories removed)
 - [ ] Initialize NotificationsStore in layout (+layout.svelte)
 - [ ] Extract duplicate filter logic in SongsAPI (DRY)
 - [ ] Code review and test
 
 **Success Criteria:**
 - QuickstartStore uses injected auth consistently
-- CategoriesAPI matches pattern of other APIs
 - No singletons, all DI throughout
 - Test suite still passes
 
@@ -537,7 +493,7 @@ npm run build
 
 **Phase 1:** ⬛⬛⬛⬛⬛ 100% (8/8 tasks) - ✅ **COMPLETE**
 **Phase 2:** ⬛⬛⬛⬛⬛ 100% (6/6 tasks) - ✅ **COMPLETE**
-**Phase 3:** ⬜⬜⬜⬜⬜ 0% (0/5 tasks) - **NEXT**
+**Phase 3:** ⬛⬜⬜⬜⬜ 20% (1/5 tasks) - **NEXT**
 **Phase 4:** ⬜⬜⬜⬜⬜ 0% (0/8 tasks)
 
 **Overall Completion:** 52% (14/27 tasks) - Phases 1 & 2 done! 🎉
@@ -547,6 +503,21 @@ npm run build
 ---
 
 ## 📝 Notes & Updates
+
+### 2026-01-20 (Documentation Cleanup)
+- ✅ **Removed obsolete Categories feature**
+  - Deleted unused migration `20250624_add_categories.js`
+  - Deleted obsolete planning doc `AI_CATEGORIES.md`
+  - Updated `DATABASE_SCHEMA.md` to match actual implementation
+  - Issue #5 (CategoriesAPI) marked as obsolete - Labels handle categorization
+- ✅ **Updated DEVELOPMENT_ROADMAP.md**
+  - Sprint 7 progress: 40% → 80% (comments, approval workflows completed)
+  - Added Sprint 6.75: ratings, labels, notifications, integrations
+  - Updated test count: 574 → 612 (100%)
+  - Updated component count: 30+ → 53
+- ✅ **Updated CLAUDE.md** project status
+  - Progress: 54% → 62%
+  - Added missing features to overview
 
 ### 2025-10-28 (Perfect Score Achievement! 🎉)
 - ✅ **PHASES 1 & 2 COMPLETE!**

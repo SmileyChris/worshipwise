@@ -4,7 +4,7 @@
 
 WorshipWise is a sophisticated worship song tracking system built with SvelteKit 5 + PocketBase. Single-server deployment where PocketBase serves both API and static frontend.
 
-**Status:** Advanced (54% complete - Sprint 6.5 finished) - Production-ready authentication, song management, real-time collaboration, analytics dashboard, flexible permission system
+**Status:** Advanced (62% complete - Sprint 7 ~80% done) - Production-ready authentication, song management, real-time collaboration, analytics, AI insights, ratings, labels, notifications, approval workflows
 
 **Stack:** SvelteKit + Static Adapter, Svelte 5 Runes, PocketBase, TypeScript, Tailwind CSS, Vitest, Playwright
 
@@ -24,17 +24,20 @@ WorshipWise is a sophisticated worship song tracking system built with SvelteKit
 ## Architecture
 
 **Deployment:** PocketBase serves API + static frontend (single origin, no CORS)  
-**Collections:** Users, Churches, Church Memberships, Songs, Services, Service Songs, Song Usage, Roles, User Roles, Skills, User Skills  
+**Collections:** Users, Churches, Church Memberships, Songs, Services, Service Songs, Song Usage, Roles, User Roles, Skills, User Skills, Song Ratings, Labels, Song Labels, Service Comments, Notifications  
 **Structure:** `src/lib/{components,stores,api,utils}` + `routes/`
 
 ## Key Features
 
-**Church-Centric:** Multi-tenant with `/setup` flow, timezone-aware operations  
-**Authentication:** PocketBase auth with flexible permission-based system (manage-songs/services/members/church)  
-**Permission System:** Flexible roles with custom permissions + separate skills for worship positions  
-**Song Management:** Usage tracking (green/yellow/red), key transposition, file attachments  
-**Real-Time:** WebSocket collaboration, optimistic UI updates  
+**Church-Centric:** Multi-tenant with `/setup` flow, timezone-aware operations
+**Authentication:** PocketBase auth with flexible permission-based system (manage-songs/services/members/church)
+**Permission System:** Flexible roles with custom permissions + separate skills for worship positions
+**Song Management:** Usage tracking (green/yellow/red), key transposition, file attachments, ratings, labels
+**Services:** Templates, duplication, team assignment, approval workflows, real-time comments
+**Real-Time:** WebSocket collaboration, optimistic UI updates, notifications
 **Analytics:** Usage tracking, heat maps, AI insights, seasonal trending
+**AI Integration:** Mistral API for lyrics analysis, theme extraction, smart recommendations
+**Integrations:** Elvanto import, public song sharing
 
 ## Development Guidelines
 
@@ -42,7 +45,7 @@ WorshipWise is a sophisticated worship song tracking system built with SvelteKit
 **PocketBase:** Single global instance, disable auto-cancellation, church-based scoping  
 **Real-time:** WebSocket subscriptions with proper cleanup in `onDestroy`
 
-**Testing:** Multi-project Vitest setup with dependency injection. Store tests (574/575 passing), component tests, E2E tests. See `plan/TESTING_GUIDE.md`
+**Testing:** Multi-project Vitest setup with dependency injection. 612/612 tests passing (100%), component tests, E2E tests. See `plan/TESTING_GUIDE.md`
 
 **Performance:** Lazy loading, virtual lists, caching, code splitting, optimistic updates
 
