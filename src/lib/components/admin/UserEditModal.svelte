@@ -7,11 +7,12 @@
 	} from '$lib/api/admin';
 	import type { User } from '$lib/types/auth';
 	import type { ChurchMembership } from '$lib/types/church';
+	import type { Role } from '$lib/types/permissions';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
-	import Select from '$lib/components/ui/Select.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
+	import Badge from '$lib/components/ui/Badge.svelte';
 	import { getAuthStore } from '$lib/context/stores.svelte';
 
 	interface Props {
@@ -32,10 +33,14 @@
 		name: '',
 		// Profile fields
 		profileName: '',
-		role: 'musician' as 'musician' | 'leader' | 'admin',
 		churchName: '',
 		isActive: true
 	});
+
+	// Role management state
+	let availableRoles = $state<Role[]>([]);
+	let assignedRoleIds = $state<Set<string>>(new Set());
+	let userRoleRecords = $state<Map<string, string>>(new Map()); // role_id -> user_role record id
 
 	let loading = $state(false);
 	let error = $state<string | null>(null);
@@ -51,8 +56,6 @@
 			formData.email = user.email || '';
 			formData.name = user.name || '';
 			formData.profileName = user.name || '';
-			// Note: Role is now in user_roles table, would need separate query
-			formData.role = 'musician'; // Default, actual role needs to be fetched separately
 			formData.churchName = user.membership?.expand?.church_id?.name || '';
 			formData.isActive = user.membership?.is_active !== false;
 		}
@@ -66,6 +69,68 @@
 			userActivity = await getUserActivity(pb, user.id);
 		} catch (err) {
 			console.error('Failed to load user activity:', err);
+		}
+	}
+
+	async function loadRoles() {
+		if (!user || !auth.currentChurch) return;
+
+		try {
+			const pb = auth.getAuthContext().pb;
+			const churchId = auth.currentChurch.id;
+
+			// Load available roles for this church
+			const roles = await pb.collection('roles').getFullList({
+				filter: `church_id = "${churchId}"`,
+				sort: 'name'
+			});
+			availableRoles = roles as unknown as Role[];
+
+			// Load user's current role assignments
+			const userRoles = await pb.collection('user_roles').getFullList({
+				filter: `church_id = "${churchId}" && user_id = "${user.id}"`
+			});
+
+			assignedRoleIds = new Set(userRoles.map((ur: { role_id: string }) => ur.role_id));
+			userRoleRecords = new Map(userRoles.map((ur: { role_id: string; id: string }) => [ur.role_id, ur.id]));
+		} catch (err) {
+			console.error('Failed to load roles:', err);
+		}
+	}
+
+	async function toggleRole(roleId: string) {
+		if (!user || !auth.currentChurch) return;
+
+		try {
+			loading = true;
+			const pb = auth.getAuthContext().pb;
+			const churchId = auth.currentChurch.id;
+
+			if (assignedRoleIds.has(roleId)) {
+				// Remove role
+				const userRoleId = userRoleRecords.get(roleId);
+				if (userRoleId) {
+					await pb.collection('user_roles').delete(userRoleId);
+					assignedRoleIds.delete(roleId);
+					userRoleRecords.delete(roleId);
+					assignedRoleIds = new Set(assignedRoleIds);
+				}
+			} else {
+				// Add role
+				const newUserRole = await pb.collection('user_roles').create({
+					church_id: churchId,
+					user_id: user.id,
+					role_id: roleId
+				});
+				assignedRoleIds.add(roleId);
+				userRoleRecords.set(roleId, newUserRole.id);
+				assignedRoleIds = new Set(assignedRoleIds);
+			}
+		} catch (err) {
+			console.error('Failed to toggle role:', err);
+			error = 'Failed to update role assignment';
+		} finally {
+			loading = false;
 		}
 	}
 
@@ -91,8 +156,6 @@
 			// Update membership if it exists and has changes
 			if (user.membership) {
 				const membershipUpdates: Partial<ChurchMembership> = {};
-				// Note: role is now in user_roles table, needs separate update
-				// if (formData.role !== user.membership.role) membershipUpdates.role = formData.role;
 				if (formData.isActive !== (user.membership.is_active !== false))
 					membershipUpdates.is_active = formData.isActive;
 
@@ -117,10 +180,11 @@
 		onclose();
 	}
 
-	// Load activity when modal opens (handles both initial mount and reopening)
+	// Load activity and roles when modal opens
 	$effect(() => {
 		if (open) {
 			loadUserActivity();
+			loadRoles();
 		}
 	});
 </script>
@@ -199,41 +263,47 @@
 			<div class="border-t pt-4">
 				<h4 class="mb-3 text-sm font-medium text-gray-900">Profile Information</h4>
 
-				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-					<div>
-						<label for="profileName" class="mb-1 block text-sm font-medium text-gray-700">
-							Display Name
-						</label>
-						<Input
-							id="profileName"
-							name="profileName"
-							bind:value={formData.profileName}
-							placeholder="Full name for display"
-							disabled={loading}
-						/>
-					</div>
-
-					<div>
-						<label for="role" class="mb-1 block text-sm font-medium text-gray-700"> Role </label>
-						<Select id="role" name="role" bind:value={formData.role} disabled={loading}>
-							<option value="musician">Musician</option>
-							<option value="leader">Leader</option>
-							<option value="admin">Administrator</option>
-						</Select>
-					</div>
-				</div>
-
-				<div class="mt-4">
-					<label for="churchName" class="mb-1 block text-sm font-medium text-gray-700">
-						Church Name
+				<div>
+					<label for="profileName" class="mb-1 block text-sm font-medium text-gray-700">
+						Display Name
 					</label>
 					<Input
-						id="churchName"
-						name="churchName"
-						bind:value={formData.churchName}
-						placeholder="Church or organization name"
+						id="profileName"
+						name="profileName"
+						bind:value={formData.profileName}
+						placeholder="Full name for display"
 						disabled={loading}
 					/>
+				</div>
+
+				<!-- Roles Section -->
+				<div class="mt-4">
+					<label class="mb-2 block text-sm font-medium text-gray-700">Roles</label>
+					{#if availableRoles.length > 0}
+						<div class="space-y-2">
+							{#each availableRoles as role (role.id)}
+								<label class="flex items-center">
+									<input
+										type="checkbox"
+										checked={assignedRoleIds.has(role.id)}
+										onchange={() => toggleRole(role.id)}
+										disabled={loading}
+										class="text-primary focus:ring-primary h-4 w-4 rounded border-gray-300"
+									/>
+									<span class="ml-2 flex items-center gap-2">
+										<span class="text-sm text-gray-700">{role.name}</span>
+										{#if role.is_builtin}
+											<Badge variant="secondary" size="sm">Built-in</Badge>
+										{/if}
+									</span>
+								</label>
+							{/each}
+						</div>
+					{:else}
+						<p class="text-sm text-gray-500">
+							No roles defined. <a href="/admin/roles" class="text-primary hover:underline">Create roles</a> first.
+						</p>
+					{/if}
 				</div>
 
 				<div class="mt-4">

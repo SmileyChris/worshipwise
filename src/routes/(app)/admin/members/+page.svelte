@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import type { UserWithMembership } from '$lib/types/auth';
+	import type { Role } from '$lib/types/permissions';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
@@ -29,8 +30,16 @@
 	// Cleanup function
 	let unsubscribe: (() => void) | null = null;
 
+	// Role data
+	let roles = $state<Role[]>([]);
+	let userRoleMap = $state<Map<string, string[]>>(new Map()); // user_id -> role names
+
 	// Derived state
 	let isOnlyMember = $derived(membersStore.totalItems === 1);
+
+	function getUserRoles(userId: string): string[] {
+		return userRoleMap.get(userId) || [];
+	}
 
 	async function handleDeleteChurch() {
 		if (!auth.currentChurch) return;
@@ -96,8 +105,51 @@
 		return new Date(dateString).toLocaleDateString();
 	}
 
+	async function loadRolesAndAssignments() {
+		if (!auth.currentChurch) return;
+
+		try {
+			const pb = auth.getAuthContext().pb;
+			const churchId = auth.currentChurch.id;
+
+			// Load roles for this church
+			const roleRecords = await pb.collection('roles').getFullList({
+				filter: `church_id = "${churchId}"`,
+				fields: 'id,name,slug'
+			});
+			roles = roleRecords as unknown as Role[];
+
+			// Load all user role assignments for this church
+			const userRoleRecords = await pb.collection('user_roles').getFullList({
+				filter: `church_id = "${churchId}"`,
+				fields: 'user_id,role_id'
+			});
+
+			// Build map of role_id -> role name
+			const roleMap = new Map<string, string>();
+			for (const r of roleRecords) {
+				roleMap.set(r.id, r.name);
+			}
+
+			// Build map of user_id -> role names
+			const newUserRoleMap = new Map<string, string[]>();
+			for (const ur of userRoleRecords) {
+				const roleName = roleMap.get(ur.role_id as string);
+				if (roleName) {
+					const existing = newUserRoleMap.get(ur.user_id as string) || [];
+					existing.push(roleName);
+					newUserRoleMap.set(ur.user_id as string, existing);
+				}
+			}
+
+			userRoleMap = newUserRoleMap;
+		} catch (err) {
+			console.error('Failed to load roles:', err);
+		}
+	}
+
 	onMount(async () => {
-		await membersStore.loadMembers();
+		await Promise.all([membersStore.loadMembers(), loadRolesAndAssignments()]);
 		unsubscribe = await membersStore.subscribeToUpdates();
 	});
 
@@ -248,8 +300,16 @@
 									</div>
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap">
+								{#if getUserRoles(user.id).length > 0}
+									<div class="flex flex-wrap gap-1">
+										{#each getUserRoles(user.id) as roleName}
+											<Badge color="blue">{roleName}</Badge>
+										{/each}
+									</div>
+								{:else}
 									<Badge color="gray">Member</Badge>
-								</td>
+								{/if}
+							</td>
 								<td class="px-6 py-4 whitespace-nowrap">
 									<div class="flex items-center">
 										{#if user.membership?.is_active !== false}
@@ -411,6 +471,7 @@
 		onsave={() => {
 			editingUser = null;
 			membersStore.loadMembers();
+			loadRolesAndAssignments();
 		}}
 	/>
 {/if}

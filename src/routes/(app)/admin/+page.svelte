@@ -123,49 +123,31 @@
 		<Card>
 			<div class="p-6">
 				<h3 class="font-title mb-4 text-lg font-medium text-gray-900">User Roles</h3>
-				<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-					<div class="rounded-lg bg-red-50 p-4">
-						<div class="flex items-center">
-							<div class="flex-shrink-0">
-								<span class="text-2xl">⚙️</span>
+				{#if stats.roleCounts.length > 0}
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+						{#each stats.roleCounts as roleCount}
+							<div class="rounded-lg bg-gray-50 p-4">
+								<div class="flex items-center">
+									<div class="flex-shrink-0">
+										<div class="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
+											<span class="text-primary">🔐</span>
+										</div>
+									</div>
+									<div class="ml-3">
+										<p class="text-sm font-medium text-gray-900">{roleCount.roleName}</p>
+										<p class="font-title text-2xl font-semibold text-gray-700">
+											{roleCount.count}
+										</p>
+									</div>
+								</div>
 							</div>
-							<div class="ml-3">
-								<p class="text-sm font-medium text-red-900">Administrators</p>
-								<p class="font-title text-2xl font-semibold text-red-700">
-									{stats.usersByRole.admin}
-								</p>
-							</div>
-						</div>
+						{/each}
 					</div>
-
-					<div class="rounded-lg bg-yellow-50 p-4">
-						<div class="flex items-center">
-							<div class="flex-shrink-0">
-								<span class="text-2xl">👨‍💼</span>
-							</div>
-							<div class="ml-3">
-								<p class="text-sm font-medium text-yellow-900">Leaders</p>
-								<p class="font-title text-2xl font-semibold text-yellow-700">
-									{stats.usersByRole.leader}
-								</p>
-							</div>
-						</div>
-					</div>
-
-					<div class="bg-primary/5 rounded-lg p-4">
-						<div class="flex items-center">
-							<div class="flex-shrink-0">
-								<span class="text-2xl">🎵</span>
-							</div>
-							<div class="ml-3">
-								<p class="text-primary/90 text-sm font-medium"></p>
-								<p class="font-title text-primary/80 text-2xl font-semibold">
-									{stats.usersByRole.musician}
-								</p>
-							</div>
-						</div>
-					</div>
-				</div>
+				{:else}
+					<p class="text-sm text-gray-500">
+						No roles defined yet. <a href="/admin/roles" class="text-primary hover:underline">Create roles</a> to assign permissions to members.
+					</p>
+				{/if}
 			</div>
 		</Card>
 

@@ -13,15 +13,18 @@ export interface UserListResponse {
 	items: UserWithMembership[];
 }
 
+export interface RoleCount {
+	roleId: string;
+	roleName: string;
+	roleSlug: string;
+	count: number;
+}
+
 export interface AdminStats {
 	totalUsers: number;
 	activeUsers: number;
 	inactiveUsers: number;
-	usersByRole: {
-		admin: number;
-		leader: number;
-		musician: number;
-	};
+	roleCounts: RoleCount[];
 	recentlyCreated: number; // Users created in last 30 days
 }
 
@@ -117,10 +120,10 @@ export function createAdminAPI(pb: PocketBase): AdminAPI {
 
 				const currentChurchId = userMembership.church_id;
 
-				// Get church memberships with role breakdown for the current church
+				// Get church memberships for the current church
 				const memberships = await pb.collection('church_memberships').getFullList({
 					filter: `church_id = "${currentChurchId}"`,
-					fields: 'role,is_active,created'
+					fields: 'is_active,created'
 				});
 
 				// Calculate statistics - total users is now church members only
@@ -128,11 +131,25 @@ export function createAdminAPI(pb: PocketBase): AdminAPI {
 				const activeUsers = memberships.filter((m) => m.is_active !== false).length;
 				const inactiveUsers = memberships.filter((m) => m.is_active === false).length;
 
-				const usersByRole = {
-					admin: memberships.filter((m) => m.role === 'admin').length,
-					leader: memberships.filter((m) => m.role === 'leader').length,
-					musician: memberships.filter((m) => m.role === 'musician').length
-				};
+				// Get roles for this church
+				const roles = await pb.collection('roles').getFullList({
+					filter: `church_id = "${currentChurchId}"`,
+					fields: 'id,name,slug'
+				});
+
+				// Get user_roles to count users per role
+				const userRoles = await pb.collection('user_roles').getFullList({
+					filter: `church_id = "${currentChurchId}"`,
+					fields: 'role_id'
+				});
+
+				// Count users per role
+				const roleCounts: RoleCount[] = roles.map((role) => ({
+					roleId: role.id,
+					roleName: role.name,
+					roleSlug: role.slug,
+					count: userRoles.filter((ur) => ur.role_id === role.id).length
+				}));
 
 				// Users created in last 30 days
 				const thirtyDaysAgo = new Date();
@@ -145,7 +162,7 @@ export function createAdminAPI(pb: PocketBase): AdminAPI {
 					totalUsers,
 					activeUsers,
 					inactiveUsers,
-					usersByRole,
+					roleCounts,
 					recentlyCreated
 				};
 			} catch (error) {
