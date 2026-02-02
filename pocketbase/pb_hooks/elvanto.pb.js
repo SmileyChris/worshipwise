@@ -177,65 +177,80 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 					continue;
 				}
 
-				// Try to find user by email
-				let matchedUser;
+				// Find or create user by email
+				let targetUser;
 				try {
-					matchedUser = $app.findFirstRecordByFilter('users', 'email = {:email}', {
+					targetUser = $app.findFirstRecordByFilter('users', 'email = {:email}', {
 						email: person.email
 					});
-					worshipLeaderMap[personId] = matchedUser.id;
 				} catch (e) {
 					// User doesn't exist, create inactive user
 					const usersCollection = $app.findCollectionByNameOrId('users');
-					const newUser = new Record(usersCollection);
+					targetUser = new Record(usersCollection);
 
 					const fullName = [person.firstname, person.preferred_name, person.lastname]
 						.filter(Boolean)
 						.join(' ');
 
-					newUser.set('email', person.email);
-					newUser.set('name', fullName);
-					// Set a random password because users collection requires it
-					newUser.set('password', $security.randomString(30));
-					newUser.set('verified', false);
-					newUser.set('created', new Date().toISOString());
-					newUser.set('updated', new Date().toISOString());
+					targetUser.set('email', person.email);
+					targetUser.set('name', fullName);
+					targetUser.set('password', $security.randomString(30));
+					targetUser.set('verified', false);
+					targetUser.set('created', new Date().toISOString());
+					targetUser.set('updated', new Date().toISOString());
 
-					$app.save(newUser);
+					$app.save(targetUser);
+					$app.logger().info(`Created user for Elvanto leader: ${person.email}`);
+				}
 
-					// Create inactive church membership
+				worshipLeaderMap[personId] = targetUser.id;
+
+				// Ensure church membership exists for this user
+				let hasMembership = false;
+				try {
+					$app.findFirstRecordByFilter(
+						'church_memberships',
+						'church_id = {:cid} && user_id = {:uid}',
+						{ cid: church.id, uid: targetUser.id }
+					);
+					hasMembership = true;
+				} catch (e) {
+					// No membership found
+				}
+
+				if (!hasMembership) {
 					const membership = new Record($app.findCollectionByNameOrId('church_memberships'));
 					membership.set('church_id', church.id);
-					membership.set('user_id', newUser.id);
-					// Role and permissions moved to user_roles and user_skills
-					membership.set('status', 'pending'); // inactive status
+					membership.set('user_id', targetUser.id);
+					membership.set('status', 'pending');
 					membership.set('invited_by', user.id);
 					membership.set('invited_date', new Date().toISOString());
 					membership.set('is_active', false);
-
 					$app.save(membership);
+					$app.logger().info(`Created membership for ${person.email}`);
+				}
 
-					// Assign 'Worship Leader' skill (using cached skill ID)
-					if (leaderSkillId) {
-						try {
-							const userSkill = new Record($app.findCollectionByNameOrId('user_skills'));
-							userSkill.set('church_id', church.id);
-							userSkill.set('user_id', newUser.id);
-							userSkill.set('skill_id', leaderSkillId);
-							$app.save(userSkill);
-						} catch (skillErr) {
-							$app
-								.logger()
-								.warn(`Could not assign leader skill to ${person.email}: ${skillErr.message}`);
-						}
+				// Ensure 'Worship Leader' skill is assigned
+				if (leaderSkillId) {
+					let hasSkill = false;
+					try {
+						$app.findFirstRecordByFilter(
+							'user_skills',
+							'church_id = {:cid} && user_id = {:uid} && skill_id = {:sid}',
+							{ cid: church.id, uid: targetUser.id, sid: leaderSkillId }
+						);
+						hasSkill = true;
+					} catch (e) {
+						// Skill not found
 					}
 
-					worshipLeaderMap[personId] = newUser.id;
-					$app
-						.logger()
-						.info(
-							`Created inactive user for Elvanto worship leader: ${fullName} (${person.email})`
-						);
+					if (!hasSkill) {
+						const userSkill = new Record($app.findCollectionByNameOrId('user_skills'));
+						userSkill.set('church_id', church.id);
+						userSkill.set('user_id', targetUser.id);
+						userSkill.set('skill_id', leaderSkillId);
+						$app.save(userSkill);
+					}
 				}
 			} catch (err) {
 				$app.logger().warn(`Failed to fetch/create worship leader ${personId}: ${err.message}`);
