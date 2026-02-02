@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getAuthStore, getServicesStore } from '$lib/context/stores.svelte';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
@@ -88,6 +89,17 @@
 	$effect(() => {
 		if (servicesStore.services.length >= 0) {
 			updateDefaultServiceDate();
+		}
+	});
+
+	// Handle 'new=1' query parameter to open modal
+	$effect(() => {
+		if (page.url.searchParams.get('new') === '1') {
+			openCreateModal();
+			// Remove the parameter after opening so it doesn't re-open on refresh/back
+			const newUrl = new URL(page.url);
+			newUrl.searchParams.delete('new');
+			goto(newUrl.pathname + newUrl.search, { replaceState: true, keepFocus: true });
 		}
 	});
 

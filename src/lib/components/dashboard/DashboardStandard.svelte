@@ -10,6 +10,7 @@
 		getAuthStore
 	} from '$lib/context/stores.svelte';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import UsageTrendChart from '$lib/components/analytics/UsageTrendChart.svelte';
 	import ServiceCard from '$lib/components/services/ServiceCard.svelte';
 
@@ -42,11 +43,11 @@
 			<p class="text-gray-500">Here's what's happening at {auth.currentChurch?.name}.</p>
 		</div>
 		<div class="flex gap-2">
-			<Button variant="outline" size="sm" onclick={() => (window.location.href = '/songs')}>
+			<Button variant="outline" size="sm" onclick={() => goto('/songs')}>
 				<Search class="mr-2 h-4 w-4" />
 				Find Songs
 			</Button>
-			<Button variant="primary" size="sm" onclick={() => (window.location.href = '/services')}>
+			<Button variant="primary" size="sm" onclick={() => goto('/services?new=1')}>
 				<PlusCircle class="mr-2 h-4 w-4" />
 				Plan Service
 			</Button>
@@ -130,10 +131,7 @@
 				{#if servicesStore.upcomingServices.length > 0}
 					<div class="grid grid-cols-1 gap-4">
 						{#each servicesStore.upcomingServices as service}
-							<ServiceCard
-								{service}
-								onclick={() => (window.location.href = `/services/${service.id}`)}
-							/>
+							<ServiceCard {service} onclick={() => goto(`/services/${service.id}`)} />
 						{/each}
 					</div>
 				{:else}
@@ -143,7 +141,7 @@
 							message="Start planning your next worship service."
 							action={{
 								label: 'Plan a Service',
-								onclick: () => (window.location.href = '/services')
+								onclick: () => goto('/services?new=1')
 							}}
 						/>
 					</Card>
@@ -228,7 +226,7 @@
 				<h3 class="font-title mb-4 text-lg font-bold text-gray-900">Quick Actions</h3>
 				<div class="grid grid-cols-2 gap-3">
 					<button
-						onclick={() => (window.location.href = '/songs?new=1')}
+						onclick={() => goto('/songs?new=1')}
 						class="hover:border-primary hover:bg-primary/5 group flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-4 transition-all"
 					>
 						<div
@@ -239,7 +237,7 @@
 						<span class="text-sm font-medium text-gray-700">Add Song</span>
 					</button>
 					<button
-						onclick={() => (window.location.href = '/services')}
+						onclick={() => goto('/services?new=1')}
 						class="hover:border-primary hover:bg-primary/5 group flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-4 transition-all"
 					>
 						<div
@@ -250,7 +248,7 @@
 						<span class="text-sm font-medium text-gray-700">New Service</span>
 					</button>
 					<button
-						onclick={() => (window.location.href = '/analytics')}
+						onclick={() => goto('/analytics')}
 						class="hover:border-primary hover:bg-primary/5 group flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-4 transition-all"
 					>
 						<div
@@ -261,7 +259,7 @@
 						<span class="text-sm font-medium text-gray-700">Analytics</span>
 					</button>
 					<button
-						onclick={() => (window.location.href = '/profile')}
+						onclick={() => goto('/profile')}
 						class="hover:border-primary hover:bg-primary/5 group flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-4 transition-all"
 					>
 						<div
