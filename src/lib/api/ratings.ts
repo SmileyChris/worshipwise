@@ -404,6 +404,37 @@ export class RatingsAPI {
 	}
 
 	/**
+	 * Get all user ratings for the current church.
+	 * Returns a Map suitable for the suggestion engine's UserPreferences.
+	 */
+	async getAllUserRatings(): Promise<Map<string, { rating: 'thumbs_up' | 'neutral' | 'thumbs_down'; is_difficult?: boolean }>> {
+		const ratingsMap = new Map<string, { rating: 'thumbs_up' | 'neutral' | 'thumbs_down'; is_difficult?: boolean }>();
+
+		try {
+			if (!this.authContext.currentChurch?.id || !this.authContext.user?.id) {
+				return ratingsMap;
+			}
+
+			const records = await this.pb.collection(this.collection).getFullList({
+				filter: `user_id = "${this.authContext.user.id}" && church_id = "${this.authContext.currentChurch.id}"`,
+				fields: 'song_id,rating,is_difficult'
+			});
+
+			for (const record of records) {
+				ratingsMap.set(record.song_id, {
+					rating: record.rating,
+					is_difficult: record.is_difficult || false
+				});
+			}
+
+			return ratingsMap;
+		} catch (error) {
+			console.error('Failed to fetch all user ratings:', error);
+			return ratingsMap;
+		}
+	}
+
+	/**
 	 * Check if song should be auto-retired based on leader ratings
 	 * Requirements:
 	 * - Zero thumbs up ratings from any leader

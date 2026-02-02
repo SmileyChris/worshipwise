@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { getAuthStore } from '$lib/context/stores.svelte';
+	import { formatRelativeTime } from '$lib/utils/date-utils';
 	import { createNotificationsAPI } from '$lib/api/notifications';
 	import type { Notification } from '$lib/types/notification';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -190,17 +191,7 @@
 											{notification.message}
 										</p>
 										<p class="mt-1 text-xs text-gray-400">
-											{(() => {
-												const date = new Date(notification.created);
-												const now = new Date();
-												const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-												if (seconds < 60) return 'just now';
-												if (seconds < 3600) return Math.floor(seconds / 60) + ' minutes ago';
-												if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
-												if (seconds < 604800) return Math.floor(seconds / 86400) + ' days ago';
-												return date.toLocaleDateString();
-											})()}
+											{formatRelativeTime(notification.created)}
 										</p>
 									</div>
 									{#if !notification.is_read}

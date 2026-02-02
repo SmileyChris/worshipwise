@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getAuthStore, getServicesStore } from '$lib/context/stores.svelte';
+	import { formatDaysSince } from '$lib/utils/date-utils';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -45,7 +46,7 @@
 					colors: 'bg-red-100 text-red-800',
 					text:
 						daysSince !== undefined && daysSince < Infinity
-							? `Used ${daysSince} days ago`
+							? `Used ${formatDaysSince(daysSince)}`
 							: 'Recently Used'
 				};
 			case 'caution':
@@ -54,7 +55,7 @@
 					colors: 'bg-yellow-100 text-yellow-800',
 					text:
 						daysSince !== undefined && daysSince < Infinity
-							? `Used ${daysSince} days ago`
+							? `Used ${formatDaysSince(daysSince)}`
 							: 'Use with Caution'
 				};
 			case 'available':
@@ -64,7 +65,7 @@
 					colors: 'bg-green-100 text-green-800',
 					text:
 						daysSince !== undefined && daysSince < Infinity
-							? `Used ${daysSince} days ago`
+							? `Used ${formatDaysSince(daysSince)}`
 							: 'Available'
 				};
 		}

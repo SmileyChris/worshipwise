@@ -1,6 +1,16 @@
 import type PocketBase from 'pocketbase';
 import type { Song, SongUsage } from '$lib/types/song';
 import type { ServiceSong } from '$lib/types/service';
+import {
+	getSeasonForMonth,
+	getSeasonDisplayName,
+	getSeasonalKeywords as getEngineSeasonalKeywords,
+	calculateFamiliarity,
+	categorizeFamiliarity,
+	getFamiliarityDescription,
+	type Hemisphere,
+	type FamiliarityLevel
+} from './suggestion-engine';
 
 export interface SongRecommendation {
 	songId: string;
@@ -178,25 +188,24 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 			for (const song of availableSongs) {
 				const songUsages = allUsage.filter((u) => u.song_id === song.id);
 
+				// Calculate familiarity using decay-based algorithm
+				const usageDates = songUsages.map((u) => u.used_date);
+				const familiarityScore = calculateFamiliarity(usageDates);
+				const familiarityLevel = categorizeFamiliarity(familiarityScore);
+
 				// Rotation-based recommendation
 				if (songUsages.length > 0) {
 					const lastUsed = new Date(songUsages[0].used_date);
 					const daysSince = Math.floor((Date.now() - lastUsed.getTime()) / (1000 * 60 * 60 * 24));
 
 					if (daysSince >= excludeRecentDays) {
-						// Enhanced scoring: consider frequency, recency, and congregation familiarity
-						const frequencyScore = Math.min(songUsages.length / 20, 1); // Max score at 20 uses
+						// Enhanced scoring: consider familiarity and recency
+						// Familiarity score normalized (cap at ~5 for scoring purposes)
+						const normalizedFamiliarity = Math.min(familiarityScore / 5, 1);
 						const recencyScore = Math.min(daysSince / 90, 1); // Max score at 90 days
-						const rotationScore = frequencyScore * 0.6 + recencyScore * 0.4;
+						const rotationScore = normalizedFamiliarity * 0.6 + recencyScore * 0.4;
 
-						let reason = `Last used ${daysSince} days ago`;
-						if (songUsages.length >= 10) {
-							reason += '. Well-known by congregation';
-						} else if (songUsages.length >= 5) {
-							reason += '. Moderately familiar to congregation';
-						} else {
-							reason += '. Still building familiarity';
-						}
+						const reason = `Last used ${daysSince} days ago. ${getFamiliarityDescription(familiarityLevel)}`;
 
 						recommendations.push({
 							songId: song.id,
@@ -209,8 +218,8 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 							metadata: {
 								daysSince,
 								totalUsages: songUsages.length,
-								familiarityLevel:
-									songUsages.length >= 10 ? 'high' : songUsages.length >= 5 ? 'medium' : 'low'
+								familiarityScore: Math.round(familiarityScore * 100) / 100,
+								familiarityLevel
 							}
 						});
 					}
@@ -225,7 +234,7 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 							'New song ready to be introduced. Consider starting slowly to build familiarity.',
 						score: 0.6,
 						type: 'rotation',
-						metadata: { isNew: true, familiarityLevel: 'new' }
+						metadata: { isNew: true, familiarityLevel: 'new' as FamiliarityLevel }
 					});
 				}
 
@@ -789,38 +798,67 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 	}
 
 	private analyzeCongregationEngagement(allUsage: SongUsage[], allSongs: Song[]) {
-		// Analyze familiarity levels
-		const songUsageCounts = new Map<string, number>();
+		// Group usage dates by song
+		const songUsageDates = new Map<string, string[]>();
 		allUsage.forEach((usage) => {
-			const songId = usage.song_id;
-			songUsageCounts.set(songId, (songUsageCounts.get(songId) || 0) + 1);
+			const dates = songUsageDates.get(usage.song_id) || [];
+			dates.push(usage.used_date);
+			songUsageDates.set(usage.song_id, dates);
 		});
 
-		const familiarSongs = Array.from(songUsageCounts.values()).filter((count) => count >= 5).length;
+		// Calculate familiarity for each song using decay-based algorithm
+		const songFamiliarities = new Map<string, { score: number; level: FamiliarityLevel }>();
+		for (const song of allSongs) {
+			const usageDates = songUsageDates.get(song.id) || [];
+			const score = calculateFamiliarity(usageDates);
+			const level = categorizeFamiliarity(score);
+			songFamiliarities.set(song.id, { score, level });
+		}
+
+		// Count songs by familiarity level
+		const familiarSongs = Array.from(songFamiliarities.values()).filter(
+			(f) => f.level === 'high' || f.level === 'medium'
+		).length;
 		const totalSongs = allSongs.length;
 
 		// Calculate new song introduction rate (last 6 months)
 		const sixMonthsAgo = new Date();
 		sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-		const recentNewSongs = allUsage.filter((usage) => {
-			const usageDate = new Date(usage.used_date);
-			const songUsageCount = songUsageCounts.get(usage.song_id) || 0;
-			return usageDate >= sixMonthsAgo && songUsageCount <= 2;
-		});
+		// Songs introduced recently (low familiarity, first use in last 6 months)
+		const recentNewSongs = allSongs.filter((song) => {
+			const familiarity = songFamiliarities.get(song.id);
+			const usageDates = songUsageDates.get(song.id) || [];
+			if (usageDates.length === 0) return false;
 
-		const newSongIntroductionRate = recentNewSongs.length;
+			// Check if first use was in last 6 months
+			const sortedDates = usageDates.map((d) => new Date(d)).sort((a, b) => a.getTime() - b.getTime());
+			const firstUse = sortedDates[0];
+			return firstUse >= sixMonthsAgo && familiarity && familiarity.level !== 'high';
+		}).length;
 
-		// Find optimal rotation candidates (songs used 3-8 times, not recently)
+		const newSongIntroductionRate = recentNewSongs;
+
+		// Find optimal rotation candidates (medium familiarity, not used recently)
 		const oneMonthAgo = new Date();
 		oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
 		const optimalRotationCandidates = allSongs.filter((song) => {
-			const usageCount = songUsageCounts.get(song.id) || 0;
-			const lastUsage = allUsage.find((usage) => usage.song_id === song.id);
-			const lastUsageDate = lastUsage ? new Date(lastUsage.used_date) : null;
+			const familiarity = songFamiliarities.get(song.id);
+			const usageDates = songUsageDates.get(song.id) || [];
+			if (usageDates.length === 0) return false;
 
-			return usageCount >= 3 && usageCount <= 8 && (!lastUsageDate || lastUsageDate < oneMonthAgo);
+			const lastUsageDate = new Date(
+				Math.max(...usageDates.map((d) => new Date(d).getTime()))
+			);
+
+			// Medium familiarity songs not used in last month are ideal for rotation
+			return (
+				familiarity &&
+				(familiarity.level === 'medium' || familiarity.level === 'low') &&
+				familiarity.score >= 0.5 &&
+				lastUsageDate < oneMonthAgo
+			);
 		}).length;
 
 		const insights: string[] = [];
@@ -908,77 +946,18 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 		month: number,
 		hemisphere: 'northern' | 'southern' = 'northern'
 	): string[] {
-		// Adjust month for southern hemisphere (seasons are opposite)
-		const adjustedMonth = hemisphere === 'southern' ? (month + 6) % 12 || 12 : month;
-
-		// Religious seasons remain the same regardless of hemisphere
-		if (month === 12 || month === 1)
-			return ['christmas', 'advent', 'joy', 'peace', 'hope', 'light', 'nativity'];
-		if (month === 3 || month === 4)
-			return [
-				'easter',
-				'resurrection',
-				'risen',
-				'victory',
-				'new life',
-				'palm sunday',
-				'good friday'
-			];
-
-		// Seasonal themes adjust based on hemisphere
-		if (adjustedMonth >= 6 && adjustedMonth <= 8) {
-			// Summer in northern hemisphere, winter in southern
-			const seasonKeywords =
-				hemisphere === 'northern'
-					? ['joy', 'celebration', 'summer', 'family', 'vacation', 'outdoors']
-					: ['warmth', 'light', 'shelter', 'community', 'comfort'];
-			return [...seasonKeywords, 'fellowship', 'gathering'];
-		}
-
-		if (adjustedMonth >= 9 && adjustedMonth <= 11) {
-			// Fall/Autumn themes
-			const fallKeywords =
-				hemisphere === 'northern'
-					? ['harvest', 'thanksgiving', 'gratitude', 'fall', 'autumn', 'abundance']
-					: ['spring', 'new growth', 'renewal', 'fresh start', 'blooming'];
-			return [...fallKeywords, 'blessing', 'provision'];
-		}
-
-		if (adjustedMonth >= 12 || adjustedMonth <= 2) {
-			// Winter themes (excluding Christmas month)
-			const winterKeywords =
-				hemisphere === 'northern'
-					? ['winter', 'peace', 'reflection', 'rest', 'stillness']
-					: ['summer', 'growth', 'abundance', 'celebration'];
-			return [...winterKeywords, 'prayer', 'meditation'];
-		}
-
-		// Spring themes
-		const springKeywords =
-			hemisphere === 'northern'
-				? ['spring', 'new life', 'growth', 'renewal', 'fresh start']
-				: ['autumn', 'harvest', 'gratitude', 'reflection'];
-		return [...springKeywords, 'hope', 'restoration'];
+		// Delegate to shared suggestion engine which has correct hemisphere handling
+		return getEngineSeasonalKeywords(month, hemisphere as Hemisphere);
 	}
 
 	private getSeasonName(month: number, hemisphere: 'northern' | 'southern' = 'northern'): string {
-		// Religious seasons remain the same
+		// Religious seasons remain the same regardless of hemisphere
 		if (month === 12 || month === 1) return 'Christmas/Advent';
 		if (month === 3 || month === 4) return 'Easter/Lent';
 
-		// Adjust for hemisphere
-		const adjustedMonth = hemisphere === 'southern' ? (month + 6) % 12 || 12 : month;
-
-		if (adjustedMonth >= 6 && adjustedMonth <= 8) {
-			return hemisphere === 'northern' ? 'Summer' : 'Winter';
-		}
-		if (adjustedMonth >= 9 && adjustedMonth <= 11) {
-			return hemisphere === 'northern' ? 'Fall/Thanksgiving' : 'Spring';
-		}
-		if (adjustedMonth >= 12 || adjustedMonth <= 2) {
-			return hemisphere === 'northern' ? 'Winter' : 'Summer';
-		}
-		return hemisphere === 'northern' ? 'Spring' : 'Fall';
+		// Use shared engine for correct hemisphere handling
+		const season = getSeasonForMonth(month, hemisphere as Hemisphere);
+		return getSeasonDisplayName(season);
 	}
 
 	/**
@@ -1102,43 +1081,46 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 		// Seasonal scoring based on song tags or title keywords
 		const title = song.title?.toLowerCase() || '';
 		const tags = song.tags || [];
+		const tagsLower = tags.map((t: string) => t.toLowerCase()).join(' ');
 
-		let score = 0;
+		// Christmas/Advent song detection - only recommend during December/January
+		const christmasKeywords = ['christmas', 'advent', 'nativity', 'manger', 'bethlehem', 'incarnation'];
+		const isChristmasSong = christmasKeywords.some(kw => title.includes(kw) || tagsLower.includes(kw));
+		if (isChristmasSong) {
+			// Only score Christmas songs during Christmas season
+			if (month === 12 || month === 1) {
+				return 0.95;
+			}
+			// Outside Christmas season, don't recommend as seasonal
+			return 0;
+		}
 
-		// Get current season keywords based on hemisphere
+		// Easter/Lent song detection - only recommend during March/April
+		const easterKeywords = ['easter', 'resurrection', 'risen', 'lent', 'good friday', 'palm sunday', 'calvary', 'anástasis', 'anastasis'];
+		const isEasterSong = easterKeywords.some(kw => title.includes(kw) || tagsLower.includes(kw));
+		if (isEasterSong) {
+			// Only score Easter songs during Easter season
+			if (month === 3 || month === 4) {
+				return 0.95;
+			}
+			// Outside Easter season, don't recommend as seasonal
+			return 0;
+		}
+
+		// For non-religious seasonal songs, match current meteorological season
 		const seasonalKeywords = this.getSeasonalKeywords(month, seasonalContext.hemisphere);
-
-		// Check if song matches current seasonal themes
 		const titleMatches = seasonalKeywords.some((keyword) => title.includes(keyword));
 		const tagMatches = tags.some((tag: string) =>
 			seasonalKeywords.some((keyword) => tag.toLowerCase().includes(keyword))
 		);
 
-		if (titleMatches || tagMatches) {
-			// Higher score for exact keyword matches
-			if (titleMatches && tagMatches) {
-				score = 0.95;
-			} else if (titleMatches || tagMatches) {
-				score = 0.8;
-			}
-
-			// Boost score for religious seasons (same regardless of hemisphere)
-			if (
-				(month === 12 || month === 1) &&
-				(title.includes('christmas') || title.includes('advent'))
-			) {
-				score = Math.max(score, 0.95);
-			}
-
-			if (
-				(month === 3 || month === 4) &&
-				(title.includes('easter') || title.includes('resurrection'))
-			) {
-				score = Math.max(score, 0.95);
-			}
+		if (titleMatches && tagMatches) {
+			return 0.95;
+		} else if (titleMatches || tagMatches) {
+			return 0.8;
 		}
 
-		return score;
+		return 0;
 	}
 
 	// Synchronous version for backward compatibility
@@ -1151,18 +1133,31 @@ class RecommendationsApiImpl implements RecommendationsAPI {
 
 		const title = song.title?.toLowerCase() || '';
 		const tags = song.tags || [];
+		const tagsLower = tags.map((t: string) => t.toLowerCase()).join(' ');
 
+		// Christmas/Advent song detection
+		const christmasKeywords = ['christmas', 'advent', 'nativity', 'manger', 'bethlehem', 'incarnation'];
+		const isChristmasSong = christmasKeywords.some(kw => title.includes(kw) || tagsLower.includes(kw));
+		if (isChristmasSong) {
+			return (month === 12 || month === 1) ? 0.95 : 0;
+		}
+
+		// Easter/Lent song detection
+		const easterKeywords = ['easter', 'resurrection', 'risen', 'lent', 'good friday', 'palm sunday', 'calvary', 'anástasis', 'anastasis'];
+		const isEasterSong = easterKeywords.some(kw => title.includes(kw) || tagsLower.includes(kw));
+		if (isEasterSong) {
+			return (month === 3 || month === 4) ? 0.95 : 0;
+		}
+
+		// Generic seasonal matching
 		const seasonalKeywords = this.getSeasonalKeywords(month, hemisphere);
-
 		const titleMatches = seasonalKeywords.some((keyword) => title.includes(keyword));
 		const tagMatches = tags.some((tag: string) =>
 			seasonalKeywords.some((keyword) => tag.toLowerCase().includes(keyword))
 		);
 
-		if (titleMatches || tagMatches) {
-			if (titleMatches && tagMatches) return 0.95;
-			return 0.8;
-		}
+		if (titleMatches && tagMatches) return 0.95;
+		if (titleMatches || tagMatches) return 0.8;
 
 		return 0;
 	}

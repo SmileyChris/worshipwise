@@ -5,6 +5,7 @@
 		getAuthStore,
 		getRecommendationsStore
 	} from '$lib/context/stores.svelte';
+	import { formatDaysSince } from '$lib/utils/date-utils';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -361,7 +362,7 @@
 												{song.usageCount} uses
 											</div>
 											<div class="text-xs text-gray-500">
-												{song.daysSinceLastUse} days ago
+												{formatDaysSince(song.daysSinceLastUse)}
 											</div>
 										</div>
 									</div>
@@ -657,7 +658,7 @@
 												<div class="mt-2 flex flex-wrap gap-2">
 													{#if recommendation.metadata.daysSinceLastUse}
 														<span class="text-xs text-gray-500"
-															>Last used: {recommendation.metadata.daysSinceLastUse} days ago</span
+															>Last used: {formatDaysSince(recommendation.metadata.daysSinceLastUse as number)}</span
 														>
 													{/if}
 													{#if recommendation.metadata.totalUsages}

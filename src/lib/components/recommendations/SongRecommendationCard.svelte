@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { SongRecommendation } from '$lib/api/recommendations';
+	import { formatDaysSince } from '$lib/utils/date-utils';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -62,7 +63,7 @@
 		{#if recommendation.metadata}
 			<div class="space-y-1 text-xs text-gray-500">
 				{#if recommendation.metadata.daysSinceLastUse}
-					<div>Last used {recommendation.metadata.daysSinceLastUse} days ago</div>
+					<div>Last used {formatDaysSince(recommendation.metadata.daysSinceLastUse as number)}</div>
 				{/if}
 
 				{#if recommendation.metadata.totalUsages}

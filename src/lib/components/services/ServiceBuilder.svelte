@@ -2,10 +2,11 @@
 	import type { ServiceSong, CreateServiceSongData } from '$lib/types/service';
 	import type { Song } from '$lib/types/song';
 	import { getServicesStore, getSongsStore } from '$lib/context/stores.svelte';
+	import { formatDaysSince } from '$lib/utils/date-utils';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import CommentThread from './CommentThread.svelte';
-	import AISuggestions from './AISuggestions.svelte';
+	import SongSuggestions from './SongSuggestions.svelte';
 	import { onMount } from 'svelte';
 	import { flip } from 'svelte/animate';
 
@@ -27,7 +28,7 @@
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 	let showComments = $state(false);
-	// showAISuggestions is now implicitly true when planning, or we just show the component directly
+	// Suggestions panel is shown when planning
 
 	// Computed values
 	let filteredSongs = $derived.by(() => {
@@ -234,7 +235,7 @@
 					color: 'text-red-600 bg-red-50',
 					text:
 						daysSince !== undefined && daysSince < Infinity
-							? `Used ${daysSince} days ago`
+							? `Used ${formatDaysSince(daysSince)}`
 							: 'Recently Used',
 					icon: '⚠️'
 				};
@@ -243,7 +244,7 @@
 					color: 'text-amber-600 bg-amber-50',
 					text:
 						daysSince !== undefined && daysSince < Infinity
-							? `Used ${daysSince} days ago`
+							? `Used ${formatDaysSince(daysSince)}`
 							: 'Used Recently',
 					icon: '⚡'
 				};
@@ -687,12 +688,12 @@
 				</div>
 			</div>
 
-			<!-- Sidebar (AI Suggestions) (Right) -->
+			<!-- Sidebar (Song Suggestions) (Right) -->
 			{#if servicesStore.isPlanning}
 				<div class="z-10 flex w-[400px] flex-col border-l border-gray-200 bg-white shadow-xl">
 					<div class="flex flex-1 flex-col overflow-hidden">
 						<div class="flex-1 overflow-hidden">
-							<AISuggestions
+							<SongSuggestions
 								service={servicesStore.currentService}
 								availableSongs={songsStore.songs}
 								currentSongs={servicesStore.currentServiceSongs

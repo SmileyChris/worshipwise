@@ -1,8 +1,13 @@
 <script lang="ts">
 	import type { Song } from '$lib/types/song';
 	import type { Service } from '$lib/types/service';
-	import type { SongSuggestion, AIPromptOptions } from '$lib/api/ai-suggestions';
-	import { createAISuggestionsAPI } from '$lib/api/ai-suggestions';
+	import {
+		createSuggestionsAPI,
+		type SongSuggestion,
+		type SuggestionOptions,
+		type UserPreferences
+	} from '$lib/api/suggestion-engine';
+	import { createRatingsAPI } from '$lib/api/ratings';
 	import { getAuthStore } from '$lib/context/stores.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
@@ -20,15 +25,20 @@
 	let { service, availableSongs, currentSongs, onAddSong, isPlanning = true }: Props = $props();
 
 	const auth = getAuthStore();
-	const aiApi = $derived.by(() => {
+	const suggestionsApi = $derived.by(() => {
 		const ctx = auth.getAuthContext();
-		return createAISuggestionsAPI(ctx, ctx.pb);
+		return createSuggestionsAPI(ctx, ctx.pb);
+	});
+	const ratingsApi = $derived.by(() => {
+		const ctx = auth.getAuthContext();
+		return createRatingsAPI(ctx, ctx.pb);
 	});
 
 	let suggestions = $state<SongSuggestion[]>([]);
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 	let showOptions = $state(false);
+	let userPreferences = $state<UserPreferences | undefined>(undefined);
 
 	// AI prompt options
 	let theme = $state(service.theme || '');
@@ -36,20 +46,31 @@
 	let liturgicalSeason = $state<string>('');
 	let excludeRecentDays = $state(30);
 
+	// Load user ratings for preference-based suggestions
+	async function loadUserPreferences() {
+		try {
+			const ratings = await ratingsApi.getAllUserRatings();
+			userPreferences = { ratings };
+		} catch (err) {
+			console.error('Failed to load user ratings:', err);
+		}
+	}
+
 	async function generateSuggestions() {
 		loading = true;
 		error = null;
-		
+
 		try {
-			const options: AIPromptOptions = {
+			const options: SuggestionOptions = {
 				theme,
 				mood: mood || undefined,
 				liturgicalSeason,
 				excludeRecentDays,
-				maxSuggestions: 5
+				maxSuggestions: 5,
+				userPreferences
 			};
 
-			suggestions = await aiApi.getSongSuggestions(service, availableSongs, options);
+			suggestions = await suggestionsApi.getSongSuggestions(service, availableSongs, options);
 			
 			if (suggestions.length === 0) {
 				error = 'No suitable songs found. Try adjusting your criteria.';
@@ -71,7 +92,7 @@
 		error = null;
 
 		try {
-			suggestions = await aiApi.getComplementarySongs(currentSongs, availableSongs);
+			suggestions = await suggestionsApi.getComplementarySongs(currentSongs, availableSongs);
 			
 			if (suggestions.length === 0) {
 				error = 'No complementary songs found.';
@@ -96,7 +117,8 @@
 	}
 
 	// Auto-generate suggestions when component mounts
-	onMount(() => {
+	onMount(async () => {
+		await loadUserPreferences();
 		if (availableSongs.length > 0) {
 			generateSuggestions();
 		}
@@ -106,7 +128,7 @@
 <Card class="h-full flex flex-col">
 	<div class="p-4 border-b border-gray-200">
 		<div class="flex items-center justify-between mb-2">
-			<h3 class="font-title text-lg font-medium text-gray-900">AI Song Suggestions</h3>
+			<h3 class="font-title text-lg font-medium text-gray-900">Song Suggestions</h3>
 			{#if isPlanning}
 				<Button
 					variant="ghost"
@@ -270,7 +292,7 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
 				</svg>
 				<p class="mt-2 text-sm text-gray-500">
-					Click "Generate Suggestions" to get AI-powered song recommendations
+					Click "Generate Suggestions" to get song recommendations
 				</p>
 			</div>
 		{/if}
