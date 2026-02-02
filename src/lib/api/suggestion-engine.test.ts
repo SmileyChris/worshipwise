@@ -333,24 +333,19 @@ describe('suggestion-engine', () => {
 			expect(calculateFamiliarity([])).toBe(0);
 		});
 
-		it('should return ~1 for a single use today', () => {
+		it('should return ~1.2 for a single use today (1.0 decay + 0.2 depth)', () => {
 			const today = new Date();
 			const familiarity = calculateFamiliarity([today]);
-			expect(familiarity).toBeCloseTo(1, 1);
+			// 1.0 from decay + 0.2 from one distinct month
+			expect(familiarity).toBeCloseTo(1.2, 1);
 		});
 
-		it('should return ~0.5 for a single use 90 days ago (half-life)', () => {
-			const ninetyDaysAgo = new Date();
-			ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-			const familiarity = calculateFamiliarity([ninetyDaysAgo]);
-			expect(familiarity).toBeCloseTo(0.5, 1);
-		});
-
-		it('should return ~0.25 for a single use 180 days ago', () => {
-			const oneEightyDaysAgo = new Date();
-			oneEightyDaysAgo.setDate(oneEightyDaysAgo.getDate() - 180);
-			const familiarity = calculateFamiliarity([oneEightyDaysAgo]);
-			expect(familiarity).toBeCloseTo(0.25, 1);
+		it('should apply 120-day half-life to decay component', () => {
+			const oneTwentyDaysAgo = new Date();
+			oneTwentyDaysAgo.setDate(oneTwentyDaysAgo.getDate() - 120);
+			const familiarity = calculateFamiliarity([oneTwentyDaysAgo]);
+			// 0.5 from decay + 0.2 from one distinct month
+			expect(familiarity).toBeCloseTo(0.7, 1);
 		});
 
 		it('should accumulate contributions from multiple uses', () => {
@@ -361,25 +356,84 @@ describe('suggestion-engine', () => {
 			monthAgo.setDate(monthAgo.getDate() - 30);
 
 			const familiarity = calculateFamiliarity([today, weekAgo, monthAgo]);
-			// Should be > 2 (three recent uses)
-			expect(familiarity).toBeGreaterThan(2);
+			// ~2.8 from decay (3 recent uses) + 0.4 from 2 distinct months
+			expect(familiarity).toBeGreaterThan(3);
 		});
 
 		it('should handle string dates', () => {
 			const familiarity = calculateFamiliarity([new Date().toISOString()]);
-			expect(familiarity).toBeCloseTo(1, 1);
+			expect(familiarity).toBeCloseTo(1.2, 1);
 		});
 
-		it('should weight recent uses much higher than old uses', () => {
-			const today = new Date();
-			const yearAgo = new Date();
-			yearAgo.setDate(yearAgo.getDate() - 365);
+		it('should add depth bonus for uses in different months', () => {
+			// Create uses spread across 6 different months
+			const dates: Date[] = [];
+			for (let i = 0; i < 6; i++) {
+				const d = new Date();
+				d.setMonth(d.getMonth() - i);
+				dates.push(d);
+			}
 
-			const recentFamiliarity = calculateFamiliarity([today]);
-			const oldFamiliarity = calculateFamiliarity([yearAgo]);
+			const familiarity = calculateFamiliarity(dates);
+			// Should include 6 * 0.2 = 1.2 depth bonus
+			expect(familiarity).toBeGreaterThan(3); // decay + 1.2 depth
+		});
 
-			// Recent use should be worth ~16x more than a year-old use
-			expect(recentFamiliarity / oldFamiliarity).toBeGreaterThan(10);
+		it('should cap depth bonus at 2.0', () => {
+			// Create uses in exactly 10 different months (10 * 0.2 = 2.0, at cap)
+			const tenMonthsDates: Date[] = [];
+			for (let i = 0; i < 10; i++) {
+				const d = new Date();
+				d.setMonth(d.getMonth() - i);
+				tenMonthsDates.push(d);
+			}
+
+			// Create uses in 15 different months (would be 3.0 uncapped)
+			const fifteenMonthsDates: Date[] = [];
+			for (let i = 0; i < 15; i++) {
+				const d = new Date();
+				d.setMonth(d.getMonth() - i);
+				fifteenMonthsDates.push(d);
+			}
+
+			const tenMonthsFamiliarity = calculateFamiliarity(tenMonthsDates);
+			const fifteenMonthsFamiliarity = calculateFamiliarity(fifteenMonthsDates);
+
+			// Both should have same depth bonus (capped at 2.0)
+			// Difference should only be from decay of extra 5 old uses
+			// With 120-day half-life, old uses contribute little
+			expect(fifteenMonthsFamiliarity - tenMonthsFamiliarity).toBeLessThan(1.5);
+		});
+
+		it('should not count months older than 4 years for depth bonus', () => {
+			// Use 5 years ago - should not contribute to depth bonus
+			const fiveYearsAgo = new Date();
+			fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+
+			const oldFamiliarity = calculateFamiliarity([fiveYearsAgo]);
+			// Very small decay contribution, no depth bonus
+			expect(oldFamiliarity).toBeLessThan(0.2);
+		});
+
+		it('should reward long-term consistent use', () => {
+			// Song A: 3 uses in the last month (same month)
+			const recentDates = [new Date(), new Date(), new Date()];
+
+			// Song B: 1 use per month for 10 months
+			const consistentDates: Date[] = [];
+			for (let i = 0; i < 10; i++) {
+				const d = new Date();
+				d.setMonth(d.getMonth() - i);
+				consistentDates.push(d);
+			}
+
+			const recentFamiliarity = calculateFamiliarity(recentDates);
+			const consistentFamiliarity = calculateFamiliarity(consistentDates);
+
+			// Consistent use should score higher due to depth bonus
+			// Recent: ~3.0 decay + 0.2 depth = 3.2
+			// Consistent: ~5.5 decay + 2.0 depth = 7.5
+			expect(consistentFamiliarity).toBeGreaterThan(recentFamiliarity);
 		});
 	});
 

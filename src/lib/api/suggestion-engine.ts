@@ -292,13 +292,32 @@ export function scoreFreshness(daysSinceLastUsed?: number): number {
 
 /**
  * Half-life for familiarity decay in days.
- * Familiarity contribution from a usage halves every 90 days.
+ * Familiarity contribution from a usage halves every 120 days (~4 months).
  */
-const FAMILIARITY_HALF_LIFE_DAYS = 90;
+const FAMILIARITY_HALF_LIFE_DAYS = 120;
+
+/**
+ * Maximum age (in years) to consider for depth bonus.
+ * Uses older than this don't contribute to the "consistency" score.
+ */
+const DEPTH_BONUS_MAX_YEARS = 4;
+
+/**
+ * Maximum depth bonus from consistent long-term use.
+ */
+const DEPTH_BONUS_CAP = 2.0;
+
+/**
+ * Bonus per distinct month the song was used (within the lookback period).
+ */
+const DEPTH_BONUS_PER_MONTH = 0.2;
 
 /**
  * Calculate congregation familiarity score based on usage history.
- * Uses exponential decay so recent uses count more than old ones.
+ *
+ * Combines two factors:
+ * 1. Active familiarity: Decay-based score (recent uses count more)
+ * 2. Deep familiarity: Bonus for consistent use over time (distinct months used)
  *
  * @param usageDates - Array of dates when the song was used
  * @returns Familiarity score (unbounded, but typically 0-10)
@@ -307,19 +326,32 @@ export function calculateFamiliarity(usageDates: (Date | string)[]): number {
 	if (usageDates.length === 0) return 0;
 
 	const now = Date.now();
-	let familiarity = 0;
+	const cutoffDate = now - DEPTH_BONUS_MAX_YEARS * 365 * 24 * 60 * 60 * 1000;
+
+	let activeFamiliarity = 0;
+	const monthsUsed = new Set<string>();
 
 	for (const date of usageDates) {
 		const useDate = typeof date === 'string' ? new Date(date) : date;
-		const daysSince = (now - useDate.getTime()) / (1000 * 60 * 60 * 24);
+		const timestamp = useDate.getTime();
+		const daysSince = (now - timestamp) / (1000 * 60 * 60 * 24);
 
-		// Exponential decay: contribution = 2^(-daysSince/halfLife)
-		// A use today = 1.0, 90 days ago = 0.5, 180 days ago = 0.25, etc.
+		// Active familiarity: exponential decay
+		// A use today = 1.0, 180 days ago = 0.5, 360 days ago = 0.25, etc.
 		const contribution = Math.pow(2, -daysSince / FAMILIARITY_HALF_LIFE_DAYS);
-		familiarity += contribution;
+		activeFamiliarity += contribution;
+
+		// Track distinct months for depth bonus (only within lookback period)
+		if (timestamp >= cutoffDate) {
+			const monthKey = `${useDate.getFullYear()}-${useDate.getMonth()}`;
+			monthsUsed.add(monthKey);
+		}
 	}
 
-	return familiarity;
+	// Depth bonus: reward consistent use over time
+	const depthBonus = Math.min(monthsUsed.size * DEPTH_BONUS_PER_MONTH, DEPTH_BONUS_CAP);
+
+	return activeFamiliarity + depthBonus;
 }
 
 /**
