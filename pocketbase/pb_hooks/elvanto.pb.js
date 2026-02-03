@@ -111,6 +111,7 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 		const services = data.services && data.services.service ? toArray(data.services.service) : [];
 		let importedServices = 0;
 		let importedSongs = 0;
+		let importedLeaders = 0;
 
 		// 2. Single pre-processing pass: collect leaders, songs, and map leaders to services
 		const worshipLeaderMap = {}; // Elvanto person_id -> WorshipWise user_id
@@ -223,6 +224,8 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 					membership.set('church_id', church.id);
 					membership.set('user_id', targetUser.id);
 					membership.set('status', 'pending');
+					membership.set('role', 'leader');
+					membership.set('permissions', ["manage-songs", "manage-services"]);
 					membership.set('invited_by', user.id);
 					membership.set('invited_date', new Date().toISOString());
 					membership.set('is_active', false);
@@ -252,6 +255,8 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 						$app.save(userSkill);
 					}
 				}
+				
+				importedLeaders++;
 			} catch (err) {
 				$app.logger().warn(`Failed to fetch/create worship leader ${personId}: ${err.message}`);
 				worshipLeaderMap[personId] = user.id; // fallback
@@ -509,7 +514,7 @@ routerAdd('POST', '/api/elvanto/import/{churchId}', (e) => {
 			success: true,
 			importedServices,
 			importedSongs,
-			importedLeaders: uniqueLeaders.size
+			importedLeaders
 		});
 	} catch (err) {
 		$app.logger().error('Elvanto Import Error', err);

@@ -11,24 +11,46 @@ function toArray(val) {
  * Helper to fetch from Elvanto
  */
 function elvantoFetch(endpoint, apiKey, data) {
-	const res = $http.send({
-		url: 'https://api.elvanto.com/v1/' + endpoint + '.json',
-		method: 'POST',
-		headers: {
-			Authorization: 'Basic ' + Buffer.from(apiKey + ':').toString('base64'),
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify(data || {})
-	});
+	// Rate limiting: moderate delay to be nice to the API
+	sleep(100);
 
-	if (res.statusCode != 200) {
-		throw new Error('Elvanto API Error: ' + res.statusCode + ' ' + res.raw);
+	const maxRetries = 3;
+	let attempts = 0;
+
+	while (true) {
+		const res = $http.send({
+			url: 'https://api.elvanto.com/v1/' + endpoint + '.json',
+			method: 'POST',
+			headers: {
+				Authorization: 'Basic ' + Buffer.from(apiKey + ':').toString('base64'),
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(data || {})
+		});
+
+		// Handle Rate Limiting
+		if (res.statusCode === 429) {
+			attempts++;
+			if (attempts > maxRetries) {
+				throw new Error('Elvanto API Error: Rate limit exceeded after retries.');
+			}
+			const wait = attempts * 2000; // 2s, 4s, 6s...
+			console.log(`Elvanto 429 Rate Limit. Waiting ${wait}ms...`);
+			sleep(wait);
+			continue;
+		}
+
+		if (res.statusCode != 200) {
+			throw new Error('Elvanto API Error: ' + res.statusCode + ' ' + res.raw);
+		}
+		
+		const json = res.json;
+		if (json.status != 'ok') {
+			throw new Error('Elvanto API Error: ' + (json.error ? json.error.message : 'Unknown'));
+		}
+		
+		return json;
 	}
-	const json = res.json;
-	if (json.status != 'ok') {
-		throw new Error('Elvanto API Error: ' + (json.error ? json.error.message : 'Unknown'));
-	}
-	return json;
 }
 
 /**
