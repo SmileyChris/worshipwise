@@ -57,6 +57,40 @@ class RecommendationsStore {
 		)
 	);
 
+	highPriorityCount = $derived.by(() => {
+		let count = 0;
+
+		// Songs unused for >90 days
+		const overdueSongs = this.songRecommendations.filter(
+			(r) => r.type === 'rotation' && (r.metadata?.daysSinceLastUse as number) > 90
+		);
+		count += overdueSongs.length;
+
+		// Rotation health score <50
+		if (this.worshipInsights?.rotationHealth && this.worshipInsights.rotationHealth.score < 50) {
+			count++;
+		}
+
+		// Average diversity <40
+		if (this.worshipInsights?.diversityAnalysis) {
+			const d = this.worshipInsights.diversityAnalysis;
+			const avgDiversity = (d.keyDiversity + d.tempoDiversity + d.artistDiversity) / 3;
+			if (avgDiversity < 40) {
+				count++;
+			}
+		}
+
+		// Seasonal alignment <30
+		if (
+			this.worshipInsights?.seasonalReadiness &&
+			this.worshipInsights.seasonalReadiness.currentSeasonAlignment < 30
+		) {
+			count++;
+		}
+
+		return count;
+	});
+
 	/**
 	 * Load song recommendations based on current filters
 	 */

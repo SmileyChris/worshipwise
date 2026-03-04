@@ -1,11 +1,20 @@
 <script lang="ts">
 	import { page as pageStore } from '$app/stores';
-    import { getAuthStore, getQuickstartStore } from '$lib/context/stores.svelte';
+    import { getAuthStore, getQuickstartStore, getRecommendationsStore } from '$lib/context/stores.svelte';
 	import NotificationBell from '$lib/components/notifications/NotificationBell.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 
 	const auth = getAuthStore();
 	const quickstartStore = getQuickstartStore();
+	const recommendationsStore = getRecommendationsStore();
+
+	// Load recommendation counts for nav badge
+	$effect(() => {
+		if (auth.canManageServices) {
+			recommendationsStore.loadSongRecommendations();
+			recommendationsStore.loadWorshipInsights();
+		}
+	});
 
 	// User menu dropdown state
 	let userMenuOpen = $state(false);
@@ -113,6 +122,11 @@
 						>
 							<span class="mr-2">{item.icon}</span>
 							{item.name}
+							{#if item.name === 'Insights' && recommendationsStore.highPriorityCount > 0}
+								<span class="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
+									{recommendationsStore.highPriorityCount}
+								</span>
+							{/if}
 						</a>
 					{/each}
 				</div>
@@ -243,6 +257,11 @@
 				>
 					<span class="mr-2">{item.icon}</span>
 					{item.name}
+					{#if item.name === 'Insights' && recommendationsStore.highPriorityCount > 0}
+						<span class="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
+							{recommendationsStore.highPriorityCount}
+						</span>
+					{/if}
 				</a>
 			{/each}
 		</div>

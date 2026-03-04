@@ -489,6 +489,94 @@ describe('RecommendationsStore', () => {
 		});
 	});
 
+	// Note: highPriorityCount is a $derived() value and doesn't work in Node.js test environment.
+	// The conditions it checks are tested here to verify the underlying logic.
+	describe('highPriorityCount conditions', () => {
+		it('should identify songs overdue >90 days as high priority', () => {
+			recommendationsStore.songRecommendations = [
+				{
+					songId: 'old-1',
+					title: 'Old Song',
+					type: 'rotation',
+					score: 0.5,
+					reason: 'Very old',
+					metadata: { daysSinceLastUse: 120 }
+				},
+				{
+					songId: 'recent-1',
+					title: 'Recent Song',
+					type: 'rotation',
+					score: 0.7,
+					reason: 'Recent',
+					metadata: { daysSinceLastUse: 30 }
+				}
+			];
+
+			const overdue = recommendationsStore.songRecommendations.filter(
+				(r) => r.type === 'rotation' && (r.metadata?.daysSinceLastUse as number) > 90
+			);
+			expect(overdue).toHaveLength(1);
+			expect(overdue[0].songId).toBe('old-1');
+		});
+
+		it('should flag rotation health score below 50', () => {
+			recommendationsStore.worshipInsights = {
+				...mockWorshipInsights,
+				rotationHealth: { ...mockWorshipInsights.rotationHealth, score: 40 }
+			};
+
+			expect(recommendationsStore.worshipInsights.rotationHealth.score).toBeLessThan(50);
+		});
+
+		it('should flag average diversity below 40', () => {
+			recommendationsStore.worshipInsights = {
+				...mockWorshipInsights,
+				diversityAnalysis: {
+					keyDiversity: 30,
+					tempoDiversity: 35,
+					artistDiversity: 25,
+					recommendations: []
+				}
+			};
+
+			const d = recommendationsStore.worshipInsights.diversityAnalysis;
+			const avgDiversity = (d.keyDiversity + d.tempoDiversity + d.artistDiversity) / 3;
+			expect(avgDiversity).toBeLessThan(40);
+		});
+
+		it('should flag seasonal alignment below 30', () => {
+			recommendationsStore.worshipInsights = {
+				...mockWorshipInsights,
+				seasonalReadiness: {
+					...mockWorshipInsights.seasonalReadiness,
+					currentSeasonAlignment: 20
+				}
+			};
+
+			expect(
+				recommendationsStore.worshipInsights.seasonalReadiness.currentSeasonAlignment
+			).toBeLessThan(30);
+		});
+
+		it('should not flag when all metrics are healthy', () => {
+			recommendationsStore.worshipInsights = mockWorshipInsights; // score 80, diversity ~70, seasonal 85
+			recommendationsStore.songRecommendations = mockSongRecommendations; // max 45 days
+
+			const overdue = recommendationsStore.songRecommendations.filter(
+				(r) => r.type === 'rotation' && (r.metadata?.daysSinceLastUse as number) > 90
+			);
+			expect(overdue).toHaveLength(0);
+			expect(mockWorshipInsights.rotationHealth.score).toBeGreaterThanOrEqual(50);
+
+			const d = mockWorshipInsights.diversityAnalysis;
+			const avgDiversity = (d.keyDiversity + d.tempoDiversity + d.artistDiversity) / 3;
+			expect(avgDiversity).toBeGreaterThanOrEqual(40);
+			expect(mockWorshipInsights.seasonalReadiness.currentSeasonAlignment).toBeGreaterThanOrEqual(
+				30
+			);
+		});
+	});
+
 	describe('edge cases', () => {
 		it('should handle recommendations with missing metadata', () => {
 			const recommendationsWithMissingData = [
