@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page as pageStore } from '$app/stores';
+	import { onMount } from 'svelte';
     import { getAuthStore, getQuickstartStore, getRecommendationsStore } from '$lib/context/stores.svelte';
 	import NotificationBell from '$lib/components/notifications/NotificationBell.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -9,7 +10,7 @@
 	const recommendationsStore = getRecommendationsStore();
 
 	// Load recommendation counts for nav badge
-	$effect(() => {
+	onMount(() => {
 		if (auth.canManageServices) {
 			recommendationsStore.loadSongRecommendations();
 			recommendationsStore.loadWorshipInsights();

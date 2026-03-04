@@ -106,7 +106,7 @@
 					onclick={() => (activeTab = tab.id)}
 					aria-current={activeTab === tab.id ? 'page' : undefined}
 				>
-					<tab.icon class="mr-2 h-4 w-4" />
+					<svelte:component this={tab.icon} class="mr-2 h-4 w-4" />
 					{tab.label}
 				</button>
 			{/each}
