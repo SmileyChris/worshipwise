@@ -5,7 +5,7 @@
  */
 onRecordAfterUpdateSuccess((e) => {
 	const record = e.record;
-	const oldStatus = e.record.originalCopy().getString('status');
+	const oldStatus = e.record.original().getString('status');
 	const newStatus = record.getString('status');
 
 	// Only proceed if status changed to 'completed'

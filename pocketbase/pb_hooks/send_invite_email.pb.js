@@ -187,7 +187,7 @@ This invitation was sent to ${email} by WorshipWise on behalf of ${church.get('n
  * Send email notification when an invitation is accepted
  */
 onRecordUpdateRequest(function (e) {
-	const oldRecord = e.record.originalCopy();
+	const oldRecord = e.record.original();
 	const newRecord = e.record;
 
 	// Check if the invitation was just accepted
